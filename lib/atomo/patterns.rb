@@ -7,7 +7,7 @@ module Atomo::Pattern
       else
         return Named.new(n.name, Any.new)
       end
-    when Atomo::AST::Number
+    when Atomo::AST::Primitive
       return Match.new(n.value)
     when Atomo::AST::List
       return List.new(n.elements.collect { |e| from_node(e) })

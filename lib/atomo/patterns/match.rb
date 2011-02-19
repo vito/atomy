@@ -5,7 +5,19 @@ module Atomo::Pattern
     end
 
     def target(g)
-      g.push_const @value.class.name.to_sym
+      case @value
+      when :true
+        g.push_const :TrueClass
+      when :false
+        g.push_const :FalseClass
+      when :nil
+        g.push_const :NilClass
+      when :self
+        g.push_self
+        g.send :class, 0
+      else
+        g.push_const @value.class.name.to_sym
+      end
     end
 
     def match(g)

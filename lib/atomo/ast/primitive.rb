@@ -1,10 +1,10 @@
 module Atomo
   module AST
-    class Number < AST::Node
+    class Primitive < AST::Node
       Atomo::Parser.register self
 
       def self.rule_name
-        "number"
+        "primitive"
       end
 
       def initialize(value)
@@ -16,8 +16,15 @@ module Atomo
 
       def self.grammar(g)
         g.number = g.reg(/0|([1-9][0-9]*)/) do |i|
-          Number.new(i.to_i)
+          Primitive.new i.to_i
         end
+
+        g.true = g.str("True") { Primitive.new :true }
+        g.false = g.str("False") { Primitive.new :false }
+
+        g.self = g.str("self") { Primitive.new :self }
+
+        g.nil = g.str("nil") { Primitive.new :nil }
       end
 
       def bytecode(g)
