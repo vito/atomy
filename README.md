@@ -1,0 +1,1 @@
+Atomo implementation on Rubinius.

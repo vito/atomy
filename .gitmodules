@@ -1,0 +1,3 @@
+[submodule "lib/vendor/kpeg"]
+	path = lib/vendor/kpeg
+	url = git://github.com/evanphx/kpeg.git
