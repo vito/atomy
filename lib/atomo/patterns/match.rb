@@ -5,7 +5,7 @@ module Atomo::Pattern
     end
 
     def target(g)
-      g.push @value.class
+      g.push_const @value.class.name.to_sym
     end
 
     def match(g)
