@@ -10,7 +10,8 @@ module Atomo
       g.identifier =
         g.seq(
           # look ahead to make sure it's not actually an operator
-          g.notp(:operator), ident_start, ident_letters
+          g.notp(g.seq(:operator, :sig_sp)),
+          ident_start, ident_letters
         ) do |_, c, cs|
           c + cs
         end
