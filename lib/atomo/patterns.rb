@@ -13,6 +13,8 @@ module Atomo::Pattern
       return List.new(n.elements.collect { |e| from_node(e) })
     when Atomo::AST::Tuple
       return Tuple.new(n.elements.collect { |e| from_node(e) })
+    when Atomo::AST::Constant
+      return Constant.new(n.name)
     when Atomo::AST::Operator
       case n.operator
       when "."
