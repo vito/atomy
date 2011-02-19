@@ -48,8 +48,12 @@ module Atomo
           return
         elsif @operator == ":="
           recv = Atomo::Pattern::from_node(@lhs.receiver)
-          args = @lhs.arguments.each do |a|
-            Atomo::Pattern::from_node(a)
+          if @lhs.respond_to? :arguments
+            args = @lhs.arguments.each do |a|
+              Atomo::Pattern::from_node(a)
+            end
+          else
+            args = []
           end
 
           Define.new(@lhs.method_name, recv, args, @rhs).bytecode(g)
