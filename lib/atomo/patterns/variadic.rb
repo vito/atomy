@@ -1,5 +1,7 @@
 module Atomo::Pattern
   class Variadic
+    attr_accessor :pattern
+
     def initialize(p)
       @pattern = p
     end

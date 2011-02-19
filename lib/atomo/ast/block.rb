@@ -38,14 +38,16 @@ module Atomo
       def bytecode(g)
         case @arguments.size
         when 0
-        when 1
-          g.cast_for_single_block_arg
-          @arguments[0].match(g)
         else
           g.cast_for_multi_block_arg
           @arguments.each do |a|
-            g.shift_array
-            a.match(g)
+            if a.kind_of?(Pattern::Variadic)
+              a.pattern.match(g)
+              return
+            else
+              g.shift_array
+              a.match(g)
+            end
           end
           g.pop
         end
@@ -72,7 +74,13 @@ module Atomo
       end
 
       def splat_index
-        nil
+        idx = nil
+        @arguments.each do |a,i|
+          if a.kind_of?(Pattern::Variadic)
+            idx = i
+          end
+        end
+        idx
       end
     end
 
