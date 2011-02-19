@@ -1,5 +1,35 @@
 module Atomo
   module AST
+    class Block < Rubinius::AST::Iter
+      Atomo::Parser.register self
+
+      attr_accessor :parent
+
+      def self.rule_name
+        "block"
+      end
+
+      def initialize(body, args)
+        @body = BlockBody.new body
+        @arguments = BlockArguments.new args
+        @parent = nil
+        @line = 1 # TODO
+      end
+
+      attr_reader :body, :arguments
+
+      def self.grammar(g)
+        name = g.seq(g.t(/[a-zA-Z][a-zA-Z0-9_]*/), :sp)
+        args = g.seq(g.t(g.many(g.seq(:sp, g.t(:level1)))), :sp, "|")
+
+        g.block = g.seq('{', g.t(g.maybe(args)), :sp,
+                             g.t(:expressions), :sp, '}') do |args,v|
+          p :as => args, :es => v
+          Block.new(v, Array(args))
+        end
+      end
+    end
+
     class BlockArguments < AST::Node
       def initialize(args)
         @arguments = args.collect { |a| Pattern.from_node a }
@@ -40,58 +70,34 @@ module Atomo
       def total_args
         size
       end
+
+      def splat_index
+        nil
+      end
     end
 
-    class Block < Rubinius::AST::Iter
-      Atomo::Parser.register self
+    class BlockBody < Node
+      attr_reader :expressions
 
-      attr_accessor :parent
-
-      def self.rule_name
-        "block"
-      end
-
-      def initialize(body, args)
+      def initialize(body)
         @body = body
-        @arguments = BlockArguments.new args
-        @parent = nil
         @line = 1 # TODO
       end
 
-      attr_reader :body, :arguments
-
-      def self.grammar(g)
-        name = g.seq(g.t(/[a-zA-Z][a-zA-Z0-9_]*/), :sp)
-        args = g.seq(g.t(g.many(g.seq(:sp, g.t(:level1)))), :sp, "|")
-
-        g.block = g.seq('{', g.t(g.maybe(args)), :sp,
-                             g.t(:expressions), :sp, '}') do |args,v|
-          p :as => args, :es => v
-          Block.new(v, Array(args))
-        end
+      def empty?
+        @body.empty?
       end
 
       def bytecode(g)
         pos(g)
-
-        state = g.state
-        state.scope.nest_scope self
-
-        c = new_block_generator g, @arguments
-        c.push_state(self)
-        c.local_names = @arguments.local_names
-
-        @arguments.bytecode(c)
-
         @body.each_with_index do |node,idx|
-          c.pop unless idx == 0
-          node.bytecode(c)
+          g.pop unless idx == 0
+          node.bytecode(g)
         end
+      end
 
-        c.ret
-        c.close
-
-        g.create_block c
+      def empty?
+        @body.size == 0
       end
     end
   end
