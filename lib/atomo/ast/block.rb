@@ -19,14 +19,16 @@ module Atomo
       attr_reader :body, :arguments
 
       def self.grammar(g)
-        name = g.seq(g.t(/[a-zA-Z][a-zA-Z0-9_]*/), :sp)
-        args = g.seq(g.t(g.many(g.seq(:sp, g.t(:level1)))), :sp, "|")
+        args =
+          g.seq(g.t(g.many(g.seq(:sp, g.t(:level1)))), :sp, "|")
 
-        g.block = g.seq('{', g.t(g.maybe(args)), :sp,
-                             g.t(:expressions), :sp, '}') do |args,v|
-          p :as => args, :es => v
-          Block.new(v, Array(args))
-        end
+        g.block =
+          g.seq(
+            '{', g.t(g.maybe(args)), :sp,
+            g.t(:expressions), :sp, '}'
+          ) do |args,v|
+            Block.new(v, Array(args))
+          end
       end
     end
 
