@@ -11,7 +11,6 @@ module Atomo
         when 1
           g.cast_for_single_block_arg
           @arguments[0].match(g)
-          g.pop
         else
           g.cast_for_multi_block_arg
           @arguments.each do |a|
