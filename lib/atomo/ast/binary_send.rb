@@ -4,11 +4,11 @@ require base + '/patterns'
 
 module Atomo
   module AST
-    class Operator < AST::Node
+    class BinarySend < AST::Node
       Atomo::Parser.register self
 
       def self.rule_name
-        "operator"
+        "binary_send"
       end
 
       def initialize(operator, lhs, rhs)
@@ -21,20 +21,19 @@ module Atomo
       attr_reader :operator, :lhs, :rhs
 
       def self.grammar(g)
-        g.operators = g.t(/((?![,;])[!@#%&*-.\/\?:\p{S}])+/u)
-        g.operator =
+        g.binary_send =
           g.seq(
-            :operator, :sp, :operators, :sp, :expression
+            :binary_send, :sig_sp, :operator, :sig_sp, :expression
           ) do |l, _, o, _, r|
-            Operator.new(o,l,r)
+            BinarySend.new(o,l,r)
           end | g.seq(
-            :level3, :sp, :operators, :sp, :expression
+            :level3, :sig_sp, :operator, :sig_sp, :expression
           ) do |l, _, o, _, r|
-            Operator.new(o,l,r)
+            BinarySend.new(o,l,r)
           end | g.seq(
-            :operators, :sp, :expression
+            :operator, :sig_sp, :expression
           ) do |o, _, r|
-            Operator.new(o, Primitive.new(:self), r)
+            BinarySend.new(o, Primitive.new(:self), r)
           end
       end
 
@@ -44,6 +43,7 @@ module Atomo
         if @operator == "="
           pat = Atomo::Pattern::from_node(@lhs)
           @rhs.bytecode(g)
+          g.dup
           pat.match(g)
           return
         elsif @operator == ":="

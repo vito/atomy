@@ -28,7 +28,7 @@ module Atomo::Pattern
       end
     end
 
-    raise Exception.new("unknown pattern: " + n.to_s)
+    raise Exception.new("unknown pattern: " + n.inspect)
   end
 
   # include all pattern classes

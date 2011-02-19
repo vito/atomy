@@ -3,7 +3,25 @@ module Atomo
     def self.grammar(g)
       g.sp = g.kleene g.any(" ", "\n")
       g.sig_sp = g.many g.any(" ", "\n")
-      g.method_name = /~?[a-zA-Z_][a-zA-Z0-9_]*[?!]?/
+
+      ident_start = /(?![&@$~:])[\p{L}\p{S}_!@#%&*-.\/\?]/u
+      ident_letters = /[\p{L}\p{S}_!@#%&*-.\/\?]*/u
+
+      g.identifier =
+        g.seq(
+          # look ahead to make sure it's not actually an operator
+          g.notp(:operator), ident_start, ident_letters
+        ) do |_, c, cs|
+          c + cs
+        end
+
+      op_start = /(?!`@$~)[\p{S}!@#%&*-.\/\?]/u
+      op_letters = /((?!`)[\p{S}!@#%&*-.\/\?])*/u
+
+      g.operator =
+        g.seq(op_start, op_letters) do |c, cs|
+          c + cs
+        end
 
       g.grouped = g.seq("(", :sp, g.t(:expression), :sp, ")")
       g.level1 = g.any(:true, :false, :self, :nil, :number,
@@ -14,7 +32,7 @@ module Atomo
 
       g.level3 = g.any(:keyword_send, :level2)
 
-      g.expression = g.any(:operator, :level3)
+      g.expression = g.any(:binary_send, :level3)
 
       g.delim = g.any(";", ",")
 

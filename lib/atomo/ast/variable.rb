@@ -18,7 +18,7 @@ module Atomo
       attr_reader :name
 
       def self.grammar(g)
-        g.variable = g.lit(/[a-z][a-zA-Z0-9_]*/) do |str|
+        g.variable = g.seq(:identifier) do |str|
           Variable.new(str)
         end
       end

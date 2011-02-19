@@ -25,11 +25,11 @@ module Atomo
       def self.grammar(g)
         g.ruby_send =
           g.seq(
-            :ruby_send, ".", :method_name, :sp, :level1
+            :ruby_send, ".", :identifier, :sp, :level1
           ) do |v, _, n, _, x|
             RubySend.new(v,n,x)
           end | g.seq(
-            :level1, ".", :method_name, :sp, :level1
+            :level1, ".", :identifier, :sp, :level1
           ) do |v, _, n, _, x|
             RubySend.new(v,n,x)
           end
