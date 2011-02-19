@@ -23,7 +23,7 @@ module Atomo::Pattern
         return Variadic.new(from_node(n.rhs))
       end
     when Atomo::AST::KeywordSend
-      if n.receiver.is_a?(Atomo::AST::Self) && n.arguments.size == 1
+      if n.receiver.is_a?(Atomo::AST::Primitive) && n.value == :self && n.arguments.size == 1
         return Named.new(n.method_name.chop, from_node(n.arguments[0]))
       end
     end

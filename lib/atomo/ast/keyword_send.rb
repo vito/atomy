@@ -54,7 +54,7 @@ module Atomo
             s.arguments.concat arg.last
             s
           end | g.seq(:send_args) do |arg|
-            s = new(Self.new, arg.first)
+            s = new(Primitive.new(:self), arg.first)
             s.arguments.concat arg.last
             s
           end

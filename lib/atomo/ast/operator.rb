@@ -34,7 +34,7 @@ module Atomo
           end | g.seq(
             :operators, :sp, :expression
           ) do |o, _, r|
-            Operator.new(o, Self.new, r)
+            Operator.new(o, Primitive.new(:self), r)
           end
       end
 
