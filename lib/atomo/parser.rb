@@ -1,7 +1,7 @@
 # Introduce our vendored kpeg
 $:.unshift File.expand_path("../../vendor/kpeg/lib", __FILE__)
 
-require 'kpeg'
+require "kpeg"
 
 module Atomo
   class Parser
@@ -52,7 +52,7 @@ module Atomo
       attr_reader :parser, :match
     end
 
-    def parse(rule=nil)
+    def parse(rule = nil)
       @last_match = match = @parser.parse(rule ? rule.to_s : nil)
 
       if @parser.failed?
@@ -66,8 +66,8 @@ module Atomo
 
     path = File.expand_path("../ast", __FILE__)
 
-    require path + '/global'
-    require path + '/node'
+    require path + "/global"
+    require path + "/node"
 
     Dir["#{path}/*.rb"].sort.each do |f|
       require path + "/#{File.basename f}"

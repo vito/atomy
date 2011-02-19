@@ -59,15 +59,8 @@ module Atomo
           @arguments.each do |a|
             g.shift_array
             a.match(g)
-            #g.pop # remove unshifted val
           end
-          g.pop # remove array
-          # @arguments.each do |a|
-            # g.send :inspect, 0
-            # g.send :display, 0
-            # g.pop
-            # a.match(g)
-          # end
+          g.pop
         end
 
         def local_names
@@ -79,15 +72,15 @@ module Atomo
         end
 
         def locals
-          @arguments.size # TODO
+          local_names.size
         end
 
         def required_args
-          @arguments.size # TODO
+          size # TODO
         end
 
         def total_args
-          @arguments.size # TODO
+          size # TODO
         end
 
         def splat_index

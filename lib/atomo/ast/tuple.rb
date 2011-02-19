@@ -15,13 +15,15 @@ module Atomo
       attr_reader :elements
 
       def self.grammar(g)
-        g.tuple = g.seq("(", :sp, g.t(:expression), :sp, g.any(";", ","),
-                                :sp, g.t(:expressions), :sp, ")") { |e, es|
-                            Tuple.new(es.unshift e)
-                          } | g.seq("(", :sp, ")") { Tuple.new([]) }
+        g.tuple =
+          g.seq(
+            "(", :sp, g.t(:expression), :sp, g.any(";", ","),
+            :sp, g.t(:expressions), :sp, ")"
+          ) do |e, es|
+            Tuple.new(es.unshift e)
+          end | g.seq("(", :sp, ")") { Tuple.new([]) }
       end
 
-      # TODO: make a Tuple or something, not an array
       def bytecode(g)
         pos(g)
 

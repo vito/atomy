@@ -39,7 +39,7 @@ module Atomo
       end
 
       def print
-        p :print => true
+        @print = true
       end
 
       def input(code, filename = "(eval)", line = 1)

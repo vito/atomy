@@ -22,15 +22,20 @@ module Atomo
 
       def self.grammar(g)
         g.operators = g.t(/((?![,;])[!@#%&*-.\/\?:\p{S}])+/u)
-        g.operator = g.seq(:operator, :sp, :operators, :sp, :expression) { |l,_,o,_,r|
-                          Operator.new(o,l,r)
-                        } \
-                   | g.seq(:level3, :sp, :operators, :sp, :expression) { |l,_,o,_,r|
-                          Operator.new(o,l,r)
-                        } \
-                   | g.seq(:operators, :sp, :expression) { |o,_,r|
-                          Operator.new(o, Self.new, r)
-                        }
+        g.operator =
+          g.seq(
+            :operator, :sp, :operators, :sp, :expression
+          ) do |l, _, o, _, r|
+            Operator.new(o,l,r)
+          end | g.seq(
+            :level3, :sp, :operators, :sp, :expression
+          ) do |l, _, o, _, r|
+            Operator.new(o,l,r)
+          end | g.seq(
+            :operators, :sp, :expression
+          ) do |o, _, r|
+            Operator.new(o, Self.new, r)
+          end
       end
 
       def bytecode(g)

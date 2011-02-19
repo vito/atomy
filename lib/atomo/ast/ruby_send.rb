@@ -23,12 +23,16 @@ module Atomo
       attr_reader :receiver, :method_name, :arguments
 
       def self.grammar(g)
-        g.ruby_send = g.seq(:ruby_send, ".", :method_name, :sp, :level1) {
-                            |v,_,n,_,x| RubySend.new(v,n,x)
-                         } \
-                     | g.seq(:level1, ".", :method_name, :sp, :level1) {
-                          |v,_,n,_,x| RubySend.new(v,n,x)
-                        }
+        g.ruby_send =
+          g.seq(
+            :ruby_send, ".", :method_name, :sp, :level1
+          ) do |v, _, n, _, x|
+            RubySend.new(v,n,x)
+          end | g.seq(
+            :level1, ".", :method_name, :sp, :level1
+          ) do |v, _, n, _, x|
+            RubySend.new(v,n,x)
+          end
       end
 
       def bytecode(g)

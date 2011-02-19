@@ -18,14 +18,18 @@ module Atomo
 
       g.delim = g.any(";", ",")
 
-      g.expressions = g.seq(:expression, :sp,
-                            g.kleene(
-                              g.seq(:sp, :delim, :sp, g.t(:expression), :sp))) {
-                                |x,_,m|
-                                m = Array(m)
-                                m.unshift x
-                                m
-                              }
+      g.expressions =
+        g.seq(
+          :expression,
+          :sp,
+          g.kleene(
+            g.seq(:sp, :delim, :sp, g.t(:expression), :sp)
+          )
+        ) do |x, _, m|
+          m = Array(m)
+          m.unshift x
+          m
+        end
 
       g.some_expressions = g.maybe(:expressions)
 

@@ -16,12 +16,16 @@ module Atomo
       attr_reader :receiver, :method_name
 
       def self.grammar(g)
-        g.unary_send = g.seq(:unary_send, :sig_sp, :method_name, g.notp(":")) {
-                            |v,_,n| UnarySend.new(v,n)
-                         } \
-                     | g.seq(:level1, :sig_sp, :method_name, g.notp(":")) {
-                          |v,_,n| UnarySend.new(v,n)
-                        }
+        g.unary_send =
+          g.seq(
+            :unary_send, :sig_sp, :method_name, g.notp(":")
+          ) do |v, _, n|
+            UnarySend.new(v,n)
+          end | g.seq(
+            :level1, :sig_sp, :method_name, g.notp(":")
+          ) do |v, _, n|
+            UnarySend.new(v,n)
+          end
       end
 
       def bytecode(g)

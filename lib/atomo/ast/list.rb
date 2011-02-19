@@ -15,9 +15,10 @@ module Atomo
       attr_reader :elements
 
       def self.grammar(g)
-        g.list = g.seq("[", :sp, g.t(:some_expressions), :sp, "]") { |e|
-          List.new(e)
-        }
+        g.list =
+          g.seq("[", :sp, g.t(:some_expressions), :sp, "]") do |e|
+            List.new(e)
+          end
       end
 
       def bytecode(g)

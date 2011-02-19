@@ -36,26 +36,28 @@ module Atomo
       end
 
       def self.grammar(g)
-        g.name_var_pair = g.seq(g.t(:method_name), ":", :sp, g.t(:level2),
-                                g.kleene(" ")) do |n,v|
-          Pair.new(n,v)
-        end
+        g.name_var_pair =
+          g.seq(
+            g.t(:method_name), ":", :sp,
+            g.t(:level2), g.kleene(" ")
+          ) do |n, v|
+            Pair.new(n,v)
+          end
 
         g.send_args = g.many(:name_var_pair) do |*pairs|
           collect(pairs)
         end
 
-        g.keyword_send = g.seq(:level2, :sig_sp, :send_args) do
-                              |v,_,arg|
-
-          s = new(v,arg.first)
-          s.arguments.concat arg.last
-          s
-        end | g.seq(:send_args) do |arg|
-          s = new(Self.new, arg.first)
-          s.arguments.concat arg.last
-          s
-        end
+        g.keyword_send =
+          g.seq(:level2, :sig_sp, :send_args) do |v, _, arg|
+            s = new(v,arg.first)
+            s.arguments.concat arg.last
+            s
+          end | g.seq(:send_args) do |arg|
+            s = new(Self.new, arg.first)
+            s.arguments.concat arg.last
+            s
+          end
       end
 
       def self.if_cond(g, name, args, if_true)

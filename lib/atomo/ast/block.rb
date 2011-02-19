@@ -17,9 +17,8 @@ module Atomo
           @arguments.each do |a|
             g.shift_array
             a.match(g)
-            #g.pop # remove unshifted val
           end
-          g.pop # remove array
+          g.pop
         end
       end
 
@@ -32,15 +31,15 @@ module Atomo
       end
 
       def locals
-        @arguments.size # TODO
+        local_names.size
       end
 
       def required_args
-        @arguments.size # TODO
+        size
       end
 
       def total_args
-        @arguments.size # TODO
+        size
       end
     end
 
