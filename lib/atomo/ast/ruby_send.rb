@@ -7,10 +7,11 @@ module Atomo
         "ruby_send"
       end
 
-      def initialize(receiver, method, arguments)
+      def initialize(receiver, method, arguments, privat = false)
         @receiver = receiver
         @method_name = method
         @arguments = arguments
+        @private = privat
         @line = 1 # TODO
       end
 
@@ -31,6 +32,10 @@ module Atomo
             :level1, :sig_sp, :identifier, :ruby_args
           ) do |v, _, n, x|
             RubySend.new(v,n,x)
+          end | g.seq(
+            :identifier, :ruby_args
+          ) do |n, x|
+            RubySend.new(Primitive.new(:self),n,x,true)
           end
       end
 
@@ -48,9 +53,9 @@ module Atomo
 
         if block
           block.bytecode(g)
-          g.send_with_block @method_name.to_sym, @arguments.size
+          g.send_with_block @method_name.to_sym, @arguments.size, @private
         else
-          g.send @method_name.to_sym, @arguments.size
+          g.send @method_name.to_sym, @arguments.size, @private
         end
       end
     end
