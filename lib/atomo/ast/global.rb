@@ -29,7 +29,7 @@ module Atomo
                        :string, :symbol, :constant, :variable,
                        :tuple, :grouped, :block, :list)
 
-      g.level2 = g.any(:unary_send, :ruby_send, :level1)
+      g.level2 = g.any(:ruby_send, :unary_send, :level1)
 
       g.level3 = g.any(:keyword_send, :level2)
 

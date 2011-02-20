@@ -7,30 +7,29 @@ module Atomo
         "ruby_send"
       end
 
-      def initialize(receiver, method, argument)
+      def initialize(receiver, method, arguments)
         @receiver = receiver
         @method_name = method
-
-        if argument.kind_of? AST::Tuple
-          @arguments = argument.elements
-        else
-          @arguments = [argument]
-        end
-
+        @arguments = arguments
         @line = 1 # TODO
       end
 
       attr_reader :receiver, :method_name, :arguments
 
       def self.grammar(g)
+        g.ruby_args =
+          g.seq(
+            "(", :some_expressions, ")"
+          ) do |_, as, _| as end
+
         g.ruby_send =
           g.seq(
-            :ruby_send, ".", :identifier, :sp, :level1
-          ) do |v, _, n, _, x|
+            :ruby_send, :sig_sp, :identifier, :ruby_args
+          ) do |v, _, n, x|
             RubySend.new(v,n,x)
           end | g.seq(
-            :level1, ".", :identifier, :sp, :level1
-          ) do |v, _, n, _, x|
+            :level1, :sig_sp, :identifier, :ruby_args
+          ) do |v, _, n, x|
             RubySend.new(v,n,x)
           end
       end
