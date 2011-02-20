@@ -16,8 +16,8 @@ module Atomo
           c + cs
         end
 
-      op_start = /(?!`@$~)[\p{S}!@#%&*-.\/\?]/u
-      op_letters = /((?!`)[\p{S}!@#%&*-.\/\?])*/u
+      op_start = /(?!`@$~)[\p{S}!@#%&*-.\/\?:]/u
+      op_letters = /((?!`)[\p{S}!@#%&*-.\/\?:])*/u
 
       g.operator =
         g.seq(op_start, op_letters) do |c, cs|
@@ -26,7 +26,7 @@ module Atomo
 
       g.grouped = g.seq("(", :sp, g.t(:expression), :sp, ")")
       g.level1 = g.any(:true, :false, :self, :nil, :number,
-                       :string, :symbol, :variable, :constant,
+                       :string, :symbol, :constant, :variable,
                        :tuple, :grouped, :block, :list)
 
       g.level2 = g.any(:unary_send, :ruby_send, :level1)
