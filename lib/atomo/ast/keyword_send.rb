@@ -38,8 +38,8 @@ module Atomo
       def self.grammar(g)
         g.name_var_pair =
           g.seq(
-            g.t(:identifier), ":", :sp,
-            g.t(:level2), g.kleene(" ")
+            :sp, g.t(:identifier), ":", :sp,
+            g.t(:level2)
           ) do |n, v|
             Pair.new(n,v)
           end
