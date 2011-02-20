@@ -35,7 +35,7 @@ module Atomo
 
       g.expression = g.any(:binary_send, :level3)
 
-      g.delim = g.any(";", ",")
+      g.delim = g.any(",", ";")
 
       g.expressions =
         g.seq(

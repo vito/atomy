@@ -131,8 +131,6 @@ module Atomo
           return if if_cond_else g, name, args, false
         end
 
-        p name
-
         args.each do |a|
           a.bytecode(g)
         end
