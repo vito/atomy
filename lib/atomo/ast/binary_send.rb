@@ -41,6 +41,15 @@ module Atomo
         pos(g)
 
         if @operator == "="
+          if @lhs.kind_of? Constant
+            g.push_scope
+            g.push_literal @lhs.name.to_sym
+            @rhs.bytecode(g)
+            g.send :const_set, 2
+            g.push_const @lhs.name.to_sym
+            return
+          end
+
           pat = Atomo::Pattern::from_node(@lhs)
           @rhs.bytecode(g)
           g.dup
