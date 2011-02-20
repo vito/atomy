@@ -1,4 +1,15 @@
-module Atomo::Pattern
+module Atomo::Patterns
+  class Pattern
+    # push the target class for this pattern in a defition
+    def target(g)
+    end
+
+    # match the pattern on the value at the top of the stack
+    # effect on the stack: top value removed
+    def match(g)
+    end
+  end
+
   def self.from_node(n)
     case n
     when Atomo::AST::Variable
@@ -32,8 +43,6 @@ module Atomo::Pattern
   end
 
   # include all pattern classes
-  # spec: match(x) should end up with the stack popped,
-  # target(g) should push the pattern's target object
   path = File.expand_path("../patterns", __FILE__)
 
   Dir["#{path}/*.rb"].sort.each do |f|

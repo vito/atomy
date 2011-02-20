@@ -34,7 +34,7 @@ module Atomo
 
     class BlockArguments < AST::Node
       def initialize(args)
-        @arguments = args.collect { |a| Pattern.from_node a }
+        @arguments = args.collect { |a| Patterns.from_node a }
       end
 
       def bytecode(g)

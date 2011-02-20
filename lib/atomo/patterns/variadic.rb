@@ -1,5 +1,5 @@
-module Atomo::Pattern
-  class Variadic
+module Atomo::Patterns
+  class Variadic < Pattern
     attr_accessor :pattern
 
     def initialize(p)

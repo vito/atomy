@@ -1,5 +1,5 @@
-module Atomo::Pattern
-  class List
+module Atomo::Patterns
+  class List < Pattern
     def initialize(ps)
       @patterns = ps
     end

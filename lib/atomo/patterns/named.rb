@@ -1,5 +1,5 @@
-module Atomo::Pattern
-  class Named
+module Atomo::Patterns
+  class Named < Pattern
     def initialize(n, p)
       @name = n
       @pattern = p

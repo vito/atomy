@@ -1,5 +1,5 @@
-module Atomo::Pattern
-  class Constant
+module Atomo::Patterns
+  class Constant < Pattern
     def initialize(name)
       @name = name
     end

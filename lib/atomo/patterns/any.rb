@@ -1,5 +1,5 @@
-module Atomo::Pattern
-  class Any
+module Atomo::Patterns
+  class Any < Pattern
     def target(g)
       g.push_const :Object
     end

@@ -1,5 +1,5 @@
-module Atomo::Pattern
-  class HeadTail
+module Atomo::Patterns
+  class HeadTail < Pattern
     def initialize(head, tail)
       @head = head
       @tail = tail

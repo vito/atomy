@@ -1,5 +1,5 @@
-module Atomo::Pattern
-  class Tuple
+module Atomo::Patterns
+  class Tuple < Pattern
     def initialize(ps)
       @patterns = ps
     end

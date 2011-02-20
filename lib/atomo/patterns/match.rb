@@ -1,5 +1,5 @@
-module Atomo::Pattern
-  class Match
+module Atomo::Patterns
+  class Match < Pattern
     def initialize(x)
       @value = x
     end

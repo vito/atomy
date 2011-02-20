@@ -50,16 +50,16 @@ module Atomo
             return
           end
 
-          pat = Atomo::Pattern::from_node(@lhs)
+          pat = Patterns.from_node(@lhs)
           @rhs.bytecode(g)
           g.dup
           pat.match(g)
           return
         elsif @operator == ":="
-          recv = Atomo::Pattern::from_node(@lhs.receiver)
+          recv = Patterns.from_node(@lhs.receiver)
           if @lhs.respond_to? :arguments
             args = @lhs.arguments.each do |a|
-              Atomo::Pattern::from_node(a)
+              Patterns.from_node(a)
             end
           else
             args = []
