@@ -76,26 +76,23 @@ module Atomo
       end
 
       def splat_index
-        idx = nil
         @arguments.each do |a,i|
-          if a.kind_of?(Pattern::Variadic)
-            idx = i
-          end
+          return i if a.kind_of?(Patterns::Variadic)
         end
-        idx
+        nil
       end
     end
 
     class BlockBody < Node
       attr_reader :expressions
 
-      def initialize(body)
-        @body = body
+      def initialize(expressions)
+        @expressions = expressions
         @line = 1 # TODO
       end
 
       def empty?
-        @body.empty?
+        @expressions.empty?
       end
 
       def bytecode(g)
@@ -103,14 +100,10 @@ module Atomo
 
         g.push_nil if empty?
 
-        @body.each_with_index do |node,idx|
+        @expressions.each_with_index do |node,idx|
           g.pop unless idx == 0
           node.bytecode(g)
         end
-      end
-
-      def empty?
-        @body.size == 0
       end
     end
   end
