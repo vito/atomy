@@ -25,7 +25,7 @@ module Atomo
         g.block =
           g.seq(
             '{', g.t(g.maybe(args)), :sp,
-            g.t(:expressions), :sp, '}'
+            g.t(:some_expressions), :sp, '}'
           ) do |args,v|
             Block.new(v, Array(args))
           end
@@ -100,6 +100,9 @@ module Atomo
 
       def bytecode(g)
         pos(g)
+
+        g.push_nil if empty?
+
         @body.each_with_index do |node,idx|
           g.pop unless idx == 0
           node.bytecode(g)
