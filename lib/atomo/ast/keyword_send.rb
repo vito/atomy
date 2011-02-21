@@ -72,10 +72,7 @@ module Atomo
           g.git else_lbl
         end
 
-        args[0].body.each_with_index do |e,idx|
-          g.pop unless idx == 0
-          e.bytecode(g)
-        end
+        args[0].body.bytecode(g)
 
         g.goto done_lbl
 
@@ -100,19 +97,13 @@ module Atomo
           g.git else_lbl
         end
 
-        args[0].body.each_with_index do |e,idx|
-          g.pop unless idx == 0
-          e.bytecode(g)
-        end
+        args[0].body.bytecode(g)
 
         g.goto done_lbl
 
         else_lbl.set!
 
-        args[1].body.each_with_index do |e,idx|
-          g.pop unless idx == 0
-          e.bytecode(g)
-        end
+        args[1].body.bytecode(g)
 
         done_lbl.set!
 
