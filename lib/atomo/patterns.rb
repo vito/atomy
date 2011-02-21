@@ -4,9 +4,31 @@ module Atomo::Patterns
     def target(g)
     end
 
+    # test if the pattern mtaches the value at the top of the stack
+    # effect on the stack: top value removed, boolean pushed
+    def matches?(g)
+    end
+
     # match the pattern on the value at the top of the stack
     # effect on the stack: top value removed
-    def match(g)
+    def match(g, done = false)
+      return g.pop if done
+
+      matched = g.new_label
+
+      matches?(g)
+      g.git matched
+
+      g.push_const :Exception
+      g.push_literal "pattern mismatch"
+      g.send :new, 1
+      g.raise_exc
+
+      matched.set!
+    end
+
+    # local names bound by this pattern
+    def local_names
     end
   end
 

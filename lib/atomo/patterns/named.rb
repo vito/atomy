@@ -9,6 +9,10 @@ module Atomo::Patterns
       @pattern.target(g)
     end
 
+    def matches?(g)
+      @pattern.matches?(g)
+    end
+
     def match(g, matched = false, locals = {})
       if locals[@name]
         var = locals[@name]

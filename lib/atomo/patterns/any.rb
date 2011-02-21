@@ -11,5 +11,10 @@ module Atomo::Patterns
     def local_names
       []
     end
+
+    def matches?(g)
+      g.pop
+      g.push_true
+    end
   end
 end

@@ -20,24 +20,9 @@ module Atomo::Patterns
       end
     end
 
-    def match(g)
-      matched = g.new_label
-      mismatch = g.new_label
-
+    def matches?(g)
       g.push @value
       g.send :==, 1
-      g.gif mismatch
-
-      g.push @value
-      g.goto matched
-
-      mismatch.set!
-      g.push_const :Exception
-      g.push_literal "pattern mismatch"
-      g.send :new, 1
-      g.raise_exc
-
-      matched.set!
     end
 
     def local_names
