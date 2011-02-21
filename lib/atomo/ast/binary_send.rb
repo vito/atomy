@@ -51,9 +51,15 @@ module Atomo
           end
 
           pat = Patterns.from_node(@lhs)
+
+          locals = {}
+          pat.local_names.each do |n|
+            locals[n] = g.state.scope.new_local n
+          end
+
           @rhs.bytecode(g)
           g.dup
-          pat.match(g)
+          pat.match(g, false, locals)
           return
         elsif @operator == ":="
           recv = Patterns.from_node(@lhs.receiver)

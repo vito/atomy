@@ -9,10 +9,18 @@ module Atomo::Patterns
       @pattern.target(g)
     end
 
-    def match(g)
-      var = g.state.scope.new_local @name
-      g.dup
-      @pattern.match(g)
+    def match(g, matched = false, locals = {})
+      if locals[@name]
+        var = locals[@name]
+      else
+        var = g.state.scope.new_local @name
+      end
+
+      if not matched
+        g.dup
+        @pattern.match(g)
+      end
+
       g.set_local var.slot
       g.pop
     end
