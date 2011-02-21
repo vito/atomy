@@ -43,7 +43,7 @@ module Atomo
         else
           g.cast_for_multi_block_arg
           @arguments.each do |a|
-            if a.kind_of?(Pattern::Variadic)
+            if a.kind_of?(Patterns::Variadic)
               a.pattern.match(g)
               return
             else
@@ -56,7 +56,7 @@ module Atomo
       end
 
       def local_names
-        @arguments.collect { |a| a.locals }.flatten
+        @arguments.collect { |a| a.local_names }.flatten
       end
 
       def size

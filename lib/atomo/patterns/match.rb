@@ -40,7 +40,7 @@ module Atomo::Patterns
       matched.set!
     end
 
-    def locals
+    def local_names
       []
     end
   end

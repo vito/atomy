@@ -36,8 +36,8 @@ module Atomo::Patterns
       matched.set!
     end
 
-    def locals
-      @patterns.collect { |p| p.locals }.flatten
+    def local_names
+      @patterns.collect { |p| p.local_names }.flatten
     end
   end
 end

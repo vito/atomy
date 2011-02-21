@@ -8,7 +8,7 @@ module Atomo::Patterns
       g.pop
     end
 
-    def locals
+    def local_names
       []
     end
   end

@@ -30,8 +30,8 @@ module Atomo::Patterns
       @pattern.match(g)
     end
 
-    def locals
-      @pattern.locals
+    def local_names
+      @pattern.local_names
     end
   end
 end

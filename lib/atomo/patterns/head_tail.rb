@@ -33,8 +33,8 @@ module Atomo::Patterns
       matched.set!
     end
 
-    def locals
-      @head.locals + @tail.locals
+    def local_names
+      @head.local_names + @tail.local_names
     end
   end
 end

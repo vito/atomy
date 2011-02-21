@@ -46,7 +46,7 @@ module Atomo
       end
 
       def local_names
-        @receiver.locals + @arguments.local_names
+        @receiver.local_names + @arguments.local_names
       end
 
       class DefineArguments
@@ -64,7 +64,7 @@ module Atomo
         end
 
         def local_names
-          @arguments.collect { |a| a.locals }.flatten
+          @arguments.collect { |a| a.local_names }.flatten
         end
 
         def size
