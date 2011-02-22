@@ -8,15 +8,15 @@ require base + '/parser'
 
 bnd = binding()
 
-begin
-  while str = Readline.readline("> ")
-    continue if str.empty?
+while str = Readline.readline("> ")
+  continue if str.empty?
 
+  begin
     res = Atomo::Compiler.evaluate str, bnd
     puts "=> #{res.inspect}"
+  rescue Exception => e
+    puts "ERROR!"
+    puts "#{e}: #{e.message}"
+    puts e.backtrace
   end
-rescue Exception => e
-  puts "ERROR!"
-  puts "#{e}: #{e.message}"
-  puts e.backtrace
 end
