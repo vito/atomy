@@ -44,7 +44,7 @@ module Atomo
           g.cast_for_multi_block_arg
           @arguments.each do |a|
             if a.kind_of?(Patterns::Variadic)
-              a.pattern.match(g)
+              a.pattern.deconstruct(g)
               return
             else
               g.shift_array

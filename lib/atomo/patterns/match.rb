@@ -32,9 +32,5 @@ module Atomo::Patterns
       g.push_literal @value
       g.send :new, 1
     end
-
-    def local_names
-      []
-    end
   end
 end

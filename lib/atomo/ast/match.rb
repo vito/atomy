@@ -25,7 +25,7 @@ module Atomo
           g.gif skip
 
           g.dup
-          pat.match(g, true)
+          pat.deconstruct(g)
           exp.bytecode(g)
           g.goto done
 

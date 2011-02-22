@@ -17,7 +17,7 @@ module Atomo
         meth.state.push_name @name
         @arguments.bytecode(meth)
         meth.push_self
-        @receiver.match(meth, true)
+        @receiver.deconstruct(meth)
         @body.bytecode(meth)
         meth.state.pop_name
         meth.local_count = local_count
@@ -127,7 +127,7 @@ module Atomo
           g.cast_for_multi_block_arg
           @arguments.each do |a|
             g.shift_array
-            a.match(g)
+            a.deconstruct(g)
           end
           g.pop
         end

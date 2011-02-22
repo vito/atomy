@@ -10,7 +10,12 @@ module Atomo::Patterns
       g.push_const :Object
     end
 
-    def match(g)
+    def matches?(g)
+      g.pop
+      g.push_true
+    end
+
+    def deconstruct(g, locals = {})
       singleton = g.new_label
       done = g.new_label
 
@@ -27,7 +32,7 @@ module Atomo::Patterns
       g.make_array 1
 
       done.set!
-      @pattern.match(g)
+      @pattern.deconstruct(g, locals)
     end
 
     def local_names

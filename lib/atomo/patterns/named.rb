@@ -17,17 +17,15 @@ module Atomo::Patterns
       @pattern.construct(g)
     end
 
-    def match(g, matched = false, locals = {})
+    def deconstruct(g, locals = {})
       if locals[@name]
         var = locals[@name]
       else
         var = g.state.scope.new_local @name
       end
 
-      if not matched
-        g.dup
-        @pattern.match(g)
-      end
+      g.dup
+      @pattern.deconstruct(g, locals)
 
       var.reference.set_bytecode(g)
       g.pop

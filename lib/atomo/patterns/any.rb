@@ -4,14 +4,6 @@ module Atomo::Patterns
       g.push_const :Object
     end
 
-    def match(g)
-      g.pop
-    end
-
-    def local_names
-      []
-    end
-
     def matches?(g)
       g.pop
       g.push_true

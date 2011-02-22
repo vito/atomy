@@ -16,7 +16,7 @@ module Atomo::Patterns
       g.dup
       g.dup
       g.send :empty?, 0
-      g.gif mismatch
+      g.git mismatch
 
       g.shift_array
       @head.matches?(g)
@@ -26,33 +26,16 @@ module Atomo::Patterns
       g.goto matched
 
       mismatch.set!
+      g.pop
       g.push_false
 
       matched.set!
     end
 
-    def match(g)
-      matched = g.new_label
-      mismatch = g.new_label
-
-      g.dup # dup once for size, another for shifting
-      g.dup
-      g.send :empty?, 0
-      g.git mismatch
-
+    def deconstruct(g, locals = {})
       g.shift_array
-      @head.match(g)
-      @tail.match(g)
-
-      g.goto matched
-
-      mismatch.set!
-      g.push_const :Exception
-      g.push_literal "pattern mismatch"
-      g.send :new, 1
-      g.raise_exc
-
-      matched.set!
+      @head.deconstruct(g, locals)
+      @tail.deconstruct(g, locals)
     end
 
     def local_names

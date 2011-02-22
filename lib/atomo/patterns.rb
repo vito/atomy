@@ -2,29 +2,47 @@ module Atomo::Patterns
   class Pattern
     # push the target class for this pattern in a defition
     def target(g)
+      raise Rubinius::CompileError, "no #target for #{self}"
     end
 
     # test if the pattern mtaches the value at the top of the stack
     # effect on the stack: top value removed, boolean pushed
     def matches?(g)
+      raise Rubinius::CompileError, "no #matches? for #{self}"
     end
 
     # match the pattern on the value at the top of the stack
     # effect on the stack: top value removed
-    def match(g, done = false)
-      return g.pop if done
+    def deconstruct(g, locals = {})
+      g.pop
+    end
 
-      matched = g.new_label
+    # try pattern-matching, erroring on failure
+    # effect on the stack: top value removed
+    def match(g)
+      error = g.new_label
+      done = g.new_label
 
+      locals = {}
+      local_names.each do |n|
+        locals[n] = g.state.scope.new_local n
+      end
+
+      g.dup
+      g.dup
       matches?(g)
-      g.git matched
+      g.gif error
+      deconstruct(g, locals)
+      g.goto done
 
+      error.set!
+      g.pop
       g.push_const :Exception
       g.push_literal "pattern mismatch"
       g.send :new, 1
       g.raise_exc
 
-      matched.set!
+      done.set!
     end
 
     # create this pattern on the stack
@@ -35,6 +53,7 @@ module Atomo::Patterns
 
     # local names bound by this pattern
     def local_names
+      []
     end
   end
 

@@ -8,32 +8,43 @@ module Atomo::Patterns
       g.push_const :Array
     end
 
-    def match(g)
+    def matches?(g)
       matched = g.new_label
       mismatch = g.new_label
 
       g.dup # dup once for size, another for shifting
-      g.dup
       g.send :size, 0
       g.push @patterns.size
       g.send :==, 1
       g.gif mismatch
 
-      @patterns.each do |p|
-        g.shift_array
-        p.match(g)
+      @patterns.each_with_index do |p, i|
+        g.dup
+        g.push_int i
+        g.send :[], 1
+        p.matches?(g)
+        g.gif mismatch
       end
       g.pop
 
+      g.push_true
       g.goto matched
 
       mismatch.set!
-      g.push_const :Exception
-      g.push_literal "pattern mismatch"
-      g.send :new, 1
-      g.raise_exc
+      g.pop
+      g.push_false
 
       matched.set!
+    end
+
+    def deconstruct(g, locals = {})
+      @patterns.each_with_index do |p, i|
+        g.dup
+        g.push_int i
+        g.send :[], 1
+        p.deconstruct(g, locals)
+      end
+      g.pop
     end
 
     def local_names
