@@ -26,14 +26,14 @@ module Atomo
 
         g.unary_send =
           g.seq(
-            :unary_send, :sig_sp, :identifier, g.maybe(:unary_args),
+            :unary_send, :sig_sp, :identifier, g.notp(":"), g.maybe(:unary_args),
             g.maybe(g.seq(:sp, g.t(:block)))
-          ) do |v, _, n, x, b|
+          ) do |v, _, n, _, x, b|
             UnarySend.new(v,n,x,b)
           end | g.seq(
-            :level1, :sig_sp, :identifier, g.maybe(:unary_args),
+            :level1, :sig_sp, :identifier, g.notp(":"), g.maybe(:unary_args),
             g.maybe(g.seq(:sp, g.t(:block)))
-          ) do |v, _, n, x, b|
+          ) do |v, _, n, _, x, b|
             UnarySend.new(v,n,x,b)
           end | g.seq(
             :identifier, :unary_args,
