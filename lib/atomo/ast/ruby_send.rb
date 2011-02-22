@@ -7,10 +7,11 @@ module Atomo
         "ruby_send"
       end
 
-      def initialize(receiver, method, arguments, privat = false)
+      def initialize(receiver, method, arguments, block = nil, privat = false)
         @receiver = receiver
         @method_name = method
         @arguments = arguments
+        @block = block unless block == []
         @private = privat
         @line = 1 # TODO
       end
@@ -25,17 +26,20 @@ module Atomo
 
         g.ruby_send =
           g.seq(
-            :ruby_send, :sig_sp, :identifier, :ruby_args
-          ) do |v, _, n, x|
-            RubySend.new(v,n,x)
+            :ruby_send, :sig_sp, :identifier, :ruby_args,
+            g.maybe(g.seq(:sp, g.t(:block)))
+          ) do |v, _, n, x, b|
+            RubySend.new(v,n,x,b)
           end | g.seq(
-            :level1, :sig_sp, :identifier, :ruby_args
-          ) do |v, _, n, x|
-            RubySend.new(v,n,x)
+            :level1, :sig_sp, :identifier, :ruby_args,
+            g.maybe(g.seq(:sp, g.t(:block)))
+          ) do |v, _, n, x, b|
+            RubySend.new(v,n,x,b)
           end | g.seq(
-            :identifier, :ruby_args
-          ) do |n, x|
-            RubySend.new(Primitive.new(:self),n,x,true)
+            :identifier, :ruby_args,
+            g.maybe(g.seq(:sp, g.t(:block)))
+          ) do |n, x, b|
+            RubySend.new(Primitive.new(:self),n,x,b,true)
           end
       end
 
@@ -43,7 +47,8 @@ module Atomo
         pos(g)
 
         @receiver.bytecode(g)
-        if @arguments.last.kind_of? Block
+        block = @block
+        if not block and @arguments.last.kind_of? Block
           block = @arguments.pop
         end
 
