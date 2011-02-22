@@ -38,6 +38,15 @@ module Atomo::Patterns
       @tail.deconstruct(g, locals)
     end
 
+    def construct(g)
+      g.push_const :Atomo
+      g.find_const :Patterns
+      g.find_const :Constant
+      @head.construct(g)
+      @tail.construct(g)
+      g.send :new, 2
+    end
+
     def local_names
       @head.local_names + @tail.local_names
     end
