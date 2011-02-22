@@ -1,5 +1,6 @@
 module Atomo
   def self.add_method(target, name, methods)
+    # TODO: arguments
     target.dynamic_method(name) do |g|
       done = g.new_label
       g.push_self
@@ -17,7 +18,7 @@ module Atomo
         skip.set!
       end
 
-      g.push_self
+      g.push_block
       g.send_super name, 0
 
       done.set!
