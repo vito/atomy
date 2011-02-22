@@ -70,5 +70,51 @@ module Atomo
 
       compiler.run
     end
+
+    def self.compile_eval(string, scope = nil, file = "(eval)", line = 1)
+      compiler = new :atomo_string, :compiled_method
+
+      parser = compiler.parser
+      parser.root Rubinius::AST::EvalExpression
+      parser.input string, file, line
+
+      printer = compiler.packager.print
+      printer.bytecode = true
+      printer.method_names = []
+
+      compiler.generator.variable_scope = scope
+
+      compiler.run
+    end
+
+    def self.evaluate(string, bnd = nil, file = "(eval)", line = 1)
+      if bnd.nil?
+        bnd = Binding.setup(
+          Rubinius::VariableScope.of_sender,
+          Rubinius::CompiledMethod.of_sender,
+          Rubinius::StaticScope.of_sender
+        )
+      end
+
+      cm = compile_eval(string, bnd.variables, file, line)
+      cm.scope = bnd.static_scope.dup
+      cm.name = :__atomo_eval__
+
+      script = Rubinius::CompiledMethod::Script.new(cm, file, true)
+      script.eval_binding = bnd
+      script.eval_source = string
+
+      cm.scope.script = script
+
+      be = Rubinius::BlockEnvironment.new
+      be.under_context(bnd.variables, cm)
+
+      if bnd.from_proc?
+        be.proc_environment = bnd.proc_environment
+      end
+
+      be.from_eval!
+      be.call
+    end
   end
 end
