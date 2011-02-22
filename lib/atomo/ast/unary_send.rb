@@ -7,40 +7,60 @@ module Atomo
         "unary_send"
       end
 
-      def initialize(receiver, method, block = nil)
+      def initialize(receiver, method, arguments, block = nil, privat = false)
         @receiver = receiver
         @method_name = method
+        @arguments = arguments
         @block = block unless block == []
+        @private = privat
         @line = 1 # TODO
       end
 
-      attr_reader :receiver, :method_name
+      attr_reader :receiver, :method_name, :arguments
 
       def self.grammar(g)
+        g.unary_args =
+          g.seq(
+            "(", g.t(:some_expressions), ")"
+          )
+
         g.unary_send =
           g.seq(
-            :unary_send, :sig_sp, :identifier,
-            g.notp(":"), g.maybe(g.seq(:sp, g.t(:block)))
-          ) do |v, _, n, _, b|
-            UnarySend.new(v, n, b)
-          end | g.seq(
-            :level1, :sig_sp, :identifier, g.notp(":"),
+            :unary_send, :sig_sp, :identifier, g.maybe(:unary_args),
             g.maybe(g.seq(:sp, g.t(:block)))
-          ) do |v, _, n, _, b|
-            p b
-            UnarySend.new(v, n, b)
+          ) do |v, _, n, x, b|
+            UnarySend.new(v,n,x,b)
+          end | g.seq(
+            :level1, :sig_sp, :identifier, g.maybe(:unary_args),
+            g.maybe(g.seq(:sp, g.t(:block)))
+          ) do |v, _, n, x, b|
+            UnarySend.new(v,n,x,b)
+          end | g.seq(
+            :identifier, :unary_args,
+            g.maybe(g.seq(:sp, g.t(:block)))
+          ) do |n, x, b|
+            UnarySend.new(Primitive.new(:self),n,x,b,true)
           end
       end
 
       def bytecode(g)
         pos(g)
-        @receiver.bytecode(g)
 
-        if @block
-          @block.bytecode(g)
-          g.send_with_block @method_name.to_sym, 0
+        @receiver.bytecode(g)
+        block = @block
+        if not block and @arguments.last.kind_of? Block
+          block = @arguments.pop
+        end
+
+        @arguments.each do |a|
+          a.bytecode(g)
+        end
+
+        if block
+          block.bytecode(g)
+          g.send_with_block @method_name.to_sym, @arguments.size, @private
         else
-          g.send @method_name.to_sym, 0
+          g.send @method_name.to_sym, @arguments.size, @private
         end
       end
     end
