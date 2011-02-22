@@ -123,6 +123,7 @@ module Atomo
         end
 
         def bytecode(g)
+          return if @arguments.empty?
           g.cast_for_multi_block_arg
           @arguments.each do |a|
             g.shift_array
