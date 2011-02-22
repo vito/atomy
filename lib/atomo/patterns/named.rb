@@ -29,7 +29,7 @@ module Atomo::Patterns
         @pattern.match(g)
       end
 
-      g.set_local var.slot
+      var.reference.set_bytecode(g)
       g.pop
     end
 
