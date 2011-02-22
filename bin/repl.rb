@@ -13,7 +13,7 @@ begin
     continue if str.empty?
 
     res = Atomo::Compiler.evaluate str, bnd
-    puts "=> #{res}"
+    puts "=> #{res.inspect}"
   end
 rescue Exception => e
   puts "ERROR!"
