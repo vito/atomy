@@ -27,6 +27,12 @@ module Atomo::Patterns
       matched.set!
     end
 
+    # create this pattern on the stack
+    # effect on the stack: pattern object pushed
+    def construct(g)
+      raise Rubinius::CompileError, "no #construct for #{self}"
+    end
+
     # local names bound by this pattern
     def local_names
     end

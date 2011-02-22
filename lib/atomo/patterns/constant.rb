@@ -14,6 +14,14 @@ module Atomo::Patterns
       g.kind_of
     end
 
+    def construct(g)
+      g.push_const :Atomo
+      g.find_const :Patterns
+      g.find_const :Constant
+      g.push_literal @name
+      g.send :new, 1
+    end
+
     def local_names
       []
     end

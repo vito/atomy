@@ -1,4 +1,30 @@
 module Atomo
+  def self.add_method(target, name, methods)
+    target.dynamic_method(name) do |g|
+      done = g.new_label
+      g.push_self
+      methods.each do |pat, meth|
+        skip = g.new_label
+
+        g.dup
+        pat.matches?(g)
+        g.gif skip
+
+        g.push_self
+        g.send meth, 0
+        g.goto done
+
+        skip.set!
+      end
+
+      g.push_self
+      g.send_super name, 0
+
+      done.set!
+      g.ret
+    end
+  end
+
   class Compiler < Rubinius::Compiler
     def self.compiled_name(file)
       if file.suffix? ".atomo"

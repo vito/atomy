@@ -16,5 +16,12 @@ module Atomo::Patterns
       g.pop
       g.push_true
     end
+
+    def construct(g)
+      g.push_const :Atomo
+      g.find_const :Patterns
+      g.find_const :Any
+      g.send :new, 0
+    end
   end
 end

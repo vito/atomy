@@ -13,6 +13,10 @@ module Atomo::Patterns
       @pattern.matches?(g)
     end
 
+    def construct(g)
+      @pattern.construct(g)
+    end
+
     def match(g, matched = false, locals = {})
       if locals[@name]
         var = locals[@name]
