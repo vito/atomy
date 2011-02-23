@@ -15,7 +15,14 @@ module Atomo
       attr_reader :value
 
       def self.grammar(g)
-        g.number = g.reg(/0|([1-9][0-9]*)/) do |i|
+        g.number = g.reg(/[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/) do |f|
+          Primitive.new f.to_f
+        end | g.reg(/[\+\-]?0[oO][0-7]+/) do |i|
+          Primitive.new i.to_i 8
+        end | g.reg(/[\+\-]?0[xX][\da-fA-F]+/) do |i|
+          Primitive.new i.to_i 16
+        # TODO: rationals, once rubinius has them
+        end | g.reg(/[\+\-]?\d+/) do |i|
           Primitive.new i.to_i
         end
 
@@ -29,7 +36,12 @@ module Atomo
 
       def bytecode(g)
         pos(g)
-        g.push @value
+
+        if @value.kind_of? Float
+          g.push_unique_literal @value
+        else
+          g.push @value
+        end
       end
     end
   end
