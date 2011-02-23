@@ -14,7 +14,12 @@ module Atomo::Patterns
     end
 
     def construct(g)
+      g.push_const :Atomo
+      g.find_const :Patterns
+      g.find_const :Named
+      g.push_literal @name
       @pattern.construct(g)
+      g.send :new, 2
     end
 
     def deconstruct(g, locals = {})

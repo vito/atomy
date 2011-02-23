@@ -4,16 +4,45 @@ module Atomo
     target.dynamic_method(name) do |g|
       done = g.new_label
       g.push_self
-      methods.each do |pat, meth|
+      g.local_count = methods.collect do |pats, meth|
+        pats[0].local_names + pats[1].collect { |p| p.local_names }.flatten
+      end.uniq.size
+
+      methods.each do |pats, meth|
+        recv = pats[0]
+        args = pats[1]
+        g.total_args = args.size
+        g.required_args = args.size
+        g.push_state Rubinius::AST::ClosedScope.new(0)
+
         skip = g.new_label
+        argmis = g.new_label
 
         g.dup
-        pat.matches?(g)
+        recv.matches?(g)
         g.gif skip
 
         g.push_self
-        g.send meth, 0
+        recv.deconstruct(g)
+
+        if args.size > 0
+          g.cast_for_multi_block_arg
+          args.each do |a|
+            g.shift_array
+            g.dup
+            a.matches?(g)
+            g.gif argmis
+            a.deconstruct(g)
+          end
+          g.pop
+        end
+
+        meth.call(g)
         g.goto done
+
+        argmis.set!
+        g.pop
+        g.pop
 
         skip.set!
       end
