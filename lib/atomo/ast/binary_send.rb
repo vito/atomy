@@ -53,7 +53,7 @@ module Atomo
           if @lhs.kind_of? UnarySend
             @lhs.receiver.bytecode(g)
             @rhs.bytecode(g)
-            g.send @lhs.method_name + "=", 1
+            g.send((@lhs.method_name + "=").to_sym, 1)
             return
           end
 
