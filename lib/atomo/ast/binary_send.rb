@@ -4,7 +4,7 @@ require base + '/patterns'
 
 module Atomo
   module AST
-    class BinarySend < AST::Node
+    class BinarySend < Node
       Atomo::Parser.register self
 
       def self.rule_name
