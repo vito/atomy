@@ -40,6 +40,9 @@ module Atomo
       def bytecode(g)
         case @arguments.size
         when 0
+        when 1
+          g.cast_for_single_block_arg
+          @arguments[0].match(g)
         else
           g.cast_for_multi_block_arg
           @arguments.each do |a|
