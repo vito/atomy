@@ -17,6 +17,7 @@ module Atomo
 
         skip = g.new_label
         argmis = g.new_label
+        argmisnobind = g.new_label
 
         g.dup
         recv.matches?(g) # TODO: skip kind_of matches
@@ -31,10 +32,15 @@ module Atomo
           g.cast_for_multi_block_arg
           args.each do |a|
             g.shift_array
-            g.dup if a.locals > 0
-            a.matches?(g)
-            g.gif argmis
-            a.deconstruct(g) if a.locals > 0
+            if a.locals > 0
+              g.dup
+              a.matches?(g)
+              g.gif argmis
+              a.deconstruct(g)
+            else
+              a.matches?(g)
+              g.gif argmisnobind
+            end
           end
           g.pop
         end
@@ -44,6 +50,10 @@ module Atomo
 
         argmis.set!
         g.pop
+        g.pop
+        g.goto skip
+
+        argmisnobind.set!
         g.pop
 
         skip.set!
