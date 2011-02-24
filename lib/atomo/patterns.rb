@@ -55,6 +55,11 @@ module Atomo::Patterns
     def local_names
       []
     end
+
+    # number of locals
+    def locals
+      local_names.size
+    end
   end
 
   def self.from_node(n)

@@ -3,11 +3,11 @@ module Atomo
     # TODO: arguments
     target.dynamic_method(name) do |g|
       done = g.new_label
-      g.push_self
       g.local_count = methods.collect do |pats, meth|
         pats[0].local_names + pats[1].collect { |p| p.local_names }.flatten
       end.uniq.size
 
+      g.push_self
       methods.each do |pats, meth|
         recv = pats[0]
         args = pats[1]
@@ -19,20 +19,22 @@ module Atomo
         argmis = g.new_label
 
         g.dup
-        recv.matches?(g)
+        recv.matches?(g) # TODO: skip kind_of matches
         g.gif skip
 
-        g.push_self
-        recv.deconstruct(g)
+        if recv.locals > 0
+          g.push_self
+          recv.deconstruct(g)
+        end
 
         if args.size > 0
           g.cast_for_multi_block_arg
           args.each do |a|
             g.shift_array
-            g.dup
+            g.dup if a.locals > 0
             a.matches?(g)
             g.gif argmis
-            a.deconstruct(g)
+            a.deconstruct(g) if a.locals > 0
           end
           g.pop
         end

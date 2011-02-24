@@ -29,8 +29,10 @@ module Atomo::Patterns
         var = g.state.scope.new_local @name
       end
 
-      g.dup
-      @pattern.deconstruct(g, locals)
+      if @pattern.locals > 0
+        g.dup
+        @pattern.deconstruct(g, locals)
+      end
 
       var.reference.set_bytecode(g)
       g.pop
