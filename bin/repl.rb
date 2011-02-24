@@ -16,7 +16,7 @@ while str = Readline.readline("> ")
     puts "=> #{res.inspect}"
   rescue Exception => e
     puts "ERROR!"
-    puts "#{e}: #{e.message}"
+    puts "#{e}:\n  #{e.message}"
     puts e.backtrace
   end
 end
