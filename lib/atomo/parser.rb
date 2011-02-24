@@ -23,19 +23,11 @@ module Atomo
     end
 
     def self.parse_string(source)
-      x = new(source).parse
-      def x.bytecode(g)
-        each { |n| n.bytecode(g) }
-      end
-      x
+      AST::Tree.new(new(source).parse)
     end
 
     def self.parse_file(name)
-      x = new(File.open(name, "rb").read).parse
-      def x.bytecode(g)
-        each { |n| n.bytecode(g) }
-      end
-      x
+      AST::Tree.new(new(File.open(name, "rb").read).parse)
     end
 
     def initialize(str)

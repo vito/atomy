@@ -25,9 +25,37 @@ module Atomo
       end
     end
 
+    class MacroExpander < Rubinius::Compiler::Stage
+      stage :atomo_expand
+      next_stage Generator
+
+      def initialize(compiler, last)
+        super
+        compiler.expander = self
+      end
+
+      def input(root, file = "(eval)", line = 1)
+        @input = root
+        @file = file
+        @line = line
+      end
+
+      def print
+        @print = true
+      end
+
+      def run
+        @output = @input.dup
+        @output.body = @input.body.collect do |n|
+          Atomo::Macro.expand(n)
+        end
+        run_next
+      end
+    end
+
     class Parser < Rubinius::Compiler::Stage
       stage :atomo_parser
-      next_stage Generator
+      next_stage MacroExpander
 
       def initialize(compiler, last)
         super
@@ -42,7 +70,7 @@ module Atomo
         @print = true
       end
 
-      def input(code, filename = "(eval)", line = 1)
+      def input(code, file = "(eval)", line = 1)
         @input = code
         @file = file
         @line = line
@@ -57,7 +85,7 @@ module Atomo
 
     class FileParser < Parser
       stage :atomo_file
-      next_stage Generator
+      next_stage MacroExpander
 
       def input(file, line = 1)
         @file = file
@@ -71,13 +99,7 @@ module Atomo
 
     class StringParser < Parser
       stage :atomo_string
-      next_stage Generator
-
-      def input(code, file = "(eval)", line = 1)
-        @input = code
-        @file = file
-        @line = line
-      end
+      next_stage MacroExpander
 
       def parse
         Atomo::Parser.parse_string(@input)
