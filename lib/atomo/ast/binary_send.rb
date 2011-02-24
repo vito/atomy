@@ -50,6 +50,13 @@ module Atomo
             return
           end
 
+          if @lhs.kind_of? UnarySend
+            @lhs.receiver.bytecode(g)
+            @rhs.bytecode(g)
+            g.send @lhs.method_name + "=", 1
+            return
+          end
+
           pat = Patterns.from_node(@lhs)
           @rhs.bytecode(g)
           g.dup
