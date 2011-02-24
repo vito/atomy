@@ -52,6 +52,7 @@ module Atomo
 
           pat = Patterns.from_node(@lhs)
           @rhs.bytecode(g)
+          g.dup
           pat.match(g)
           return
         elsif @operator == ":="
