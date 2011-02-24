@@ -12,7 +12,6 @@ module Atomo::Patterns
       matched = g.new_label
       mismatch = g.new_label
 
-      g.dup # dup once for size, another for shifting
       g.dup
       g.send :size, 0
       g.push @patterns.size

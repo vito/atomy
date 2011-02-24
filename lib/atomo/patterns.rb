@@ -29,7 +29,6 @@ module Atomo::Patterns
       end
 
       g.dup
-      g.dup
       matches?(g)
       g.gif error
       deconstruct(g, locals)
