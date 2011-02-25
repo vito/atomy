@@ -37,9 +37,9 @@ module Atomo
 
         create = g.new_label
         added = g.new_label
-        @receiver.construct(g)
+        g.push_literal @receiver
         @arguments.patterns.each do |p|
-            p.construct(g)
+          g.push_literal p
         end
         g.make_array @arguments.size
         g.make_array 2

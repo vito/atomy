@@ -43,17 +43,6 @@ module Atomo::Patterns
       g.pop
     end
 
-    def construct(g)
-      g.push_const :Atomo
-      g.find_const :Patterns
-      g.find_const :List
-      @patterns.each do |p|
-        p.construct(g)
-      end
-      g.make_array @patterns.size
-      g.send :new, 1
-    end
-
     def local_names
       @patterns.collect { |p| p.local_names }.flatten
     end

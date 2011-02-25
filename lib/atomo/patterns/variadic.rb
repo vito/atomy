@@ -35,14 +35,6 @@ module Atomo::Patterns
       @pattern.deconstruct(g, locals)
     end
 
-    def construct(g)
-      g.push_const :Atomo
-      g.find_const :Patterns
-      g.find_const :Variadic
-      @pattern.construct(g)
-      g.send :new, 1
-    end
-
     def local_names
       @pattern.local_names
     end

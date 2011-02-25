@@ -24,13 +24,5 @@ module Atomo::Patterns
       g.push @value
       g.send :==, 1
     end
-
-    def construct(g)
-      g.push_const :Atomo
-      g.find_const :Patterns
-      g.find_const :Match
-      g.push_literal @value
-      g.send :new, 1
-    end
   end
 end

@@ -18,13 +18,5 @@ module Atomo::Patterns
       g.swap
       g.kind_of
     end
-
-    def construct(g)
-      g.push_const :Atomo
-      g.find_const :Patterns
-      g.find_const :Constant
-      g.push_literal @chain
-      g.send :new, 1
-    end
   end
 end
