@@ -1,6 +1,8 @@
 module Atomo
   module AST
     class Match < Node
+      attr_reader :target, :body
+
       def initialize(target, body)
         @target = target
         @body = body

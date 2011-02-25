@@ -6,6 +6,10 @@ module Atomo
       def recursively(&f)
         f.call(self)
       end
+
+      def to_node
+        self
+      end
     end
 
     class Tree
@@ -23,5 +27,11 @@ module Atomo
         Tree.new(@nodes.collect { |n| yield n })
       end
     end
+  end
+end
+
+class Object
+  def to_node
+    Atomo::AST::Primitive.new self
   end
 end

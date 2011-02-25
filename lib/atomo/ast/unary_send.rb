@@ -16,7 +16,7 @@ module Atomo
         @line = 1 # TODO
       end
 
-      attr_reader :receiver, :method_name, :arguments
+      attr_reader :receiver, :method_name, :arguments, :block, :private
 
       def register_macro(body)
         Atomo.register_macro(

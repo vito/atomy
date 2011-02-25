@@ -11,7 +11,13 @@ module Atomo
 
       def initialize(body, args)
         @body = BlockBody.new body
-        @arguments = BlockArguments.new args
+
+        if args.kind_of? BlockArguments
+          @arguments = args
+        else
+          @arguments = BlockArguments.new args
+        end
+
         @parent = nil
         @line = 1 # TODO
       end

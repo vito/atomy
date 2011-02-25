@@ -25,7 +25,8 @@ module Atomo
         end
 
       g.grouped = g.seq("(", :sp, g.t(:expression), :sp, ")")
-      g.level1 = g.any(:macro, :quote, :true, :false, :self, :nil, :number,
+      g.level1 = g.any(:true, :false, :self, :nil, :number,
+                       :macro, :quote, :quasi_quote, :unquote,
                        :string, :symbol, :constant, :variable,
                        :tuple, :grouped, :block, :list)
 
