@@ -68,7 +68,7 @@ module Atomo
   end
 
   class Compiler < Rubinius::Compiler
-    attr_accessor :expander
+    attr_accessor :expander, :pragmas
 
     def self.compiled_name(file)
       if file.suffix? ".atomo"

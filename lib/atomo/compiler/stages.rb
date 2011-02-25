@@ -59,7 +59,7 @@ module Atomo
 
       def initialize(compiler, last)
         super
-        compiler.expander = self
+        compiler.pragmas = self
       end
 
       def input(root, file = "(eval)", line = 1)
