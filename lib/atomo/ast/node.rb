@@ -1,6 +1,11 @@
 module Atomo
   module AST
     class Node < Rubinius::AST::Node
+      # yield this node's subnodes to a block recursively, and then itself
+      # override this if for nodes with children, ie lists
+      def recursively(&f)
+        f.call(self)
+      end
     end
 
     class Tree

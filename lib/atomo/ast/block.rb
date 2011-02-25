@@ -30,6 +30,10 @@ module Atomo
             Block.new(v, Array(args))
           end
       end
+
+      def recursively(&f)
+        f.call Block.new(body.recursively(&f), @arguments)
+      end
     end
 
     class BlockArguments < AST::Node
@@ -96,6 +100,10 @@ module Atomo
 
       def empty?
         @expressions.empty?
+      end
+
+      def recursively(&f)
+        BlockBody.new(@expressions.collect { |n| n.recursively(&f) })
       end
 
       def bytecode(g)

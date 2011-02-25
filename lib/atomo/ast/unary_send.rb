@@ -18,6 +18,28 @@ module Atomo
 
       attr_reader :receiver, :method_name, :arguments
 
+      def register_macro(body)
+        Atomo.register_macro(
+          @method_name.to_sym,
+          ([@receiver] + @arguments).collect do |n|
+            Atomo::Macro.macro_pattern n
+          end,
+          body
+        )
+      end
+
+      def recursively(&f)
+        f.call UnarySend.new(
+          @receiver.recursively(&f),
+          @method_name,
+          @arguments.collect do |n|
+            n.recursively(&f)
+          end,
+          @block ? @block.recursively(&f) : nil,
+          @private
+        )
+      end
+
       def self.grammar(g)
         g.unary_args =
           g.seq(

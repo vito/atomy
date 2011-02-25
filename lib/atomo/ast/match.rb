@@ -7,6 +7,13 @@ module Atomo
         @line = 1 # TODO
       end
 
+      def recursively(&f)
+        f.call Match.new(
+          target.recursively(&f),
+          body.recursively(&f)
+        )
+      end
+
       def bytecode(g)
         pos(g)
 

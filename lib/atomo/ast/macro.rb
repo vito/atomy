@@ -22,16 +22,7 @@ module Atomo
             "(", :sp, g.t(:expression), :sp, ")",
             :sp, g.t(:expression)
           ) do |p, b|
-            # TODO: this is BinarySend specific atm
-            Atomo.register_macro(
-              p.operator.to_sym,
-              [
-                Atomo::Patterns.from_node(p.lhs),
-                Atomo::Patterns.from_node(p.rhs)
-              ],
-              b
-            )
-
+            p.register_macro b
             Macro.new(p, b)
           end
       end

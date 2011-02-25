@@ -3,6 +3,7 @@ base = File.expand_path "../", __FILE__
 require base + "/compiler/compiler"
 require base + "/compiler/stages"
 require base + '/parser'
+require base + '/macros'
 
 cm = Atomo::Compiler.compile_string ARGV[0]
 

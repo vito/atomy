@@ -18,6 +18,26 @@ module Atomo
 
       Pair = Struct.new(:name, :value)
 
+      def register_macro(body)
+        Atomo.register_macro(
+          @method_name.to_sym,
+          ([@receiver] + @arguments).collect do |n|
+            Atomo::Macro.macro_pattern n
+          end,
+          body
+        )
+      end
+
+      def recursively(&f)
+        f.call KeywordSend.new(
+          @receiver.recursively(&f),
+          @method_name,
+          @arguments.collect do |n|
+            n.recursively(&f)
+          end
+        )
+      end
+
       def self.collect(pairs)
         name = ""
         args = []

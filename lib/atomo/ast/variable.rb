@@ -1,6 +1,6 @@
 module Atomo
   module AST
-    class Variable < AST::Node
+    class Variable < Node
       attr_accessor :variable, :line
 
       Atomo::Parser.register self

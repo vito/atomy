@@ -14,6 +14,12 @@ module Atomo
 
       attr_reader :expression
 
+      def recursively(&f)
+        f.call Quote.new(
+          @expression.recursively(&f)
+        )
+      end
+
       def self.grammar(g)
         g.quote =
           g.seq("'", g.t(:level1)) do |e|

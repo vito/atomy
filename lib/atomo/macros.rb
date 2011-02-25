@@ -30,9 +30,43 @@ module Atomo
             expand(node.rhs)
           )
         end
+      when AST::UnarySend
+        if MacroEnvironment.respond_to?(node.method_name)
+          MacroEnvironment.send(node.method_name.to_sym, node.receiver, *node.arguments)
+        else
+          AST::UnarySend.new(
+            expand(node.receiver),
+            node.method_name,
+            node.arguments.collect { |a| expand(a) }
+          )
+        end
+      when AST::KeywordSend
+        if MacroEnvironment.respond_to?(node.method_name)
+          MacroEnvironment.send(node.method_name.to_sym, node.receiver, *node.arguments)
+        else
+          AST::KeywordSend.new(
+            expand(node.receiver),
+            node.method_name,
+            node.arguments.collect { |a| expand(a) }
+          )
+        end
       else
+      # TODO: recurse into other things
         node
       end
+    end
+
+    def self.macro_pattern(n)
+      n = n.recursively do |sub|
+        case sub
+        when Atomo::AST::Constant
+          Atomo::AST::Constant.new(["Atomo", "AST"] + sub.chain)
+        else
+          sub
+        end
+      end
+
+      Atomo::Patterns.from_node(n)
     end
   end
 end

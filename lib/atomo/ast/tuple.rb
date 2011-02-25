@@ -14,6 +14,14 @@ module Atomo
 
       attr_reader :elements
 
+      def recursively(&f)
+        f.call Tuple.new(
+          @elements.collect do |n|
+            n.recursively(&f)
+          end
+        )
+      end
+
       def self.grammar(g)
         g.tuple =
           g.seq(

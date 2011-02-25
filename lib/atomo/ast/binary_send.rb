@@ -37,6 +37,20 @@ module Atomo
           end
       end
 
+      def recursively(&f)
+        f.call BinarySend.new(@operator, @lhs.recursively(&f), @rhs.recursively(&f))
+      end
+
+      def register_macro(body)
+        Atomo.register_macro(
+          @operator.to_sym,
+          [@lhs, @rhs].collect do |n|
+            Atomo::Macro.macro_pattern n
+          end,
+          body
+        )
+      end
+
       def bytecode(g)
         pos(g)
 
