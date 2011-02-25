@@ -7,6 +7,8 @@ module Atomo
   end
 
   def self.register_macro(name, args, body)
+    name = "atomo_macro::" + name
+
     if ms = @macros[name]
       ms << [[Patterns::Any.new, args], body.method(:bytecode)]
     else
@@ -21,8 +23,8 @@ module Atomo
     def self.expand(node)
       case node
       when AST::BinarySend
-        if MacroEnvironment.respond_to?(node.operator)
-          MacroEnvironment.send(node.operator.to_sym, node.lhs, node.rhs)
+        if MacroEnvironment.respond_to?("atomo_macro::" + node.operator)
+          MacroEnvironment.send("atomo_macro::" + node.operator.to_sym, node.lhs, node.rhs)
         else
           AST::BinarySend.new(
             node.operator,
@@ -31,18 +33,20 @@ module Atomo
           )
         end
       when AST::UnarySend
-        if MacroEnvironment.respond_to?(node.method_name)
-          MacroEnvironment.send(node.method_name.to_sym, node.receiver, *node.arguments)
+        if MacroEnvironment.respond_to?("atomo_macro::" + node.method_name)
+          MacroEnvironment.send("atomo_macro::" + node.method_name.to_sym, node.receiver, *node.arguments)
         else
           AST::UnarySend.new(
             expand(node.receiver),
             node.method_name,
-            node.arguments.collect { |a| expand(a) }
+            node.arguments.collect { |a| expand(a) },
+            node.block,
+            node.private
           )
         end
       when AST::KeywordSend
-        if MacroEnvironment.respond_to?(node.method_name)
-          MacroEnvironment.send(node.method_name.to_sym, node.receiver, *node.arguments)
+        if MacroEnvironment.respond_to?("atomo_macro::" + node.method_name)
+          MacroEnvironment.send("atomo_macro::" + node.method_name.to_sym, node.receiver, *node.arguments)
         else
           AST::KeywordSend.new(
             expand(node.receiver),
