@@ -7,10 +7,10 @@ module Atomo
         "keyword_send"
       end
 
-      def initialize(receiver, name)
+      def initialize(receiver, name, arguments = [])
         @receiver = receiver
         @method_name = name
-        @arguments = []
+        @arguments = arguments
         @line = 1 # TODO
       end
 
@@ -50,13 +50,9 @@ module Atomo
 
         g.keyword_send =
           g.seq(:level2, :sig_sp, :send_args) do |v, _, arg|
-            s = new(v,arg.first)
-            s.arguments.concat arg.last
-            s
+            new(v, arg.first, arg.last)
           end | g.seq(:send_args) do |arg|
-            s = new(Primitive.new(:self), arg.first)
-            s.arguments.concat arg.last
-            s
+            new(Primitive.new(:self), arg.first, arg.last)
           end
       end
 

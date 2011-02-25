@@ -21,7 +21,6 @@ module Atomo
     def self.expand(node)
       case node
       when AST::BinarySend
-        p MacroEnvironment.methods - Module.methods
         if MacroEnvironment.respond_to?(node.operator)
           MacroEnvironment.send(node.operator.to_sym, node.lhs, node.rhs)
         else

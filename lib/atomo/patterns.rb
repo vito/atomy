@@ -76,7 +76,7 @@ module Atomo::Patterns
     when Atomo::AST::Tuple
       return Tuple.new(n.elements.collect { |e| from_node(e) })
     when Atomo::AST::Constant
-      return Constant.new(n.name)
+      return Constant.new(n.chain)
     when Atomo::AST::BinarySend
       case n.operator
       when "."

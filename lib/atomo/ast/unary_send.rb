@@ -7,9 +7,9 @@ module Atomo
         "unary_send"
       end
 
-      def initialize(receiver, method, arguments, block = nil, privat = false)
+      def initialize(receiver, name, arguments, block = nil, privat = false)
         @receiver = receiver
-        @method_name = method
+        @method_name = name
         @arguments = arguments
         @block = block unless block == []
         @private = privat
