@@ -20,6 +20,22 @@ module Atomo
 
       attr_reader :operator, :lhs, :rhs
 
+      def recursively(&f)
+        f.call BinarySend.new(
+          @operator,
+          @lhs.recursively(&f),
+          @rhs.recursively(&f)
+        )
+      end
+
+      def construct(g, d)
+        get(g)
+        g.push_literal @operator
+        @lhs.construct(g, d)
+        @rhs.construct(g, d)
+        g.send :new, 3
+      end
+
       def self.grammar(g)
         g.binary_send =
           g.seq(
@@ -35,10 +51,6 @@ module Atomo
           ) do |o, _, r|
             BinarySend.new(o, Primitive.new(:self), r)
           end
-      end
-
-      def recursively(&f)
-        f.call BinarySend.new(@operator, @lhs.recursively(&f), @rhs.recursively(&f))
       end
 
       def register_macro(body)

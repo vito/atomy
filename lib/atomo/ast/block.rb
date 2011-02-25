@@ -40,6 +40,16 @@ module Atomo
       def recursively(&f)
         f.call Block.new(body.recursively(&f), @arguments)
       end
+
+      def construct(g, d)
+        get(g)
+        @body.expressions.each do |e|
+          e.construct(g, d)
+        end
+        g.make_array @body.expressions.size
+        g.push_literal @arguments
+        g.send :new, 2
+      end
     end
 
     class BlockArguments < AST::Node

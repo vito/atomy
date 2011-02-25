@@ -16,6 +16,13 @@ module Atomo
         )
       end
 
+      def construct(g, d)
+        get(g)
+        @target.construct(g, d)
+        @body.construct(g, d)
+        g.send :new, 2
+      end
+
       def bytecode(g)
         pos(g)
 

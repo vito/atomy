@@ -1,10 +1,10 @@
 module Atomo
   module AST
-    class Quote < Node
+    class Unquote < Node
       Atomo::Parser.register self
 
       def self.rule_name
-        "quote"
+        "unquote"
       end
 
       def initialize(expression)
@@ -15,26 +15,34 @@ module Atomo
       attr_reader :expression
 
       def recursively(&f)
-        f.call Quote.new(
+        f.call Unquote.new(
           @expression.recursively(&f)
         )
       end
 
       def construct(g, d)
-        get(g)
-        @expression.construct(g, d)
-        g.send :new, 1
+        p :depth => d
+        if d == 0
+          @expression.bytecode(g)
+          g.send :to_node, 0
+        else
+          get(g)
+          @expression.construct(g, d - 1)
+          g.send :new, 1
+        end
       end
 
       def self.grammar(g)
-        g.quote =
-          g.seq("'", g.t(:level1)) do |e|
-            Quote.new(e)
+        g.unquote =
+          g.seq("~", g.t(:level1)) do |e|
+            Unquote.new(e)
           end
       end
 
       def bytecode(g)
         pos(g)
+        # TODO: this should raise an exception since
+        # it'll only happen outside of a quasiquote.
         g.push_literal @expression
       end
     end

@@ -40,6 +40,25 @@ module Atomo
         )
       end
 
+      def construct(g, d)
+        get(g)
+        @receiver.construct(g, d)
+        g.push_literal @method_name
+        @arguments.each do |a|
+          a.construct(g, d)
+        end
+        g.make_array @arguments.size
+
+        if @block
+          @block.construct(g, d)
+        else
+          g.push_nil
+        end
+
+        g.push_literal @private
+        g.send :new, 5
+      end
+
       def self.grammar(g)
         g.unary_args =
           g.seq(

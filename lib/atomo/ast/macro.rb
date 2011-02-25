@@ -15,6 +15,13 @@ module Atomo
 
       attr_reader :pattern, :body
 
+      def construct(g, d)
+        get(g)
+        g.push_literal @pattern
+        @body.construct(g, d)
+        g.send :new, 2
+      end
+
       def self.grammar(g)
         g.macro =
           g.seq(

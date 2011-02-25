@@ -1,10 +1,10 @@
 module Atomo
   module AST
-    class Quote < Node
+    class QuasiQuote < Node
       Atomo::Parser.register self
 
       def self.rule_name
-        "quote"
+        "quasi_quote"
       end
 
       def initialize(expression)
@@ -15,27 +15,27 @@ module Atomo
       attr_reader :expression
 
       def recursively(&f)
-        f.call Quote.new(
+        f.call QuasiQuote.new(
           @expression.recursively(&f)
         )
       end
 
       def construct(g, d)
         get(g)
-        @expression.construct(g, d)
+        @expression.construct(g, d + 1)
         g.send :new, 1
       end
 
       def self.grammar(g)
-        g.quote =
-          g.seq("'", g.t(:level1)) do |e|
-            Quote.new(e)
+        g.quasi_quote =
+          g.seq("`", g.t(:level1)) do |e|
+            QuasiQuote.new(e)
           end
       end
 
       def bytecode(g)
         pos(g)
-        g.push_literal @expression
+        @expression.construct(g, 0)
       end
     end
   end

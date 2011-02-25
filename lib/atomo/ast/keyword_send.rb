@@ -38,6 +38,17 @@ module Atomo
         )
       end
 
+      def construct(g, d)
+        get(g)
+        @receiver.construct(g, d)
+        g.push_literal @method_name
+        @arguments.each do |a|
+          a.construct(g, d)
+        end
+        g.make_array @arguments.size
+        g.send :new, 3
+      end
+
       def self.collect(pairs)
         name = ""
         args = []
