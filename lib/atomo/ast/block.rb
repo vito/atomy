@@ -10,7 +10,11 @@ module Atomo
       end
 
       def initialize(body, args)
-        @body = BlockBody.new body
+        if body.kind_of? BlockBody
+          @body = body
+        else
+          @body = BlockBody.new body
+        end
 
         if args.kind_of? BlockArguments
           @arguments = args
