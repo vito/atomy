@@ -14,7 +14,7 @@ module Atomo::Patterns
         g.push_const :NilClass
       when :self
         g.push_self
-        g.send :class, 0
+        g.send :metaclass, 0
       else
         g.push_const @value.class.name.to_sym
       end
