@@ -10,7 +10,7 @@ require base + '/parser'
 bnd = binding()
 
 while str = Readline.readline("> ")
-  continue if str.empty?
+  next if str.empty?
 
   begin
     res = Atomo::Compiler.evaluate str, bnd
