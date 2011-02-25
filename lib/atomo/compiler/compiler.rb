@@ -13,7 +13,7 @@ module Atomo
         args = pats[1]
         g.total_args = args.size
         g.required_args = args.size
-        g.push_state Rubinius::AST::ClosedScope.new(0)
+        g.push_state Rubinius::AST::ClosedScope.new(123) # TODO: real line
 
         skip = g.new_label
         argmis = g.new_label
@@ -129,6 +129,58 @@ module Atomo
       compiler.generator.variable_scope = scope
 
       compiler.run
+    end
+
+    def self.compile_node(node, scope = nil, file = "(eval)", line = 1)
+      compiler = new :atomo_pragmas, :compiled_method
+
+      eval = Rubinius::AST::EvalExpression.new(AST::Tree.new([node]))
+      eval.file = file
+
+      printer = compiler.packager.print
+      printer.bytecode = true
+      printer.method_names = []
+
+      compiler.pragmas.input eval
+
+      compiler.generator.variable_scope = scope
+
+      compiler.run
+    end
+
+    def self.evaluate_node(node, instance = nil, bnd = nil, file = "(eval)", line = 1)
+      if bnd.nil?
+        bnd = Binding.setup(
+          Rubinius::VariableScope.of_sender,
+          Rubinius::CompiledMethod.of_sender,
+          Rubinius::StaticScope.of_sender
+        )
+      end
+
+      cm = compile_node(node, bnd.variables, file, line)
+      cm.scope = bnd.static_scope.dup
+      cm.name = :__atomo_eval__
+
+      script = Rubinius::CompiledMethod::Script.new(cm, file, true)
+      script.eval_binding = bnd
+      # script.eval_source = string
+
+      cm.scope.script = script
+
+      be = Rubinius::BlockEnvironment.new
+      be.under_context(bnd.variables, cm)
+
+      if bnd.from_proc?
+        be.proc_environment = bnd.proc_environment
+      end
+
+      be.from_eval!
+
+      if instance
+        be.call_on_instance instance
+      else
+        be.call
+      end
     end
 
     def self.evaluate(string, bnd = nil, file = "(eval)", line = 1)

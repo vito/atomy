@@ -80,6 +80,8 @@ module Atomo
             case x
             when Atomo::AST::Macro
               x.pattern.register_macro x.body
+            when Atomo::AST::ForMacro
+              Atomo::Compiler.evaluate_node x.body, Atomo::MacroEnvironment
             end
             x
           end
