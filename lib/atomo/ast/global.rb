@@ -4,8 +4,8 @@ module Atomo
       g.sp = g.kleene g.any(" ", "\n")
       g.sig_sp = g.many g.any(" ", "\n")
 
-      ident_start = /(?![&@$~:])[\p{L}\p{S}_!@#%&*\-.\/\?]/u
-      ident_letters = /[\p{L}\p{S}_!@#%&*\-.\/\?]*/u
+      ident_start = /(?![&@$~`:])[\p{L}\p{S}_!@#%&*\-.\/\?]/u
+      ident_letters = /((?!`)[\p{L}\p{S}_!@#%&*\-.\/\?])*/u
 
       g.identifier =
         g.seq(
@@ -16,7 +16,7 @@ module Atomo
           c + cs
         end
 
-      op_start = /(?!`@$~)[\p{S}!@#%&*\-.\/\?:]/u
+      op_start = /(?![@$~`])[\p{S}!@#%&*\-.\/\?:]/u
       op_letters = /((?!`)[\p{S}!@#%&*\-.\/\?:])*/u
 
       g.operator =
