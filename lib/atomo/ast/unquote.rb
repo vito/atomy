@@ -21,7 +21,6 @@ module Atomo
       end
 
       def construct(g, d)
-        p :depth => d
         if d == 0
           @expression.bytecode(g)
           g.send :to_node, 0

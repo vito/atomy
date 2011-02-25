@@ -22,6 +22,9 @@ module Atomo
         g.send :new, 2
       end
 
+      # TODO: if #recursively? is defined, see stages.rb;
+      # not sure if Pragmas should look through their bodies.
+
       def self.grammar(g)
         g.macro =
           g.seq(
@@ -29,7 +32,6 @@ module Atomo
             "(", :sp, g.t(:expression), :sp, ")",
             :sp, g.t(:expression)
           ) do |p, b|
-            p.register_macro b
             Macro.new(p, b)
           end
       end

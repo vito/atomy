@@ -53,9 +53,44 @@ module Atomo
       end
     end
 
+    class Pragmas < Rubinius::Compiler::Stage
+      stage :atomo_pragmas
+      next_stage MacroExpander
+
+      def initialize(compiler, last)
+        super
+        compiler.expander = self
+      end
+
+      def input(root, file = "(eval)", line = 1)
+        @input = root
+        @file = file
+        @line = line
+      end
+
+      def print
+        @print = true
+      end
+
+      def run
+        @output = @input.dup
+        @output.body = @input.body.collect do |n|
+          # TODO: don't follow into macro bodies?
+          n.recursively do |x|
+            case x
+            when Atomo::AST::Macro
+              x.pattern.register_macro x.body
+            end
+            x
+          end
+        end
+        run_next
+      end
+    end
+
     class Parser < Rubinius::Compiler::Stage
       stage :atomo_parser
-      next_stage MacroExpander
+      next_stage Pragmas
 
       def initialize(compiler, last)
         super
@@ -85,7 +120,7 @@ module Atomo
 
     class FileParser < Parser
       stage :atomo_file
-      next_stage MacroExpander
+      next_stage Pragmas
 
       def input(file, line = 1)
         @file = file
@@ -99,7 +134,7 @@ module Atomo
 
     class StringParser < Parser
       stage :atomo_string
-      next_stage MacroExpander
+      next_stage Pragmas
 
       def parse
         Atomo::Parser.parse_string(@input)
