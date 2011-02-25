@@ -20,7 +20,7 @@ module Atomo
 
       def register_macro(body)
         Atomo.register_macro(
-          @method_name.to_sym,
+          @method_name,
           ([@receiver] + @arguments).collect do |n|
             Atomo::Macro.macro_pattern n
           end,

@@ -55,7 +55,7 @@ module Atomo
 
       def register_macro(body)
         Atomo.register_macro(
-          @operator.to_sym,
+          @operator,
           [@lhs, @rhs].collect do |n|
             Atomo::Macro.macro_pattern n
           end,
