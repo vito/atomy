@@ -34,6 +34,17 @@ module Atomo
         meth
       end
 
+      def recursively(stop = nil, &f)
+        return f.call self if stop and stop.call(self)
+
+        f.call Define.new(
+          @name,
+          @receiver,
+          @arguments,
+          @body.recursively(stop, &f)
+        )
+      end
+
       def bytecode(g)
         pos(g)
 
