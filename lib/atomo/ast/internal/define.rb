@@ -3,7 +3,12 @@ module Atomo
     class Define < Rubinius::AST::ClosedScope
       def initialize(name, recv, args, body)
         @name = name
-        @receiver = recv
+
+        if recv.kind_of? Patterns::Pattern
+          @receiver = recv
+        else
+          @receiver = Patterns.from_node(recv)
+        end
 
         if args.kind_of? DefineArguments
           @arguments = args

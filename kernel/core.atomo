@@ -1,21 +1,34 @@
 macro (x = y)
   Atomo::AST::Assign new(x, y);
 
-macro (x := y)
-  { recv = Atomo::Patterns from_node(x receiver);
-
-    x respond_to?(#arguments)
-      ifTrue: {
-        args = x arguments each { a | Atomo::Patterns from_node(a) }
-      }
-      ifFalse: {
-        args = []
-      };
-
-    Atomo::AST::Define new(x method_name, recv, args, y)
-  } call;
-
 macro (x match: (b: Block))
   { n = Atomo::AST::Match new(x, b);
     `({ ~n } call)
-  } call
+  } call;
+
+macro (x := y)
+  x match: {
+    Atomo::AST::BinarySend ->
+      Atomo::AST::Define new(
+        x operator,
+        x lhs,
+        [x rhs],
+        y
+      );
+
+    Atomo::AST::Variable ->
+      Atomo::AST::Define new(
+        x name,
+        'self,
+        [],
+        y
+      );
+
+    _ ->
+      Atomo::AST::Define new(
+        x method_name,
+        x receiver,
+        x arguments,
+        y
+      )
+  }
