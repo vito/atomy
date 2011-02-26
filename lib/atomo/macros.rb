@@ -8,6 +8,7 @@ module Atomo
 
     def self.register(name, args, body)
       name = (intern name).to_sym
+      body = expand(body) # TODO: verify this
 
       if ms = @macros[name]
         ms << [[Patterns::Any.new, args], body.method(:bytecode)]
