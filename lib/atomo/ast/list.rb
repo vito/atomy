@@ -12,6 +12,11 @@ module Atomo
         @line = 1 # TODO
       end
 
+      def ==(b)
+        b.kind_of?(List) and \
+        @elements == b.elements
+      end
+
       attr_reader :elements
 
       def recursively(stop = nil, &f)

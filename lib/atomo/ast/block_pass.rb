@@ -13,6 +13,10 @@ module Atomo
         super(1, body) # TODO
       end
 
+      def ==(b)
+        b.kind_of?(BlockPass) && @body == b.body
+      end
+
       attr_reader :name
 
       def self.grammar(g)

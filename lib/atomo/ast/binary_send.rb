@@ -18,6 +18,13 @@ module Atomo
         @line = 1 # TODO
       end
 
+      def ==(b)
+        b.kind_of?(BinarySend) and \
+        @operator == b.operator and \
+        @lhs == b.lhs and \
+        @rhs == b.rhs
+      end
+
       attr_reader :operator, :lhs, :rhs
 
       def recursively(stop = nil, &f)

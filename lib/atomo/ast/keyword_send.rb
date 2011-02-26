@@ -14,6 +14,13 @@ module Atomo
         @line = 1 # TODO
       end
 
+      def ==(b)
+        b.kind_of?(KeywordSend) and \
+        @receiver == b.receiver and \
+        @method_name == b.method_name and \
+        @arguments == b.arguments
+      end
+
       attr_reader :receiver, :method_name, :arguments
 
       Pair = Struct.new(:name, :value)

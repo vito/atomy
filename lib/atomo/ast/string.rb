@@ -12,6 +12,11 @@ module Atomo
         @line = 1 # TODO
       end
 
+      def ==(b)
+        b.kind_of?(String) and \
+        @value == b.value
+      end
+
       attr_reader :value
 
       def self.grammar(g)

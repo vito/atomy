@@ -16,6 +16,15 @@ module Atomo
         @line = 1 # TODO
       end
 
+      def ==(b)
+        b.kind_of?(UnarySend) and \
+        @receiver == b.receiver and \
+        @method_name == b.method_name and \
+        @arguments == b.arguments and \
+        @block == b.block and \
+        @private == b.private
+      end
+
       attr_reader :receiver, :method_name, :arguments, :block, :private
 
       def register_macro(body)

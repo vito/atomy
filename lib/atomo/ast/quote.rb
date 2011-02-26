@@ -12,6 +12,11 @@ module Atomo
         @line = 1 # TODO
       end
 
+      def ==(b)
+        b.kind_of?(Quote) and \
+        @expression == b.expression
+      end
+
       attr_reader :expression
 
       def recursively(stop = nil, &f)

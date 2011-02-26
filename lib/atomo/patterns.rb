@@ -95,6 +95,8 @@ module Atomo::Patterns
       end
     when Atomo::AST::BlockPass
       return BlockPass.new(from_node(n.body))
+    when Atomo::AST::Quote
+      return Quote.new(n.expression)
     end
 
     raise Exception.new("unknown pattern: " + n.inspect)

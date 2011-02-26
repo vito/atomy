@@ -12,6 +12,10 @@ module Atomo
         @line = 1 # TODO
       end
 
+      def ==(b)
+        b.kind_of?(ForMacro) && @body == b.body
+      end
+
       attr_reader :body
 
       def construct(g, d)

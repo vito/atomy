@@ -84,7 +84,16 @@ module Atomo
         end
       end
 
-      Atomo::Patterns.from_node(n)
+      case n
+      when Atomo::AST::Primitive
+        if n.value == :self
+          Atomo::Patterns::Quote.new(Atomo::AST::Primitive.new(:self))
+        else
+          n
+        end
+      else
+        Atomo::Patterns.from_node(n)
+      end
     end
   end
 end

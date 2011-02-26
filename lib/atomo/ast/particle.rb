@@ -12,6 +12,11 @@ module Atomo
         @line = 1 # TODO
       end
 
+      def ==(b)
+        b.kind_of?(Particle) and \
+        @name == b.name
+      end
+
       attr_reader :name
 
       def self.grammar(g)

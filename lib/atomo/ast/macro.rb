@@ -13,6 +13,12 @@ module Atomo
         @line = 1 # TODO
       end
 
+      def ==(b)
+        b.kind_of?(Macro) and \
+        @pattern == b.pattern and \
+        @body == b.body
+      end
+
       attr_reader :pattern, :body
 
       def construct(g, d)
