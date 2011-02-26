@@ -4,7 +4,13 @@ module Atomo
       def initialize(name, recv, args, body)
         @name = name
         @receiver = recv
-        @arguments = DefineArguments.new(args)
+
+        if args.kind_of? DefineArguments
+          @arguments = args
+        else
+          @arguments = DefineArguments.new(args)
+        end
+
         @body = body
         @line = 1 # TODO
       end
