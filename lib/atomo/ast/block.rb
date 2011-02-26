@@ -41,8 +41,9 @@ module Atomo
           end
       end
 
-      def recursively(&f)
-        f.call Block.new(body.recursively(&f), @arguments)
+      def recursively(stop = nil, &f)
+        return f.call self if stop and stop.call(self)
+        f.call Block.new(body.recursively(stop, &f), @arguments)
       end
 
       def construct(g, d)
@@ -122,8 +123,8 @@ module Atomo
         @expressions.empty?
       end
 
-      def recursively(&f)
-        BlockBody.new(@expressions.collect { |n| n.recursively(&f) })
+      def recursively(stop, &f)
+        BlockBody.new(@expressions.collect { |n| n.recursively(stop, &f) })
       end
 
       def bytecode(g)

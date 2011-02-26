@@ -14,9 +14,11 @@ module Atomo
 
       attr_reader :expression
 
-      def recursively(&f)
+      def recursively(stop = nil, &f)
+        return f.call self if stop and stop.call(self)
+
         f.call Quote.new(
-          @expression.recursively(&f)
+          @expression.recursively(stop, &f)
         )
       end
 

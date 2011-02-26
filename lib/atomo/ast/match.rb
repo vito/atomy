@@ -9,10 +9,12 @@ module Atomo
         @line = 1 # TODO
       end
 
-      def recursively(&f)
+      def recursively(stop = nil, &f)
+        return f.call self if stop and stop.call(self)
+
         f.call Match.new(
-          target.recursively(&f),
-          body.recursively(&f)
+          target.recursively(stop, &f),
+          body.recursively(stop, &f)
         )
       end
 

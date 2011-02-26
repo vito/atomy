@@ -14,10 +14,12 @@ module Atomo
 
       attr_reader :elements
 
-      def recursively(&f)
+      def recursively(stop = nil, &f)
+        return f.call self if stop and stop.call(self)
+
         f.call List.new(
           @elements.collect do |n|
-            n.recursively(&f)
+            n.recursively(stop, &f)
           end
         )
       end
@@ -30,7 +32,6 @@ module Atomo
         g.make_array @elements.size
         g.send :new, 1
       end
-
 
       def self.grammar(g)
         g.list =

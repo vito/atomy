@@ -81,7 +81,7 @@ module Atomo
             when Atomo::AST::Macro
               x.pattern.register_macro x.body
             when Atomo::AST::ForMacro
-              Atomo::Compiler.evaluate_node x.body, Atomo::MacroEnvironment
+              Atomo::Compiler.evaluate_node x.body, Atomo::Macro::Environment
             end
             x
           end

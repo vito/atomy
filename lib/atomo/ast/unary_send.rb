@@ -19,7 +19,7 @@ module Atomo
       attr_reader :receiver, :method_name, :arguments, :block, :private
 
       def register_macro(body)
-        Atomo.register_macro(
+        Atomo::Macro.register(
           @method_name,
           ([@receiver] + @arguments).collect do |n|
             Atomo::Macro.macro_pattern n
@@ -28,14 +28,16 @@ module Atomo
         )
       end
 
-      def recursively(&f)
+      def recursively(stop = nil, &f)
+        return f.call self if stop and stop.call(self)
+
         f.call UnarySend.new(
-          @receiver.recursively(&f),
+          @receiver.recursively(stop, &f),
           @method_name,
           @arguments.collect do |n|
-            n.recursively(&f)
+            n.recursively(stop, &f)
           end,
-          @block ? @block.recursively(&f) : nil,
+          @block ? @block.recursively(stop, &f) : nil,
           @private
         )
       end

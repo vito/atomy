@@ -20,11 +20,13 @@ module Atomo
 
       attr_reader :operator, :lhs, :rhs
 
-      def recursively(&f)
+      def recursively(stop = nil, &f)
+        return f.call self if stop and stop.call(self)
+
         f.call BinarySend.new(
           @operator,
-          @lhs.recursively(&f),
-          @rhs.recursively(&f)
+          @lhs.recursively(stop, &f),
+          @rhs.recursively(stop, &f)
         )
       end
 
@@ -54,7 +56,7 @@ module Atomo
       end
 
       def register_macro(body)
-        Atomo.register_macro(
+        Atomo::Macro.register(
           @operator,
           [@lhs, @rhs].collect do |n|
             Atomo::Macro.macro_pattern n
