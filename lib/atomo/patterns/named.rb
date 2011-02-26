@@ -3,7 +3,10 @@ module Atomo::Patterns
     def initialize(n, p)
       @name = n
       @pattern = p
+      @variable = nil
     end
+
+    attr_accessor :name, :variable
 
     def target(g)
       @pattern.target(g)
@@ -14,10 +17,12 @@ module Atomo::Patterns
     end
 
     def deconstruct(g, locals = {})
-      if locals[@name]
-        var = locals[@name]
-      else
-        var = g.state.scope.new_local @name
+      unless @variable
+        if locals[@name]
+          @variable = locals[@name]
+        else
+          g.state.scope.assign_local_reference self
+        end
       end
 
       if @pattern.locals > 0
@@ -25,7 +30,7 @@ module Atomo::Patterns
         @pattern.deconstruct(g, locals)
       end
 
-      var.reference.set_bytecode(g)
+      @variable.set_bytecode(g)
       g.pop
     end
 

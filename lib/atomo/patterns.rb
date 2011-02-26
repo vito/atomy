@@ -1,5 +1,7 @@
 module Atomo::Patterns
   class Pattern
+    attr_accessor :variable
+
     # push the target class for this pattern in a defition
     def target(g)
       raise Rubinius::CompileError, "no #target for #{self}"
@@ -20,12 +22,15 @@ module Atomo::Patterns
     # try pattern-matching, erroring on failure
     # effect on the stack: top value removed
     def match(g)
+      @variable = nil
+
       error = g.new_label
       done = g.new_label
 
       locals = {}
       local_names.each do |n|
-        locals[n] = g.state.scope.new_local n
+        g.state.scope.assign_local_reference self
+        locals[n] = @variable
       end
 
       g.dup
