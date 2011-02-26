@@ -64,7 +64,7 @@ module Atomo
       def self.grammar(g)
         g.unary_args =
           g.seq(
-            "(", g.t(:some_expressions), ")"
+            "(", :sp, g.t(:some_expressions), :sp, ")"
           )
 
         g.unary_send =
