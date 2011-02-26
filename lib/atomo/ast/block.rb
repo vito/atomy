@@ -1,6 +1,8 @@
 module Atomo
   module AST
     class Block < Rubinius::AST::Iter
+      include NodeLike
+
       Atomo::Parser.register self
 
       attr_accessor :parent
