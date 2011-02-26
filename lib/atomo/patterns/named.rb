@@ -1,12 +1,19 @@
 module Atomo::Patterns
   class Named < Pattern
+    attr_reader :name, :pattern
+    attr_accessor :variable
+
     def initialize(n, p)
       @name = n
       @pattern = p
       @variable = nil
     end
 
-    attr_accessor :name, :variable
+    def ==(b)
+      b.kind_of?(Named) and \
+      @name == b.name and \
+      @pattern == b.pattern
+    end
 
     def target(g)
       @pattern.target(g)

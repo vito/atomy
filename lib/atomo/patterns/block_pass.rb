@@ -1,9 +1,14 @@
 module Atomo::Patterns
   class BlockPass < Pattern
-    attr_accessor :name
+    attr_reader :pattern
 
     def initialize(p)
       @pattern = p
+    end
+
+    def ==(b)
+      b.kind_of?(BlockPass) and \
+      @pattern == b.pattern
     end
 
     def target(g)

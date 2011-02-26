@@ -13,7 +13,8 @@ module Atomo
       end
 
       def ==(b)
-        b.kind_of?(ForMacro) && @body == b.body
+        b.kind_of?(ForMacro) and \
+        @body == b.body
       end
 
       attr_reader :body

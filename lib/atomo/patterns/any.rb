@@ -1,5 +1,9 @@
 module Atomo::Patterns
   class Any < Pattern
+    def ==(b)
+      b.kind_of?(Any)
+    end
+
     def target(g)
       g.push_const :Object
     end

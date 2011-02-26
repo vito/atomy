@@ -14,7 +14,8 @@ module Atomo
       end
 
       def ==(b)
-        b.kind_of?(BlockPass) && @body == b.body
+        b.kind_of?(BlockPass) and \
+        @body == b.body
       end
 
       attr_reader :name

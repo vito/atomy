@@ -4,6 +4,11 @@ module Atomo::Patterns
       @expression = x
     end
 
+    def ==(b)
+      b.kind_of?(Quote) and \
+      @expression == b.expression
+    end
+
     def target(g)
       Constant.new(@expression.class.name.split("::")).target(g)
     end

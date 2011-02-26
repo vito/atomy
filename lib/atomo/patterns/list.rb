@@ -1,7 +1,14 @@
 module Atomo::Patterns
   class List < Pattern
+    attr_reader :patterns
+
     def initialize(ps)
       @patterns = ps
+    end
+
+    def ==(b)
+      b.kind_of?(List) and \
+      @patterns == b.patterns
     end
 
     def target(g)

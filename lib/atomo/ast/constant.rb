@@ -13,7 +13,8 @@ module Atomo
       end
 
       def ==(b)
-        b.kind_of?(Constant) && @chain == b.chain
+        b.kind_of?(Constant) and \
+        @chain == b.chain
       end
 
       attr_reader :chain

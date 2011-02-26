@@ -6,6 +6,11 @@ module Atomo::Patterns
       @pattern = p
     end
 
+    def ==(b)
+      b.kind_of?(Variadic) and \
+      @pattern == b.pattern
+    end
+
     def target(g)
       g.push_const :Object
     end

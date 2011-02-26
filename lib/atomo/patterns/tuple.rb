@@ -4,6 +4,11 @@ module Atomo::Patterns
       @patterns = ps
     end
 
+    def ==(b)
+      b.kind_of?(Tuple) and \
+      @patterns == b.patterns
+    end
+
     def target(g)
       g.push_const :Array
     end

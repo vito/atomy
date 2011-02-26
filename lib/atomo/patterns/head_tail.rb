@@ -1,8 +1,16 @@
 module Atomo::Patterns
   class HeadTail < Pattern
+    attr_reader :head, :tail
+
     def initialize(head, tail)
       @head = head
       @tail = tail
+    end
+
+    def ==(b)
+      b.kind_of?(HeadTail) and \
+      @head == b.head and \
+      @tail == b.tail
     end
 
     def target(g)

@@ -1,7 +1,14 @@
 module Atomo::Patterns
   class Match < Pattern
+    attr_reader :value
+
     def initialize(x)
       @value = x
+    end
+
+    def ==(b)
+      b.kind_of?(Match) and \
+      @value == b.value
     end
 
     def target(g)
