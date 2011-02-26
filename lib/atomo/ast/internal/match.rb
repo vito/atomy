@@ -42,7 +42,6 @@ module Atomo
           pat.matches?(g)
           g.gif skip
 
-          g.dup
           pat.deconstruct(g)
           exp.bytecode(g)
           g.goto done
@@ -50,6 +49,7 @@ module Atomo
           skip.set!
         end
 
+        g.pop
         g.push_nil
 
         done.set!
