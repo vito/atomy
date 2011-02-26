@@ -3,9 +3,19 @@ module Atomo
     # TODO: arguments
     target.dynamic_method(name) do |g|
       done = g.new_label
-      g.local_count = methods.collect do |pats, meth|
+
+      g.push_state Rubinius::AST::ClosedScope.new(123) # TODO: real line
+
+      g.local_names = methods.collect do |pats, meth|
         pats[0].local_names + pats[1].collect { |p| p.local_names }.flatten
-      end.uniq.size
+      end.flatten.uniq
+
+      locals = {}
+      g.local_names.each do |n|
+        locals[n] = g.state.scope.new_local(n).reference
+      end
+
+      g.local_count = g.local_names.size
 
       g.push_self
       methods.each do |pats, meth|
@@ -13,7 +23,6 @@ module Atomo
         args = pats[1]
         g.total_args = args.size
         g.required_args = args.size
-        g.push_state Rubinius::AST::ClosedScope.new(123) # TODO: real line
 
         skip = g.new_label
         argmis = g.new_label
@@ -25,7 +34,7 @@ module Atomo
 
         if recv.locals > 0
           g.push_self
-          recv.deconstruct(g)
+          recv.deconstruct(g, locals)
         end
 
         if args.size > 0
@@ -36,7 +45,7 @@ module Atomo
               g.dup
               a.matches?(g)
               g.gif argmis
-              a.deconstruct(g)
+              a.deconstruct(g, locals)
             else
               a.matches?(g)
               g.gif argmisnobind
