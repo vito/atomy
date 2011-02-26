@@ -1,6 +1,6 @@
 module Atomo
   module AST
-    class UnarySend < AST::Node
+    class UnarySend < Node
       Atomo::Parser.register self
 
       def self.rule_name
@@ -91,7 +91,7 @@ module Atomo
 
         @receiver.bytecode(g)
         block = @block
-        if not block and @arguments.last.kind_of? Block
+        if @arguments.last.kind_of? BlockPass
           block = @arguments.pop
         end
 
