@@ -1,4 +1,7 @@
+#!/usr/bin/env rbx
+
 base = File.expand_path "../../lib/atomo/", __FILE__
+kernel = File.expand_path "../../kernel/", __FILE__
 
 require 'readline'
 
@@ -8,6 +11,21 @@ require base + "/compiler/stages"
 require base + '/parser'
 
 bnd = binding()
+
+Kernel.send(:define_method, :"load:") do |a|
+  cm = Atomo::Compiler.compile_file a
+
+  cm.create_script(false)
+
+  begin
+    MAIN.__send__ :__script__
+  rescue Exception => e
+    puts "ERROR!"
+    puts e
+  end
+end
+
+send(:"load:", kernel + "/core.atomo")
 
 while str = Readline.readline("> ")
   next if str.empty?

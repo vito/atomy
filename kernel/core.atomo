@@ -1,0 +1,19 @@
+macro (x match: (b: Block))
+  Atomo::AST::Match new(x, b);
+
+macro (x = y)
+  Atomo::AST::Assign new(x, y);
+
+macro (x := y)
+  { recv = Atomo::Patterns from_node(x receiver);
+
+    x respond_to?(#arguments)
+      ifTrue: {
+        args = x arguments each { a | Atomo::Patterns from_node(a) }
+      }
+      ifFalse: {
+        args = []
+      };
+
+    Atomo::AST::Define new(x method_name, recv, args, y)
+  } call

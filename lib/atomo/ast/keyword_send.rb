@@ -191,10 +191,6 @@ module Atomo
         return true
       end
 
-      def match(g)
-        Match.new(@receiver, @arguments[0]).bytecode(g)
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -203,9 +199,6 @@ module Atomo
           return if loop_cond g, true
         when "whileFalse:"
           return if loop_cond g, false
-        when "match:"
-          match g
-          return
         end
 
         @receiver.bytecode(g)

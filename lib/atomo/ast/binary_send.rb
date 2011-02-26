@@ -67,47 +67,6 @@ module Atomo
 
       def bytecode(g)
         pos(g)
-
-        if @operator == "="
-          if @lhs.kind_of? Constant
-            g.push_scope
-            g.push_literal @lhs.name.to_sym
-            @rhs.bytecode(g)
-            g.send :const_set, 2
-            g.push_const @lhs.name.to_sym
-            return
-          end
-
-          if @lhs.kind_of? UnarySend
-            @lhs.receiver.bytecode(g)
-            @rhs.bytecode(g)
-            g.send((@lhs.method_name + "=").to_sym, 1)
-            return
-          end
-
-          pat = Patterns.from_node(@lhs)
-          @rhs.bytecode(g)
-          g.dup
-          pat.match(g)
-          return
-        elsif @operator == ":="
-          recv = Patterns.from_node(@lhs.receiver)
-          if @lhs.respond_to? :arguments
-            args = @lhs.arguments.each do |a|
-              Patterns.from_node(a)
-            end
-          else
-            args = []
-          end
-
-          Define.new(@lhs.method_name, recv, args, @rhs).bytecode(g)
-          return
-        elsif @operator == "::"
-          @lhs.bytecode(g)
-          g.find_const @rhs.name.to_sym
-          return
-        end
-
         @lhs.bytecode(g)
         @rhs.bytecode(g)
         g.send @operator.to_sym, 1
