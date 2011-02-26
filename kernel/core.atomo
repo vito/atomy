@@ -1,6 +1,3 @@
-macro (x match: (b: Block))
-  Atomo::AST::Match new(x, b);
-
 macro (x = y)
   Atomo::AST::Assign new(x, y);
 
@@ -16,4 +13,9 @@ macro (x := y)
       };
 
     Atomo::AST::Define new(x method_name, recv, args, y)
+  } call;
+
+macro (x match: (b: Block))
+  { n = Atomo::AST::Match new(x, b);
+    `({ ~n } call)
   } call
