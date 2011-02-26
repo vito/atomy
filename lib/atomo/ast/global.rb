@@ -1,8 +1,8 @@
 module Atomo
   module AST
     def self.grammar(g)
-      g.sp = g.kleene g.any(" ", "\n")
-      g.sig_sp = g.many g.any(" ", "\n")
+      g.sp = g.kleene g.any(" ", "\n", :comment)
+      g.sig_sp = g.many g.any(" ", "\n", :comment)
 
       ident_start = /(?![&@#$~`:])[\p{L}\p{S}_!@#%&*\-.\/\?]/u
       ident_letters = /((?!`)[\p{L}\p{S}_!@#%&*\-.\/\?])*/u
@@ -24,8 +24,21 @@ module Atomo
           c + cs
         end
 
+      g.in_multi =
+        g.any(
+          g.seq(/[^\-\{\}]*/, "-}"),
+          g.seq(/[^\-\{\}]*/, "{-", :in_multi, /[^\-\{\}]*/, "-}"),
+          g.seq(/[^\-\{\}]*/, /[-{}]/, :in_multi)
+        )
+
+      g.multi_comment =
+        g.seq("{-", :in_multi)
+
+      g.comment =
+        g.any(/--.*?$/, :multi_comment)
+
       g.grouped = g.seq("(", :sp, g.t(:expression), :sp, ")")
-      g.level1 = g.any(:true, :false, :self, :nil, :number,
+      g.level1 = g.any(:comment, :true, :false, :self, :nil, :number,
                        :macro, :for_macro, :quote, :quasi_quote, :unquote,
                        :string, :particle, :constant, :variable,
                        :tuple, :grouped, :block, :list)
@@ -34,7 +47,7 @@ module Atomo
 
       g.level3 = g.any(:keyword_send, :level2)
 
-      g.expression = g.any(:binary_send, :level3)
+      g.expression = g.any(:comment, :binary_send, :level3)
 
       g.delim = g.any(",", ";")
 
