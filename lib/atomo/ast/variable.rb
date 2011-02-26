@@ -26,12 +26,13 @@ module Atomo
       def bytecode(g)
         pos(g)
 
-        unless @variable
-          # sets @variable
-          g.state.scope.assign_local_reference self
+        var = g.state.scope.search_local(@name)
+        if var
+          var.get_bytecode(g)
+        else
+          g.push_self
+          g.send @name.to_sym, 0, true
         end
-
-        @variable.get_bytecode(g)
       end
     end
   end
