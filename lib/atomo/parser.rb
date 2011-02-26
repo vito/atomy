@@ -61,8 +61,8 @@ module Atomo
     require path + "/global"
     require path + "/node"
 
-    Dir["#{path}/*.rb"].sort.each do |f|
-      require path + "/#{File.basename f}"
+    Dir["#{path}/**/*.rb"].sort.each do |f|
+      require f
     end
 
     Grammar = to_kpeg
