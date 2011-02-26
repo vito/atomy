@@ -16,7 +16,7 @@ module Atomo
 
       def self.grammar(g)
         g.symbol =
-          g.seq("@", g.t(/[a-zA-Z][a-zA-Z0-9_]*/)) { |x| Symbol.new(x) }
+          g.seq("#", g.t(/[a-zA-Z][a-zA-Z0-9_]*/)) { |x| Symbol.new(x) }
       end
 
       def bytecode(g)
