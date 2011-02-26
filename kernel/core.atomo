@@ -6,29 +6,26 @@ macro (x match: (b: Block))
     `({ ~n } call)
   } call;
 
+macro ((x: BinarySend) := y)
+  Atomo::AST::Define new(
+    x operator,
+    x lhs,
+    [x rhs],
+    y
+  );
+
+macro ((x: Variable) := y)
+  Atomo::AST::Define new(
+    x name,
+    'self,
+    [],
+    y
+  );
+
 macro (x := y)
-  x match: {
-    Atomo::AST::BinarySend ->
-      Atomo::AST::Define new(
-        x operator,
-        x lhs,
-        [x rhs],
-        y
-      );
-
-    Atomo::AST::Variable ->
-      Atomo::AST::Define new(
-        x name,
-        'self,
-        [],
-        y
-      );
-
-    _ ->
-      Atomo::AST::Define new(
-        x method_name,
-        x receiver,
-        x arguments,
-        y
-      )
-  }
+  Atomo::AST::Define new(
+    x method_name,
+    x receiver,
+    x arguments,
+    y
+  )
