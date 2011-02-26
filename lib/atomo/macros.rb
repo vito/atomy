@@ -32,44 +32,64 @@ module Atomo
       "atomo_macro::" + name
     end
 
+    def self.no_macro(node)
+      case node
+      when AST::BinarySend
+        AST::BinarySend.new(
+          node.operator,
+          expand(node.lhs),
+          expand(node.rhs)
+        )
+      when AST::UnarySend
+        AST::UnarySend.new(
+          expand(node.receiver),
+          node.method_name,
+          node.arguments.collect { |a| expand(a) },
+          node.block,
+          node.private
+        )
+      when AST::KeywordSend
+        AST::KeywordSend.new(
+          expand(node.receiver),
+          node.method_name,
+          node.arguments.collect { |a| expand(a) }
+        )
+      else
+        node
+      end
+    end
+
     # take a node and return its expansion
     def self.expand(root)
       root.recursively(proc { |x| expand? x }) do |node|
-        case node
-        when AST::BinarySend
-          if Environment.respond_to?(intern node.operator)
-            expand Environment.send((intern node.operator).to_sym, nil, node.lhs, node.rhs)
-          else
-            AST::BinarySend.new(
-              node.operator,
-              expand(node.lhs),
-              expand(node.rhs)
+        begin
+          case node
+          when AST::BinarySend
+            expand Environment.send(
+              (intern node.operator).to_sym,
+              nil,
+              node.lhs,
+              node.rhs
             )
-          end
-        when AST::UnarySend
-          if Environment.respond_to?(intern node.method_name)
-            expand Environment.send((intern node.method_name).to_sym, node.block, node.receiver, *node.arguments)
-          else
-            AST::UnarySend.new(
-              expand(node.receiver),
-              node.method_name,
-              node.arguments.collect { |a| expand(a) },
+          when AST::UnarySend
+            expand Environment.send(
+              (intern node.method_name).to_sym,
               node.block,
-              node.private
+              node.receiver,
+              *node.arguments
             )
-          end
-        when AST::KeywordSend
-          if Environment.respond_to?(intern node.method_name)
-            expand Environment.send((intern node.method_name).to_sym, nil, node.receiver, *node.arguments)
+          when AST::KeywordSend
+            expand Environment.send(
+              (intern node.method_name).to_sym,
+              nil,
+              node.receiver,
+              *node.arguments
+            )
           else
-            AST::KeywordSend.new(
-              expand(node.receiver),
-              node.method_name,
-              node.arguments.collect { |a| expand(a) }
-            )
+            node
           end
-        else
-          node
+        rescue NoMethodError, ArgumentError
+          no_macro(node)
         end
       end
     end
