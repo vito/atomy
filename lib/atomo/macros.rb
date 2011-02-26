@@ -38,7 +38,7 @@ module Atomo
         case node
         when AST::BinarySend
           if Environment.respond_to?(intern node.operator)
-            Environment.send((intern node.operator).to_sym, node.lhs, node.rhs)
+            expand Environment.send((intern node.operator).to_sym, node.lhs, node.rhs)
           else
             AST::BinarySend.new(
               node.operator,
@@ -48,7 +48,7 @@ module Atomo
           end
         when AST::UnarySend
           if Environment.respond_to?(intern node.method_name)
-            Environment.send((intern node.method_name).to_sym, node.receiver, *node.arguments)
+            expand Environment.send((intern node.method_name).to_sym, node.receiver, *node.arguments)
           else
             AST::UnarySend.new(
               expand(node.receiver),
@@ -60,7 +60,7 @@ module Atomo
           end
         when AST::KeywordSend
           if Environment.respond_to?(intern node.method_name)
-            Environment.send((intern node.method_name).to_sym, node.receiver, *node.arguments)
+            expand Environment.send((intern node.method_name).to_sym, node.receiver, *node.arguments)
           else
             AST::KeywordSend.new(
               expand(node.receiver),
