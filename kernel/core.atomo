@@ -28,4 +28,10 @@ macro (x := y)
     x receiver,
     x arguments,
     y
-  )
+  );
+
+macro (class(pair: BinarySend, &body))
+  Atomo::AST::Class new(pair lhs, pair rhs, body body);
+
+macro (class(name, &body))
+  Atomo::AST::Class new(name, nil, body body)
