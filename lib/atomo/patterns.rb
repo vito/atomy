@@ -93,6 +93,8 @@ module Atomo::Patterns
       if n.receiver.is_a?(Atomo::AST::Primitive) && n.receiver.value == :self && n.arguments.size == 1
         return Named.new(n.method_name.chop, from_node(n.arguments[0]))
       end
+    when Atomo::AST::BlockPass
+      return BlockPass.new(from_node(n.body))
     end
 
     raise Exception.new("unknown pattern: " + n.inspect)

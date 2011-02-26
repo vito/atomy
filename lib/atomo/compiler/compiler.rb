@@ -1,4 +1,12 @@
 module Atomo
+  def self.block_from(args)
+    if args.last.kind_of?(Patterns::BlockPass)
+      [args[0..-2], args.last]
+    else
+      [args, nil]
+    end
+  end
+
   def self.add_method(target, name, methods)
     # TODO: arguments
     target.dynamic_method(name) do |g|
@@ -20,7 +28,8 @@ module Atomo
       g.push_self
       methods.each do |pats, meth|
         recv = pats[0]
-        args = pats[1]
+        args, block = block_from(pats[1])
+
         g.total_args = args.size
         g.required_args = args.size
 
@@ -52,6 +61,10 @@ module Atomo
             end
           end
           g.pop
+        end
+
+        if block
+          block.deconstruct(g)
         end
 
         meth.call(g)
