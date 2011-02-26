@@ -7,8 +7,7 @@ module Atomo
     end
   end
 
-  def self.add_method(target, name, methods)
-    # TODO: arguments
+  def self.add_method(target, name, methods, is_macro = false)
     target.dynamic_method(name) do |g|
       done = g.new_label
 
@@ -30,8 +29,7 @@ module Atomo
         recv = pats[0]
         args, block = block_from(pats[1])
 
-        g.total_args = args.size
-        g.required_args = args.size
+        g.total_args = g.required_args = (is_macro ? args.size + 1 : args.size)
 
         skip = g.new_label
         argmis = g.new_label
@@ -48,6 +46,15 @@ module Atomo
 
         if args.size > 0
           g.cast_for_multi_block_arg
+          if is_macro
+            g.shift_array
+            if block
+              block.deconstruct(g, locals)
+            else
+              g.pop
+            end
+          end
+
           args.each do |a|
             g.shift_array
             if a.locals > 0
@@ -63,7 +70,8 @@ module Atomo
           g.pop
         end
 
-        if block
+        if !is_macro && block
+          g.push_block_arg
           block.deconstruct(g)
         end
 

@@ -16,7 +16,6 @@ module Atomo::Patterns
     end
 
     def deconstruct(g, locals = {})
-      g.push_block_arg
       @pattern.deconstruct(g, locals)
     end
 
