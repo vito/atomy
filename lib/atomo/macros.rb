@@ -1,22 +1,28 @@
 module Atomo
   module Macro
-    # hash from method names to something that can be #call'd
-    @macros = {}
+    class Environment
+      attr_accessor :macros
 
-    module Environment
+      def initialize
+        @macros = {}
+      end
     end
+
+    CURRENT_ENV = Environment.new
 
     def self.register(name, args, body)
       name = (intern name).to_sym
       body = expand(body) # TODO: verify this
 
-      if ms = @macros[name]
-        ms << [[Patterns::Any.new, args], body.method(:bytecode)]
+      methods = CURRENT_ENV.macros
+      method = [[Patterns::Any.new, args], body.method(:bytecode)]
+      if ms = methods[name]
+        ms << method
       else
-        @macros[name] = [[[Patterns::Any.new, args], body.method(:bytecode)]]
+        methods[name] = [method]
       end
 
-      Atomo.add_method(Environment.metaclass, name, @macros[name], true)
+      Atomo.add_method(CURRENT_ENV.metaclass, name, methods[name], true)
     end
 
     def self.expand?(node)
@@ -65,21 +71,21 @@ module Atomo
         begin
           case node
           when AST::BinarySend
-            expand Environment.send(
+            expand CURRENT_ENV.send(
               (intern node.operator).to_sym,
               nil,
               node.lhs,
               node.rhs
             )
           when AST::UnarySend
-            expand Environment.send(
+            expand CURRENT_ENV.send(
               (intern node.method_name).to_sym,
               node.block,
               node.receiver,
               *node.arguments
             )
           when AST::KeywordSend
-            expand Environment.send(
+            expand CURRENT_ENV.send(
               (intern node.method_name).to_sym,
               nil,
               node.receiver,
