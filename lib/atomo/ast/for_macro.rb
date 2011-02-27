@@ -22,7 +22,7 @@ module Atomo
       def construct(g, d)
         get(g)
         @body.construct(g, d)
-        g.send :new, 2
+        g.send :new, 1
       end
 
       def recursively(stop = nil, &f)
