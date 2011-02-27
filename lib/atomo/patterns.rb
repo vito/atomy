@@ -101,6 +101,8 @@ module Atomo::Patterns
       return Quote.new(n.expression)
     when Atomo::AST::Block
       return Metaclass.new(n)
+    when Atomo::AST::GlobalVariable
+      return NamedGlobal.new(n.name)
     end
 
     raise Exception.new("unknown pattern: " + n.inspect)

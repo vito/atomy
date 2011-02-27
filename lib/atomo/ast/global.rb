@@ -40,7 +40,8 @@ module Atomo
       g.grouped = g.seq("(", :sp, g.t(:expression), :sp, ")")
       g.level1 = g.any(:true, :false, :self, :nil, :number,
                        :macro, :for_macro, :quote, :quasi_quote, :unquote,
-                       :string, :particle, :block_pass, :constant, :variable,
+                       :string, :particle, :block_pass, :constant,
+                       :variable, :global_variable,
                        :tuple, :grouped, :block, :list)
 
       g.level2 = g.any(:unary_send, :level1)
