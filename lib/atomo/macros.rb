@@ -27,7 +27,8 @@ module Atomo
 
     def self.expand?(node)
       case node
-      when AST::BinarySend, AST::UnarySend, AST::KeywordSend
+      # TODO: expand through nested unquotes
+      when AST::BinarySend, AST::UnarySend, AST::KeywordSend, AST::QuasiQuote, AST::Quote
         true
       else
         false
