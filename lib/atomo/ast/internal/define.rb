@@ -54,7 +54,6 @@ module Atomo
         pos(g)
 
         defn = @receiver.kind_of?(Patterns::Match) and @receiver.value == :self
-        p :looks_like_def => defn
 
         if defn
           g.push_rubinius
