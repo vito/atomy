@@ -103,6 +103,10 @@ module Atomo::Patterns
       return Metaclass.new(n)
     when Atomo::AST::GlobalVariable
       return NamedGlobal.new(n.name)
+    when Atomo::AST::InstanceVariable
+      return NamedInstance.new(n.name)
+    when Atomo::AST::ClassVariable
+      return NamedClass.new(n.name)
     end
 
     raise Exception.new("unknown pattern: " + n.inspect)
