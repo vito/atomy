@@ -25,8 +25,10 @@ module Atomo
         g.send :new, 2
       end
 
-      # TODO: if #recursively is defined, see stages.rb;
-      # not sure if Pragmas should look through their bodies.
+      def recursively(stop = nil, &f)
+        return f.call(self) if stop and stop.call(self)
+        f.call ForMacro.new(@body.recursively(&f))
+      end
 
       def self.grammar(g)
         g.for_macro =
