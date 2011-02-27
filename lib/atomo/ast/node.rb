@@ -20,6 +20,53 @@ module Atomo
         g.push_literal self
       end
 
+      def through_quotes(stop_ = nil, &f)
+        stop = proc { |x|
+          (stop_ and stop_.call(x)) or \
+            x.kind_of?(AST::QuasiQuote) or \
+            x.kind_of?(AST::Unquote)
+        }
+
+        depth = 0
+        search = nil
+        scan = proc do |x|
+          case x
+          when Atomo::AST::QuasiQuote
+            depth += 1
+            Atomo::AST::QuasiQuote.new(
+              x.expression.recursively(stop, &search)
+            )
+          else
+            f.call(x)
+          end
+        end
+
+        search = proc do |x|
+          case x
+          when Atomo::AST::QuasiQuote
+            depth += 1
+            Atomo::AST::QuasiQuote.new(
+              x.expression.recursively(stop, &search)
+            )
+          when Atomo::AST::Unquote
+            depth -= 1
+            if depth == 0
+              Atomo::AST::Unquote.new(
+                x.expression.recursively(stop, &scan)
+              )
+            else
+              Atomo::AST::Unquote.new(
+                x.expression.recursively(stop, &search)
+              )
+            end
+          else
+            x
+          end
+        end
+
+        recursively(stop, &scan)
+      end
+
       def get(g)
         self.class.name.split("::").each_with_index do |n, i|
           if i == 0

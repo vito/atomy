@@ -27,8 +27,7 @@ module Atomo
 
     def self.expand?(node)
       case node
-      # TODO: expand through nested unquotes
-      when AST::BinarySend, AST::UnarySend, AST::KeywordSend, AST::QuasiQuote, AST::Quote
+      when AST::BinarySend, AST::UnarySend, AST::KeywordSend
         true
       else
         false
@@ -70,7 +69,7 @@ module Atomo
 
     # take a node and return its expansion
     def self.expand(root)
-      root.recursively(proc { |x| expand? x }) do |node|
+      root.through_quotes(proc { |x| expand? x }) do |node|
         begin
           case node
           when AST::BinarySend

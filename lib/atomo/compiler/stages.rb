@@ -72,52 +72,18 @@ module Atomo
         @print = true
       end
 
-      def stop?(x)
-        case x
-        when Atomo::AST::QuasiQuote, Atomo::AST::Unquote
-          true
-        else
-          false
-        end
-      end
-
       def run
-        stop = lambda { |x| stop? x }
-
-        depth = 0
-        search = nil
-        scan = proc do |x|
-          case x
-          when Atomo::AST::QuasiQuote
-            depth += 1
-            x.expression.recursively(stop, &search)
-          when Atomo::AST::Macro
-            x.pattern.register_macro x.body
-          when Atomo::AST::ForMacro
-            Atomo::Compiler.evaluate_node x.body, Atomo::Macro::CURRENT_ENV
-          end
-          x
-        end
-
-        search = proc do |x|
-          case x
-          when Atomo::AST::QuasiQuote
-            depth += 1
-            x.expression.recursively(stop, &search)
-          when Atomo::AST::Unquote
-            depth -= 1
-            if depth == 0
-              x.expression.recursively(stop, &scan)
-            else
-              x.expression.recursively(stop, &search)
-            end
-          end
-          x
-        end
-
         @output = @input.dup
         @output.body = @input.body.collect do |n|
-          n.recursively(stop, &scan)
+          n.through_quotes do |x|
+            case x
+            when Atomo::AST::Macro
+              x.pattern.register_macro x.body
+            when Atomo::AST::ForMacro
+              Atomo::Compiler.evaluate_node x.body, Atomo::Macro::CURRENT_ENV
+            end
+            x
+          end
         end
         run_next
       end

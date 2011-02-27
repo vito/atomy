@@ -1,6 +1,8 @@
 module Atomo
   module AST
     class Define < Rubinius::AST::ClosedScope
+      include NodeLike
+
       def initialize(name, recv, args, body)
         @name = name
 
