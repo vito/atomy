@@ -42,7 +42,7 @@ module Atomo
 
       def bytecode(g)
         pos(g)
-        @expression.construct(g, 0)
+        @expression.construct(g, 1)
       end
     end
   end

@@ -28,7 +28,8 @@ module Atomo
       end
 
       def construct(g, d)
-        if d == 0
+        # TODO: fail if depth == 0
+        if d == 1
           @expression.bytecode(g)
           g.send :to_node, 0
         else
