@@ -97,6 +97,8 @@ module Atomo::Patterns
       return BlockPass.new(from_node(n.body))
     when Atomo::AST::Quote
       return Quote.new(n.expression)
+    when Atomo::AST::Block
+      return Metaclass.new(n)
     end
 
     raise Exception.new("unknown pattern: " + n.inspect)
