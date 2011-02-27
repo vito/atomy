@@ -53,9 +53,20 @@ module Atomo
       def bytecode(g)
         pos(g)
 
-        g.push_const :Atomo
-        @receiver.target(g)
-        g.push_literal @name.to_sym
+        defn = @receiver.kind_of?(Patterns::Match) and @receiver.value == :self
+        p :looks_like_def => defn
+
+        if defn
+          g.push_rubinius
+          g.push_literal @name.to_sym
+          g.dup
+          g.push_const :Atomo
+          g.swap
+        else
+          g.push_const :Atomo
+          @receiver.target(g)
+          g.push_literal @name.to_sym
+        end
 
         create = g.new_label
         added = g.new_label
@@ -89,7 +100,15 @@ module Atomo
 
         added.set!
 
-        g.send :add_method, 3
+        if defn
+          g.send :build_method, 2
+          g.push_scope
+          g.push_variables
+          g.send :method_visibility, 0
+          g.send :add_defn_method, 4
+        else
+          g.send :add_method, 3
+        end
       end
 
       def local_count
