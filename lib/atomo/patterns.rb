@@ -22,15 +22,17 @@ module Atomo::Patterns
     # try pattern-matching, erroring on failure
     # effect on the stack: top value removed
     def match(g)
-      @variable = nil
-
       error = g.new_label
       done = g.new_label
 
       locals = {}
       local_names.each do |n|
-        g.state.scope.assign_local_reference self
-        locals[n] = @variable
+        var = g.state.scope.search_local(@name)
+        if var
+          locals[n] = var
+        else
+          locals[n] = g.state.scope.new_local(n).reference
+        end
       end
 
       g.dup

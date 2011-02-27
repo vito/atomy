@@ -1,7 +1,7 @@
 module Atomo
   module AST
     class Variable < Node
-      attr_accessor :variable, :line
+      attr_accessor :line
 
       Atomo::Parser.register self
 
@@ -11,7 +11,6 @@ module Atomo
 
       def initialize(name)
         @name = name
-        @variable = nil
         @line = 1 # TODO
       end
 
