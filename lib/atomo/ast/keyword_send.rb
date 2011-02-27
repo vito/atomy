@@ -1,6 +1,8 @@
 module Atomo
   module AST
     class KeywordSend < AST::Node
+      attr_reader :receiver, :method_name, :arguments
+
       Atomo::Parser.register self
 
       def self.rule_name
@@ -20,8 +22,6 @@ module Atomo
         @method_name == b.method_name and \
         @arguments == b.arguments
       end
-
-      attr_reader :receiver, :method_name, :arguments
 
       Pair = Struct.new(:name, :value)
 

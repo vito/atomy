@@ -5,7 +5,6 @@ module Atomo
 
       def initialize(name, superclass, body)
         @line = 1 # TODO
-        # super(1, name, superclass, body)
 
         @superclass = superclass ? superclass : Primitive.new(:nil)
 
