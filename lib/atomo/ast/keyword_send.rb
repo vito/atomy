@@ -96,68 +96,7 @@ module Atomo
           end
       end
 
-      def self.if_cond(g, name, args, if_true)
-        return false unless args[0].kind_of? AST::Block
-
-        done_lbl = g.new_label
-        else_lbl = g.new_label
-
-        if if_true
-          g.gif else_lbl
-        else
-          g.git else_lbl
-        end
-
-        args[0].body.bytecode(g)
-
-        g.goto done_lbl
-
-        else_lbl.set!
-        g.push :nil
-
-        done_lbl.set!
-
-        return true
-      end
-
-      def self.if_cond_else(g, name, args, if_true)
-        return false unless args[0].kind_of? AST::Block
-        return false unless args[1].kind_of? AST::Block
-
-        done_lbl = g.new_label
-        else_lbl = g.new_label
-
-        if if_true
-          g.gif else_lbl
-        else
-          g.git else_lbl
-        end
-
-        args[0].body.bytecode(g)
-
-        g.goto done_lbl
-
-        else_lbl.set!
-
-        args[1].body.bytecode(g)
-
-        done_lbl.set!
-
-        return true
-      end
-
       def self.send_method(g, name, args)
-        case name
-        when "ifTrue:"
-          return if if_cond g, name, args, true
-        when "ifFalse:"
-          return if if_cond g, name, args, false
-        when "ifTrue:ifFalse:"
-          return if if_cond_else g, name, args, true
-        when "ifFalse:ifTrue:"
-          return if if_cond_else g, name, args, false
-        end
-
         args.each do |a|
           a.bytecode(g)
         end
