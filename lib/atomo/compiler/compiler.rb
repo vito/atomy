@@ -241,7 +241,7 @@ module Atomo
 
       cm = compile_eval(string, bnd.variables, file, line)
       cm.scope = bnd.static_scope.dup
-      cm.name = :__atomo_eval__
+      cm.name = :__eval__
 
       script = Rubinius::CompiledMethod::Script.new(cm, file, true)
       script.eval_binding = bnd
