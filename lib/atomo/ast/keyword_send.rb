@@ -1,7 +1,7 @@
 module Atomo
   module AST
     class KeywordSend < AST::Node
-      attr_reader :receiver, :method_name, :arguments
+      attr_reader :receiver, :method_name, :arguments, :private
 
       Atomo::Parser.register self
 
@@ -9,10 +9,11 @@ module Atomo
         "keyword_send"
       end
 
-      def initialize(receiver, name, arguments = [])
+      def initialize(receiver, name, arguments, privat = false)
         @receiver = receiver
         @method_name = name
         @arguments = arguments
+        @private = privat
         @line = 1 # TODO
       end
 
@@ -43,7 +44,8 @@ module Atomo
           @method_name,
           @arguments.collect do |n|
             n.recursively(stop, &f)
-          end
+          end,
+          @private
         )
       end
 
@@ -55,7 +57,8 @@ module Atomo
           a.construct(g, d)
         end
         g.make_array @arguments.size
-        g.send :new, 3
+        g.push_literal @private
+        g.send :new, 4
       end
 
       def self.collect(pairs)
@@ -92,16 +95,8 @@ module Atomo
           g.seq(:level2, :sig_sp, :send_args) do |v, _, arg|
             new(v, arg.first, arg.last)
           end | g.seq(:send_args) do |arg|
-            new(Primitive.new(:self), arg.first, arg.last)
+            new(Primitive.new(:self), arg.first, arg.last, true)
           end
-      end
-
-      def self.send_method(g, name, args)
-        args.each do |a|
-          a.bytecode(g)
-        end
-
-        g.send name.to_sym, args.size
       end
 
       def loop_cond(g, if_true)
@@ -149,7 +144,11 @@ module Atomo
 
         @receiver.bytecode(g)
 
-        KeywordSend.send_method g, @method_name, @arguments
+        @arguments.each do |a|
+          a.bytecode(g)
+        end
+
+        g.send @method_name.to_sym, @arguments.size, @private
       end
     end
   end

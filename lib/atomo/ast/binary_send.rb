@@ -5,16 +5,19 @@ require base + '/patterns'
 module Atomo
   module AST
     class BinarySend < Node
+      attr_reader :operator, :lhs, :rhs, :private
+
       Atomo::Parser.register self
 
       def self.rule_name
         "binary_send"
       end
 
-      def initialize(operator, lhs, rhs)
+      def initialize(operator, lhs, rhs, privat = false)
         @operator = operator
         @lhs = lhs
         @rhs = rhs
+        @private = privat
         @line = 1 # TODO
       end
 
@@ -22,10 +25,9 @@ module Atomo
         b.kind_of?(BinarySend) and \
         @operator == b.operator and \
         @lhs == b.lhs and \
-        @rhs == b.rhs
+        @rhs == b.rhs and \
+        @private == b.private
       end
-
-      attr_reader :operator, :lhs, :rhs
 
       def recursively(stop = nil, &f)
         return f.call self if stop and stop.call(self)
@@ -33,7 +35,8 @@ module Atomo
         f.call BinarySend.new(
           @operator,
           @lhs.recursively(stop, &f),
-          @rhs.recursively(stop, &f)
+          @rhs.recursively(stop, &f),
+          @private
         )
       end
 
@@ -42,7 +45,8 @@ module Atomo
         g.push_literal @operator
         @lhs.construct(g, d)
         @rhs.construct(g, d)
-        g.send :new, 3
+        g.push_literal @private
+        g.send :new, 4
       end
 
       def self.grammar(g)
@@ -58,7 +62,7 @@ module Atomo
           end | g.seq(
             :operator, :sig_sp, :expression
           ) do |o, _, r|
-            BinarySend.new(o, Primitive.new(:self), r)
+            BinarySend.new(o, Primitive.new(:self), r, true)
           end
       end
 
@@ -76,7 +80,7 @@ module Atomo
         pos(g)
         @lhs.bytecode(g)
         @rhs.bytecode(g)
-        g.send @operator.to_sym, 1
+        g.send @operator.to_sym, 1, @private
       end
     end
   end

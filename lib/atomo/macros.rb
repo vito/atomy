@@ -44,7 +44,8 @@ module Atomo
         AST::BinarySend.new(
           node.operator,
           expand(node.lhs),
-          expand(node.rhs)
+          expand(node.rhs),
+          node.private
         )
       when AST::UnarySend
         AST::UnarySend.new(
@@ -58,7 +59,8 @@ module Atomo
         AST::KeywordSend.new(
           expand(node.receiver),
           node.method_name,
-          node.arguments.collect { |a| expand(a) }
+          node.arguments.collect { |a| expand(a) },
+          node.private
         )
       else
         node
