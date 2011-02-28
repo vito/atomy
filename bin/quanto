@@ -20,8 +20,12 @@ Kernel.send(:define_method, :"load:") do |a|
   MAIN.__send__ :__script__
 end
 
+a = Time.now
+puts "loading core"
 send(:"load:", kernel + "/core.atomo")
+puts "loading therie"
 send(:"load:", kernel + "/therie.atomo")
+puts Time.now - a
 
 while str = Readline.readline("> ")
   next if str.empty?
