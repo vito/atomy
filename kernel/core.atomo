@@ -42,4 +42,19 @@ macro (class(name, &body))
   Atomo::AST::Class new(name, nil, body body);
 
 macro (module(name, &body))
-  Atomo::AST::Module new(name, body body)
+  Atomo::AST::Module new(name, body body);
+
+macro (x rescue: y)
+  Atomo::AST::Catch new(x body, `(~y call($!)));
+
+macro (x rescue: y else: z)
+  Atomo::AST::Catch new(x body, `(~y call($!)), z body);
+
+Block = Rubinius::BlockEnvironment;
+
+x join: (b: Block) := b call_on_instance(x);
+
+x do: (b: Block) :=
+  { b call_on_instance(x);
+    x
+  } call
