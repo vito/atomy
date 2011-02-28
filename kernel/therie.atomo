@@ -1,13 +1,17 @@
-class(Stats) {
-  attr_accessor(#passed, #failed);
+module(Therie) {
+  class(Stats) {
+    attr_accessor(#passed, #failed);
 
-  initialize :=
-    { @passed = 0;
-      @failed = 0
-    } call
+    initialize :=
+      { @passed = 0;
+        @failed = 0
+      } call
+  };
+
+  NESTING_LEVEL = 0;
+
+  { self } indentation := " " * (NESTING_LEVEL * 2);
 };
-
-$nesting-level = 0;
 
 when: True do: x := { x call; #ok } call;
 when: False do: x := #ok;
@@ -22,10 +26,10 @@ macro (x -= y)
   `(~x = ~x - ~y);
 
 theorize: as :=
-  { $stats = Stats new;
+  { $stats = Therie::Stats new;
 
     as call;
-    puts();
+    puts;
 
     $stats do: {
       [ "total of", failed + passed, "tests",
@@ -35,7 +39,7 @@ theorize: as :=
           else: { failed to_s },
         "failed)"
       ] join(" ") display;
-      puts()
+      puts
     }
   } call;
 
@@ -47,24 +51,22 @@ o should: (check: Block) :=
 x should-be: y := x should: { == y };
 
 describe: x as: body :=
-  { puts(indentation + "- " + x to_s);
-    $nesting-level += 1;
+  { puts(Therie indentation + "- " + x to_s);
+    Therie::NESTING_LEVEL += 1;
     body call;
-    $nesting-level -= 1
+    Therie::NESTING_LEVEL -= 1
   } call;
 
 it: description so: tests :=
   { tests call;
-    puts((indentation + "✓ " + description) ansi-colored: #green)
+    puts((Therie indentation + "✓ " + description) ansi-colored: #green)
   } rescue: { e |
     $stats failed += 1;
-    puts((indentation + "✗ " + description) ansi-colored: #red);
-    puts((indentation + "  ` " + e to_s) ansi-colored: #yellow)
+    puts((Therie indentation + "✗ " + description) ansi-colored: #red);
+    puts((Therie indentation + "  ` " + e to_s) ansi-colored: #yellow)
   } else: {
     $stats passed += 1
   };
-
-indentation := " " * ($nesting-level * 2);
 
 (s: String) ansi-colored: color :=
   { codes =
