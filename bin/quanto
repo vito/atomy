@@ -17,12 +17,7 @@ Kernel.send(:define_method, :"load:") do |a|
 
   cm.create_script(false)
 
-  begin
-    MAIN.__send__ :__script__
-  rescue Exception => e
-    puts "ERROR!"
-    puts e
-  end
+  MAIN.__send__ :__script__
 end
 
 send(:"load:", kernel + "/core.atomo")
