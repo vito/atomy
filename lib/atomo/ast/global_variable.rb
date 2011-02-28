@@ -6,10 +6,9 @@ module Atomo
       attr_accessor :variable, :line
       attr_reader :name
 
-
-      def initialize(name)
+      def initialize(line, name)
         @name = name
-        @line = 1 # TODO
+        @line = line
       end
 
       def ==(b)

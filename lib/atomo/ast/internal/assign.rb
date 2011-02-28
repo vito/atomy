@@ -1,11 +1,13 @@
 module Atomo
   module AST
     class Assign < Node
-      def initialize(lhs, rhs)
+      def initialize(line, lhs, rhs)
         @lhs = lhs
         @rhs = rhs
-        @line = 1 # TODO
+        @line = line
       end
+
+      # TODO: recursively
 
       def bytecode(g)
         pos(g)

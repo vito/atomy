@@ -3,8 +3,8 @@ module Atomo
     class Module < Rubinius::AST::Class
       include NodeLike
 
-      def initialize(name, body)
-        @line = 1 # TODO
+      def initialize(line, name, body)
+        @line = line
 
         if name.kind_of?(Rubinius::AST::ModuleName)
           @name = name
@@ -19,6 +19,7 @@ module Atomo
         return f.call self if stop and stop.call(self)
 
         Module.new(
+          @line,
           @name,
           @body.body.recursively(stop, &f)
         )

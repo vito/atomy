@@ -3,9 +3,9 @@ module Atomo
     class String < Node
       attr_reader :value
 
-      def initialize(value)
+      def initialize(line, value)
         @value = value
-        @line = 1 # TODO
+        @line = line
       end
 
       def ==(b)

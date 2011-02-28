@@ -3,9 +3,9 @@ module Atomo
     class ForMacro < Node
       attr_reader :body
 
-      def initialize(body)
+      def initialize(line, body)
         @body = body
-        @line = 1 # TODO
+        @line = line
       end
 
       def ==(b)
@@ -15,13 +15,14 @@ module Atomo
 
       def construct(g, d)
         get(g)
+        g.push_int @line
         @body.construct(g, d)
-        g.send :new, 1
+        g.send :new, 2
       end
 
       def recursively(stop = nil, &f)
         return f.call(self) if stop and stop.call(self)
-        f.call ForMacro.new(@body.recursively(&f))
+        f.call ForMacro.new(@line, @body.recursively(&f))
       end
 
       def bytecode(g)

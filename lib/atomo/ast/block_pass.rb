@@ -5,7 +5,7 @@ module Atomo
 
       attr_reader :name
 
-      def initialize(body)
+      def initialize(line, body)
         super(1, body) # TODO
       end
 

@@ -3,16 +3,17 @@ module Atomo
     class Match < Node
       attr_reader :target, :body
 
-      def initialize(target, body)
+      def initialize(line, target, body)
         @target = target
         @body = body
-        @line = 1 # TODO
+        @line = line
       end
 
       def recursively(stop = nil, &f)
         return f.call self if stop and stop.call(self)
 
         f.call Match.new(
+          @line,
           target.recursively(stop, &f),
           body.recursively(stop, &f)
         )
@@ -20,9 +21,10 @@ module Atomo
 
       def construct(g, d)
         get(g)
+        g.push_int @line
         @target.construct(g, d)
         @body.construct(g, d)
-        g.send :new, 2
+        g.send :new, 3
       end
 
       def bytecode(g)

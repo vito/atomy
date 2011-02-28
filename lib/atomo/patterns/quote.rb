@@ -10,7 +10,7 @@ module Atomo::Patterns
     end
 
     def target(g)
-      Constant.new(@expression.class.name.split("::")).target(g)
+      Constant.new(-1, @expression.class.name.split("::")).target(g)
     end
 
     def matches?(g)

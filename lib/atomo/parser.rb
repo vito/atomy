@@ -1,8 +1,6 @@
 # Introduce our vendored kpeg
 $:.unshift File.expand_path("../../vendor/kpeg/lib", __FILE__)
 
-require "kpeg"
-
 require "lib/atomo/atomo.kpeg.rb"
 
 module Atomo

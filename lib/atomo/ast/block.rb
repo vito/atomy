@@ -5,11 +5,13 @@ module Atomo
 
       attr_accessor :parent
 
-      def initialize(body, args)
+      def initialize(line, body, args)
+        @line = line
+
         if body.kind_of? BlockBody
           @body = body
         else
-          @body = BlockBody.new body
+          @body = BlockBody.new @line, body
         end
 
         if args.kind_of? BlockArguments
@@ -19,24 +21,24 @@ module Atomo
         end
 
         @parent = nil
-        @line = 1 # TODO
       end
 
       attr_reader :body, :arguments
 
       def recursively(stop = nil, &f)
         return f.call self if stop and stop.call(self)
-        f.call Block.new(body.recursively(stop, &f), @arguments)
+        f.call Block.new(@line, body.recursively(stop, &f), @arguments)
       end
 
       def construct(g, d)
         get(g)
+        g.push_int @line
         @body.expressions.each do |e|
           e.construct(g, d)
         end
         g.make_array @body.expressions.size
         g.push_literal @arguments
-        g.send :new, 2
+        g.send :new, 3
       end
     end
 
@@ -97,9 +99,9 @@ module Atomo
     class BlockBody < Node
       attr_reader :expressions
 
-      def initialize(expressions)
+      def initialize(line, expressions)
         @expressions = expressions
-        @line = 1 # TODO
+        @line = line
       end
 
       def empty?
@@ -107,7 +109,7 @@ module Atomo
       end
 
       def recursively(stop, &f)
-        BlockBody.new(@expressions.collect { |n| n.recursively(stop, &f) })
+        BlockBody.new(@line, @expressions.collect { |n| n.recursively(stop, &f) })
       end
 
       def bytecode(g)

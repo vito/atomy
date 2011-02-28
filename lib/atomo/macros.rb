@@ -42,6 +42,7 @@ module Atomo
       case node
       when AST::BinarySend
         AST::BinarySend.new(
+          node.line,
           node.operator,
           expand(node.lhs),
           expand(node.rhs),
@@ -49,6 +50,7 @@ module Atomo
         )
       when AST::UnarySend
         AST::UnarySend.new(
+          node.line,
           expand(node.receiver),
           node.method_name,
           node.arguments.collect { |a| expand(a) },
@@ -57,6 +59,7 @@ module Atomo
         )
       when AST::KeywordSend
         AST::KeywordSend.new(
+          node.line,
           expand(node.receiver),
           node.method_name,
           node.arguments.collect { |a| expand(a) },
@@ -106,7 +109,10 @@ module Atomo
       n = n.recursively do |sub|
         case sub
         when Atomo::AST::Constant
-          Atomo::AST::Constant.new(["Atomo", "AST"] + sub.chain)
+          Atomo::AST::Constant.new(
+            sub.line,
+            ["Atomo", "AST"] + sub.chain
+          )
         else
           sub
         end
@@ -115,7 +121,9 @@ module Atomo
       case n
       when Atomo::AST::Primitive
         if n.value == :self
-          Atomo::Patterns::Quote.new(Atomo::AST::Primitive.new(:self))
+          Atomo::Patterns::Quote.new(
+            Atomo::AST::Primitive.new(n.line, :self)
+          )
         else
           n
         end

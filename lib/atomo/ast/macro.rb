@@ -3,10 +3,10 @@ module Atomo
     class Macro < Node
       attr_reader :pattern, :body
 
-      def initialize(pattern, body)
+      def initialize(line, pattern, body)
         @pattern = pattern
         @body = body
-        @line = 1 # TODO
+        @line = line
       end
 
       def ==(b)
@@ -17,9 +17,10 @@ module Atomo
 
       def construct(g, d)
         get(g)
+        g.push_int @line
         g.push_literal @pattern
         @body.construct(g, d)
-        g.send :new, 2
+        g.send :new, 3
       end
 
       # TODO: if #recursively? is defined, see stages.rb;

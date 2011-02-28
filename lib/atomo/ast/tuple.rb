@@ -3,9 +3,9 @@ module Atomo
     class Tuple < Node
       attr_reader :elements
 
-      def initialize(elements)
+      def initialize(line, elements)
         @elements = elements
-        @line = 1 # TODO
+        @line = line
       end
 
       def ==(b)
@@ -17,6 +17,7 @@ module Atomo
         return f.call self if stop and stop.call(self)
 
         f.call Tuple.new(
+          @line,
           @elements.collect do |n|
             n.recursively(stop, &f)
           end
@@ -25,11 +26,12 @@ module Atomo
 
       def construct(g, d)
         get(g)
+        g.push_int @line
         @elements.each do |e|
           e.construct(g, d)
         end
         g.make_array @elements.size
-        g.send :new, 1
+        g.send :new, 2
       end
 
       def bytecode(g)

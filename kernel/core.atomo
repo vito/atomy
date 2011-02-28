@@ -1,13 +1,14 @@
 macro (x = y)
-  Atomo::AST::Assign new(x, y);
+  Atomo::AST::Assign new(x line, x, y);
 
 macro (x match: (b: Block))
-  { n = Atomo::AST::Match new(x, b);
+  { n = Atomo::AST::Match new(x line, x, b);
     `({ ~n } call)
   } call;
 
 macro ((x: BinarySend) := y)
   Atomo::AST::Define new(
+    x line,
     x operator,
     x lhs,
     [x rhs],
@@ -16,6 +17,7 @@ macro ((x: BinarySend) := y)
 
 macro ((x: Variable) := y)
   Atomo::AST::Define new(
+    x line,
     x name,
     'self,
     [],
@@ -24,6 +26,7 @@ macro ((x: Variable) := y)
 
 macro (x := y)
   Atomo::AST::Define new(
+    x line,
     x method_name,
     x receiver,
     x arguments,
@@ -31,26 +34,26 @@ macro (x := y)
   );
 
 macro (if: cond then: true else: false)
-  Atomo::AST::IfThenElse new(cond, true, false);
+  Atomo::AST::IfThenElse new(cond line, cond, true, false);
 
 macro (class(pair: BinarySend, &body))
   if: (pair lhs == 'self)
-    then: { Atomo::AST::Metaclass new(pair rhs, body body) }
-    else: { Atomo::AST::Class new(pair lhs, pair rhs, body body) };
+    then: { Atomo::AST::Metaclass new(pair line, pair rhs, body body) }
+    else: { Atomo::AST::Class new(pair line, pair lhs, pair rhs, body body) };
 
 macro (class(name, &body))
-  Atomo::AST::Class new(name, nil, body body);
+  Atomo::AST::Class new(name line, name, nil, body body);
 
 macro (module(name, &body))
-  Atomo::AST::Module new(name, body body);
+  Atomo::AST::Module new(name line, name, body body);
 
 macro (x rescue: y)
-  Atomo::AST::Catch new(x body, `(~y call($!)));
+  Atomo::AST::Catch new(x line, x body, `(~y call($!)));
 
 macro (x rescue: y else: z)
-  Atomo::AST::Catch new(x body, `(~y call($!)), z body);
+  Atomo::AST::Catch new(x line, x body, `(~y call($!)), z body);
 
-macro (... x) Atomo::AST::Splat new(x);
+macro (... x) Atomo::AST::Splat new(x line, x);
 
 Block = Rubinius::BlockEnvironment;
 

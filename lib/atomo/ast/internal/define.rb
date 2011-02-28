@@ -3,7 +3,8 @@ module Atomo
     class Define < Rubinius::AST::ClosedScope
       include NodeLike
 
-      def initialize(name, recv, args, body)
+      def initialize(line, name, recv, args, body)
+        @line = line
         @name = name
 
         if recv.kind_of? Patterns::Pattern
@@ -19,7 +20,6 @@ module Atomo
         end
 
         @body = body
-        @line = 1 # TODO
       end
 
       def compile_body(g)
@@ -45,6 +45,7 @@ module Atomo
         return f.call self if stop and stop.call(self)
 
         f.call Define.new(
+          @line,
           @name,
           @receiver,
           @arguments,

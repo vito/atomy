@@ -3,9 +3,9 @@ module Atomo
     class QuasiQuote < Node
       attr_reader :expression
 
-      def initialize(expression)
+      def initialize(line, expression)
         @expression = expression
-        @line = 1 # TODO
+        @line = line
       end
 
       def ==(b)
@@ -17,14 +17,16 @@ module Atomo
         return f.call self if stop and stop.call(self)
 
         f.call QuasiQuote.new(
+          @line,
           @expression.recursively(stop, &f)
         )
       end
 
       def construct(g, d)
         get(g)
+        g.push_int @line
         @expression.construct(g, d + 1)
-        g.send :new, 1
+        g.send :new, 2
       end
 
       def bytecode(g)

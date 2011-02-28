@@ -3,8 +3,8 @@ module Atomo
     class IfThenElse < Rubinius::AST::Class
       include NodeLike
 
-      def initialize(cond, thenb, elseb)
-        @line = 1 # TODO
+      def initialize(line, cond, thenb, elseb)
+        @line = line
         @condition = cond
         @then = thenb
         @else = elseb
@@ -14,6 +14,7 @@ module Atomo
         return f.call self if stop and stop.call(self)
 
         IfThenElse.new(
+          @line,
           @condition.recursively(stop, &f),
           @then.recursively(stop, &f),
           @else.recursively(stop, &f)

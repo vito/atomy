@@ -3,10 +3,10 @@ module Atomo
     class Class < Rubinius::AST::Class
       include NodeLike
 
-      def initialize(name, superclass, body)
-        @line = 1 # TODO
+      def initialize(line, name, superclass, body)
+        @line = line
 
-        @superclass = superclass ? superclass : Primitive.new(:nil)
+        @superclass = superclass ? superclass : Primitive.new(line, :nil)
 
         if name.kind_of?(Rubinius::AST::ClassName)
           @name = name
@@ -21,6 +21,7 @@ module Atomo
         return f.call self if stop and stop.call(self)
 
         Class.new(
+          @line,
           @name,
           @superclass,
           @body.body.recursively(stop, &f)

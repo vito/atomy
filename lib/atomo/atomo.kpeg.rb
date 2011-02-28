@@ -1,5 +1,10 @@
 require 'kpeg/compiled_parser'
 class Atomo::Parser < KPeg::CompiledParser
+  def _line
+    @result = begin;  current_line ; end
+    _tmp = true
+    return _tmp
+  end
   def _sp
     while true
 
@@ -654,12 +659,18 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save32 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save32
+      break
+    end
     _tmp = match_string("True")
     unless _tmp
       self.pos = _save32
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(:true) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, :true) ; end
     _tmp = true
     unless _tmp
       self.pos = _save32
@@ -673,12 +684,18 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save33 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save33
+      break
+    end
     _tmp = match_string("False")
     unless _tmp
       self.pos = _save33
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(:false) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, :false) ; end
     _tmp = true
     unless _tmp
       self.pos = _save33
@@ -692,12 +709,18 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save34 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save34
+      break
+    end
     _tmp = match_string("self")
     unless _tmp
       self.pos = _save34
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(:self) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, :self) ; end
     _tmp = true
     unless _tmp
       self.pos = _save34
@@ -711,12 +734,18 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save35 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save35
+      break
+    end
     _tmp = match_string("nil")
     unless _tmp
       self.pos = _save35
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(:nil) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, :nil) ; end
     _tmp = true
     unless _tmp
       self.pos = _save35
@@ -733,6 +762,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save37 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save37
+      break
+    end
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[\+\-]?\d+)/)
     if _tmp
@@ -742,7 +777,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save37
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(text.to_i) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, text.to_i) ; end
     _tmp = true
     unless _tmp
       self.pos = _save37
@@ -755,6 +790,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save38 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save38
+      break
+    end
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[\+\-]?0[oO][\da-fA-F]+)/)
     if _tmp
@@ -764,7 +805,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save38
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(text.to_i 8) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, text.to_i(8)) ; end
     _tmp = true
     unless _tmp
       self.pos = _save38
@@ -777,6 +818,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save39 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save39
+      break
+    end
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[\+\-]?0[xX][0-7]+)/)
     if _tmp
@@ -786,7 +833,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save39
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(text.to_i 16) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, text.to_i(16)) ; end
     _tmp = true
     unless _tmp
       self.pos = _save39
@@ -799,6 +846,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save40 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save40
+      break
+    end
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+)/)
     if _tmp
@@ -808,7 +861,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save40
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(text.to_f) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, text.to_f) ; end
     _tmp = true
     unless _tmp
       self.pos = _save40
@@ -827,6 +880,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save41 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save41
+      break
+    end
     _tmp = match_string("macro")
     unless _tmp
       self.pos = _save41
@@ -874,7 +933,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save41
       break
     end
-    @result = begin;  b; Atomo::AST::Macro.new(p, b) ; end
+    @result = begin;  b; Atomo::AST::Macro.new(line, p, b) ; end
     _tmp = true
     unless _tmp
       self.pos = _save41
@@ -888,6 +947,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save42 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save42
+      break
+    end
     _tmp = match_string("for-macro")
     unless _tmp
       self.pos = _save42
@@ -904,7 +969,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save42
       break
     end
-    @result = begin;  Atomo::AST::ForMacro.new(b) ; end
+    @result = begin;  Atomo::AST::ForMacro.new(line, b) ; end
     _tmp = true
     unless _tmp
       self.pos = _save42
@@ -918,6 +983,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save43 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save43
+      break
+    end
     _tmp = match_string("'")
     unless _tmp
       self.pos = _save43
@@ -929,7 +1000,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save43
       break
     end
-    @result = begin;  Atomo::AST::Quote.new(e) ; end
+    @result = begin;  Atomo::AST::Quote.new(line, e) ; end
     _tmp = true
     unless _tmp
       self.pos = _save43
@@ -943,6 +1014,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save44 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save44
+      break
+    end
     _tmp = match_string("`")
     unless _tmp
       self.pos = _save44
@@ -954,7 +1031,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save44
       break
     end
-    @result = begin;  Atomo::AST::QuasiQuote.new(e) ; end
+    @result = begin;  Atomo::AST::QuasiQuote.new(line, e) ; end
     _tmp = true
     unless _tmp
       self.pos = _save44
@@ -968,6 +1045,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save45 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save45
+      break
+    end
     _tmp = match_string("~")
     unless _tmp
       self.pos = _save45
@@ -979,7 +1062,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save45
       break
     end
-    @result = begin;  Atomo::AST::Unquote.new(e) ; end
+    @result = begin;  Atomo::AST::Unquote.new(line, e) ; end
     _tmp = true
     unless _tmp
       self.pos = _save45
@@ -1962,6 +2045,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save99 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save99
+      break
+    end
     _tmp = match_string("\"")
     unless _tmp
       self.pos = _save99
@@ -2010,7 +2099,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save99
       break
     end
-    @result = begin;  Atomo::AST::String.new(c.join) ; end
+    @result = begin;  Atomo::AST::String.new(line, c.join) ; end
     _tmp = true
     unless _tmp
       self.pos = _save99
@@ -2024,6 +2113,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save103 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save103
+      break
+    end
     _tmp = match_string("#")
     unless _tmp
       self.pos = _save103
@@ -2035,7 +2130,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save103
       break
     end
-    @result = begin;  Atomo::AST::Particle.new(n) ; end
+    @result = begin;  Atomo::AST::Particle.new(line, n) ; end
     _tmp = true
     unless _tmp
       self.pos = _save103
@@ -2049,6 +2144,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save104 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save104
+      break
+    end
     _tmp = match_string("&")
     unless _tmp
       self.pos = _save104
@@ -2060,7 +2161,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save104
       break
     end
-    @result = begin;  Atomo::AST::BlockPass.new(b) ; end
+    @result = begin;  Atomo::AST::BlockPass.new(line, b) ; end
     _tmp = true
     unless _tmp
       self.pos = _save104
@@ -2097,6 +2198,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save106 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save106
+      break
+    end
     _tmp = apply('constant_name', :_constant_name)
     m = @result
     unless _tmp
@@ -2130,7 +2237,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save106
       break
     end
-    @result = begin;  Atomo::AST::Constant.new([m] + Array(s)) ; end
+    @result = begin;  Atomo::AST::Constant.new(line, [m] + Array(s)) ; end
     _tmp = true
     unless _tmp
       self.pos = _save106
@@ -2144,13 +2251,19 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save109 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save109
+      break
+    end
     _tmp = apply('identifier', :_identifier)
     n = @result
     unless _tmp
       self.pos = _save109
       break
     end
-    @result = begin;  Atomo::AST::Variable.new(n) ; end
+    @result = begin;  Atomo::AST::Variable.new(line, n) ; end
     _tmp = true
     unless _tmp
       self.pos = _save109
@@ -2164,6 +2277,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save110 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save110
+      break
+    end
     _tmp = match_string("$")
     unless _tmp
       self.pos = _save110
@@ -2175,7 +2294,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save110
       break
     end
-    @result = begin;  Atomo::AST::GlobalVariable.new(n) ; end
+    @result = begin;  Atomo::AST::GlobalVariable.new(line, n) ; end
     _tmp = true
     unless _tmp
       self.pos = _save110
@@ -2189,6 +2308,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save111 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save111
+      break
+    end
     _tmp = match_string("@@")
     unless _tmp
       self.pos = _save111
@@ -2200,7 +2325,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save111
       break
     end
-    @result = begin;  Atomo::AST::ClassVariable.new(n) ; end
+    @result = begin;  Atomo::AST::ClassVariable.new(line, n) ; end
     _tmp = true
     unless _tmp
       self.pos = _save111
@@ -2214,6 +2339,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save112 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save112
+      break
+    end
     _tmp = match_string("@")
     unless _tmp
       self.pos = _save112
@@ -2225,7 +2356,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save112
       break
     end
-    @result = begin;  Atomo::AST::InstanceVariable.new(n) ; end
+    @result = begin;  Atomo::AST::InstanceVariable.new(line, n) ; end
     _tmp = true
     unless _tmp
       self.pos = _save112
@@ -2242,6 +2373,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save114 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save114
+      break
+    end
     _tmp = match_string("(")
     unless _tmp
       self.pos = _save114
@@ -2289,7 +2426,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save114
       break
     end
-    @result = begin;  Atomo::AST::Tuple.new([e] + Array(es)) ; end
+    @result = begin;  Atomo::AST::Tuple.new(line, [e] + Array(es)) ; end
     _tmp = true
     unless _tmp
       self.pos = _save114
@@ -2302,6 +2439,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save115 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save115
+      break
+    end
     _tmp = match_string("(")
     unless _tmp
       self.pos = _save115
@@ -2317,7 +2460,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save115
       break
     end
-    @result = begin;  Atomo::AST::Tuple.new([]) ; end
+    @result = begin;  Atomo::AST::Tuple.new(line, []) ; end
     _tmp = true
     unless _tmp
       self.pos = _save115
@@ -2410,6 +2553,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save120 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save120
+      break
+    end
     _tmp = match_string("{")
     unless _tmp
       self.pos = _save120
@@ -2454,7 +2603,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save120
       break
     end
-    @result = begin;  Atomo::AST::Block.new(Array(es), Array(as)) ; end
+    @result = begin;  Atomo::AST::Block.new(line, Array(es), Array(as)) ; end
     _tmp = true
     unless _tmp
       self.pos = _save120
@@ -2468,6 +2617,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save123 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save123
+      break
+    end
     _tmp = match_string("[")
     unless _tmp
       self.pos = _save123
@@ -2500,7 +2655,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save123
       break
     end
-    @result = begin;  Atomo::AST::List.new(Array(es)) ; end
+    @result = begin;  Atomo::AST::List.new(line, Array(es)) ; end
     _tmp = true
     unless _tmp
       self.pos = _save123
@@ -2563,6 +2718,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save128 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save128
+      break
+    end
     _tmp = apply('unary_send', :_unary_send)
     r = @result
     unless _tmp
@@ -2626,7 +2787,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save128
       break
     end
-    @result = begin;  Atomo::AST::UnarySend.new(r, n, Array(as), b) ; end
+    @result = begin;  Atomo::AST::UnarySend.new(line, r, n, Array(as), b) ; end
     _tmp = true
     unless _tmp
       self.pos = _save128
@@ -2639,6 +2800,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save133 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save133
+      break
+    end
     _tmp = apply('level1', :_level1)
     r = @result
     unless _tmp
@@ -2702,7 +2869,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save133
       break
     end
-    @result = begin;  Atomo::AST::UnarySend.new(r, n, Array(as), b) ; end
+    @result = begin;  Atomo::AST::UnarySend.new(line, r, n, Array(as), b) ; end
     _tmp = true
     unless _tmp
       self.pos = _save133
@@ -2715,6 +2882,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save138 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save138
+      break
+    end
     _tmp = apply('identifier', :_identifier)
     n = @result
     unless _tmp
@@ -2753,8 +2926,8 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save138
       break
     end
-    @result = begin;  Atomo::AST::UnarySend.new(
-                        Atomo::AST::Primitive.new(:self),
+    @result = begin;  Atomo::AST::UnarySend.new(line,
+                        Atomo::AST::Primitive.new(line, :self),
                         n,
                         Array(as),
                         b,
@@ -2868,6 +3041,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save145 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save145
+      break
+    end
     _tmp = apply('level2', :_level2)
     r = @result
     unless _tmp
@@ -2885,7 +3064,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save145
       break
     end
-    @result = begin;  Atomo::AST::KeywordSend.new(r, as.first, as.last) ; end
+    @result = begin;  Atomo::AST::KeywordSend.new(line, r, as.first, as.last) ; end
     _tmp = true
     unless _tmp
       self.pos = _save145
@@ -2898,14 +3077,20 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save146 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save146
+      break
+    end
     _tmp = apply('keyword_args', :_keyword_args)
     as = @result
     unless _tmp
       self.pos = _save146
       break
     end
-    @result = begin;  Atomo::AST::KeywordSend.new(
-                        Atomo::AST::Primitive.new(:self),
+    @result = begin;  Atomo::AST::KeywordSend.new(line,
+                        Atomo::AST::Primitive.new(line, :self),
                         as.first,
                         as.last,
                         true
@@ -2932,6 +3117,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save148 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save148
+      break
+    end
     _tmp = apply('binary_send', :_binary_send)
     l = @result
     unless _tmp
@@ -2960,7 +3151,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save148
       break
     end
-    @result = begin;  Atomo::AST::BinarySend.new(o, l, r) ; end
+    @result = begin;  Atomo::AST::BinarySend.new(line, o, l, r) ; end
     _tmp = true
     unless _tmp
       self.pos = _save148
@@ -2973,6 +3164,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save149 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save149
+      break
+    end
     _tmp = apply('level3', :_level3)
     l = @result
     unless _tmp
@@ -3001,7 +3198,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save149
       break
     end
-    @result = begin;  Atomo::AST::BinarySend.new(o, l, r) ; end
+    @result = begin;  Atomo::AST::BinarySend.new(line, o, l, r) ; end
     _tmp = true
     unless _tmp
       self.pos = _save149
@@ -3014,6 +3211,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save150 = self.pos
     while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save150
+      break
+    end
     _tmp = apply('operator', :_operator)
     o = @result
     unless _tmp
@@ -3032,8 +3235,9 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     @result = begin;  Atomo::AST::BinarySend.new(
+                        line,
                         o,
-                        Atomo::AST::Primitive.new(:self),
+                        Atomo::AST::Primitive.new(line, :self),
                         r
                       )
                     ; end

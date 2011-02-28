@@ -3,16 +3,13 @@ module Atomo
     class Splat < Rubinius::AST::BlockPass
       include NodeLike
 
-      def initialize(body)
-        super(1, body) # TODO
-      end
-
       def ==(b)
         b.kind_of?(Splat) and \
         @body == b.body
       end
 
       def bytecode(g)
+        pos(g)
         @body.bytecode(g)
         g.cast_array unless @body.kind_of? List
       end

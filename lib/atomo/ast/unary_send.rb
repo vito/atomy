@@ -3,13 +3,13 @@ module Atomo
     class UnarySend < Node
       attr_reader :receiver, :method_name, :arguments, :block, :private
 
-      def initialize(receiver, name, arguments, block = nil, privat = false)
+      def initialize(line, receiver, name, arguments, block = nil, privat = false)
         @receiver = receiver
         @method_name = name
         @arguments = arguments
         @block = block unless block == []
         @private = privat
-        @line = 1 # TODO
+        @line = line
       end
 
       def ==(b)
@@ -35,6 +35,7 @@ module Atomo
         return f.call self if stop and stop.call(self)
 
         f.call UnarySend.new(
+          @line,
           @receiver.recursively(stop, &f),
           @method_name,
           @arguments.collect do |n|
@@ -47,6 +48,7 @@ module Atomo
 
       def construct(g, d)
         get(g)
+        g.push_int @line
         @receiver.construct(g, d)
         g.push_literal @method_name
         @arguments.each do |a|
@@ -61,7 +63,7 @@ module Atomo
         end
 
         g.push_literal @private
-        g.send :new, 5
+        g.send :new, 6
       end
 
       def bytecode(g)

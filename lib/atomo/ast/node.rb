@@ -1,6 +1,8 @@
 module Atomo
   module AST
     module NodeLike
+      attr_accessor :line
+
       # yield this node's subnodes to a block recursively, and then itself
       # override this if for nodes with children, ie lists
       #
@@ -17,6 +19,7 @@ module Atomo
       # an unquote at depth 0 should push the unquote's contents rather
       # than itself
       def construct(g, d)
+        pos(g)
         g.push_literal self
       end
 
@@ -34,6 +37,7 @@ module Atomo
           when Atomo::AST::QuasiQuote
             depth += 1
             Atomo::AST::QuasiQuote.new(
+              x.line,
               x.expression.recursively(stop, &search)
             )
           else
@@ -46,16 +50,19 @@ module Atomo
           when Atomo::AST::QuasiQuote
             depth += 1
             Atomo::AST::QuasiQuote.new(
+              x.line,
               x.expression.recursively(stop, &search)
             )
           when Atomo::AST::Unquote
             depth -= 1
             if depth == 0
               Atomo::AST::Unquote.new(
+                x.line,
                 x.expression.recursively(stop, &scan)
               )
             else
               Atomo::AST::Unquote.new(
+                x.line,
                 x.expression.recursively(stop, &search)
               )
             end
@@ -106,6 +113,6 @@ end
 
 class Object
   def to_node
-    Atomo::AST::Primitive.new self
+    Atomo::AST::Primitive.new -1, self
   end
 end

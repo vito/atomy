@@ -7,12 +7,12 @@ module Atomo
     class BinarySend < Node
       attr_reader :operator, :lhs, :rhs, :private
 
-      def initialize(operator, lhs, rhs, privat = false)
+      def initialize(line, operator, lhs, rhs, privat = false)
         @operator = operator
         @lhs = lhs
         @rhs = rhs
         @private = privat
-        @line = 1 # TODO
+        @line = line
       end
 
       def ==(b)
@@ -27,6 +27,7 @@ module Atomo
         return f.call self if stop and stop.call(self)
 
         f.call BinarySend.new(
+          @line,
           @operator,
           @lhs.recursively(stop, &f),
           @rhs.recursively(stop, &f),
@@ -36,11 +37,12 @@ module Atomo
 
       def construct(g, d)
         get(g)
+        g.push_int @line
         g.push_literal @operator
         @lhs.construct(g, d)
         @rhs.construct(g, d)
         g.push_literal @private
-        g.send :new, 4
+        g.send :new, 5
       end
 
       def register_macro(body)

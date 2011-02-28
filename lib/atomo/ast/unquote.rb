@@ -3,9 +3,9 @@ module Atomo
     class Unquote < Node
       attr_reader :expression
 
-      def initialize(expression)
+      def initialize(line, expression)
         @expression = expression
-        @line = 1 # TODO
+        @line = line
       end
 
       def ==(b)
@@ -17,19 +17,22 @@ module Atomo
         return f.call self if stop and stop.call(self)
 
         f.call Unquote.new(
+          @line,
           @expression.recursively(stop, &f)
         )
       end
 
       def construct(g, d)
+        pos(g)
         # TODO: fail if depth == 0
         if d == 1
           @expression.bytecode(g)
           g.send :to_node, 0
         else
           get(g)
+          g.push_int @line
           @expression.construct(g, d - 1)
-          g.send :new, 1
+          g.send :new, 2
         end
       end
 

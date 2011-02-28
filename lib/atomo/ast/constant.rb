@@ -3,9 +3,9 @@ module Atomo
     class Constant < Node
       attr_reader :chain
 
-      def initialize(chain)
+      def initialize(line, chain)
         @chain = chain
-        @line = 1 # TODO
+        @line = line
       end
 
       def ==(b)

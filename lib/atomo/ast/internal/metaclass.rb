@@ -3,8 +3,8 @@ module Atomo
     class Metaclass < Rubinius::AST::SClass
       include NodeLike
 
-      def initialize(receiver, body)
-        @line = 1 # TODO
+      def initialize(line, body)
+        @line = line
         @receiver = receiver
         @body = Rubinius::AST::SClassScope.new @line, body
       end
@@ -13,6 +13,7 @@ module Atomo
         return f.call self if stop and stop.call(self)
 
         Metaclass.new(
+          @line,
           @receiver,
           @body.body.recursively(stop, &f)
         )
