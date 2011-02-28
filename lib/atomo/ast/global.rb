@@ -58,7 +58,8 @@ module Atomo
           :sp,
           g.kleene(
             g.seq(:sp, :delim, :sp, g.t(:expression), :sp)
-          )
+          ),
+          g.maybe(:delim)
         ) do |x, _, m|
           m = Array(m)
           m.unshift x
