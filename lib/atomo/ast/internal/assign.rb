@@ -26,7 +26,6 @@ module Atomo
           g.push_literal @lhs.chain.last.to_sym
           @rhs.bytecode(g)
           g.send :const_set, 2
-          @lhs.bytecode(g)
           return
         end
 
