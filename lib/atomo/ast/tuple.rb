@@ -1,11 +1,7 @@
 module Atomo
   module AST
-    class Tuple < AST::Node
-      Atomo::Parser.register self
-
-      def self.rule_name
-        "tuple"
-      end
+    class Tuple < Node
+      attr_reader :elements
 
       def initialize(elements)
         @elements = elements
@@ -16,8 +12,6 @@ module Atomo
         b.kind_of?(Tuple) and \
         @elements == b.elements
       end
-
-      attr_reader :elements
 
       def recursively(stop = nil, &f)
         return f.call self if stop and stop.call(self)
@@ -36,16 +30,6 @@ module Atomo
         end
         g.make_array @elements.size
         g.send :new, 1
-      end
-
-      def self.grammar(g)
-        g.tuple =
-          g.seq(
-            "(", :sp, g.t(:expression), :sp, g.any(";", ","),
-            :sp, g.t(:expressions), :sp, ")"
-          ) do |e, es|
-            Tuple.new(es.unshift e)
-          end | g.seq("(", :sp, ")") { Tuple.new([]) }
       end
 
       def bytecode(g)

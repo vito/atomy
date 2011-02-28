@@ -1,13 +1,7 @@
 module Atomo
   module AST
-    class KeywordSend < AST::Node
+    class KeywordSend < Node
       attr_reader :receiver, :method_name, :arguments, :private
-
-      Atomo::Parser.register self
-
-      def self.rule_name
-        "keyword_send"
-      end
 
       def initialize(receiver, name, arguments, privat = false)
         @receiver = receiver
@@ -59,44 +53,6 @@ module Atomo
         g.make_array @arguments.size
         g.push_literal @private
         g.send :new, 4
-      end
-
-      def self.collect(pairs)
-        name = ""
-        args = []
-
-        if pairs.kind_of? Array
-          pairs.each do |pair|
-            name << "#{pair.name}:"
-            args << pair.value
-          end
-        else
-          name << "#{pairs.name}:"
-          args << pairs.value
-        end
-
-        [name, args]
-      end
-
-      def self.grammar(g)
-        g.name_var_pair =
-          g.seq(
-            :sp, g.t(:identifier), ":", :sp,
-            g.t(:level2)
-          ) do |n, v|
-            Pair.new(n,v)
-          end
-
-        g.send_args = g.many(:name_var_pair) do |*pairs|
-          collect(pairs)
-        end
-
-        g.keyword_send =
-          g.seq(:level2, :sig_sp, :send_args) do |v, _, arg|
-            new(v, arg.first, arg.last)
-          end | g.seq(:send_args) do |arg|
-            new(Primitive.new(:self), arg.first, arg.last, true)
-          end
       end
 
       def loop_cond(g, if_true)

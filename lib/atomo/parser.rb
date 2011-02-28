@@ -3,69 +3,39 @@ $:.unshift File.expand_path("../../vendor/kpeg/lib", __FILE__)
 
 require "kpeg"
 
+require "lib/atomo/atomo.kpeg.rb"
+
 module Atomo
   class Parser
-    @nodes = []
-    def self.register(node)
-      @nodes << node
-    end
-
-    def self.to_kpeg
-      gram = KPeg::Grammar.new
-
-      @nodes.each do |node|
-        node.grammar(gram)
-      end
-
-      AST.grammar(gram)
-
-      gram
-    end
-
     def self.parse_string(source)
-      AST::Tree.new(new(source).parse)
+      p = new(source)
+      raise ParseError.new(p) unless p.parse
+      AST::Tree.new(p.result)
     end
 
     def self.parse_file(name)
-      AST::Tree.new(new(File.open(name, "rb").read).parse)
-    end
-
-    def initialize(str)
-      @parser = KPeg::Parser.new(str, Grammar)
+      p = new(File.open(name, "rb").read)
+      raise ParseError.new(p) unless p.parse
+      AST::Tree.new(p.result)
     end
 
     class ParseError < RuntimeError
-      def initialize(parser, match)
+      def initialize(parser)
         super parser.error_expectation
         @parser = parser
-        @match = match
+        @match = parser.result
       end
 
       attr_reader :parser, :match
     end
+  end
 
-    def parse(rule = nil)
-      @last_match = match = @parser.parse(rule ? rule.to_s : nil)
+  path = File.expand_path("../ast", __FILE__)
 
-      if @parser.failed?
-        raise ParseError.new(@parser, match)
-      end
+  require path + "/node"
 
-      return match.value if match
-    end
-
-    attr_reader :last_match
-
-    path = File.expand_path("../ast", __FILE__)
-
-    require path + "/global"
-    require path + "/node"
-
-    Dir["#{path}/**/*.rb"].sort.each do |f|
-      require f
-    end
-
-    Grammar = to_kpeg
+  Dir["#{path}/**/*.rb"].sort.each do |f|
+    require f
   end
 end
 

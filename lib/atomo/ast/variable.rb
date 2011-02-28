@@ -2,12 +2,7 @@ module Atomo
   module AST
     class Variable < Node
       attr_accessor :line
-
-      Atomo::Parser.register self
-
-      def self.rule_name
-        "variable"
-      end
+      attr_reader :name
 
       def initialize(name)
         @name = name
@@ -17,14 +12,6 @@ module Atomo
       def ==(b)
         b.kind_of?(Variable) and \
         @name == b.name
-      end
-
-      attr_reader :name
-
-      def self.grammar(g)
-        g.variable = g.seq(:identifier) do |str|
-          Variable.new(str)
-        end
       end
 
       def bytecode(g)

@@ -1,11 +1,7 @@
 module Atomo
   module AST
     class UnarySend < Node
-      Atomo::Parser.register self
-
-      def self.rule_name
-        "unary_send"
-      end
+      attr_reader :receiver, :method_name, :arguments, :block, :private
 
       def initialize(receiver, name, arguments, block = nil, privat = false)
         @receiver = receiver
@@ -24,8 +20,6 @@ module Atomo
         @block == b.block and \
         @private == b.private
       end
-
-      attr_reader :receiver, :method_name, :arguments, :block, :private
 
       def register_macro(body)
         Atomo::Macro.register(
@@ -68,31 +62,6 @@ module Atomo
 
         g.push_literal @private
         g.send :new, 5
-      end
-
-      def self.grammar(g)
-        g.unary_args =
-          g.seq(
-            "(", :sp, g.t(:some_expressions), :sp, ")"
-          )
-
-        g.unary_send =
-          g.seq(
-            :unary_send, :sig_sp, :identifier, g.notp(":"), g.maybe(:unary_args),
-            g.maybe(g.seq(:sp, g.t(:block)))
-          ) do |v, _, n, _, x, b|
-            UnarySend.new(v,n,x,b)
-          end | g.seq(
-            :level1, :sig_sp, :identifier, g.notp(":"), g.maybe(:unary_args),
-            g.maybe(g.seq(:sp, g.t(:block)))
-          ) do |v, _, n, _, x, b|
-            UnarySend.new(v,n,x,b)
-          end | g.seq(
-            :identifier, :unary_args,
-            g.maybe(g.seq(:sp, g.t(:block)))
-          ) do |n, x, b|
-            UnarySend.new(Primitive.new(:self),n,x,b,true)
-          end
       end
 
       def bytecode(g)

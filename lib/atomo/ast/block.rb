@@ -3,13 +3,7 @@ module Atomo
     class Block < Rubinius::AST::Iter
       include NodeLike
 
-      Atomo::Parser.register self
-
       attr_accessor :parent
-
-      def self.rule_name
-        "block"
-      end
 
       def initialize(body, args)
         if body.kind_of? BlockBody
@@ -29,19 +23,6 @@ module Atomo
       end
 
       attr_reader :body, :arguments
-
-      def self.grammar(g)
-        args =
-          g.seq(g.t(g.many(g.seq(:sp, g.t(:level1)))), :sp, "|")
-
-        g.block =
-          g.seq(
-            '{', g.t(g.maybe(args)), :sp,
-            g.t(:some_expressions), :sp, '}'
-          ) do |args,v|
-            Block.new(v, Array(args))
-          end
-      end
 
       def recursively(stop = nil, &f)
         return f.call self if stop and stop.call(self)

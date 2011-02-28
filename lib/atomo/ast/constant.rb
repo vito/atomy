@@ -1,11 +1,7 @@
 module Atomo
   module AST
-    class Constant < AST::Node
-      Atomo::Parser.register self
-
-      def self.rule_name
-        "constant"
-      end
+    class Constant < Node
+      attr_reader :chain
 
       def initialize(chain)
         @chain = chain
@@ -15,17 +11,6 @@ module Atomo
       def ==(b)
         b.kind_of?(Constant) and \
         @chain == b.chain
-      end
-
-      attr_reader :chain
-
-      def self.grammar(g)
-        g.constant = g.seq(
-          g.lit(/[A-Z][a-zA-Z0-9_]*/),
-          g.kleene(g.seq("::", g.t(/[A-Z][a-zA-Z0-9_]*/)))
-        ) do |main, subs|
-          Constant.new([main] + Array(subs))
-        end
       end
 
       def bytecode(g)

@@ -90,7 +90,7 @@ module Atomo
       attr_accessor :nodes
 
       def initialize(nodes)
-        @nodes = nodes
+        @nodes = Array(nodes)
       end
 
       def bytecode(g)

@@ -1,0 +1,219 @@
+             sp = (" " | "\n" | comment)*
+         sig_sp = (" " | "\n" | comment)+
+
+    ident_start = < /[[a-z]_]/ > { text }
+  ident_letters = < /((?!`)[[:alnum:]\$\+\<=\>\^`~_!@#%&*\-.\/\?])*/ > { text }
+
+       op_start = < /(?![@#\$~`])[\$\+\<=\>\^`~_!@#%&*\-.\/\?:]/ > { text }
+     op_letters = < /((?!`)[\$\+\<=\>\^`~_!@#%&*\-.\/\?:])*/ > { text }
+
+  f_ident_start = < /(?![&@#\$~`:])[[:alpha:]\$\+\<=\>\^`~_!@#%&*\-.\/\?]/ > { text }
+
+       operator = < op_start op_letters > { text }
+
+     identifier = < ident_start ident_letters > { text }
+   f_identifier = < f_ident_start ident_letters > { text }
+
+        grouped = "(" sp expression:x sp ")" { x }
+
+        comment = /--.*?$/ | multi_comment
+
+  multi_comment = "{-" in_multi
+       in_multi = /[^\-\{\}]*/ "-}"
+                | /[^\-\{\}]*/ "{-" in_multi /[^\-\{\}]*/ "-}"
+                | /[^\-\{\}]*/ /[-{}]/ in_multi
+
+          delim = "," | ";"
+
+     expression = level4
+
+    expressions = expression:x (sp delim sp expression:y)*:xs delim?
+                    { [x] + Array(xs) }
+
+         level1 = true
+                | false
+                | self
+                | nil
+                | number
+                | macro
+                | for_macro
+                | quote
+                | quasi_quote
+                | unquote
+                | string
+                | particle
+                | block_pass
+                | constant
+                | variable
+                | g_variable
+                | c_variable
+                | i_variable
+                | tuple
+                | grouped
+                | block
+                | list
+         level2 = unary_send | level1
+         level3 = keyword_send | level2
+         level4 = binary_send | level3
+
+           true = "True" { Atomo::AST::Primitive.new(:true) }
+          false = "False" { Atomo::AST::Primitive.new(:false) }
+
+           self = "self" { Atomo::AST::Primitive.new(:self) }
+
+            nil = "nil" { Atomo::AST::Primitive.new(:nil) }
+
+         number = < /[\+\-]?\d+/ >
+                    { Atomo::AST::Primitive.new(text.to_i) }
+                | < /[\+\-]?0[oO][\da-fA-F]+/ >
+                    { Atomo::AST::Primitive.new(text.to_i 8) }
+                | < /[\+\-]?0[xX][0-7]+/ >
+                    { Atomo::AST::Primitive.new(text.to_i 16) }
+                | < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ >
+                    { Atomo::AST::Primitive.new(text.to_f) }
+
+          macro = "macro" sig_sp "(" sp expression:p sp ")" sp expression:b
+                    { b; Atomo::AST::Macro.new(p, b) }
+
+      for_macro = "for-macro" sig_sp expression:b
+                    { Atomo::AST::ForMacro.new(b) }
+
+          quote = "'" level1:e { Atomo::AST::Quote.new(e) }
+    quasi_quote = "`" level1:e { Atomo::AST::QuasiQuote.new(e) }
+        unquote = "~" level1:e { Atomo::AST::Unquote.new(e) }
+
+        escapes = "n" { "\n" }
+                | "s" { " " }
+                | "r" { "\r" }
+                | "t" { "\t" }
+                | "v" { "\v" }
+                | "f" { "\f" }
+                | "b" { "\b" }
+                | "a" { "\a" }
+                | "e" { "\e" }
+                | "\\" { "\\" }
+                | "\"" { "\"" }
+                | "BS" { "\b" }
+                | "HT" { "\t" }
+                | "LF" { "\n" }
+                | "VT" { "\v" }
+                | "FF" { "\f" }
+                | "CR" { "\r" }
+                | "SO" { "\016" }
+                | "SI" { "\017" }
+                | "EM" { "\031" }
+                | "FS" { "\034" }
+                | "GS" { "\035" }
+                | "RS" { "\036" }
+                | "US" { "\037" }
+                | "SP" { " " }
+                | "NUL" { "\000" }
+                | "SOH" { "\001" }
+                | "STX" { "\002" }
+                | "ETX" { "\003" }
+                | "EOT" { "\004" }
+                | "ENQ" { "\005" }
+                | "ACK" { "\006" }
+                | "BEL" { "\a" }
+                | "DLE" { "\020" }
+                | "DC1" { "\021" }
+                | "DC2" { "\022" }
+                | "DC3" { "\023" }
+                | "DC4" { "\024" }
+                | "NAK" { "\025" }
+                | "SYN" { "\026" }
+                | "ETB" { "\027" }
+                | "CAN" { "\030" }
+                | "SUB" { "\032" }
+                | "ESC" { "\e" }
+                | "DEL" { "\177" }
+
+ number_escapes = /[xX]/ < /[0-9a-fA-F]{1,5}/ > { text.to_i(16).chr }
+                | < /\d{1,6}/ > { text.to_i.chr }
+                | /[oO]/ < /[0-7]{1,7}/ > { text.to_i(16).chr }
+                | /[uU]/ < /[0-9a-fA-F]{4}/ > { text.to_i(16).chr }
+
+         escape = number_escapes | escapes
+
+        str_seq = < /[^\\"]+/ > { text }
+         string = "\"" (("\\" escape) | str_seq)*:c "\""
+                    { Atomo::AST::String.new(c.join) }
+
+       particle = "#" f_identifier:n { Atomo::AST::Particle.new(n) }
+
+     block_pass = "&" level1:b { Atomo::AST::BlockPass.new(b) }
+
+  constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
+       constant = constant_name:m ("::" constant_name)*:s
+                    { Atomo::AST::Constant.new([m] + Array(s)) }
+
+       variable = identifier:n { Atomo::AST::Variable.new(n) }
+     g_variable = "$" f_identifier:n { Atomo::AST::GlobalVariable.new(n) }
+     c_variable = "@@" f_identifier:n { Atomo::AST::ClassVariable.new(n) }
+     i_variable = "@" f_identifier:n { Atomo::AST::InstanceVariable.new(n) }
+
+          tuple = "(" sp expression:e sp delim sp expressions:es sp ")"
+                    { Atomo::AST::Tuple.new([e] + Array(es)) }
+                | "(" sp ")"
+                    { Atomo::AST::Tuple.new([]) }
+
+     block_args = (sp level1:n)+:as sp "|" { as }
+          block = "{" block_args?:as sp expressions?:es sp "}"
+                    { Atomo::AST::Block.new(Array(es), Array(as)) }
+
+           list = "[" sp expressions?:es sp "]"
+                    { Atomo::AST::List.new(Array(es)) }
+
+     unary_args = "(" sp expressions?:as sp ")" { as }
+     unary_send = unary_send:r sig_sp identifier:n !":" unary_args?:as (sp block)?:b
+                    { Atomo::AST::UnarySend.new(r, n, Array(as), b) }
+                | level1:r sig_sp identifier:n !":" unary_args?:as (sp block)?:b
+                    { Atomo::AST::UnarySend.new(r, n, Array(as), b) }
+                | identifier:n unary_args:as (sp block)?:b
+                    { Atomo::AST::UnarySend.new(
+                        Atomo::AST::Primitive.new(:self),
+                        n,
+                        Array(as),
+                        b,
+                        true
+                      )
+                    }
+
+   keyword_pair = sp identifier:n ":" sp level2:v { [n, v] }
+   keyword_args = keyword_pair+:as {
+                    pairs = Array(as)
+                    name = ""
+                    args = []
+
+                    pairs.each do |n, v|
+                      name << "#{n}:"
+                      args << v
+                    end
+
+                    [name, args]
+                  }
+
+   keyword_send = level2:r sig_sp keyword_args:as
+                    { Atomo::AST::KeywordSend.new(r, as.first, as.last) }
+                | keyword_args:as
+                    { Atomo::AST::KeywordSend.new(
+                        Atomo::AST::Primitive.new(:self),
+                        as.first,
+                        as.last,
+                        true
+                      )
+                    }
+
+    binary_send = binary_send:l sig_sp operator:o sig_sp expression:r
+                    { Atomo::AST::BinarySend.new(o, l, r) }
+                | level3:l sig_sp operator:o sig_sp expression:r
+                    { Atomo::AST::BinarySend.new(o, l, r) }
+                | operator:o sig_sp expression:r
+                    { Atomo::AST::BinarySend.new(
+                        o,
+                        Atomo::AST::Primitive.new(:self),
+                        r
+                      )
+                    }
+
+           root = expressions:es !. { es }

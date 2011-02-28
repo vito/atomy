@@ -1,11 +1,7 @@
 module Atomo
   module AST
-    class Particle < AST::Node
-      Atomo::Parser.register self
-
-      def self.rule_name
-        "particle"
-      end
+    class Particle < Node
+      attr_reader :name
 
       def initialize(name)
         @name = name
@@ -15,13 +11,6 @@ module Atomo
       def ==(b)
         b.kind_of?(Particle) and \
         @name == b.name
-      end
-
-      attr_reader :name
-
-      def self.grammar(g)
-        g.particle =
-          g.seq("#", g.t(/[a-zA-Z][a-zA-Z0-9_]*/)) { |x| Particle.new(x) }
       end
 
       def bytecode(g)

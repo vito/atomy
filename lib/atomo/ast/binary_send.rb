@@ -7,12 +7,6 @@ module Atomo
     class BinarySend < Node
       attr_reader :operator, :lhs, :rhs, :private
 
-      Atomo::Parser.register self
-
-      def self.rule_name
-        "binary_send"
-      end
-
       def initialize(operator, lhs, rhs, privat = false)
         @operator = operator
         @lhs = lhs
@@ -47,23 +41,6 @@ module Atomo
         @rhs.construct(g, d)
         g.push_literal @private
         g.send :new, 4
-      end
-
-      def self.grammar(g)
-        g.binary_send =
-          g.seq(
-            :binary_send, :sig_sp, :operator, :sig_sp, :expression
-          ) do |l, _, o, _, r|
-            BinarySend.new(o,l,r)
-          end | g.seq(
-            :level3, :sig_sp, :operator, :sig_sp, :expression
-          ) do |l, _, o, _, r|
-            BinarySend.new(o,l,r)
-          end | g.seq(
-            :operator, :sig_sp, :expression
-          ) do |o, _, r|
-            BinarySend.new(o, Primitive.new(:self), r, true)
-          end
       end
 
       def register_macro(body)
