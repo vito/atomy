@@ -104,11 +104,26 @@ module Atomo
           block = @arguments.pop
         end
 
+        splat = nil
+        if (splats = @arguments.select { |n| n.kind_of?(Splat) }).size > 0
+          splat = splats[0]
+          @arguments.reject! { |n| n.kind_of?(Splat) }
+        end
+
         @arguments.each do |a|
           a.bytecode(g)
         end
 
-        if block
+        if splat
+          splat.bytecode(g)
+          g.cast_array
+          if block
+            block.bytecode(g)
+          else
+            g.push_nil
+          end
+          g.send_with_splat @method_name.to_sym, @arguments.size, @private
+        elsif block
           block.bytecode(g)
           g.send_with_block @method_name.to_sym, @arguments.size, @private
         else

@@ -50,6 +50,8 @@ macro (x rescue: y)
 macro (x rescue: y else: z)
   Atomo::AST::Catch new(x body, `(~y call($!)), z body);
 
+macro (... x) Atomo::AST::Splat new(x);
+
 Block = Rubinius::BlockEnvironment;
 
 x join: (b: Block) := b call_on_instance(x);
