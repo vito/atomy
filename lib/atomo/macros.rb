@@ -22,7 +22,7 @@ module Atomo
         methods[name] = [method]
       end
 
-      Atomo.add_method(CURRENT_ENV.metaclass, name, methods[name], true)
+      Atomo.add_method(CURRENT_ENV.metaclass, name, methods[name], nil, true)
     end
 
     def self.expand?(node)

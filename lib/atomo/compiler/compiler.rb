@@ -105,11 +105,15 @@ module Atomo
     g.package Rubinius::CompiledMethod
   end
 
-  def self.add_method(target, name, branches, is_macro = false)
+  def self.add_method(target, name, branches, static_scope = nil, is_macro = false)
     cm = build_method(name, branches, is_macro)
 
-    cm.scope =
-      Rubinius::StaticScope.new(self, Rubinius::StaticScope.new(Object)) # TODO
+    unless static_scope
+      static_scope =
+        Rubinius::StaticScope.new(self, Rubinius::StaticScope.new(Object)) # TODO
+    end
+
+    cm.scope = static_scope
 
     Rubinius.add_method name, cm, target, :public
   end

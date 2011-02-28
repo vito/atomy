@@ -108,7 +108,8 @@ module Atomo
           g.send :method_visibility, 0
           g.send :add_defn_method, 4
         else
-          g.send :add_method, 3
+          g.push_scope
+          g.send :add_method, 4
         end
       end
 
