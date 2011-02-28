@@ -1,0 +1,87 @@
+class(Stats) {
+  attr_accessor(#passed, #failed);
+
+  initialize :=
+    { @passed = 0;
+      @failed = 0
+    } call
+};
+
+$nesting-level = 0;
+
+when: True do: x := { x call; #ok } call;
+when: False do: x := #ok;
+
+unless: False do: x := { x call; #ok } call;
+unless: True do: x := #ok;
+
+macro (x += y)
+  `(~x = ~x + ~y);
+
+macro (x -= y)
+  `(~x = ~x - ~y);
+
+theorize: as :=
+  { $stats = Stats new;
+
+    as call;
+    puts();
+
+    $stats do: {
+      [ "total of", failed + passed, "tests",
+        "(" + passed to_s, "passed,",
+        if: (failed == 0)
+          then: { "0" }
+          else: { failed to_s },
+        "failed)"
+      ] join(" ") display;
+      puts()
+    }
+  } call;
+
+o should: (check: Block) :=
+  unless: (o join: check) do: {
+    raise(Exception new("assertion failed", o))
+  };
+
+x should-be: y := x should: { == y };
+
+describe: x as: body :=
+  { puts(indentation + "- " + x to_s);
+    $nesting-level += 1;
+    body call;
+    $nesting-level -= 1
+  } call;
+
+it: description so: tests :=
+  { tests call;
+    puts((indentation + "✓ " + description) ansi-colored: #green)
+  } rescue: { e |
+    $stats failed += 1;
+    puts((indentation + "✗ " + description) ansi-colored: #red);
+    puts((indentation + "  ` " + e to_s) ansi-colored: #yellow)
+  } else: {
+    $stats passed += 1
+  };
+
+indentation := " " * ($nesting-level * 2);
+
+(s: String) ansi-colored: color :=
+  { codes =
+      [ #black
+      , #red
+      , #green
+      , #yellow
+      , #blue
+      , #magenta
+      , #cyan
+      , #white
+      ] zip(Range new(0, 7) to_a);
+
+    hash = Hash new;
+    codes each { [p, n] |
+      hash store(p, n)
+    };
+
+    "\e[9" + hash fetch(color) to_s + "m" + s + "\e[0m"
+  } call

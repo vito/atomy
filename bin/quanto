@@ -21,6 +21,7 @@ Kernel.send(:define_method, :"load:") do |a|
 end
 
 send(:"load:", kernel + "/core.atomo")
+send(:"load:", kernel + "/therie.atomo")
 
 while str = Readline.readline("> ")
   next if str.empty?
