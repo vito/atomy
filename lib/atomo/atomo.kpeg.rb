@@ -1754,7 +1754,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # g_variable = line:line "$" f_identifier:n { Atomo::AST::GlobalVariable.new(line, n) }
+  # g_variable = line:line "$" f_identifier:n { Atomo::AST::GlobalVariable.new(line, "$" + n) }
   def _g_variable
 
     _save = self.pos
@@ -1776,7 +1776,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    @result = begin;  Atomo::AST::GlobalVariable.new(line, n) ; end
+    @result = begin;  Atomo::AST::GlobalVariable.new(line, "$" + n) ; end
     _tmp = true
     unless _tmp
       self.pos = _save
@@ -1787,7 +1787,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # c_variable = line:line "@@" f_identifier:n { Atomo::AST::ClassVariable.new(line, n) }
+  # c_variable = line:line "@@" f_identifier:n { Atomo::AST::ClassVariable.new(line, "@@" + n) }
   def _c_variable
 
     _save = self.pos
@@ -1809,7 +1809,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    @result = begin;  Atomo::AST::ClassVariable.new(line, n) ; end
+    @result = begin;  Atomo::AST::ClassVariable.new(line, "@@" + n) ; end
     _tmp = true
     unless _tmp
       self.pos = _save
@@ -1820,7 +1820,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # i_variable = line:line "@" f_identifier:n { Atomo::AST::InstanceVariable.new(line, n) }
+  # i_variable = line:line "@" f_identifier:n { Atomo::AST::InstanceVariable.new(line, "@" + n) }
   def _i_variable
 
     _save = self.pos
@@ -1842,7 +1842,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    @result = begin;  Atomo::AST::InstanceVariable.new(line, n) ; end
+    @result = begin;  Atomo::AST::InstanceVariable.new(line, "@" + n) ; end
     _tmp = true
     unless _tmp
       self.pos = _save

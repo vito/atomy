@@ -7,7 +7,7 @@ module Atomo
       attr_reader :name
 
       def initialize(line, name)
-        @name = name
+        @name = name.to_sym
         @line = line
       end
 

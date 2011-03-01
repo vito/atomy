@@ -146,11 +146,11 @@
        variable = line:line identifier:n !":"
                     { Atomo::AST::Variable.new(line, n) }
      g_variable = line:line "$" f_identifier:n
-                    { Atomo::AST::GlobalVariable.new(line, n) }
+                    { Atomo::AST::GlobalVariable.new(line, "$" + n) }
      c_variable = line:line "@@" f_identifier:n
-                    { Atomo::AST::ClassVariable.new(line, n) }
+                    { Atomo::AST::ClassVariable.new(line, "@@" + n) }
      i_variable = line:line "@" f_identifier:n
-                    { Atomo::AST::InstanceVariable.new(line, n) }
+                    { Atomo::AST::InstanceVariable.new(line, "@" + n) }
 
           tuple = line:line "(" wsp expression:e delim expressions:es wsp ")"
                     { Atomo::AST::Tuple.new(line, [e] + Array(es)) }
