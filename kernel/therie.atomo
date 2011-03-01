@@ -72,13 +72,13 @@ it: description so: tests :=
 (s: String) ansi-colored: color :=
   { codes =
       [ #black
-      , #red
-      , #green
-      , #yellow
-      , #blue
-      , #magenta
-      , #cyan
-      , #white
+        #red
+        #green
+        #yellow
+        #blue
+        #magenta
+        #cyan
+        #white
       ] zip(Range new(0, 7) to_a)
 
     hash = Hash new
