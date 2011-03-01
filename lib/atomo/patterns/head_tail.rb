@@ -49,5 +49,9 @@ module Atomo::Patterns
     def local_names
       @head.local_names + @tail.local_names
     end
+
+    def bindings
+      @head.bindings + @tail.bindings
+    end
   end
 end

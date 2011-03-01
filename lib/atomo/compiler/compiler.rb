@@ -43,7 +43,7 @@ module Atomo
       recv.matches?(g) # TODO: skip kind_of matches
       g.gif skip
 
-      if recv.locals > 0
+      if recv.bindings > 0
         g.push_self
         recv.deconstruct(g, locals)
       end
@@ -61,7 +61,7 @@ module Atomo
 
         args.each do |a|
           g.shift_array
-          if a.locals > 0
+          if a.bindings > 0
             g.dup
             a.matches?(g)
             g.gif argmis

@@ -55,5 +55,9 @@ module Atomo::Patterns
     def local_names
       @patterns.collect { |p| p.local_names }.flatten
     end
+
+    def bindings
+      @patterns.reduce(0) { |a, p| p.bindings + a }
+    end
   end
 end

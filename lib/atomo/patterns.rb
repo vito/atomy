@@ -66,6 +66,11 @@ module Atomo::Patterns
     def locals
       local_names.size
     end
+
+    # number of bindings
+    def bindings
+      0
+    end
   end
 
   def self.from_node(n)

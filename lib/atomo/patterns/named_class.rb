@@ -28,5 +28,9 @@ module Atomo::Patterns
     def local_names
       []
     end
+
+    def bindings
+      1
+    end
   end
 end

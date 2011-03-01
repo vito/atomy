@@ -32,7 +32,7 @@ module Atomo::Patterns
         end
       end
 
-      if @pattern.locals > 0
+      if @pattern.bindings > 0
         g.dup
         @pattern.deconstruct(g, locals)
       end
@@ -43,6 +43,10 @@ module Atomo::Patterns
 
     def local_names
       [@name]
+    end
+
+    def bindings
+      1
     end
   end
 end
