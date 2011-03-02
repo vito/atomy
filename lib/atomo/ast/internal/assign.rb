@@ -7,7 +7,15 @@ module Atomo
         @line = line
       end
 
-      # TODO: recursively
+      def recursively(stop = nil, &f)
+        return f.call self if stop and stop.call(self)
+
+        f.call Assign.new(
+          @line,
+          @lhs.recursively(stop, &f),
+          @rhs.recursively(stop, &f)
+        )
+      end
 
       def bytecode(g)
         pos(g)
