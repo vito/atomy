@@ -73,33 +73,33 @@ module Atomo
     # take a node and return its expansion
     def self.expand(root)
       root.through_quotes(proc { |x| expand? x }) do |node|
-        begin
-          case node
-          when AST::BinarySend
-            expand CURRENT_ENV.send(
-              (intern node.operator).to_sym,
-              nil,
-              node.lhs,
-              node.rhs
-            )
-          when AST::UnarySend
-            expand CURRENT_ENV.send(
-              (intern node.method_name).to_sym,
-              node.block,
-              node.receiver,
-              *node.arguments
-            )
-          when AST::KeywordSend
-            expand CURRENT_ENV.send(
-              (intern node.method_name).to_sym,
-              nil,
-              node.receiver,
-              *node.arguments
-            )
-          else
-            node
-          end
-        rescue NoMethodError, ArgumentError
+        name = node.method_name
+        next no_macro(node) unless name and CURRENT_ENV.respond_to?(intern name)
+
+        case node
+        when AST::BinarySend
+          expand CURRENT_ENV.send(
+            (intern node.operator).to_sym,
+            nil,
+            node.lhs,
+            node.rhs
+          )
+        when AST::UnarySend
+          expand CURRENT_ENV.send(
+            (intern node.method_name).to_sym,
+            node.block,
+            node.receiver,
+            *node.arguments
+          )
+        when AST::KeywordSend
+          expand CURRENT_ENV.send(
+            (intern node.method_name).to_sym,
+            nil,
+            node.receiver,
+            *node.arguments
+          )
+        else
+          # should be impossible
           no_macro(node)
         end
       end

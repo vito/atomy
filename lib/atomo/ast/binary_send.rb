@@ -6,6 +6,7 @@ module Atomo
   module AST
     class BinarySend < Node
       attr_reader :operator, :lhs, :rhs, :private
+      alias :method_name :operator
 
       def initialize(line, operator, lhs, rhs, privat = false)
         @operator = operator

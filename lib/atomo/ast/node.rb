@@ -87,6 +87,10 @@ module Atomo
       def to_node
         self
       end
+
+      def method_name
+        nil
+      end
     end
 
     class Node < Rubinius::AST::Node
