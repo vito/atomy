@@ -55,6 +55,55 @@ macro (x rescue: y else: z)
 
 macro (... x) Atomo::AST::Splat new(x line, x)
 
+macro (data(root, &children))
+  { cs = children body expressions map { e |
+      e match: {
+        Atomo::AST::UnarySend ->
+          { init =
+              Atomo::AST::UnarySend new(
+                0
+                Atomo::AST::Primitive new(0, #self)
+                "initialize"
+                e arguments
+              )
+
+            accessors =
+              Atomo::AST::UnarySend new(
+                0
+                Atomo::AST::Primitive new(0, #self)
+                "attr_accessor"
+                e arguments map { a |
+                  name = a name to_s
+                  name slice!(0)
+                  Atomo::AST::Particle new(0, name)
+                }
+              )
+
+            name =
+              Atomo::AST::Constant new(0, e method_name)
+
+            `(class(~name < ~root) {
+                ~accessors
+                ~init := #ok
+              })
+          } call
+
+        Atomo::AST::Constant ->
+          `(class(~e < ~root) {})
+
+        _ -> raise("don't know what to do with " + e to_s)
+      }
+    }
+
+    decls = Atomo::AST::Block new(
+      root line
+      [`(class(~root) {})] + cs
+      []
+    )
+
+    `(~decls call)
+  } call
+
 Block = Rubinius::BlockEnvironment
 
 x join: (b: Block) := b call_on_instance(x)
