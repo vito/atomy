@@ -54,7 +54,7 @@ module Atomo
           expand(node.receiver),
           node.method_name,
           node.arguments.collect { |a| expand(a) },
-          node.block,
+          node.block ? expand(node.block) : node.block,
           node.private
         )
       when AST::KeywordSend
