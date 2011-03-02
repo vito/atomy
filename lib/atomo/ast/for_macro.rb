@@ -22,7 +22,7 @@ module Atomo
 
       def recursively(stop = nil, &f)
         return f.call(self) if stop and stop.call(self)
-        f.call ForMacro.new(@line, @body.recursively(&f))
+        f.call ForMacro.new(@line, @body.recursively(stop, &f))
       end
 
       def bytecode(g)
