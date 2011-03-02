@@ -105,8 +105,7 @@ module Atomo
         if defn
           g.send :build_method, 2
           g.push_scope
-          g.push_variables
-          g.send :method_visibility, 0
+          g.push_literal :public
           g.send :add_defn_method, 4
         else
           g.push_scope
