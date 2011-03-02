@@ -112,3 +112,59 @@ x do: (b: Block) :=
   { b call_on_instance(x)
     x
   } call
+
+-- TODO: these seem to overlap
+--False && _ := False
+--True && x := x
+
+--True || _ := True
+--False || x := x
+
+class(And < Atomo::AST::Node) {
+  initialize(@line, @a, @b) := #ok
+
+  bytecode(g) :=
+    { pos(g)
+      done = g new_label
+      no = g new_label
+
+      @a bytecode(g)
+      g gif(no)
+
+      @b bytecode(g)
+      g goto(done)
+
+      no set!
+      g push_false
+
+      done set!
+    } call
+
+  -- TODO: recursively
+}
+
+class(Or < Atomo::AST::Node) {
+  initialize(@line, @a, @b) := #ok
+
+  bytecode(g) :=
+    { pos(g)
+      done = g new_label
+      yes = g new_label
+
+      @a bytecode(g)
+      g git(yes)
+
+      @b bytecode(g)
+      g goto(done)
+
+      yes set!
+      g push_true
+
+      done set!
+    } call
+
+  -- TODO: recursively
+}
+
+macro (a && b) And new(a line, a, b)
+macro (a || b) Or new(a line, a, b)
