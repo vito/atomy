@@ -213,9 +213,9 @@
                     }
    keyword_send = ~{ done } { save } skeyword_send:t { t }
 
-   sbinary_send = line:line sbinary_send:l cont operator:o sig_wsp expression:r
+   sbinary_send = line:line sbinary_send:l cont operator:o sig_wsp level3:r
                     { Atomo::AST::BinarySend.new(line, o, l, r) }
-                | line:line level3:l cont operator:o sig_wsp expression:r
+                | line:line level3:l cont operator:o sig_wsp level3:r
                     { Atomo::AST::BinarySend.new(line, o, l, r) }
                 | line:line operator:o sig_wsp expression:r
                     { Atomo::AST::BinarySend.new(

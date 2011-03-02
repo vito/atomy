@@ -10,7 +10,7 @@ module(Therie) {
 
   NESTING_LEVEL = 0
 
-  { self } indentation := " " * (NESTING_LEVEL * 2)
+  { self } indentation := (" " * (NESTING_LEVEL * 2))
 }
 
 when: True do: x := { x call; #ok } call
