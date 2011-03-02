@@ -293,4 +293,4 @@
                 | /[oO]/ < /[0-7]{1,7}/ > { text.to_i(16).chr }
                 | /[uU]/ < /[0-9a-fA-F]{4}/ > { text.to_i(16).chr }
 
-           root = expressions:es wsp !. { es }
+           root = wsp expressions:es wsp !. { es }
