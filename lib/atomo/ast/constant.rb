@@ -4,7 +4,7 @@ module Atomo
       attr_reader :chain
 
       def initialize(line, chain)
-        @chain = chain
+        @chain = Array(chain)
         @line = line
       end
 
