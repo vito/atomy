@@ -17,27 +17,34 @@ module Atomo
 
     g.push_state Rubinius::AST::ClosedScope.new(123) # TODO: real line
 
+    args = 0
     g.local_names = branches.collect do |pats, meth|
+      args = block_from(pats[1])[0].size
       pats[0].local_names + pats[1].collect { |p| p.local_names }.flatten
     end.flatten.uniq
+
+    args += 1 if is_macro
+
+    args.times do |n|
+      g.local_names.unshift("arg:" + n.to_s)
+      g.state.scope.new_local("arg:" + n.to_s)
+    end
 
     locals = {}
     g.local_names.each do |n|
       locals[n] = g.state.scope.new_local(n).reference
     end
 
-    g.local_count = g.local_names.size
+    g.total_args = g.required_args = args
+    g.local_count = args + g.local_names.size
 
     g.push_self
     branches.each do |pats, meth|
       recv = pats[0]
       args, block = block_from(pats[1])
 
-      g.total_args = g.required_args = (is_macro ? args.size + 1 : args.size)
-
       skip = g.new_label
       argmis = g.new_label
-      argmisnobind = g.new_label
 
       g.dup
       recv.matches?(g) # TODO: skip kind_of matches
@@ -48,19 +55,30 @@ module Atomo
         recv.deconstruct(g, locals)
       end
 
-      if args.size > 0
-        g.cast_for_multi_block_arg
-        if is_macro
-          g.shift_array
-          if block
-            block.deconstruct(g, locals)
-          else
-            g.pop
-          end
+      case args.size
+      when 0
+      when 1
+        g.push_local 0
+        a = args[0]
+        if a.bindings > 0
+          g.dup
+          a.matches?(g)
+          g.gif argmis
+          a.deconstruct(g, locals)
+        else
+          a.matches?(g)
+          g.gif skip
+        end
+      else
+        if is_macro && block
+          g.push_local(0)
+          block.deconstruct(g, locals)
         end
 
-        args.each do |a|
-          g.shift_array
+        args.each_with_index do |a,i|
+          n = is_macro ? i + 1 : i
+          g.push_local(n)
+
           if a.bindings > 0
             g.dup
             a.matches?(g)
@@ -68,10 +86,9 @@ module Atomo
             a.deconstruct(g, locals)
           else
             a.matches?(g)
-            g.gif argmisnobind
+            g.gif skip
           end
         end
-        g.pop
       end
 
       if !is_macro && block
@@ -84,11 +101,7 @@ module Atomo
 
       argmis.set!
       g.pop
-      g.pop
       g.goto skip
-
-      argmisnobind.set!
-      g.pop
 
       skip.set!
     end
