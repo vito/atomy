@@ -25,8 +25,8 @@ module Atomo
 
       def through_quotes(stop_ = nil, &f)
         stop = proc { |x|
-          (stop_ and stop_.call(x)) or \
-            x.kind_of?(AST::QuasiQuote) or \
+          (stop_ && stop_.call(x)) || \
+            x.kind_of?(AST::QuasiQuote) || \
             x.kind_of?(AST::Unquote)
         }
 
