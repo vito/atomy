@@ -42,8 +42,8 @@
     ident_start = < /[[a-z]_]/ > { text }
   ident_letters = < /([[:alnum:]\$\+\<=\>\^~_!@#%&*\-.\/\?])*/ > { text }
 
-       op_start = < /[\+\<=\>\^_!%&*\-.\/\?:]/ > { text }
-     op_letters = < /([\$\+\<=\>\^~_!@#%&*\-.\/\?:])*/ > { text }
+       op_start = < /[\+\<=\>\^_!%\|&*\-.\/\?:]/ > { text }
+     op_letters = < /([\$\+\<=\>\^~_!@#%\|&*\-.\/\?:])*/ > { text }
 
   f_ident_start = < /[[:alpha:]\$\+\<=\>\^`~_!@#%&*\-.\/\?]/ > { text }
 
@@ -68,6 +68,7 @@
     expressions = expression:x (delim expression)*:xs delim?
                     { [x] + Array(xs) }
 
+                # TODO: TrueClass, FalseClass, nilly, etc. unpareseable
          level1 = true
                 | false
                 | self
