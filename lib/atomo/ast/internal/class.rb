@@ -11,6 +11,7 @@ module Atomo
         if name.kind_of?(Rubinius::AST::ClassName)
           @name = name
         else
+          # TODO: other name types
           @name = Rubinius::AST::ClassName.new @line, name.chain.last.to_sym, @superclass
         end
 
