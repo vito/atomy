@@ -1023,7 +1023,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # true = line:line "True" { Atomo::AST::Primitive.new(line, :true) }
+  # true = line:line "True" !f_identifier { Atomo::AST::Primitive.new(line, :true) }
   def _true
 
     _save = self.pos
@@ -1039,6 +1039,14 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
+    _save1 = self.pos
+    _tmp = apply('f_identifier', :_f_identifier)
+    self.pos = _save1
+    _tmp = _tmp ? nil : true
+    unless _tmp
+      self.pos = _save
+      break
+    end
     @result = begin;  Atomo::AST::Primitive.new(line, :true) ; end
     _tmp = true
     unless _tmp
@@ -1050,7 +1058,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # false = line:line "False" { Atomo::AST::Primitive.new(line, :false) }
+  # false = line:line "False" !f_identifier { Atomo::AST::Primitive.new(line, :false) }
   def _false
 
     _save = self.pos
@@ -1066,6 +1074,14 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
+    _save1 = self.pos
+    _tmp = apply('f_identifier', :_f_identifier)
+    self.pos = _save1
+    _tmp = _tmp ? nil : true
+    unless _tmp
+      self.pos = _save
+      break
+    end
     @result = begin;  Atomo::AST::Primitive.new(line, :false) ; end
     _tmp = true
     unless _tmp
@@ -1077,7 +1093,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # self = line:line "self" { Atomo::AST::Primitive.new(line, :self) }
+  # self = line:line "self" !f_identifier { Atomo::AST::Primitive.new(line, :self) }
   def _self
 
     _save = self.pos
@@ -1093,6 +1109,14 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
+    _save1 = self.pos
+    _tmp = apply('f_identifier', :_f_identifier)
+    self.pos = _save1
+    _tmp = _tmp ? nil : true
+    unless _tmp
+      self.pos = _save
+      break
+    end
     @result = begin;  Atomo::AST::Primitive.new(line, :self) ; end
     _tmp = true
     unless _tmp
@@ -1104,7 +1128,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # nil = line:line "nil" { Atomo::AST::Primitive.new(line, :nil) }
+  # nil = line:line "nil" !f_identifier { Atomo::AST::Primitive.new(line, :nil) }
   def _nil
 
     _save = self.pos
@@ -1116,6 +1140,14 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _tmp = match_string("nil")
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _save1 = self.pos
+    _tmp = apply('f_identifier', :_f_identifier)
+    self.pos = _save1
+    _tmp = _tmp ? nil : true
     unless _tmp
       self.pos = _save
       break

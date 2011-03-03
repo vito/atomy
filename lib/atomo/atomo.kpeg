@@ -95,15 +95,15 @@
          level3 = keyword_send | level2
          level4 = binary_send | level3
 
-           true = line:line "True"
+           true = line:line "True" !f_identifier
                     { Atomo::AST::Primitive.new(line, :true) }
-          false = line:line "False"
+          false = line:line "False" !f_identifier
                     { Atomo::AST::Primitive.new(line, :false) }
 
-           self = line:line "self"
+           self = line:line "self" !f_identifier
                     { Atomo::AST::Primitive.new(line, :self) }
 
-            nil = line:line "nil"
+            nil = line:line "nil" !f_identifier
                     { Atomo::AST::Primitive.new(line, :nil) }
 
          number = line:line < /[\+\-]?\d+/ >
