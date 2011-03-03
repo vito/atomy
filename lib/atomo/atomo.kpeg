@@ -2,7 +2,6 @@
   def initialize(str)
     super
     @wsp = []
-    @no_memoize = ["cont", "continue"]
   end
 
   def continue?
@@ -211,12 +210,13 @@
                     { Atomo::AST::List.new(line, Array(es)) }
 
      unary_args = "(" wsp expressions?:as wsp ")" { Array(as) }
-    sunary_send = line:line sunary_send:r cont identifier:n !":" unary_args?:as (wsp block)?:b
+    sunary_send = line:line sunary_send:r @cont identifier:n !":" unary_args?:as (wsp block)?:b
                     { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) }
-                | line:line level1:r cont identifier:n !":" unary_args?:as (sp block)?:b
+                | line:line level1:r @cont identifier:n !":" unary_args?:as (sp block)?:b
                     { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) }
                 | line:line identifier:n unary_args:as (sp block)?:b
-                    { Atomo::AST::UnarySend.new(line,
+                    { Atomo::AST::UnarySend.new(
+                        line,
                         Atomo::AST::Primitive.new(line, :self),
                         n,
                         as,
@@ -228,7 +228,7 @@
 
    keyword_pair = identifier:n ":" sig_sp level2:v
                     { [n, v] }
-   keyword_args = keyword_pair:a (cont keyword_pair)*:as {
+   keyword_args = keyword_pair:a (@cont keyword_pair)*:as {
                     pairs = [a] + Array(as)
                     name = ""
                     args = []
@@ -241,7 +241,7 @@
                     [name, args]
                   }
 
-  skeyword_send = line:line level2:r cont keyword_args:as
+  skeyword_send = line:line level2:r @cont keyword_args:as
                     { Atomo::AST::KeywordSend.new(
                         line,
                         r,
@@ -259,9 +259,9 @@
                     }
    keyword_send = ~{ done } { save } skeyword_send:t { t }
 
-   sbinary_send = line:line sbinary_send:l cont operator:o sig_wsp level3:r
+   sbinary_send = line:line sbinary_send:l @cont operator:o sig_wsp level3:r
                     { Atomo::AST::BinarySend.new(line, o, l, r) }
-                | line:line level3:l cont operator:o sig_wsp level3:r
+                | line:line level3:l @cont operator:o sig_wsp level3:r
                     { Atomo::AST::BinarySend.new(line, o, l, r) }
                 | line:line operator:o sig_wsp expression:r
                     { Atomo::AST::BinarySend.new(
