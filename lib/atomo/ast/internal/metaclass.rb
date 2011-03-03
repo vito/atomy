@@ -3,7 +3,7 @@ module Atomo
     class Metaclass < Rubinius::AST::SClass
       include NodeLike
 
-      def initialize(line, body)
+      def initialize(line, receiver, body)
         @line = line
         @receiver = receiver
         @body = Rubinius::AST::SClassScope.new @line, body
