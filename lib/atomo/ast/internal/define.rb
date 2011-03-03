@@ -56,7 +56,7 @@ module Atomo
       def bytecode(g)
         pos(g)
 
-        defn = @receiver.kind_of?(Patterns::Match) and @receiver.value == :self
+        defn = @receiver.kind_of?(Patterns::Match) && @receiver.value == :self
 
         if defn
           g.push_rubinius
