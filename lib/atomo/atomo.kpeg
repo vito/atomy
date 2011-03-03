@@ -26,16 +26,28 @@
     #puts "pop; #{caller[0]}, #{@wsp.inspect}"
     @result
   end
-}
 
-       continue = { return false unless continue?; true }
+  def const_chain(l, ns, top = false)
+    p = nil
+    ns.each do |n|
+      if p
+        p = Atomo::AST::ScopedConstant.new(l, p, n)
+      elsif top
+        p = Atomo::AST::ToplevelConstant.new(l, n)
+      else
+        p = Atomo::AST::Constant.new(l, n)
+      end
+    end
+    p
+  end
+}
 
              sp = (" " | "\t" | comment)*
             wsp = (" " | "\t" | "\n" | comment)*
          sig_sp = (" " | "\t" | comment)+
         sig_wsp = (" " | "\t" | "\n" | comment)+
 
-           cont = ("\n" sp)+ continue | sig_sp (("\n" sp)+ continue)?
+           cont = ("\n" sp)+ &{ continue? } | sig_sp (("\n" sp)+ &{ continue? })?
 
            line = { current_line }
 
@@ -68,7 +80,6 @@
     expressions = expression:x (delim expression)*:xs delim?
                     { [x] + Array(xs) }
 
-                # TODO: TrueClass, FalseClass, nilly, etc. unpareseable
          level1 = true
                 | false
                 | self
@@ -149,14 +160,34 @@
                         line,
                         names.empty? ?
                             Atomo::AST::Primitive.new(line, :self) :
-                            Atomo::AST::Constant.new(line, names),
+                            const_chain(line, names),
                         msg,
-                        Array(as)
+                        Array(as),
+                        nil,
+                        true
                       )
                     else
-                      Atomo::AST::Constant.new(line, names)
+                      const_chain(line, names)
                     end
                   }
+                | line:line ("::" constant_name)+:s unary_args?:as {
+                    names = Array(s)
+                    if as
+                      msg = names.pop
+                      Atomo::AST::UnarySend.new(
+                        line,
+                        names.empty? ?
+                            Atomo::AST::Primitive.new(line, :self) :
+                            const_chain(line, names, true),
+                        msg,
+                        Array(as),
+                        nil,
+                        true
+                      )
+                    else
+                      const_chain(line, names, true)
+                    end
+                }
 
        variable = line:line identifier:n !":"
                     { Atomo::AST::Variable.new(line, n) }

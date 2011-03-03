@@ -6,10 +6,15 @@ module Atomo
       def initialize(line, name, body)
         @line = line
 
-        if name.kind_of?(Rubinius::AST::ModuleName)
-          @name = name
+        case name
+        when Constant
+          @name = Rubinius::AST::ModuleName.new @line, name.name
+        when ToplevelConstant
+          @name = Rubinius::AST::ToplevelModuleName.new @line, name
+        when ScopedConstant
+          @name = Rubinius::AST::ScopedModuleName.new @line, name
         else
-          @name = Rubinius::AST::ModuleName.new @line, name.chain.last.to_sym
+          @name = name
         end
 
         @body = Rubinius::AST::ModuleScope.new @line, @name, body

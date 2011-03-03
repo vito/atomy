@@ -87,8 +87,9 @@ module Atomo::Patterns
       return List.new(n.elements.collect { |e| from_node(e) })
     when Atomo::AST::Tuple
       return Tuple.new(n.elements.collect { |e| from_node(e) })
-    when Atomo::AST::Constant
-      return Constant.new(n.chain)
+    when Atomo::AST::Constant, Atomo::AST::ToplevelConstant,
+         Atomo::AST::ScopedConstant
+      return Constant.new(n)
     when Atomo::AST::BinarySend
       case n.operator
       when "."

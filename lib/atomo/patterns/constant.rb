@@ -1,21 +1,18 @@
 module Atomo::Patterns
   class Constant < Pattern
-    attr_reader :chain
+    attr_reader :name
 
-    def initialize(chain)
-      @chain = chain
+    def initialize(constant)
+      @constant = constant
     end
 
     def ==(b)
       b.kind_of?(Constant) and \
-      @chain == b.chain
+        @constant == b.constant
     end
 
     def target(g)
-      g.push_const @chain[0].to_sym
-      @chain.drop(1).each do |n|
-        g.find_const n.to_sym
-      end
+      @constant.bytecode(g)
     end
 
     def matches?(g)

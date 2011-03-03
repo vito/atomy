@@ -8,11 +8,15 @@ module Atomo
 
         @superclass = superclass ? superclass : Primitive.new(line, :nil)
 
-        if name.kind_of?(Rubinius::AST::ClassName)
-          @name = name
+        case name
+        when Constant
+          @name = Rubinius::AST::ClassName.new @line, name.name, @superclass
+        when ToplevelConstant
+          @name = Rubinius::AST::ToplevelModuleName.new @line, name, @superclass
+        when ScopedConstant
+          @name = Rubinius::AST::ScopedClassName.new @line, name, @superclass
         else
-          # TODO: other name types
-          @name = Rubinius::AST::ClassName.new @line, name.chain.last.to_sym, @superclass
+          @name = name
         end
 
         @body = Rubinius::AST::ClassScope.new @line, @name, body

@@ -113,13 +113,6 @@ x do: (b: Block) :=
     x
   } call
 
--- TODO: these seem to overlap
---False && _ := False
---True && x := x
-
---True || _ := True
---False || x := x
-
 class(And < Atomo::AST::Node) {
   initialize(@line, @a, @b) := #ok
 

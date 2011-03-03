@@ -1,24 +1,84 @@
 module Atomo
   module AST
     class Constant < Node
-      attr_reader :chain
+      attr_reader :name
 
-      def initialize(line, chain)
-        @chain = Array(chain)
+      def initialize(line, name)
         @line = line
+        @name = name.to_sym
       end
 
       def ==(b)
         b.kind_of?(Constant) and \
-        @chain == b.chain
+          @name == b.name
       end
 
       def bytecode(g)
         pos(g)
-        g.push_const @chain[0].to_sym
-        @chain.drop(1).each do |s|
-          g.find_const s.to_sym
-        end
+        g.push_const @name
+      end
+
+      def assign(g, v)
+        g.push_scope
+        g.push_literal @name
+        v.bytecode(g)
+        g.send :const_set, 2
+      end
+    end
+
+    class ToplevelConstant < Node
+      attr_reader :name
+
+      def initialize(line, name)
+        @line = line
+        @name = name.to_sym
+      end
+
+      def ==(b)
+        b.kind_of?(ToplevelConstant) and \
+          @name == b.name
+      end
+
+      def bytecode(g)
+        pos(g)
+        g.push_cpath_top
+        g.find_const @name
+      end
+
+      def assign(g, v)
+        g.push_cpath_top
+        g.push_literal @name
+        v.bytecode(g)
+        g.send :const_set, 2
+      end
+    end
+
+    class ScopedConstant < Node
+      attr_reader :parent, :name
+
+      def initialize(line, parent, name)
+        @line = line
+        @parent = parent
+        @name = name.to_sym
+      end
+
+      def ==(b)
+        b.kind_of?(ScopedConstant) and \
+          @name == b.name and \
+          @parent == b.parent
+      end
+
+      def bytecode(g)
+        pos(g)
+        @parent.bytecode(g)
+        g.find_const @name
+      end
+
+      def assign(g, v)
+        @parent.bytecode(g)
+        g.push_literal @name
+        v.bytecode(g)
+        g.send :const_set, 2
       end
     end
   end

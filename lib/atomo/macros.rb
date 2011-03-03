@@ -109,9 +109,17 @@ module Atomo
       n = n.recursively do |sub|
         case sub
         when Atomo::AST::Constant
-          Atomo::AST::Constant.new(
+          Atomo::AST::ScopedConstant.new(
             sub.line,
-            ["Atomo", "AST"] + sub.chain
+            Atomo::AST::ScopedConstant.new(
+              sub.line,
+              Atomo::AST::Constant.new(
+                sub.line,
+                "Atomo"
+              ),
+              "AST"
+            ),
+            sub.name
           )
         else
           sub
