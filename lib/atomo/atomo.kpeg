@@ -214,6 +214,16 @@
                     { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) }
                 | line:line level1:r @cont identifier:n !":" unary_args?:as (sp block)?:b
                     { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) }
+                | line:line identifier:n unary_args?:as sp block:b
+                    { Atomo::AST::UnarySend.new(
+                        line,
+                        Atomo::AST::Primitive.new(line, :self),
+                        n,
+                        Array(as),
+                        b,
+                        true
+                      )
+                    }
                 | line:line identifier:n unary_args:as (sp block)?:b
                     { Atomo::AST::UnarySend.new(
                         line,
