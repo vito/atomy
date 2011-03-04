@@ -78,7 +78,10 @@ Doc punctuate: [d] := [d]
 -- render a document as a string
 Text render := @value
 Empty render := ""
-Beside render := (@left render + " " + @right render)
+Beside render :=
+  if: @space?
+    then: { @left render + " " + @right render }
+    else: { @left render + @right render }
 Above render :=
   { a = @above render
     b = @below render
