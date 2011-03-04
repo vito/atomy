@@ -71,6 +71,18 @@ module Atomo::Patterns
     def bindings
       0
     end
+
+    # test if a pattern matches a value
+    def ===(v)
+      metaclass.dynamic_method(:===) do |g|
+        g.total_args = g.required_args = g.local_count = 1
+        g.push_local(0)
+        matches?(g)
+        g.ret
+      end
+
+      __send__ :===, v
+    end
   end
 
   def self.from_node(n)
