@@ -1,0 +1,106 @@
+-- define our document types structurally via the #data macro
+data(Doc) {
+  Empty
+  Beside(@left, @right, @space?)
+  Above(@above, @below, @overlap?)
+  Nest(@body, @depth)
+  Text(@value)
+}
+
+
+-- trivial emptiness check
+Empty empty? := True
+Doc empty? := False
+
+
+-- width of a document
+Empty width := 0
+Text width := @value size
+Beside width :=
+  if: @space?
+    then: { 1 + @left width + @right width }
+    else: { @left width + @right width }
+Nest width := (@body width + @depth)
+Above width := [@above width, @below width] max
+
+
+-- height of a document
+Empty width := 0
+Text height := 1
+Beside height := [@left height, @right height] max
+Above height :=
+  if: (@overlap? && (@below depth > @above width))
+    then: { @above height + @below height }
+    else: { 1 + @above height + @below height }
+Nest height := @body height
+
+
+-- position one document beside another, separated by a space
+-- unless either are empty
+(d: Doc) <+> Empty := d
+Empty    <+> (d: Doc) := d
+(l: Doc) <+> (n: Nest) := (l <+> n body)
+(l: Doc) <+> (a: Above) :=
+  { first = (l <+> a above)
+    rest = (a below nest: (l width + 1))
+    Above new(first, rest, a overlap?)
+  } call
+(l: Doc) <+> (r: Doc) := Beside new(l, r, True)
+
+
+-- position one document beside another unless either are empty
+(d: Doc) <> Empty := d
+Empty    <> (d: Doc) := d
+(l: Doc) <> (n: Nest) := (l <> n body)
+(l: Doc) <> (a: Above) := #todo
+(l: Doc) <> (r: Doc) := Beside new(l, r, False)
+
+
+-- position one document above another, overlapping if possible
+(a: Doc) // (b: Doc) := Above new(a, b, True)
+
+
+-- position one document above another
+(a: Doc) /+/ (b: Doc) := Above new(a, b, False)
+
+
+-- indent the document to a given depth
+Nest nest: i := Nest new(@body, @depth + i)
+(d: Doc) nest: i := Nest new(d, i)
+
+
+-- render a document as a string
+Text render := @value
+Empty render := ""
+Beside render := (@left render + " " + @right render)
+Above render :=
+  { a = @above render
+    b = @below render
+
+    if: (@overlap? && (@below depth > @above width))
+      then: {
+        b slice!(0, a size)
+        a + b
+      }
+      else: { a + "\n" + b }
+  } call
+Nest render :=
+  { b = @body render
+    x = ""
+    b each_line { l |
+      x << ((" " * @depth) + l)
+    }
+    x
+  } call
+
+
+-- helpers
+module(Pretty) {
+  char: c := Text new(c)
+  text: s := Text new(s)
+  empty := Empty new
+}
+
+Doc extend(Pretty)
+
+doc(&body) := body call(Doc)

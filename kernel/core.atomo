@@ -161,3 +161,15 @@ class(Or < Atomo::AST::Node) {
 
 macro (a && b) And new(a line, a, b)
 macro (a || b) Or new(a line, a, b)
+
+(o: Object) pretty := doc { d | d text: inspect }
+
+module(Atomo::AST) {
+  BinarySend pretty :=
+    doc { d | @lhs pretty <+> d text: @operator <+> @rhs pretty }
+
+  Primitive pretty := @value pretty
+
+  Variable pretty :=
+    doc { d | d text: @name }
+}

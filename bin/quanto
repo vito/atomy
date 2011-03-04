@@ -27,6 +27,8 @@ puts "loading errors"
 send(:"load:", kernel + "/errors.atomo")
 puts "loading therie"
 send(:"load:", kernel + "/therie.atomo")
+puts "loading pretty"
+send(:"load:", kernel + "/pretty.atomo")
 puts Time.now - a
 
 while str = Readline.readline("> ")
@@ -34,7 +36,7 @@ while str = Readline.readline("> ")
 
   begin
     res = Atomo::Compiler.evaluate str, bnd
-    puts "=> #{res.inspect}"
+    puts "=> #{res.pretty.render}"
   rescue Exception => e
     puts "ERROR!"
     puts "#{e}:\n  #{e.message}"
