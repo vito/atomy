@@ -16,10 +16,12 @@ module Atomo
       def bytecode(g)
         pos(g)
 
-        if @value.kind_of? Float
-          g.push_unique_literal @value
-        else
+        # TODO: `(~#true) will break here
+        case @value
+        when :true, :false, :self, :nil, Integer
           g.push @value
+        else
+          g.push_literal @value
         end
       end
     end
