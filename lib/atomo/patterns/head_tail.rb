@@ -22,7 +22,6 @@ module Atomo::Patterns
       matched = g.new_label
 
       g.dup
-      g.dup
       g.send :empty?, 0
       g.git mismatch
 
