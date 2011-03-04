@@ -9,25 +9,18 @@ class Atomo::Parser < KPeg::CompiledParser
   end
 
   def continue?
-    #raise "no context" if @wsp.empty?
     x = @wsp.last
-    y = [current_line, current_column]
+    y = current_position
     y[0] >= x[0] && y[1] > x[1]
-    #p [x, y, cont]
-    #cont
   end
 
   def save
-    @wsp << [current_line, current_column]
-    #puts "push; #{caller[0]}, #{@wsp.inspect}"
+    @wsp << current_position
     true
   end
 
   def done
-    #raise "nothing to pop" if @wsp.empty?
     @wsp.pop
-    #puts "pop; #{caller[0]}, #{@wsp.inspect}"
-    @result
   end
 
   def const_chain(l, ns, top = false)
