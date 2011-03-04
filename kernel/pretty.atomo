@@ -69,6 +69,12 @@ Nest nest: i := Nest new(@body, @depth + i)
 (d: Doc) nest: i := Nest new(d, i)
 
 
+Doc punctuate: [] := []
+Doc punctuate: [d] := [d]
+(delim: Doc) punctuate: (d . ds) :=
+  (delim punctuate: ds) unshift(d <> delim)
+
+
 -- render a document as a string
 Text render := @value
 Empty render := ""
