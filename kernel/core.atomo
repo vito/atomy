@@ -91,7 +91,13 @@ macro (data(root, &children))
         Atomo::AST::Constant ->
           `(class(~e < ~root) {})
 
-        _ -> raise("don't know what to do with " + e to_s)
+        Atomo::AST::ScopedConstant ->
+          `(class(~e < ~root) {})
+
+        Atomo::AST::ToplevelConstant ->
+          `(class(~e < ~root) {})
+
+        _ -> raise("unknown module name: " + e to_s)
       }
     }
 
