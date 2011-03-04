@@ -23,6 +23,8 @@ end
 a = Time.now
 puts "loading core"
 send(:"load:", kernel + "/core.atomo")
+puts "loading errors"
+send(:"load:", kernel + "/errors.atomo")
 puts "loading therie"
 send(:"load:", kernel + "/therie.atomo")
 puts Time.now - a

@@ -14,6 +14,7 @@ module Atomo
     g.set_line Integer(line)
 
     done = g.new_label
+    mismatch = g.new_label
 
     g.push_state Rubinius::AST::ClosedScope.new(line)
 
@@ -106,8 +107,18 @@ module Atomo
       skip.set!
     end
 
+    g.invoke_primitive :vm_check_super_callable, 0
+    g.gif mismatch
+
     g.push_block
-    g.send_super name, 0
+    g.send_super name, 0 # TODO?: args
+    g.goto done
+
+    mismatch.set!
+    g.push_const :PatternMismatch
+    g.push_literal name
+    g.send :new, 1
+    g.raise_exc
 
     done.set!
     g.ret

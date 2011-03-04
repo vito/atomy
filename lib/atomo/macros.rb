@@ -76,30 +76,36 @@ module Atomo
         name = node.method_name
         next no_macro(node) unless name and CURRENT_ENV.respond_to?(intern name)
 
-        case node
-        when AST::BinarySend
-          expand CURRENT_ENV.send(
-            (intern node.operator).to_sym,
-            nil,
-            node.lhs,
-            node.rhs
-          )
-        when AST::UnarySend
-          expand CURRENT_ENV.send(
-            (intern node.method_name).to_sym,
-            node.block,
-            node.receiver,
-            *node.arguments
-          )
-        when AST::KeywordSend
-          expand CURRENT_ENV.send(
-            (intern node.method_name).to_sym,
-            nil,
-            node.receiver,
-            *node.arguments
-          )
-        else
-          # should be impossible
+        begin
+          case node
+          when AST::BinarySend
+            expand CURRENT_ENV.send(
+              (intern node.operator).to_sym,
+              nil,
+              node.lhs,
+              node.rhs
+            )
+          when AST::UnarySend
+            expand CURRENT_ENV.send(
+              (intern node.method_name).to_sym,
+              node.block,
+              node.receiver,
+              *node.arguments
+            )
+          when AST::KeywordSend
+            expand CURRENT_ENV.send(
+              (intern node.method_name).to_sym,
+              nil,
+              node.receiver,
+              *node.arguments
+            )
+          else
+            # should be impossible
+            no_macro(node)
+          end
+        rescue PatternMismatch, ArgumentError => e
+          # expand normally if the macro doesn't seem to be a match
+          raise unless e.instance_variable_get("@method_name") == intern(name).to_sym
           no_macro(node)
         end
       end

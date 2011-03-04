@@ -1,0 +1,6 @@
+data(ArgumentError) {
+  PatternMismatch(@method_name)
+}
+
+PatternMismatch message :=
+  ("method '" + @method_name to_s + "' did not understand its arguments (non-exhaustive patterns)")
