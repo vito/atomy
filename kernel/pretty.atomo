@@ -105,9 +105,35 @@ Nest render :=
 
 -- helpers
 module(Pretty) {
-  char: c := Text new(c)
+  -- text
   text: s := Text new(s)
+  value: x := Text new(x inspect)
+
+  -- shortcuts
+  semi := text: ";"
+  comma := text: ","
+  colon := text: ":"
+  space := text: " "
+  equals := text: "="
+  lparen := text: "("
+  rparen := text: ")"
+  lbrack := text: "["
+  rbrack := text: "]"
+  lbrace := text: "{"
+  rbrace := text: "}"
+
+  -- wrapping documents
+  parens: d := (lparen <> d <> rparen)
+  brackets: d := (lbrack <> d <> rbrack)
+  braces: d := (lbrace <> d <> rbrace)
+  quotes: d := (text: "'" <> d <> text: "'")
+  double-quotes: d := (text: "\"" <> d <> text: "\"")
+
+  -- combining documents
   empty := Empty new
+  hcat: ds := ds inject(empty) { a b | a <> b }
+  hsep: ds := ds inject(empty) { a b | a <+> b }
+  vcat: ds := ds inject(empty) { a b | a // b }
 }
 
 Doc extend(Pretty)
