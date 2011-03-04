@@ -113,6 +113,8 @@ module Atomo::Patterns
       return NamedInstance.new(n.name)
     when Atomo::AST::ClassVariable
       return NamedClass.new(n.name)
+    when Atomo::AST::Particle
+      return Particle.new(n.name.to_sym) # TODO: other forms
     end
 
     raise Exception.new("unknown pattern: " + n.inspect)
