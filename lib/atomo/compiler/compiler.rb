@@ -15,7 +15,7 @@ module Atomo
 
     done = g.new_label
 
-    g.push_state Rubinius::AST::ClosedScope.new(123) # TODO: real line
+    g.push_state Rubinius::AST::ClosedScope.new(line)
 
     args = 0
     g.local_names = branches.collect do |pats, meth|

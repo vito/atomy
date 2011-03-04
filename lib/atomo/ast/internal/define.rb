@@ -103,7 +103,10 @@ module Atomo
         added.set!
 
         if defn
-          g.send :build_method, 2
+          g.push_false
+          g.push_literal :dynamic
+          g.push_int @line
+          g.send :build_method, 5
           g.push_scope
           g.push_literal :public
           g.send :add_defn_method, 4
