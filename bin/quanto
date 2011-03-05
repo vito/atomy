@@ -27,6 +27,8 @@ puts "loading errors"
 send(:"load:", kernel + "/errors.atomo")
 puts "loading therie"
 send(:"load:", kernel + "/therie.atomo")
+puts "loading mixins"
+send(:"load:", kernel + "/mixins.atomo")
 puts "loading pretty"
 send(:"load:", kernel + "/pretty.atomo")
 puts Time.now - a

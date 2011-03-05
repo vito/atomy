@@ -1,0 +1,58 @@
+require("thread")
+
+module(Atomo::Mixins) {
+  MixedIn = Hash new
+  Sync = Mutex new
+
+  context with: mod do: body :=
+    { key = [context object_id, mod object_id]
+
+      Sync synchronize {
+        count = MixedIn fetch(key, 0)
+        MixedIn store(key, count + 1)
+        context extend(mod)
+      }
+
+      body ensuring: {
+        Sync synchronize {
+          count = MixedIn fetch(key, 1)
+          if: (count == 1)
+            then: {
+              MixedIn delete(key)
+              context unmix: mod
+            }
+            else: {
+              MixedIn store(key, count - 1)
+            }
+        }
+      }
+    } call
+
+  { self } reset-method-cache: obj :=
+    obj methods each { name |
+      Rubinius::VM reset_method_cache(name to_sym)
+    }
+}
+
+obj unmix: (mod: Module) :=
+  { last-super = obj metaclass
+    this-super = last-super direct_superclass
+
+    while: this-super do: {
+      if: (this-super == mod ||
+            (this-super respond_to?(#module) &&
+              this-super module == mod))
+        then: {
+          Atomo::Mixins reset-method-cache: obj
+          last-super superclass = this-super direct_superclass
+          Atomo::Mixins reset-method-cache: obj
+          return(nil)
+        }
+        else: {
+          last-super = this-super
+          this-super = this-super direct_superclass
+        }
+    }
+
+    nil
+  } call

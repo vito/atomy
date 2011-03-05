@@ -138,4 +138,4 @@ module(Pretty) {
 
 Doc extend(Pretty)
 
-doc(&body) := body call(Doc)
+doc(&body) := with: Pretty do: body

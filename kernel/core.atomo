@@ -177,14 +177,19 @@ class(Or < Atomo::AST::Node) {
 macro (a && b) And new(a line, a, b)
 macro (a || b) Or new(a line, a, b)
 
-(o: Object) pretty := doc { d | d text: inspect }
+(o: Object) pretty := Doc text: inspect
 
 module(Atomo::AST) {
-  BinarySend pretty :=
-    doc { d | @lhs pretty <+> d text: @operator <+> @rhs pretty }
+  BinarySend pretty := doc {
+    @lhs pretty <+> text: @operator <+> @rhs pretty
+  }
 
   Primitive pretty := @value pretty
 
-  Variable pretty :=
-    doc { d | d text: @name }
+  Block pretty := doc {
+    body = @body expressions map { e | e pretty }
+    lbrace <+> (hsep: (semi punctuate: body)) <+> rbrace
+  }
+
+  Variable pretty := doc { text: @name }
 }
