@@ -148,7 +148,17 @@ class(And < Atomo::AST::Node) {
       done set!
     } call
 
-  -- TODO: recursively
+  -- TODO: stop should default to nil
+  recursively(stop, &f) :=
+    if: (stop call(self))
+      then: { f call(self) }
+      else: {
+        And new(
+          @line
+          @a recursively(stop, &f)
+          @b recursively(stop, &f)
+        )
+      }
 }
 
 class(Or < Atomo::AST::Node) {
@@ -171,7 +181,17 @@ class(Or < Atomo::AST::Node) {
       done set!
     } call
 
-  -- TODO: recursively
+  -- TODO: stop should default to nil
+  recursively(stop, &f) :=
+    if: (stop call(self))
+      then: { f call(self) }
+      else: {
+        Or new(
+          @line
+          @a recursively(stop, &f)
+          @b recursively(stop, &f)
+        )
+      }
 }
 
 macro (a && b) And new(a line, a, b)
