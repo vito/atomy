@@ -36,6 +36,12 @@ macro (x := y)
 macro (if: cond then: true else: false)
   Atomo::AST::IfThenElse new(cond line, cond, true, false)
 
+macro (while: cond do: body)
+  Atomo::AST::While new(cond line, cond, body body)
+
+macro (x return(y))
+  Atomo::AST::Return new(x line, y)
+
 macro (class(pair: BinarySend, &body))
   if: (pair lhs == 'self)
     then: { Atomo::AST::Metaclass new(pair line, pair rhs, body body) }
