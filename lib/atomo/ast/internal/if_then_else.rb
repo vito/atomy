@@ -1,7 +1,6 @@
 module Atomo
   module AST
-    class IfThenElse < Rubinius::AST::Class
-      include NodeLike
+    class IfThenElse < Node
 
       def initialize(line, cond, thenb, elseb)
         @line = line
