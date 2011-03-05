@@ -61,21 +61,7 @@ module Atomo
         block.deconstruct(g, locals)
       end
 
-      case args.size
-      when 0
-      when 1
-        g.push_local (is_macro ? 1 : 0)
-        a = args[0]
-        if a.bindings > 0
-          g.dup
-          a.matches?(g)
-          g.gif argmis
-          a.deconstruct(g, locals)
-        else
-          a.matches?(g)
-          g.gif skip
-        end
-      else
+      unless args.empty?
         args.each_with_index do |a, i|
           n = is_macro ? i + 1 : i
           g.push_local(n)
