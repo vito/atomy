@@ -53,6 +53,9 @@ macro (x rescue: y)
 macro (x rescue: y else: z)
   Atomo::AST::Catch new(x line, x body, `(~y call($!)), z body)
 
+macro (x ensuring: y)
+  Atomo::AST::Ensure new(x line, `(~x call), `(~y call))
+
 macro (... x) Atomo::AST::Splat new(x line, x)
 
 macro (data(root, &children))
