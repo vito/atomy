@@ -4,6 +4,7 @@ module(Atomo::Mixins) {
   MixedIn = Hash new
   Sync = Mutex new
 
+  -- based on Blockenspiel, simplified a bit
   context with: mod do: body :=
     { key = [context object_id, mod object_id]
 
@@ -34,6 +35,7 @@ module(Atomo::Mixins) {
     }
 }
 
+-- based on Blockenspiel and Mixology
 obj unmix: (mod: Module) :=
   { last-super = obj metaclass
     this-super = last-super direct_superclass
