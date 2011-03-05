@@ -20,10 +20,10 @@ unless: False do: x := { x call; #ok } call
 unless: True do: x := #ok
 
 macro (x += y)
-  `(~x = ~x + ~y)
+  `(~x = (~x + ~y))
 
 macro (x -= y)
-  `(~x = ~x - ~y)
+  `(~x = (~x - ~y))
 
 theorize: as :=
   { $stats = Therie::Stats new
