@@ -40,7 +40,7 @@ macro (if: cond then: true else: false)
   Atomo::AST::IfThenElse new(cond line, cond, true, false)
 
 macro (while: cond do: body)
-  Atomo::AST::While new(cond line, cond, body body)
+  Atomo::AST::While new(cond line, cond, `(~body call))
 
 macro (x return(y))
   Atomo::AST::Return new(x line, y)
@@ -57,10 +57,10 @@ macro (module(name, &body))
   Atomo::AST::Module new(name line, name, body body)
 
 macro (x rescue: y)
-  Atomo::AST::Catch new(x line, x body, `(~y call($!)))
+  Atomo::AST::Catch new(x line, `(~x call), `(~y call($!)))
 
 macro (x rescue: y else: z)
-  Atomo::AST::Catch new(x line, x body, `(~y call($!)), z body)
+  Atomo::AST::Catch new(x line, `(~x call), `(~y call($!)), z body)
 
 macro (x ensuring: y)
   Atomo::AST::Ensure new(x line, `(~x call), `(~y call))
