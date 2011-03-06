@@ -1,0 +1,25 @@
+describe: "blocks" as: {
+  describe: #call as: {
+    it: "evaluates with the block's context available" so: {
+      a = 1
+      { a + 1 } call should-be: 2
+    }
+
+    it: "introduces a new toplevel object" so: {
+      a = 1
+      { a = 2; a } call should-be: 2
+      a should-be: 1
+    }
+
+    it: "does not leak argument bindings into the block's context" so: {
+      { a | a + 1 } call(1)
+      { a } should-raise: NoMethodError
+    }
+
+    it: "is lexically scoped" so: {
+      a = 1
+      foo: b with: a := b call
+      (foo: { a } with: 2) should-be: 1
+    }
+  }
+}

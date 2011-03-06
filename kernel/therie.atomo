@@ -51,6 +51,15 @@ o should: (check: Block) :=
 
 x should-be: y := x should: { == y }
 
+x should-raise: y :=
+  { x call } rescue: { e |
+    unless: e kind_of?(y) do: {
+      raise("expected " + y to_s + ", got: " + e to_s)
+    }
+  } else: {
+    raise("#should-raise: - no exception raised")
+  }
+
 describe: x as: body :=
   { puts(Therie indentation + "- " + x to_s)
     Therie::NESTING_LEVEL += 1

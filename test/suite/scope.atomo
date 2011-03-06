@@ -1,0 +1,24 @@
+describe: "assignment" as: {
+  describe: "=" as: {
+    it: "introduces a new local" so: {
+      a = 0
+      a should-be: 0
+      { a = 1; a should-be: 1 } call
+      a should-be: 0
+    }
+  }
+
+  describe: "set!:" as: {
+    it: "overwrites an existing local" so: {
+      a = 0
+      a should-be: 0
+      { a set!: 1; a should-be: 1 } call
+      a should-be: 1
+    }
+
+    it: "introduces a new local if undefined" so: {
+      { a set!: 1; a should-be: 1 } call
+      { a } should-raise: NoMethodError
+    }
+  }
+}
