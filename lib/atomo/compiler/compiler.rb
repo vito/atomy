@@ -152,12 +152,18 @@ module Atomo
       compiler.run
     end
 
-    def self.compile_file(file, line = 1)
+    def self.compile_file(file, debug = false)
       compiler = new :atomo_file, :compiled_method
 
       parser = compiler.parser
       parser.root Rubinius::AST::Script
-      parser.input file, line
+      parser.input file, 1
+
+      if debug
+        printer = compiler.packager.print
+        printer.bytecode = true
+        printer.method_names = []
+      end
 
       compiler.run
     end

@@ -12,8 +12,8 @@ require base + '/parser'
 
 bnd = binding()
 
-Kernel.send(:define_method, :"load:") do |a|
-  cm = Atomo::Compiler.compile_file a
+Kernel.send(:define_method, :"load:") do |*as|
+  cm = Atomo::Compiler.compile_file *as
 
   cm.create_script(false)
 
