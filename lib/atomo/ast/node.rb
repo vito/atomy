@@ -26,6 +26,7 @@ module Atomo
       def through_quotes(stop_ = nil, &f)
         stop = proc { |x|
           (stop_ && stop_.call(x)) || \
+            x.kind_of?(AST::Quote) || \
             x.kind_of?(AST::QuasiQuote) || \
             x.kind_of?(AST::Unquote)
         }
@@ -34,6 +35,11 @@ module Atomo
         search = nil
         scan = proc do |x|
           case x
+          when Atomo::AST::Quote
+            Atomo::AST::Quote.new(
+              x.line,
+              x.expression.recursively(stop, &search)
+            )
           when Atomo::AST::QuasiQuote
             depth += 1
             Atomo::AST::QuasiQuote.new(
