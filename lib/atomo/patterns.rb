@@ -27,8 +27,8 @@ module Atomo::Patterns
 
       locals = {}
       local_names.each do |n|
-        var = set && g.state.scope.search_local(@name)
-        if var
+        var = g.state.scope.search_local(@name)
+        if var && (set || var.depth == 0)
           locals[n] = var
         else
           locals[n] = g.state.scope.new_local(n).reference
