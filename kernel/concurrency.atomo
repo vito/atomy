@@ -1,0 +1,33 @@
+require("actor")
+
+me := Actor current
+
+Actor <- v := send(v)
+
+macro (receive(&body))
+  { bs = body body expressions collect { e |
+      blk = Atomo::AST::Block new(body line, [e rhs], [e lhs])
+      `(e when(~(Atomo::Patterns from_node(e lhs)), &~blk))
+    }
+
+    branches = Atomo::AST::Block new(body line, bs, ['e])
+
+    `(Actor receive(&~branches))
+  } call
+
+macro (receive: body after: timeout)
+  { bs = body body expressions collect { e |
+      blk = Atomo::AST::Block new(body line, [e rhs], [e lhs])
+      `(e when(~(Atomo::Patterns from_node(e lhs)), &~blk))
+    }
+
+    bs << `(e after(~(timeout lhs), &{ ~(timeout rhs) }))
+
+    branches = Atomo::AST::Block new(body line, bs, ['e])
+
+    `(Actor receive(&~branches))
+  } call
+
+spawn(&action) := Actor spawn(&action)
+
+spawn-link(&action) := Actor spawn(&action)

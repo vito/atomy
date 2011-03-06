@@ -31,6 +31,8 @@ puts "loading mixins"
 send(:"load:", kernel + "/mixins.atomo")
 puts "loading pretty"
 send(:"load:", kernel + "/pretty.atomo")
+puts "loading concurrency"
+send(:"load:", kernel + "/concurrency.atomo")
 puts Time.now - a
 
 while str = Readline.readline("> ")
