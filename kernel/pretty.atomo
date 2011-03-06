@@ -69,6 +69,12 @@ Nest nest: i := Nest new(@body, @depth + i)
 (d: Doc) nest: i := Nest new(d, i)
 
 
+-- shortcut
+a hang: b indented: n := [a, b nest: n]
+
+
+-- intersperse a delimiter Doc through a list of Docs
+-- x punctuate: [p1, ... pn] is [p1 <> x, p2 <> x, ... pn-1 <> x, pn]
 Doc punctuate: [] := []
 Doc punctuate: [d] := [d]
 (delim: Doc) punctuate: (d . ds) :=
