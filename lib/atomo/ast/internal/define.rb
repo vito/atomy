@@ -3,8 +3,9 @@ module Atomo
     class Define < Rubinius::AST::ClosedScope
       include NodeLike
 
-      def initialize(line, name, recv, args, body)
+      def initialize(line, lhs, name, recv, args, body)
         @line = line
+        @lhs = lhs
         @name = name
 
         if recv.kind_of? Patterns::Pattern
@@ -46,6 +47,7 @@ module Atomo
 
         f.call Define.new(
           @line,
+          @lhs,
           @name,
           @receiver,
           @arguments,

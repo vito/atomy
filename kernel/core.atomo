@@ -12,6 +12,7 @@ macro (x match: (b: Block))
 macro ((x: BinarySend) := y)
   Atomo::AST::Define new(
     x line
+    x
     x operator
     x lhs
     [x rhs]
@@ -21,6 +22,7 @@ macro ((x: BinarySend) := y)
 macro ((x: Variable) := y)
   Atomo::AST::Define new(
     x line
+    x
     x name
     'self
     []
@@ -30,6 +32,7 @@ macro ((x: Variable) := y)
 macro (x := y)
   Atomo::AST::Define new(
     x line
+    x
     x method_name
     x receiver
     x arguments
@@ -199,88 +202,3 @@ class(Or < Atomo::AST::Node) {
 
 macro (a && b) And new(a line, a, b)
 macro (a || b) Or new(a line, a, b)
-
-(o: Object) pretty := Doc text: inspect
-
-module(Atomo::AST) {
-  { self } comma-delim: es := doc {
-    hsep: (comma punctuate: es map { e | e pretty })
-  }
-
-  { self } semi-delim: es := doc {
-    hsep: (semi punctuate: es map { e | e pretty })
-  }
-
-  BinarySend pretty := doc {
-    @lhs pretty <+> text: @operator <+> @rhs pretty
-  }
-
-  Block pretty := doc {
-    lbrace <+> Atomo::AST semi-delim: @body expressions <+> rbrace
-  }
-
-  BlockPass pretty := doc { text: "&" <> @body pretty }
-
-  ClassVariable pretty := doc { text: "@@" <> text: @name }
-
-  Constant pretty := doc { text: @name }
-
-  ForMacro pretty := doc { text: "for-macro" <+> @body pretty }
-
-  GlobalVariable pretty := doc { text: "$" <> text: @name }
-
-  InstanceVariable pretty := doc { text: "@" <> text: @name }
-
-  KeywordSend pretty := doc {
-    pairs = @names zip(@arguments) collect { p |
-      text: (p first + ":") <+> p last pretty
-    }
-
-    if: @private
-      then: { hsep: pairs }
-      else: {
-        @receiver pretty <+> hsep: pairs
-      }
-  }
-
-  List pretty := doc { brackets: (Atomo::AST comma-delim: @elements) }
-
-  Macro pretty := doc {
-    text: "macro" <+> parens: @pattern pretty <+> @body pretty
-  }
-
-  Particle pretty := doc { text: "#" <> text: @name }
-
-  Primitive pretty := @value pretty
-
-  QuasiQuote pretty := doc { text: "`" <> @expression pretty }
-
-  Quote pretty := doc { text: "'" <> @expression pretty }
-
-  ScopedConstant pretty := doc {
-    @parent pretty <> text: "::" <> text: @name
-  }
-
-  String pretty := @value pretty
-
-  ToplevelConstant pretty := doc { text: "::" <> text: @name }
-
-  UnarySend pretty := doc {
-    block = if: @block then: { @block pretty } else: { empty }
-
-    args =
-      if: @arguments empty?
-        then: { empty }
-        else: { parens: (Atomo::AST comma-delim: @arguments) }
-
-    if: @private
-      then: { text: @method_name <> args <+> block }
-      else: {
-        @receiver pretty <+> text: @method_name <> args <+> block
-      }
-  }
-
-  Unquote pretty := doc { text: "~" <> @expression pretty }
-
-  Variable pretty := doc { text: @name }
-}
