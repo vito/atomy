@@ -52,7 +52,11 @@ Empty    <+> (d: Doc) := d
 (d: Doc) <> Empty := d
 Empty    <> (d: Doc) := d
 (l: Doc) <> (n: Nest) := l <> n body
-(l: Doc) <> (a: Above) := #todo
+(l: Doc) <> (a: Above) :=
+  { first = l <> a above
+    rest = a below nest: l width
+    Above new(first, rest, a overlap?)
+  } call
 (l: Doc) <> (r: Doc) := Beside new(l, r, False)
 
 
