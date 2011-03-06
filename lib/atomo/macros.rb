@@ -1,3 +1,9 @@
+class PatternMismatch < ArgumentError
+  def initialize(mn)
+    @method_name = mn
+  end
+end
+
 module Atomo
   module Macro
     class Environment

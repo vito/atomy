@@ -1,5 +1,5 @@
 module Atomo::Patterns
-  class Variadic < Pattern
+  class Splat < Pattern
     attr_accessor :pattern
 
     def initialize(p)
@@ -7,7 +7,7 @@ module Atomo::Patterns
     end
 
     def ==(b)
-      b.kind_of?(Variadic) and \
+      b.kind_of?(Splat) and \
       @pattern == b.pattern
     end
 

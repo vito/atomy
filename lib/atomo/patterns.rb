@@ -107,7 +107,7 @@ module Atomo::Patterns
       when "."
         return HeadTail.new(from_node(n.lhs), from_node(n.rhs))
       when "..."
-        return Variadic.new(from_node(n.rhs))
+        return Splat.new(from_node(n.rhs))
       end
     when Atomo::AST::KeywordSend
       if n.receiver.is_a?(Atomo::AST::Primitive) && n.receiver.value == :self && n.arguments.size == 1

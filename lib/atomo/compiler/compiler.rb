@@ -7,6 +7,13 @@ module Atomo
     end
   end
 
+  def self.segments(args)
+    req = args.reject { |a| a.kind_of?(Patterns::BlockPass) || a.kind_of?(Patterns::Splat) }
+    spl = args.select { |a| a.kind_of?(Patterns::Splat) }[0]
+    blk = args.select { |a| a.kind_of?(Patterns::BlockPass) }[0]
+    [req, spl, blk]
+  end
+
   def self.build_method(name, branches, is_macro = false, file = :dynamic, line = 1)
     g = Rubinius::Generator.new
     g.name = name.to_sym
@@ -20,7 +27,7 @@ module Atomo
 
     args = 0
     g.local_names = branches.collect do |pats, meth|
-      args = block_from(pats[1])[0].size
+      args = segments(pats[1])[0].size
       pats[0].local_names + pats[1].collect { |p| p.local_names }.flatten
     end.flatten.uniq
 
@@ -42,7 +49,9 @@ module Atomo
     g.push_self
     branches.each do |pats, meth|
       recv = pats[0]
-      args, block = block_from(pats[1])
+      args, splat, block = segments(pats[1])
+
+      g.splat_index = args.size if splat
 
       skip = g.new_label
       argmis = g.new_label
@@ -58,7 +67,12 @@ module Atomo
 
       if is_macro && block
         g.push_local(0)
-        block.deconstruct(g, locals)
+        block.pattern.deconstruct(g, locals)
+      end
+
+      if !is_macro && splat
+        g.push_local(args.size)
+        splat.pattern.deconstruct(g)
       end
 
       unless args.empty?

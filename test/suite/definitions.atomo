@@ -1,0 +1,33 @@
+describe: "definitions" as: {
+  describe: "splats" as: {
+    it: "consumes the rest of the arguments" so: {
+      foo(... args) := args
+      foo should-be: []
+      foo(1) should-be: [1]
+      foo(1, 2) should-be: [1, 2]
+    }
+
+    it: "starts after required args" so: {
+      bar(a, ... bs) := [a, bs]
+      { bar } should-raise: ArgumentError
+      bar(1) should-be: [1, []]
+      bar(1, 2) should-be: [1, [2]]
+      bar(1, 2, 3) should-be: [1, [2, 3]]
+    }
+
+    it: "appears before a block arg" so: {
+      baz(a, ... bs, &c) := [a, bs, c]
+      x = {}
+      { baz } should-raise: ArgumentError
+      res = baz(1, &x)
+      res at(0) should-be: 1
+      res at(1) should-be: []
+      res at(2) should: { kind_of?(Proc) }
+
+      res = baz(1, 2, 3, &x)
+      res at(0) should-be: 1
+      res at(1) should-be: [2, 3]
+      res at(2) should: { kind_of?(Proc) }
+    }
+  }
+}

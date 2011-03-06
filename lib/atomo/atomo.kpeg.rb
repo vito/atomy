@@ -898,7 +898,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # level1 = (true | false | self | nil | number | macro | for_macro | quote | quasi_quote | unquote | string | particle | block_pass | constant | variable | g_variable | c_variable | i_variable | tuple | grouped | block | list)
+  # level1 = (true | false | self | nil | number | macro | for_macro | quote | quasi_quote | unquote | string | particle | block_pass | constant | variable | g_variable | c_variable | i_variable | grouped | block | list)
   def _level1
 
     _save = self.pos
@@ -955,9 +955,6 @@ class Atomo::Parser < KPeg::CompiledParser
     break if _tmp
     self.pos = _save
     _tmp = apply('i_variable', :_i_variable)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply('tuple', :_tuple)
     break if _tmp
     self.pos = _save
     _tmp = apply('grouped', :_grouped)
@@ -2045,107 +2042,6 @@ class Atomo::Parser < KPeg::CompiledParser
     end
     break
     end # end sequence
-
-    return _tmp
-  end
-
-  # tuple = (line:line "(" wsp expression:e delim expressions:es wsp ")" { Atomo::AST::Tuple.new(line, [e] + Array(es)) } | line:line "(" wsp ")" { Atomo::AST::Tuple.new(line, []) })
-  def _tuple
-
-    _save = self.pos
-    while true # choice
-
-    _save1 = self.pos
-    while true # sequence
-    _tmp = apply('line', :_line)
-    line = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = match_string("(")
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply('wsp', :_wsp)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply('expression', :_expression)
-    e = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply('delim', :_delim)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply('expressions', :_expressions)
-    es = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply('wsp', :_wsp)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = match_string(")")
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    @result = begin;  Atomo::AST::Tuple.new(line, [e] + Array(es)) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save2 = self.pos
-    while true # sequence
-    _tmp = apply('line', :_line)
-    line = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = match_string("(")
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = apply('wsp', :_wsp)
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = match_string(")")
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    @result = begin;  Atomo::AST::Tuple.new(line, []) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-    break
-    end # end choice
 
     return _tmp
   end

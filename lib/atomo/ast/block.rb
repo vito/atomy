@@ -48,24 +48,24 @@ module Atomo
       end
 
       def bytecode(g)
-        case @arguments.size
-        when 0
-        when 1
-          g.cast_for_single_block_arg
-          @arguments[0].match(g)
-        else
-          g.cast_for_multi_block_arg
-          @arguments.each do |a|
-            if a.kind_of?(Patterns::Variadic)
-              a.pattern.deconstruct(g)
-              return
-            else
-              g.shift_array
-              a.match(g)
-            end
-          end
-          g.pop
+        return if @arguments.empty?
+
+        if @arguments.last.kind_of?(Patterns::BlockPass)
+          g.push_block_arg
+          @arguments.pop.deconstruct(g)
         end
+
+        g.cast_for_splat_block_arg
+        @arguments.each do |a|
+          if a.kind_of?(Patterns::Splat)
+            a.pattern.deconstruct(g)
+            return
+          else
+            g.shift_array
+            a.match(g)
+          end
+        end
+        g.pop
       end
 
       def local_names
@@ -90,7 +90,7 @@ module Atomo
 
       def splat_index
         @arguments.each do |a,i|
-          return i if a.kind_of?(Patterns::Variadic)
+          return i if a.kind_of?(Patterns::Splat)
         end
         nil
       end

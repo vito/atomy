@@ -5,7 +5,7 @@ describe: "blocks" as: {
       { a + 1 } call should-be: 2
     }
 
-    it: "introduces a new toplevel object" so: {
+    it: "introduces a new locals environment" so: {
       a = 1
       { a = 2; a } call should-be: 2
       a should-be: 1
@@ -20,6 +20,73 @@ describe: "blocks" as: {
       a = 1
       foo: b with: a := b call
       (foo: { a } with: 2) should-be: 1
+    }
+  }
+
+  describe: "arguments" as: {
+    it: "errors if too few given" so: {
+      { 1 } call should-be: 1
+      { a | a } call(2) should-be: 2
+      { a b | a + b } call(1, 2) should-be: 3
+
+      { { a | a } call } should-raise: ArgumentError
+      { { a b | a } call(1) } should-raise: ArgumentError
+    }
+
+    it: "ignores arguments that aren't used" so: {
+      { 1 } call(2) should-be: 1
+      { 1 } call(2, 3) should-be: 1
+    }
+
+    describe: "block" as: {
+      it: "binds a block argument" so: {
+        { &x | x call } call { 1 } should-be: 1
+      }
+
+      it: "binds as nil if no block given" so: {
+        { &x | x } call should-be: nil
+      }
+
+      it: "works with arguments before it" so: {
+        { a &x | x call(a) } call(2) { a | a + 1 } should-be: 3
+      }
+
+      it: "fails with arguments after it" so: {
+        { { &x a | x call(a) } call(2) { a | a + 1 }
+        } should-raise: ArgumentError
+      }
+    }
+
+    describe: "splat" as: {
+      it: "consumes the rest of the arguments" so: {
+        foo = { (... xs) | xs }
+        foo call should-be: []
+        foo call(1) should-be: [1]
+        foo call(1, 2) should-be: [1, 2]
+      }
+
+      it: "starts after required args" so: {
+        foo = { a (... bs) | [a, bs] }
+        --{ foo call } should-raise: ArgumentError
+        foo call(1) should-be: [1, []]
+        foo call(1, 2) should-be: [1, [2]]
+        foo call(1, 2, 3) should-be: [1, [2, 3]]
+      }
+
+      it: "appears before a block arg" so: {
+        foo = { a (... bs) &c | [a, bs, c] }
+        x = {}
+        --{ foo call } should-raise: ArgumentError
+        res = foo call(1, &x)
+        res at(0) should-be: 1
+        res at(1) should-be: []
+        res at(2) should: { kind_of?(Proc) }
+
+        res = foo call(1, 2, 3, &x)
+        res at(0) should-be: 1
+        res at(1) should-be: [2, 3]
+        res at(2) should: { kind_of?(Proc) }
+      }
     }
   }
 }

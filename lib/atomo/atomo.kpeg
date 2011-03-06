@@ -90,7 +90,6 @@
                 | g_variable
                 | c_variable
                 | i_variable
-                | tuple
                 | grouped
                 | block
                 | list
@@ -191,11 +190,6 @@
                     { Atomo::AST::ClassVariable.new(line, "@@" + n) }
      i_variable = line:line "@" f_identifier:n
                     { Atomo::AST::InstanceVariable.new(line, "@" + n) }
-
-          tuple = line:line "(" wsp expression:e delim expressions:es wsp ")"
-                    { Atomo::AST::Tuple.new(line, [e] + Array(es)) }
-                | line:line "(" wsp ")"
-                    { Atomo::AST::Tuple.new(line, []) }
 
      block_args = (sp level1:n)+:as wsp "|" { as }
           block = line:line "{" block_args?:as wsp expressions?:es wsp "}"
