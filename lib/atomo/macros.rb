@@ -67,7 +67,7 @@ module Atomo
         AST::KeywordSend.new(
           node.line,
           expand(node.receiver),
-          node.method_name,
+          node.names,
           node.arguments.collect { |a| expand(a) },
           node.private
         )

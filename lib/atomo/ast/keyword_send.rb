@@ -1,11 +1,11 @@
 module Atomo
   module AST
     class KeywordSend < Node
-      attr_reader :receiver, :method_name, :arguments, :private
+      attr_reader :receiver, :names, :arguments, :private
 
-      def initialize(line, receiver, name, arguments, privat = false)
+      def initialize(line, receiver, names, arguments, privat = false)
         @receiver = receiver
-        @method_name = name
+        @names = names
         @arguments = arguments
         @private = privat
         @line = line
@@ -14,15 +14,13 @@ module Atomo
       def ==(b)
         b.kind_of?(KeywordSend) and \
         @receiver == b.receiver and \
-        @method_name == b.method_name and \
+        @names == b.names and \
         @arguments == b.arguments
       end
 
-      Pair = Struct.new(:name, :value)
-
       def register_macro(body)
         Atomo::Macro.register(
-          @method_name,
+          method_name,
           ([@receiver] + @arguments).collect do |n|
             Atomo::Macro.macro_pattern n
           end,
@@ -36,7 +34,7 @@ module Atomo
         f.call KeywordSend.new(
           @line,
           @receiver.recursively(stop, &f),
-          @method_name,
+          @names,
           @arguments.collect do |n|
             n.recursively(stop, &f)
           end,
@@ -48,7 +46,10 @@ module Atomo
         get(g)
         g.push_int @line
         @receiver.construct(g, d)
-        g.push_literal @method_name
+        @names.each do |n|
+          g.push_literal n
+        end
+        g.make_array @names.size
         @arguments.each do |a|
           a.construct(g, d)
         end
@@ -57,48 +58,8 @@ module Atomo
         g.send :new, 5
       end
 
-      def loop_cond(g, if_true)
-        return false unless @receiver.kind_of? AST::Block
-        return false unless @arguments[0].kind_of? AST::Block
-
-        top_lbl  = g.new_label
-        done_lbl = g.new_label
-
-        top_lbl.set!
-
-        @receiver.body.each_with_index do |e,idx|
-          g.pop unless idx == 0
-          e.bytecode(g)
-        end
-
-        if if_true
-          g.gif done_lbl
-        else
-          g.git done_lbl
-        end
-
-        @arguments[0].body.each_with_index do |e,idx|
-          e.bytecode(g)
-          g.pop
-        end
-
-        g.goto top_lbl
-
-        done_lbl.set!
-        g.push :nil
-
-        return true
-      end
-
       def bytecode(g)
         pos(g)
-
-        case @method_name
-        when "whileTrue:"
-          return if loop_cond g, true
-        when "whileFalse:"
-          return if loop_cond g, false
-        end
 
         @receiver.bytecode(g)
 
@@ -106,7 +67,11 @@ module Atomo
           a.bytecode(g)
         end
 
-        g.send @method_name.to_sym, @arguments.size, @private
+        g.send method_name.to_sym, @arguments.size, @private
+      end
+
+      def method_name
+        @names.collect { |n| n + ":" }.join
       end
     end
   end

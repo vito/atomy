@@ -2655,7 +2655,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # keyword_args = keyword_pair:a (@cont keyword_pair)*:as {                     pairs = [a] + Array(as)                     name = ""                     args = []                      pairs.each do |n, v|                       name << "#{n}:"                       args << v                     end                      [name, args]                   }
+  # keyword_args = keyword_pair:a (@cont keyword_pair)*:as {                     pairs = [a] + Array(as)                     name = ""                     names = []                     args = []                      pairs.each do |n, v|                       names << n                       args << v                     end                      [names, args]                   }
   def _keyword_args
 
     _save = self.pos
@@ -2696,14 +2696,15 @@ class Atomo::Parser < KPeg::CompiledParser
     @result = begin; 
                     pairs = [a] + Array(as)
                     name = ""
+                    names = []
                     args = []
 
                     pairs.each do |n, v|
-                      name << "#{n}:"
+                      names << n
                       args << v
                     end
 
-                    [name, args]
+                    [names, args]
                   ; end
     _tmp = true
     unless _tmp
@@ -2715,7 +2716,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # skeyword_send = (line:line level2:r @cont keyword_args:as { Atomo::AST::KeywordSend.new(                         line,                         r,                         as.first,                         as.last                       )                     } | line:line keyword_args:as { Atomo::AST::KeywordSend.new(line,                         Atomo::AST::Primitive.new(line, :self),                         as.first,                         as.last,                         true                       )                     })
+  # skeyword_send = (line:line level2:r @cont keyword_args:as { Atomo::AST::KeywordSend.new(                         line,                         r,                         as.first,                         as.last                       )                     } | line:line keyword_args:as { Atomo::AST::KeywordSend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as.first,                         as.last,                         true                       )                     })
   def _skeyword_send
 
     _save = self.pos
@@ -2777,7 +2778,8 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save2
       break
     end
-    @result = begin;  Atomo::AST::KeywordSend.new(line,
+    @result = begin;  Atomo::AST::KeywordSend.new(
+                        line,
                         Atomo::AST::Primitive.new(line, :self),
                         as.first,
                         as.last,

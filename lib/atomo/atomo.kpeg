@@ -230,14 +230,15 @@
    keyword_args = keyword_pair:a (@cont keyword_pair)*:as {
                     pairs = [a] + Array(as)
                     name = ""
+                    names = []
                     args = []
 
                     pairs.each do |n, v|
-                      name << "#{n}:"
+                      names << n
                       args << v
                     end
 
-                    [name, args]
+                    [names, args]
                   }
 
   skeyword_send = line:line level2:r @cont keyword_args:as
@@ -249,7 +250,8 @@
                       )
                     }
                 | line:line keyword_args:as
-                    { Atomo::AST::KeywordSend.new(line,
+                    { Atomo::AST::KeywordSend.new(
+                        line,
                         Atomo::AST::Primitive.new(line, :self),
                         as.first,
                         as.last,

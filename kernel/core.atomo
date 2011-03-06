@@ -231,7 +231,17 @@ module(Atomo::AST) {
 
   InstanceVariable pretty := doc { text: "@" <> text: @name }
 
-  -- TODO: KeywordSend
+  KeywordSend pretty := doc {
+    pairs = @names zip(@arguments) collect { p |
+      text: (p first + ":") <+> p last pretty
+    }
+
+    if: @private
+      then: { hsep: pairs }
+      else: {
+        @receiver pretty <+> hsep: pairs
+      }
+  }
 
   List pretty := doc { brackets: (Atomo::AST comma-delim: @elements) }
 
