@@ -109,14 +109,16 @@
             nil = line:line "nil" !f_identifier
                     { Atomo::AST::Primitive.new(line, :nil) }
 
-         number = line:line < /[\+\-]?\d+/ >
-                    { Atomo::AST::Primitive.new(line, text.to_i) }
-                | line:line < /[\+\-]?0[oO][\da-fA-F]+/ >
+         number = line:line < /[\+\-]?0[oO][\da-fA-F]+/ >
                     { Atomo::AST::Primitive.new(line, text.to_i(8)) }
                 | line:line < /[\+\-]?0[xX][0-7]+/ >
                     { Atomo::AST::Primitive.new(line, text.to_i(16)) }
                 | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ >
                     { Atomo::AST::Primitive.new(line, text.to_f) }
+                | line:line < /[\+\-]?\d+\.\d+/ >
+                    { Atomo::AST::Primitive.new(line, text.to_f) }
+                | line:line < /[\+\-]?\d+/ >
+                    { Atomo::AST::Primitive.new(line, text.to_i) }
 
           macro = line:line "macro" wsp "(" wsp expression:p wsp ")" wsp expression:b
                     { b; Atomo::AST::Macro.new(line, p, b) }

@@ -1166,7 +1166,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # number = (line:line < /[\+\-]?\d+/ > { Atomo::AST::Primitive.new(line, text.to_i) } | line:line < /[\+\-]?0[oO][\da-fA-F]+/ > { Atomo::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\+\-]?0[xX][0-7]+/ > { Atomo::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > { Atomo::AST::Primitive.new(line, text.to_f) })
+  # number = (line:line < /[\+\-]?0[oO][\da-fA-F]+/ > { Atomo::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\+\-]?0[xX][0-7]+/ > { Atomo::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > { Atomo::AST::Primitive.new(line, text.to_f) } | line:line < /[\+\-]?\d+\.\d+/ > { Atomo::AST::Primitive.new(line, text.to_f) } | line:line < /[\+\-]?\d+/ > { Atomo::AST::Primitive.new(line, text.to_i) })
   def _number
 
     _save = self.pos
@@ -1181,7 +1181,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\+\-]?\d+)/)
+    _tmp = scan(/\A(?-mix:[\+\-]?0[oO][\da-fA-F]+)/)
     if _tmp
       set_text(_text_start)
     end
@@ -1189,7 +1189,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save1
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(line, text.to_i) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, text.to_i(8)) ; end
     _tmp = true
     unless _tmp
       self.pos = _save1
@@ -1209,7 +1209,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\+\-]?0[oO][\da-fA-F]+)/)
+    _tmp = scan(/\A(?-mix:[\+\-]?0[xX][0-7]+)/)
     if _tmp
       set_text(_text_start)
     end
@@ -1217,7 +1217,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save2
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(line, text.to_i(8)) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, text.to_i(16)) ; end
     _tmp = true
     unless _tmp
       self.pos = _save2
@@ -1237,7 +1237,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\+\-]?0[xX][0-7]+)/)
+    _tmp = scan(/\A(?-mix:[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+)/)
     if _tmp
       set_text(_text_start)
     end
@@ -1245,7 +1245,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save3
       break
     end
-    @result = begin;  Atomo::AST::Primitive.new(line, text.to_i(16)) ; end
+    @result = begin;  Atomo::AST::Primitive.new(line, text.to_f) ; end
     _tmp = true
     unless _tmp
       self.pos = _save3
@@ -1265,7 +1265,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+)/)
+    _tmp = scan(/\A(?-mix:[\+\-]?\d+\.\d+)/)
     if _tmp
       set_text(_text_start)
     end
@@ -1277,6 +1277,34 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = true
     unless _tmp
       self.pos = _save4
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
+
+    _save5 = self.pos
+    while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save5
+      break
+    end
+    _text_start = self.pos
+    _tmp = scan(/\A(?-mix:[\+\-]?\d+)/)
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save5
+      break
+    end
+    @result = begin;  Atomo::AST::Primitive.new(line, text.to_i) ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save5
     end
     break
     end # end sequence
