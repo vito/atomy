@@ -1,6 +1,9 @@
 macro (x = y)
   Atomo::AST::Assign new(x line, x, y)
 
+macro (x set!: y)
+  Atomo::AST::Set new(x line, x, y)
+
 macro (x match: (b: Block))
   { n = Atomo::AST::Match new(x line, x, b)
     `({ ~n } call)
