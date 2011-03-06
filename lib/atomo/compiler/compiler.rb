@@ -115,10 +115,12 @@ module Atomo
     g.goto done
 
     mismatch.set!
+    g.push_self
     g.push_const :PatternMismatch
     g.push_literal name
     g.send :new, 1
-    g.raise_exc
+    g.allow_private
+    g.send :raise, 1
 
     done.set!
     g.ret

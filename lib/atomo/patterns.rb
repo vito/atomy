@@ -1,3 +1,9 @@
+class PatternMismatch < RuntimeError
+  def initialize(p)
+    @pattern = p
+  end
+end
+
 module Atomo::Patterns
   class Pattern
     attr_accessor :variable
@@ -43,18 +49,15 @@ module Atomo::Patterns
 
       error.set!
       g.pop
-      g.push_const :Exception
-      g.push_literal "pattern mismatch"
+      g.push_self
+      g.push_const :PatternMismatch
+      g.push_literal self
       g.send :new, 1
-      g.raise_exc
+      g.allow_private
+      g.send :raise, 1
+      g.pop
 
       done.set!
-    end
-
-    # create this pattern on the stack
-    # effect on the stack: pattern object pushed
-    def construct(g)
-      raise Rubinius::CompileError, "no #construct for #{self}"
     end
 
     # local names bound by this pattern
@@ -125,6 +128,8 @@ module Atomo::Patterns
       return NamedClass.new(n.name)
     when Atomo::AST::Particle
       return Particle.new(n.name.to_sym) # TODO: other forms
+    when Atomo::AST::UnarySend
+      return Unary.new(n.receiver, n.method_name)
     end
 
     raise Exception.new("unknown pattern: " + n.inspect)

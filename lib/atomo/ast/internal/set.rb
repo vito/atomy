@@ -20,6 +20,11 @@ module Atomo
       def bytecode(g)
         pos(g)
 
+        if @lhs.respond_to?(:assign)
+          @lhs.assign(g, @rhs)
+          return
+        end
+
         pat = Patterns.from_node(@lhs)
         @rhs.bytecode(g)
         g.dup

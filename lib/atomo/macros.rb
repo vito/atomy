@@ -1,4 +1,4 @@
-class PatternMismatch < ArgumentError
+class MethodFail < ArgumentError
   def initialize(mn)
     @method_name = mn
   end
@@ -111,7 +111,7 @@ module Atomo
             # should be impossible
             no_macro(node)
           end
-        rescue PatternMismatch, ArgumentError => e
+        rescue MethodFail, ArgumentError => e
           # expand normally if the macro doesn't seem to be a match
           raise unless e.instance_variable_get("@method_name") == intern(name).to_sym
           no_macro(node)

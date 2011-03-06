@@ -1,7 +1,6 @@
-data(ArgumentError) {
-  PatternMismatch(@method_name)
-}
-
-PatternMismatch message :=
+MethodFail message :=
   ("method '" + @method_name to_s + "' did not understand " +
    "its arguments (non-exhaustive patterns)")
+
+PatternMismatch message :=
+  "irrefutable pattern failed for " + @pattern to_s

@@ -101,12 +101,6 @@ module Atomo
           g.send @method_name.to_sym, @arguments.size, @private
         end
       end
-
-      def assign(g, v)
-        receiver.bytecode(g)
-        v.bytecode(g)
-        g.send((@method_name + "=").to_sym, 1)
-      end
     end
   end
 end
