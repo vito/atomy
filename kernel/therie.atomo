@@ -33,10 +33,10 @@ theorize: as :=
 
     $stats do: {
       [ "total of", failed + passed, "tests"
-        "(" + passed to_s, "passed,"
+        "(" + passed to_s ansi-colored: #green, "passed,"
         if: (failed == 0)
           then: { "0" }
-          else: { failed to_s }
+          else: { failed to_s ansi-colored: #red }
         "failed)"
       ] join(" ") display
 
@@ -46,7 +46,7 @@ theorize: as :=
 
 o should: (check: Block) :=
   unless: (o join: check) do: {
-    raise(Exception new("assertion failed", o))
+    raise("assertion failed for " + o inspect)
   }
 
 x should-be: y := x should: { == y }
@@ -73,7 +73,10 @@ it: description so: tests :=
   } rescue: { e |
     $stats failed += 1
     puts((Therie indentation + "✗ " + description) ansi-colored: #red)
-    puts((Therie indentation + "  ` " + e to_s) ansi-colored: #yellow)
+    puts((Therie indentation + "  ` " + e class name + ": " + e message) ansi-colored: #yellow)
+    e backtrace each { l |
+      puts((Therie indentation + "    " + l) ansi-colored: #cyan)
+    }
   } else: {
     $stats passed += 1
   }
