@@ -203,16 +203,74 @@ macro (a || b) Or new(a line, a, b)
 (o: Object) pretty := Doc text: inspect
 
 module(Atomo::AST) {
+  { self } comma-delim: es := doc {
+    hsep: (comma punctuate: es map { e | e pretty })
+  }
+
+  { self } semi-delim: es := doc {
+    hsep: (semi punctuate: es map { e | e pretty })
+  }
+
   BinarySend pretty := doc {
     @lhs pretty <+> text: @operator <+> @rhs pretty
   }
 
+  Block pretty := doc {
+    lbrace <+> Atomo::AST semi-delim: @body expressions <+> rbrace
+  }
+
+  BlockPass pretty := doc { text: "&" <> @body pretty }
+
+  ClassVariable pretty := doc { text: "@@" <> text: @name }
+
+  Constant pretty := doc { text: @name }
+
+  ForMacro pretty := doc { text: "for-macro" <+> @body pretty }
+
+  GlobalVariable pretty := doc { text: "$" <> text: @name }
+
+  InstanceVariable pretty := doc { text: "@" <> text: @name }
+
+  -- TODO: KeywordSend
+
+  List pretty := doc { brackets: (Atomo::AST comma-delim: @elements) }
+
+  Macro pretty := doc {
+    text: "macro" <+> parens: @pattern pretty <+> @body pretty
+  }
+
+  Particle pretty := doc { text: "#" <> text: @name }
+
   Primitive pretty := @value pretty
 
-  Block pretty := doc {
-    body = @body expressions map { e | e pretty }
-    lbrace <+> (hsep: (semi punctuate: body)) <+> rbrace
+  QuasiQuote pretty := doc { text: "`" <> @expression pretty }
+
+  Quote pretty := doc { text: "'" <> @expression pretty }
+
+  ScopedConstant pretty := doc {
+    @parent pretty <> text: "::" <> text: @name
   }
+
+  String pretty := @value pretty
+
+  ToplevelConstant pretty := doc { text: "::" <> text: @name }
+
+  UnarySend pretty := doc {
+    block = if: @block then: { @block pretty } else: { empty }
+
+    args =
+      if: @arguments empty?
+        then: { empty }
+        else: { parens: (Atomo::AST comma-delim: @arguments) }
+
+    if: @private
+      then: { text: @method_name <> args <+> block }
+      else: {
+        @receiver pretty <+> text: @method_name <> args <+> block
+      }
+  }
+
+  Unquote pretty := doc { text: "~" <> @expression pretty }
 
   Variable pretty := doc { text: @name }
 }
