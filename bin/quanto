@@ -35,6 +35,11 @@ puts "loading concurrency"
 send(:"load:", kernel + "/concurrency.atomo")
 puts Time.now - a
 
+if ARGV[0]
+  send(:"load:", ARGV[0], true)
+  exit(0)
+end
+
 while str = Readline.readline("> ")
   next if str.empty?
 
