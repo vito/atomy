@@ -1,7 +1,3 @@
-base = File.expand_path "../../", __FILE__
-
-require base + '/patterns'
-
 module Atomo
   module AST
     class BinarySend < Node
