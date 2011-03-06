@@ -19,6 +19,41 @@
     @wsp.pop
   end
 
+  def set_op_info(op, assoc, prec)
+    info = Atomo::OPERATORS[op] ||= {}
+    info[:assoc] = assoc
+    info[:prec] = prec
+  end
+
+  def op_info(op)
+    Atomo::OPERATORS[op] || {}
+  end
+
+  def prec(o)
+    op_info(o)[:prec] || 5
+  end
+
+  def assoc(o)
+    op_info(o)[:assoc] || :left
+  end
+
+  def binary(o, l, r)
+    Atomo::AST::BinarySend.new(l.line, o, l, r)
+  end
+
+  def op_chain(os, es)
+    return binary(os[0], es[0], es[1]) if os.size == 1
+
+    a, b, *cs = os
+    w, x, y, *zs = es
+
+    if prec(b) > prec(a) || assoc(a) == :right && prec(b) == prec(a)
+      binary(a, w, op_chain([b] + cs, [x, y] + zs))
+    else
+      op_chain([b] + cs, [binary(a, w, x), y] + zs)
+    end
+  end
+
   def const_chain(l, ns, top = false)
     p = nil
     ns.each do |n|
@@ -79,6 +114,7 @@
                 | number
                 | macro
                 | for_macro
+                | op_assoc_pred
                 | quote
                 | quasi_quote
                 | unquote
@@ -124,6 +160,13 @@
 
       for_macro = line:line "for-macro" wsp expression:b
                     { Atomo::AST::ForMacro.new(line, b) }
+
+       op_assoc = sig_wsp < /left|right/ > { text.to_sym }
+        op_pred = sig_wsp < /[0-9]+/ > { text.to_i }
+  op_assoc_pred = line:line "operator" op_assoc?:assoc op_pred:pred (sig_wsp operator)+:os
+                    { os.each do |o| set_op_info(o, assoc, pred) end
+                      Atomo::AST::Primitive.new(line, :nil)
+                    }
 
           quote = line:line "'" level1:e
                     { Atomo::AST::Quote.new(line, e) }
@@ -260,10 +303,15 @@
                     }
    keyword_send = ~{ done } { save } skeyword_send:t { t }
 
-   sbinary_send = line:line sbinary_send:l @cont operator:o sig_wsp level3:r
-                    { Atomo::AST::BinarySend.new(line, o, l, r) }
-                | line:line level3:l @cont operator:o sig_wsp level3:r
-                    { Atomo::AST::BinarySend.new(line, o, l, r) }
+   binary_chain = line:line level3:r (@cont operator:o sig_wsp level3:e { [o, e] })+:bs
+                    { os, es = [], [r]
+                      bs.each do |o, e|
+                        os << o
+                        es << e
+                      end
+                      [os, es]
+                    }
+    binary_send = ~{ done } { save } binary_chain:t { op_chain(t[0], t[1]) }
                 | line:line operator:o sig_wsp expression:r
                     { Atomo::AST::BinarySend.new(
                         line,
@@ -272,7 +320,7 @@
                         r
                       )
                     }
-    binary_send = ~{ done } { save } sbinary_send:t { t }
+
 
         escapes = "n" { "\n" }
                 | "s" { " " }

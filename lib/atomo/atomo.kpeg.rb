@@ -23,6 +23,41 @@ class Atomo::Parser < KPeg::CompiledParser
     @wsp.pop
   end
 
+  def set_op_info(op, assoc, prec)
+    info = Atomo::OPERATORS[op] ||= {}
+    info[:assoc] = assoc
+    info[:prec] = prec
+  end
+
+  def op_info(op)
+    Atomo::OPERATORS[op] || {}
+  end
+
+  def prec(o)
+    op_info(o)[:prec] || 5
+  end
+
+  def assoc(o)
+    op_info(o)[:assoc] || :left
+  end
+
+  def binary(o, l, r)
+    Atomo::AST::BinarySend.new(l.line, o, l, r)
+  end
+
+  def op_chain(os, es)
+    return binary(os[0], es[0], es[1]) if os.size == 1
+
+    a, b, *cs = os
+    w, x, y, *zs = es
+
+    if prec(b) > prec(a) || assoc(a) == :right && prec(b) == prec(a)
+      binary(a, w, op_chain([b] + cs, [x, y] + zs))
+    else
+      op_chain([b] + cs, [binary(a, w, x), y] + zs)
+    end
+  end
+
   def const_chain(l, ns, top = false)
     p = nil
     ns.each do |n|
@@ -898,7 +933,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # level1 = (true | false | self | nil | number | macro | for_macro | quote | quasi_quote | unquote | string | particle | block_pass | constant | variable | g_variable | c_variable | i_variable | grouped | block | list)
+  # level1 = (true | false | self | nil | number | macro | for_macro | op_assoc_pred | quote | quasi_quote | unquote | string | particle | block_pass | constant | variable | g_variable | c_variable | i_variable | grouped | block | list)
   def _level1
 
     _save = self.pos
@@ -922,6 +957,9 @@ class Atomo::Parser < KPeg::CompiledParser
     break if _tmp
     self.pos = _save
     _tmp = apply('for_macro', :_for_macro)
+    break if _tmp
+    self.pos = _save
+    _tmp = apply('op_assoc_pred', :_op_assoc_pred)
     break if _tmp
     self.pos = _save
     _tmp = apply('quote', :_quote)
@@ -1411,6 +1449,161 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     @result = begin;  Atomo::AST::ForMacro.new(line, b) ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save
+    end
+    break
+    end # end sequence
+
+    return _tmp
+  end
+
+  # op_assoc = sig_wsp < /left|right/ > { text.to_sym }
+  def _op_assoc
+
+    _save = self.pos
+    while true # sequence
+    _tmp = apply('sig_wsp', :_sig_wsp)
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _text_start = self.pos
+    _tmp = scan(/\A(?-mix:left|right)/)
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    @result = begin;  text.to_sym ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save
+    end
+    break
+    end # end sequence
+
+    return _tmp
+  end
+
+  # op_pred = sig_wsp < /[0-9]+/ > { text.to_i }
+  def _op_pred
+
+    _save = self.pos
+    while true # sequence
+    _tmp = apply('sig_wsp', :_sig_wsp)
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _text_start = self.pos
+    _tmp = scan(/\A(?-mix:[0-9]+)/)
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    @result = begin;  text.to_i ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save
+    end
+    break
+    end # end sequence
+
+    return _tmp
+  end
+
+  # op_assoc_pred = line:line "operator" op_assoc?:assoc op_pred:pred (sig_wsp operator)+:os { os.each do |o| set_op_info(o, assoc, pred) end                       Atomo::AST::Primitive.new(line, :nil)                     }
+  def _op_assoc_pred
+
+    _save = self.pos
+    while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _tmp = match_string("operator")
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _save1 = self.pos
+    _tmp = apply('op_assoc', :_op_assoc)
+    @result = nil unless _tmp
+    unless _tmp
+      _tmp = true
+      self.pos = _save1
+    end
+    assoc = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _tmp = apply('op_pred', :_op_pred)
+    pred = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _save2 = self.pos
+    _ary = []
+
+    _save3 = self.pos
+    while true # sequence
+    _tmp = apply('sig_wsp', :_sig_wsp)
+    unless _tmp
+      self.pos = _save3
+      break
+    end
+    _tmp = apply('operator', :_operator)
+    unless _tmp
+      self.pos = _save3
+    end
+    break
+    end # end sequence
+
+    if _tmp
+      _ary << @result
+      while true
+    
+    _save4 = self.pos
+    while true # sequence
+    _tmp = apply('sig_wsp', :_sig_wsp)
+    unless _tmp
+      self.pos = _save4
+      break
+    end
+    _tmp = apply('operator', :_operator)
+    unless _tmp
+      self.pos = _save4
+    end
+    break
+    end # end sequence
+
+        _ary << @result if _tmp
+        break unless _tmp
+      end
+      _tmp = true
+      @result = _ary
+    else
+      self.pos = _save2
+    end
+    os = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    @result = begin;  os.each do |o| set_op_info(o, assoc, pred) end
+                      Atomo::AST::Primitive.new(line, :nil)
+                    ; end
     _tmp = true
     unless _tmp
       self.pos = _save
@@ -2832,49 +3025,146 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # sbinary_send = (line:line sbinary_send:l @cont operator:o sig_wsp level3:r { Atomo::AST::BinarySend.new(line, o, l, r) } | line:line level3:l @cont operator:o sig_wsp level3:r { Atomo::AST::BinarySend.new(line, o, l, r) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         o,                         Atomo::AST::Primitive.new(line, :self),                         r                       )                     })
-  def _sbinary_send
+  # binary_chain = line:line level3:r (@cont operator:o sig_wsp level3:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }
+  def _binary_chain
 
     _save = self.pos
-    while true # choice
-
-    _save1 = self.pos
     while true # sequence
     _tmp = apply('line', :_line)
     line = @result
     unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply('sbinary_send', :_sbinary_send)
-    l = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = _cont()
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply('operator', :_operator)
-    o = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply('sig_wsp', :_sig_wsp)
-    unless _tmp
-      self.pos = _save1
+      self.pos = _save
       break
     end
     _tmp = apply('level3', :_level3)
     r = @result
     unless _tmp
+      self.pos = _save
+      break
+    end
+    _save1 = self.pos
+    _ary = []
+
+    _save2 = self.pos
+    while true # sequence
+    _tmp = _cont()
+    unless _tmp
+      self.pos = _save2
+      break
+    end
+    _tmp = apply('operator', :_operator)
+    o = @result
+    unless _tmp
+      self.pos = _save2
+      break
+    end
+    _tmp = apply('sig_wsp', :_sig_wsp)
+    unless _tmp
+      self.pos = _save2
+      break
+    end
+    _tmp = apply('level3', :_level3)
+    e = @result
+    unless _tmp
+      self.pos = _save2
+      break
+    end
+    @result = begin;  [o, e] ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save2
+    end
+    break
+    end # end sequence
+
+    if _tmp
+      _ary << @result
+      while true
+    
+    _save3 = self.pos
+    while true # sequence
+    _tmp = _cont()
+    unless _tmp
+      self.pos = _save3
+      break
+    end
+    _tmp = apply('operator', :_operator)
+    o = @result
+    unless _tmp
+      self.pos = _save3
+      break
+    end
+    _tmp = apply('sig_wsp', :_sig_wsp)
+    unless _tmp
+      self.pos = _save3
+      break
+    end
+    _tmp = apply('level3', :_level3)
+    e = @result
+    unless _tmp
+      self.pos = _save3
+      break
+    end
+    @result = begin;  [o, e] ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save3
+    end
+    break
+    end # end sequence
+
+        _ary << @result if _tmp
+        break unless _tmp
+      end
+      _tmp = true
+      @result = _ary
+    else
+      self.pos = _save1
+    end
+    bs = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    @result = begin;  os, es = [], [r]
+                      bs.each do |o, e|
+                        os << o
+                        es << e
+                      end
+                      [os, es]
+                    ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save
+    end
+    break
+    end # end sequence
+
+    return _tmp
+  end
+
+  # binary_send = (~{ done } { save } binary_chain:t { op_chain(t[0], t[1]) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         o,                         Atomo::AST::Primitive.new(line, :self),                         r                       )                     })
+  def _binary_send
+
+    _save = self.pos
+    while true # choice
+
+    _save1 = self.pos
+    begin
+    while true # sequence
+    @result = begin;  save ; end
+    _tmp = true
+    unless _tmp
       self.pos = _save1
       break
     end
-    @result = begin;  Atomo::AST::BinarySend.new(line, o, l, r) ; end
+    _tmp = apply('binary_chain', :_binary_chain)
+    t = @result
+    unless _tmp
+      self.pos = _save1
+      break
+    end
+    @result = begin;  op_chain(t[0], t[1]) ; end
     _tmp = true
     unless _tmp
       self.pos = _save1
@@ -2882,6 +3172,8 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    ensure
+ done     end
     break if _tmp
     self.pos = _save
 
@@ -2893,17 +3185,6 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save2
       break
     end
-    _tmp = apply('level3', :_level3)
-    l = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = _cont()
-    unless _tmp
-      self.pos = _save2
-      break
-    end
     _tmp = apply('operator', :_operator)
     o = @result
     unless _tmp
@@ -2913,48 +3194,12 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = apply('sig_wsp', :_sig_wsp)
     unless _tmp
       self.pos = _save2
-      break
-    end
-    _tmp = apply('level3', :_level3)
-    r = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    @result = begin;  Atomo::AST::BinarySend.new(line, o, l, r) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save3 = self.pos
-    while true # sequence
-    _tmp = apply('line', :_line)
-    line = @result
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply('operator', :_operator)
-    o = @result
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply('sig_wsp', :_sig_wsp)
-    unless _tmp
-      self.pos = _save3
       break
     end
     _tmp = apply('expression', :_expression)
     r = @result
     unless _tmp
-      self.pos = _save3
+      self.pos = _save2
       break
     end
     @result = begin;  Atomo::AST::BinarySend.new(
@@ -2966,7 +3211,7 @@ class Atomo::Parser < KPeg::CompiledParser
                     ; end
     _tmp = true
     unless _tmp
-      self.pos = _save3
+      self.pos = _save2
     end
     break
     end # end sequence
@@ -2976,37 +3221,6 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
-    return _tmp
-  end
-
-  # binary_send = ~{ done } { save } sbinary_send:t { t }
-  def _binary_send
-
-    _save = self.pos
-    begin
-    while true # sequence
-    @result = begin;  save ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply('sbinary_send', :_sbinary_send)
-    t = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  t ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    ensure
- done     end
     return _tmp
   end
 

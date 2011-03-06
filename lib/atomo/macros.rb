@@ -5,6 +5,8 @@ class PatternMismatch < ArgumentError
 end
 
 module Atomo
+  OPERATORS = {}
+
   module Macro
     class Environment
       attr_accessor :macros

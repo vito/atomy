@@ -29,7 +29,7 @@ Empty width := 0
 Text height := 1
 Beside height := [@left height, @right height] max
 Above height :=
-  if: (@overlap? && (@below depth > @above width))
+  if: (@overlap? && @below kind_of?(Nest) && @below depth > @above width)
     then: { @above height + @below height }
     else: { 1 + @above height + @below height }
 Nest height := @body height
@@ -41,8 +41,8 @@ Nest height := @body height
 Empty    <+> (d: Doc) := d
 (l: Doc) <+> (n: Nest) := (l <+> n body)
 (l: Doc) <+> (a: Above) :=
-  { first = (l <+> a above)
-    rest = (a below nest: (l width + 1))
+  { first = l <+> a above
+    rest = a below nest: (l width + 1)
     Above new(first, rest, a overlap?)
   } call
 (l: Doc) <+> (r: Doc) := Beside new(l, r, True)
@@ -51,7 +51,7 @@ Empty    <+> (d: Doc) := d
 -- position one document beside another unless either are empty
 (d: Doc) <> Empty := d
 Empty    <> (d: Doc) := d
-(l: Doc) <> (n: Nest) := (l <> n body)
+(l: Doc) <> (n: Nest) := l <> n body
 (l: Doc) <> (a: Above) := #todo
 (l: Doc) <> (r: Doc) := Beside new(l, r, False)
 
@@ -92,7 +92,7 @@ Above render :=
   { a = @above render
     b = @below render
 
-    if: (@overlap? && (@below depth > @above width))
+    if: (@overlap? && @below kind_of?(Nest) && @below depth > @above width)
       then: {
         b slice!(0, a size)
         a + b
@@ -103,7 +103,7 @@ Nest render :=
   { b = @body render
     x = ""
     b each_line { l |
-      x << ((" " * @depth) + l)
+      x << " " * @depth + l
     }
     x
   } call
@@ -129,11 +129,11 @@ module(Pretty) {
   rbrace := text: "}"
 
   -- wrapping documents
-  parens: d := (lparen <> d <> rparen)
-  brackets: d := (lbrack <> d <> rbrack)
-  braces: d := (lbrace <> d <> rbrace)
-  quotes: d := (text: "'" <> d <> text: "'")
-  double-quotes: d := (text: "\"" <> d <> text: "\"")
+  parens: d := lparen <> d <> rparen
+  brackets: d := lbrack <> d <> rbrack
+  braces: d := lbrace <> d <> rbrace
+  quotes: d := text: "'" <> d <> text: "'"
+  double-quotes: d := text: "\"" <> d <> text: "\""
 
   -- combining documents
   empty := Empty new
@@ -181,7 +181,7 @@ module(Atomo::AST) {
         _ -> @name pretty
       }
 
-    body = (lbrace <+> Atomo::AST semi-delim: @body body expressions <+> rbrace)
+    body = lbrace <+> Atomo::AST semi-delim: @body body expressions <+> rbrace
 
     text: "class" <> text: "(" <> name <+> sub <> text: ")" <+> body
   }
