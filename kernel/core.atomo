@@ -1,5 +1,6 @@
 -- assignment
-operator right 0 = :=
+operator right 0 = := **= *= <<= >>= &&=
+                 &= ||= |= += -= /= ^= %=
 
 -- association
 operator right 1 <- ->
@@ -28,6 +29,20 @@ macro (x = y)
 
 macro (x set!: y)
   Atomo::AST::Set new(x line, x, y)
+
+macro (x **= y) `(~x set!: (~x ** ~y))
+macro (x *= y) `(~x set!: (~x * ~y))
+macro (x <<= y) `(~x set!: (~x << ~y))
+macro (x >>= y) `(~x set!: (~x >> ~y))
+macro (x &&= y) `(~x set!: (~x && ~y))
+macro (x &== y) `(~x set!: (~x &= ~y))
+macro (x ||= y) `(~x set!: (~x || ~y))
+macro (x |= y) `(~x set!: (~x | ~y))
+macro (x += y) `(~x set!: (~x + ~y))
+macro (x -= y) `(~x set!: (~x - ~y))
+macro (x /= y) `(~x set!: (~x / ~y))
+macro (x ^= y) `(~x set!: (~x ^ ~y))
+macro (x %= y) `(~x set!: (~x % ~y))
 
 macro (x match: (b: Block))
   { n = Atomo::AST::Match new(x line, x, b)
