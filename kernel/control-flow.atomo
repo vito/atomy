@@ -1,0 +1,34 @@
+macro (x match: (b: Block))
+  { n = Atomo::AST::Match new(x line, x, b)
+    `({ ~n } call)
+  } call
+
+macro (if: cond then: true else: false)
+  Atomo::AST::IfThenElse new(cond line, cond, true, false)
+
+macro (while: cond do: body)
+  Atomo::AST::While new(cond line, cond, `(~body call))
+
+macro (while(cond, &body))
+  Atomo::AST::While new(cond line, cond, `(~body call))
+
+macro (x return(y))
+  Atomo::AST::Return new(x line, y)
+
+macro (a && b) And new(a line, a, b)
+macro (a || b) Or new(a line, a, b)
+
+macro (x rescue: y)
+  Atomo::AST::Catch new(x line, `(~x call), `(~y call($exception)))
+
+macro (x rescue: y else: z)
+  Atomo::AST::Catch new(x line, `(~x call), `(~y call($exception)), z body)
+
+macro (x ensuring: y)
+  Atomo::AST::Ensure new(x line, `(~x call), `(~y call))
+
+unless(False, &blk) := blk call
+unless(True, &_) := nil
+
+when(True, &blk) := blk call
+when(False, &_) := nil

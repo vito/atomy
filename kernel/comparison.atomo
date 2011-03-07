@@ -1,0 +1,68 @@
+class(And < Atomo::AST::Node) {
+  initialize(@line, @a, @b) := #ok
+
+  bytecode(g) :=
+    { pos(g)
+      done = g new_label
+      no = g new_label
+
+      @a bytecode(g)
+      g gif(no)
+
+      @b bytecode(g)
+      g goto(done)
+
+      no set!
+      g push_false
+
+      done set!
+    } call
+
+  -- TODO: stop should default to nil
+  recursively(stop, &f) :=
+    if: (stop call(self))
+      then: { f call(self) }
+      else: {
+        And new(
+          @line
+          @a recursively(stop, &f)
+          @b recursively(stop, &f)
+        )
+      }
+}
+
+class(Or < Atomo::AST::Node) {
+  initialize(@line, @a, @b) := #ok
+
+  bytecode(g) :=
+    { pos(g)
+      done = g new_label
+      yes = g new_label
+
+      @a bytecode(g)
+      g git(yes)
+
+      @b bytecode(g)
+      g goto(done)
+
+      yes set!
+      g push_true
+
+      done set!
+    } call
+
+  -- TODO: stop should default to nil
+  recursively(stop, &f) :=
+    if: (stop call(self))
+      then: { f call(self) }
+      else: {
+        Or new(
+          @line
+          @a recursively(stop, &f)
+          @b recursively(stop, &f)
+        )
+      }
+}
+
+macro (a && b) And new(a line, a, b)
+macro (a || b) Or new(a line, a, b)

@@ -21,18 +21,8 @@ Kernel.send(:define_method, :"load:") do |*as|
 end
 
 a = Time.now
-puts "loading core"
-send(:"load:", kernel + "/core.atomo")
-puts "loading errors"
-send(:"load:", kernel + "/errors.atomo")
-puts "loading therie"
-send(:"load:", kernel + "/therie.atomo")
-puts "loading mixins"
-send(:"load:", kernel + "/mixins.atomo")
-puts "loading pretty"
-send(:"load:", kernel + "/pretty.atomo")
-puts "loading concurrency"
-send(:"load:", kernel + "/concurrency.atomo")
+puts "loading kernel"
+send(:"load:", kernel + "/boot.atomo")
 puts Time.now - a
 
 if ARGV[0]

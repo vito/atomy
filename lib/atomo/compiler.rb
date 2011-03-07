@@ -14,8 +14,7 @@ Kernel.send(:define_method, :"load:") do |a|
   MAIN.__send__ :__script__
 end
 
-send(:"load:", kernel + "/core.atomo")
-send(:"load:", kernel + "/therie.atomo")
+send(:"load:", kernel + "/boot.atomo")
 
 cm = Atomo::Compiler.compile_string ARGV[0]
 

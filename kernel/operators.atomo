@@ -1,0 +1,25 @@
+-- defining & assigning
+operator right 0 = := **= *= <<= >>= &&=
+                 &= ||= |= += -= /= ^= %=
+
+-- association
+operator right 1 <- ->
+
+-- ranges
+operator 1 .. ...
+
+-- comparison
+operator 5 <=> < <= >= >
+operator 4 == !=
+operator 3 &&
+operator 2 ||
+
+-- math
+operator right 12 **
+operator 10 % * /
+operator 9 + -
+
+-- bitwise and shifting
+operator 8 << >>
+operator 6 ^ |
+operator 7 &
