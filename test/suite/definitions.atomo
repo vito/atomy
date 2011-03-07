@@ -30,4 +30,31 @@ describe: "definitions" as: {
       res at(2) should: { kind_of?(Proc) }
     }
   }
+
+  describe: "default" as: {
+    it: "doesn't have to be passed" so: {
+      d0(b = 1) := b
+      d0 should-be: 1
+    }
+
+    it: "may appear after required args" so: {
+      d1(a, b = 1) := [a, b]
+      d1(0) should-be: [0, 1]
+    }
+
+    it: "evaluates an expression as its default" so: {
+      d2(a, b = 1 + 1) := [a, b]
+      d2(0) should-be: [0, 2]
+    }
+
+    it: "evaluates its default with other args in scope" so: {
+      d3(a, b = a + 1) := [a, b]
+      d3(0) should-be: [0, 1]
+    }
+
+    it: "is overrided by an argument" so: {
+      d4(a, b = 3) := [a, b]
+      d4(0, 1) should-be: [0, 1]
+    }
+  }
 }

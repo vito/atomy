@@ -107,6 +107,8 @@ module Atomo::Patterns
       case n.operator
       when "."
         return HeadTail.new(from_node(n.lhs), from_node(n.rhs))
+      when "="
+        return Default.new(from_node(n.lhs), n.rhs)
       end
     when Atomo::AST::KeywordSend
       if n.receiver.is_a?(Atomo::AST::Primitive) && n.receiver.value == :self && n.arguments.size == 1

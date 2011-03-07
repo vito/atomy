@@ -1,17 +1,10 @@
 module Atomo
-  def self.block_from(args)
-    if args.last.kind_of?(Patterns::BlockPass)
-      [args[0..-2], args.last]
-    else
-      [args, nil]
-    end
-  end
-
   def self.segments(args)
-    req = args.reject { |a| a.kind_of?(Patterns::BlockPass) || a.kind_of?(Patterns::Splat) }
+    req = args.reject { |a| a.kind_of?(Patterns::BlockPass) || a.kind_of?(Patterns::Splat) || a.kind_of?(Patterns::Default) }
+    dfs = args.select { |a| a.kind_of?(Patterns::Default) }
     spl = args.select { |a| a.kind_of?(Patterns::Splat) }[0]
     blk = args.select { |a| a.kind_of?(Patterns::BlockPass) }[0]
-    [req, spl, blk]
+    [req, dfs, spl, blk]
   end
 
   def self.build_method(name, branches, is_macro = false, file = :dynamic, line = 1)
@@ -26,8 +19,13 @@ module Atomo
     g.push_state Rubinius::AST::ClosedScope.new(line)
 
     args = 0
+    reqs = 0
+    defs = 0
     g.local_names = branches.collect do |pats, meth|
-      args = segments(pats[1])[0].size
+      segs = segments(pats[1])
+      reqs = segs[0].size
+      defs = segs[1].size
+      args = reqs + defs
       pats[0].local_names + pats[1].collect { |p| p.local_names }.flatten
     end.flatten.uniq
 
@@ -43,15 +41,16 @@ module Atomo
       locals[n] = g.state.scope.new_local(n).reference
     end
 
-    g.total_args = g.required_args = args
+    g.total_args = args
+    g.required_args = reqs
     g.local_count = args + g.local_names.size
 
     g.push_self
     branches.each do |pats, meth|
       recv = pats[0]
-      args, splat, block = segments(pats[1])
+      reqs, defs, splat, block = segments(pats[1])
 
-      g.splat_index = args.size if splat
+      g.splat_index = (reqs.size + defs.size) if splat
 
       skip = g.new_label
       argmis = g.new_label
@@ -71,12 +70,12 @@ module Atomo
       end
 
       if !is_macro && splat
-        g.push_local(args.size)
+        g.push_local(reqs.size + defs.size)
         splat.pattern.deconstruct(g)
       end
 
-      unless args.empty?
-        args.each_with_index do |a, i|
+      unless reqs.empty?
+        reqs.each_with_index do |a, i|
           n = is_macro ? i + 1 : i
           g.push_local(n)
 
@@ -89,6 +88,26 @@ module Atomo
             a.matches?(g)
             g.gif skip
           end
+        end
+      end
+
+      unless defs.empty?
+        defs.each_with_index do |d, i|
+          passed = g.new_label
+          decons = g.new_label
+
+          num = reqs.size + i
+          g.passed_arg num
+          g.git passed
+
+          d.default.bytecode(g)
+          g.goto decons
+
+          passed.set!
+          g.push_local num
+
+          decons.set!
+          d.deconstruct(g)
         end
       end
 
