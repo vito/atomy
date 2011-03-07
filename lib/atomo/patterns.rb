@@ -143,7 +143,7 @@ module Atomo::Patterns
       return Unary.new(n.receiver, n.method_name)
     end
 
-    raise Exception.new("unknown pattern: " + n.inspect)
+    raise "unknown pattern: " + n.inspect
   end
 
   # include all pattern classes
