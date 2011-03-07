@@ -77,6 +77,16 @@ macro ((x: BinarySend) := y)
     y
   )
 
+macro ((x: UnaryOperator) := y)
+  Atomo::AST::Define new(
+    x line
+    x
+    x method_name
+    x receiver
+    []
+    y
+  )
+
 macro ((x: Variable) := y)
   Atomo::AST::Define new(
     x line
