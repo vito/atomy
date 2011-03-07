@@ -64,5 +64,40 @@ class(Or < Atomo::AST::Node) {
       }
 }
 
+class(Negate < Atomo::AST::Node) {
+  initialize(@line, @expression) := #ok
+
+  bytecode(g) :=
+    { pos(g)
+      done = g new_label
+      yes = g new_label
+
+      @expression bytecode(g)
+      g git(yes)
+
+      g push_true
+      g goto(done)
+
+      yes set!
+      g push_false
+
+      done set!
+    } call
+
+  -- TODO: stop should default to nil
+  recursively(stop, &f) :=
+    if: (stop call(self))
+      then: { f call(self) }
+      else: {
+        Negate new(
+          @line
+          @expression recursively(stop, &f)
+        )
+      }
+}
+
 macro (a && b) And new(a line, a, b)
 macro (a || b) Or new(a line, a, b)
+macro (!a) Negate new(a line, a)
+macro (a != b) `!(~a == ~b)
+macro (a !~ b) `!(~a =~ ~b)
