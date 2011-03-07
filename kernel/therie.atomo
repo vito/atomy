@@ -13,12 +13,6 @@ module(Therie) {
   { self } indentation := " " * (NESTING_LEVEL * 2)
 }
 
-when: True do: x := { x call; #ok } call
-when: False do: x := #ok
-
-unless: False do: x := { x call; #ok } call
-unless: True do: x := #ok
-
 theorize: as :=
   { $stats = Therie::Stats new
 
@@ -39,7 +33,7 @@ theorize: as :=
   } call
 
 o should: (check: Block) :=
-  unless: (o join: check) do: {
+  unless(o join: check) {
     raise("assertion failed for " + o inspect)
   }
 
@@ -47,7 +41,7 @@ x should-be: y := x should: { == y }
 
 x should-raise: y :=
   { x call } rescue: { e |
-    unless: e kind_of?(y) do: {
+    unless(e kind_of?(y)) {
       raise("expected " + y to_s + ", got: " + e to_s)
     }
   } else: {

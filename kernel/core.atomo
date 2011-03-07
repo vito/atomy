@@ -256,3 +256,9 @@ class(Or < Atomo::AST::Node) {
 
 macro (a && b) And new(a line, a, b)
 macro (a || b) Or new(a line, a, b)
+
+unless(False, &blk) := blk call
+unless(True, &_) := nil
+
+when(True, &blk) := blk call
+when(False, &_) := nil
