@@ -27,6 +27,9 @@ operator 7 &
 macro (&x)
   Atomo::AST::BlockPass new(x line, x)
 
+macro (*x)
+  Atomo::AST::Splat new(x line, x)
+
 macro (@(x: Variable))
   Atomo::AST::InstanceVariable new(x line, x name)
 
@@ -122,8 +125,6 @@ macro (x rescue: y else: z)
 
 macro (x ensuring: y)
   Atomo::AST::Ensure new(x line, `(~x call), `(~y call))
-
-macro (... x) Atomo::AST::Splat new(x line, x)
 
 macro (data(root, &children))
   { cs = children body expressions map { e |
