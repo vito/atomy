@@ -18,8 +18,7 @@ class(And < Atomo::AST::Node) {
       done set!
     } call
 
-  -- TODO: stop should default to nil
-  recursively(stop, &f) :=
+  recursively(stop = nil, &f) :=
     if: (stop call(self))
       then: { f call(self) }
       else: {
@@ -51,8 +50,7 @@ class(Or < Atomo::AST::Node) {
       done set!
     } call
 
-  -- TODO: stop should default to nil
-  recursively(stop, &f) :=
+  recursively(stop = nil, &f) :=
     if: (stop call(self))
       then: { f call(self) }
       else: {
@@ -84,8 +82,7 @@ class(Negate < Atomo::AST::Node) {
       done set!
     } call
 
-  -- TODO: stop should default to nil
-  recursively(stop, &f) :=
+  recursively(stop = nil, &f) :=
     if: (stop call(self))
       then: { f call(self) }
       else: {
