@@ -420,13 +420,13 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # op_start = < /[\+\<=\>\^_!%\|&*\-.\/\?:]/ > { text }
+  # op_start = < /[\$\+\<=\>\^~!@&#%\|&*\-.\/\?:]/ > { text }
   def _op_start
 
     _save = self.pos
     while true # sequence
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\+\<=\>\^_!%\|&*\-.\/\?:])/)
+    _tmp = scan(/\A(?-mix:[\$\+\<=\>\^~!@&#%\|&*\-.\/\?:])/)
     if _tmp
       set_text(_text_start)
     end
@@ -445,13 +445,13 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # op_letters = < /([\$\+\<=\>\^~_!@#%\|&*\-.\/\?:])*/ > { text }
+  # op_letters = < /([\$\+\<=\>\^~!@&#%\|&*\-.\/\?:])*/ > { text }
   def _op_letters
 
     _save = self.pos
     while true # sequence
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:([\$\+\<=\>\^~_!@#%\|&*\-.\/\?:])*)/)
+    _tmp = scan(/\A(?-mix:([\$\+\<=\>\^~!@&#%\|&*\-.\/\?:])*)/)
     if _tmp
       set_text(_text_start)
     end
@@ -933,7 +933,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # level1 = (true | false | self | nil | number | macro | for_macro | op_assoc_pred | quote | quasi_quote | unquote | string | particle | block_pass | constant | variable | g_variable | c_variable | i_variable | grouped | block | list)
+  # level1 = (true | false | self | nil | number | macro | for_macro | op_assoc_pred | quote | quasi_quote | unquote | string | particle | constant | variable | grouped | block | list | unary_op)
   def _level1
 
     _save = self.pos
@@ -977,22 +977,10 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = apply('particle', :_particle)
     break if _tmp
     self.pos = _save
-    _tmp = apply('block_pass', :_block_pass)
-    break if _tmp
-    self.pos = _save
     _tmp = apply('constant', :_constant)
     break if _tmp
     self.pos = _save
     _tmp = apply('variable', :_variable)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply('g_variable', :_g_variable)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply('c_variable', :_c_variable)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply('i_variable', :_i_variable)
     break if _tmp
     self.pos = _save
     _tmp = apply('grouped', :_grouped)
@@ -1002,6 +990,9 @@ class Atomo::Parser < KPeg::CompiledParser
     break if _tmp
     self.pos = _save
     _tmp = apply('list', :_list)
+    break if _tmp
+    self.pos = _save
+    _tmp = apply('unary_op', :_unary_op)
     break if _tmp
     self.pos = _save
     break
@@ -1858,39 +1849,6 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # block_pass = line:line "&" level1:b { Atomo::AST::BlockPass.new(line, b) }
-  def _block_pass
-
-    _save = self.pos
-    while true # sequence
-    _tmp = apply('line', :_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("&")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply('level1', :_level1)
-    b = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomo::AST::BlockPass.new(line, b) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    return _tmp
-  end
-
   # constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
   def _constant_name
 
@@ -2140,8 +2098,8 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # g_variable = line:line "$" f_identifier:n { Atomo::AST::GlobalVariable.new(line, "$" + n) }
-  def _g_variable
+  # unary_op = line:line operator:o level1:e { Atomo::AST::UnaryOperator.new(line, o, e) }
+  def _unary_op
 
     _save = self.pos
     while true # sequence
@@ -2151,84 +2109,19 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = match_string("$")
+    _tmp = apply('operator', :_operator)
+    o = @result
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('f_identifier', :_f_identifier)
-    n = @result
+    _tmp = apply('level1', :_level1)
+    e = @result
     unless _tmp
       self.pos = _save
       break
     end
-    @result = begin;  Atomo::AST::GlobalVariable.new(line, "$" + n) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    return _tmp
-  end
-
-  # c_variable = line:line "@@" f_identifier:n { Atomo::AST::ClassVariable.new(line, "@@" + n) }
-  def _c_variable
-
-    _save = self.pos
-    while true # sequence
-    _tmp = apply('line', :_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("@@")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply('f_identifier', :_f_identifier)
-    n = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomo::AST::ClassVariable.new(line, "@@" + n) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    return _tmp
-  end
-
-  # i_variable = line:line "@" f_identifier:n { Atomo::AST::InstanceVariable.new(line, "@" + n) }
-  def _i_variable
-
-    _save = self.pos
-    while true # sequence
-    _tmp = apply('line', :_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("@")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply('f_identifier', :_f_identifier)
-    n = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomo::AST::InstanceVariable.new(line, "@" + n) ; end
+    @result = begin;  Atomo::AST::UnaryOperator.new(line, o, e) ; end
     _tmp = true
     unless _tmp
       self.pos = _save

@@ -35,7 +35,7 @@ module Atomo
 
     def self.expand?(node)
       case node
-      when AST::BinarySend, AST::UnarySend, AST::KeywordSend
+      when AST::BinarySend, AST::UnarySend, AST::KeywordSend, AST::UnaryOperator
         true
       else
         false
@@ -73,6 +73,12 @@ module Atomo
           node.arguments.collect { |a| expand(a) },
           node.private
         )
+      when AST::UnaryOperator
+        AST::UnaryOperator.new(
+          node.line,
+          node.operator,
+          expand(node.receiver)
+        )
       else
         node
       end
@@ -88,24 +94,30 @@ module Atomo
           case node
           when AST::BinarySend
             expand CURRENT_ENV.send(
-              (intern node.operator).to_sym,
+              (intern name).to_sym,
               nil,
               node.lhs,
               node.rhs
             )
           when AST::UnarySend
             expand CURRENT_ENV.send(
-              (intern node.method_name).to_sym,
+              (intern name).to_sym,
               node.block,
               node.receiver,
               *node.arguments
             )
           when AST::KeywordSend
             expand CURRENT_ENV.send(
-              (intern node.method_name).to_sym,
+              (intern name).to_sym,
               nil,
               node.receiver,
               *node.arguments
+            )
+          when AST::UnaryOperator
+            expand CURRENT_ENV.send(
+              (intern name).to_sym,
+              nil,
+              node.receiver
             )
           else
             # should be impossible

@@ -126,6 +126,17 @@ module Atomo::Patterns
       return NamedInstance.new(n.name)
     when Atomo::AST::ClassVariable
       return NamedClass.new(n.name)
+    when Atomo::AST::UnaryOperator
+      case n.operator
+      when "$"
+        return NamedGlobal.new(("$" + n.receiver.name).to_sym)
+      when "@@"
+        return NamedClass.new(("@@" + n.receiver.name).to_sym)
+      when "@"
+        return NamedInstance.new(("@" + n.receiver.name).to_sym)
+      when "&"
+        return BlockPass.new(from_node(n.receiver))
+      end
     when Atomo::AST::Particle
       return Particle.new(n.name.to_sym) # TODO: other forms
     when Atomo::AST::UnarySend

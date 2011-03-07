@@ -81,8 +81,8 @@
     ident_start = < /[[a-z]_]/ > { text }
   ident_letters = < /([[:alnum:]\$\+\<=\>\^~_!@#%&*\-.\/\?])*/ > { text }
 
-       op_start = < /[\+\<=\>\^_!%\|&*\-.\/\?:]/ > { text }
-     op_letters = < /([\$\+\<=\>\^~_!@#%\|&*\-.\/\?:])*/ > { text }
+       op_start = < /[\$\+\<=\>\^~!@&#%\|&*\-.\/\?:]/ > { text }
+     op_letters = < /([\$\+\<=\>\^~!@&#%\|&*\-.\/\?:])*/ > { text }
 
   f_ident_start = < /[[:alpha:]\$\+\<=\>\^`~_!@#%&*\-.\/\?]/ > { text }
 
@@ -120,15 +120,12 @@
                 | unquote
                 | string
                 | particle
-                | block_pass
                 | constant
                 | variable
-                | g_variable
-                | c_variable
-                | i_variable
                 | grouped
                 | block
                 | list
+                | unary_op
          level2 = unary_send | level1
          level3 = keyword_send | level2
          level4 = binary_send | level3
@@ -184,9 +181,6 @@
        particle = line:line "#" f_identifier:n
                     { Atomo::AST::Particle.new(line, n) }
 
-     block_pass = line:line "&" level1:b
-                    { Atomo::AST::BlockPass.new(line, b) }
-
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
        constant = line:line constant_name:m ("::" constant_name)*:s unary_args?:as {
                     names = [m] + Array(s)
@@ -227,12 +221,9 @@
 
        variable = line:line identifier:n !":"
                     { Atomo::AST::Variable.new(line, n) }
-     g_variable = line:line "$" f_identifier:n
-                    { Atomo::AST::GlobalVariable.new(line, "$" + n) }
-     c_variable = line:line "@@" f_identifier:n
-                    { Atomo::AST::ClassVariable.new(line, "@@" + n) }
-     i_variable = line:line "@" f_identifier:n
-                    { Atomo::AST::InstanceVariable.new(line, "@" + n) }
+
+       unary_op = line:line operator:o level1:e
+                    { Atomo::AST::UnaryOperator.new(line, o, e) }
 
      block_args = (sp level1:n)+:as wsp "|" { as }
           block = line:line "{" block_args?:as wsp expressions?:es wsp "}"

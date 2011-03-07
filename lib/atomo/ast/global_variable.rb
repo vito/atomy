@@ -4,10 +4,11 @@ module Atomo
       include NodeLike
 
       attr_accessor :variable, :line
-      attr_reader :name
+      attr_reader :name, :identifier
 
       def initialize(line, name)
-        @name = name.to_sym
+        @name = ("$" + name).to_sym
+        @identifier = name
         @line = line
       end
 

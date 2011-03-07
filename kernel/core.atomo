@@ -24,6 +24,21 @@ operator 8 << >>
 operator 6 ^ |
 operator 7 &
 
+macro (&x)
+  Atomo::AST::BlockPass new(x line, x)
+
+macro (@(x: Variable))
+  Atomo::AST::InstanceVariable new(x line, x name)
+
+macro (@@(x: Variable))
+  Atomo::AST::ClassVariable new(x line, x name)
+
+macro ($(x: 'exception))
+  Atomo::AST::GlobalVariable new(x line, "!")
+
+macro ($(x: Variable))
+  Atomo::AST::GlobalVariable new(x line, x name)
+
 macro (x = y)
   Atomo::AST::Assign new(x line, x, y)
 
@@ -100,10 +115,10 @@ macro (module(name, &body))
   Atomo::AST::Module new(name line, name, body body)
 
 macro (x rescue: y)
-  Atomo::AST::Catch new(x line, `(~x call), `(~y call($!)))
+  Atomo::AST::Catch new(x line, `(~x call), `(~y call($exception)))
 
 macro (x rescue: y else: z)
-  Atomo::AST::Catch new(x line, `(~x call), `(~y call($!)), z body)
+  Atomo::AST::Catch new(x line, `(~x call), `(~y call($exception)), z body)
 
 macro (x ensuring: y)
   Atomo::AST::Ensure new(x line, `(~x call), `(~y call))
@@ -128,8 +143,7 @@ macro (data(root, &children))
                 Atomo::AST::Primitive new(0, #self)
                 "attr_accessor"
                 e arguments map { a |
-                  name = a name to_s
-                  name slice!(0)
+                  name = a receiver name to_s
                   Atomo::AST::Particle new(0, name)
                 }
               )
