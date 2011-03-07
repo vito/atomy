@@ -40,7 +40,7 @@ obj unmix: (mod: Module) :=
   { last-super = obj metaclass
     this-super = last-super direct_superclass
 
-    while: this-super do: {
+    while(this-super) {
       if: (this-super == mod ||
             (this-super respond_to?(#module) &&
               this-super module == mod))

@@ -113,6 +113,9 @@ macro (if: cond then: true else: false)
 macro (while: cond do: body)
   Atomo::AST::While new(cond line, cond, `(~body call))
 
+macro (while(cond, &body))
+  Atomo::AST::While new(cond line, cond, `(~body call))
+
 macro (x return(y))
   Atomo::AST::Return new(x line, y)
 
