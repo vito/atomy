@@ -15,9 +15,6 @@ macro (while(cond, &body))
 macro (x return(y))
   Atomo::AST::Return new(x line, y)
 
-macro (a && b) And new(a line, a, b)
-macro (a || b) Or new(a line, a, b)
-
 macro (x rescue: y)
   Atomo::AST::Catch new(x line, `(~x call), `(~y call($exception)))
 
