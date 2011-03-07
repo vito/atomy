@@ -59,14 +59,14 @@ describe: "blocks" as: {
 
     describe: "splat" as: {
       it: "consumes the rest of the arguments" so: {
-        foo = { (... xs) | xs }
+        foo = { *xs | xs }
         foo call should-be: []
         foo call(1) should-be: [1]
         foo call(1, 2) should-be: [1, 2]
       }
 
       it: "starts after required args" so: {
-        foo = { a (... bs) | [a, bs] }
+        foo = { a *bs | [a, bs] }
         --{ foo call } should-raise: ArgumentError
         foo call(1) should-be: [1, []]
         foo call(1, 2) should-be: [1, [2]]
@@ -74,7 +74,7 @@ describe: "blocks" as: {
       }
 
       it: "appears before a block arg" so: {
-        foo = { a (... bs) &c | [a, bs, c] }
+        foo = { a *bs &c | [a, bs, c] }
         x = {}
         --{ foo call } should-raise: ArgumentError
         res = foo call(1, &x)

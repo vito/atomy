@@ -1,9 +1,10 @@
 module Atomo::Patterns
   class NamedGlobal < Pattern
-    attr_reader :name
+    attr_reader :name, :identifier
 
     def initialize(n)
-      @name = n
+      @name = ("$" + n).to_sym
+      @identifier = n
     end
 
     def ==(b)

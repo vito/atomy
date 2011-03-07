@@ -1,14 +1,14 @@
 describe: "definitions" as: {
   describe: "splats" as: {
     it: "consumes the rest of the arguments" so: {
-      foo(... args) := args
+      foo(*args) := args
       foo should-be: []
       foo(1) should-be: [1]
       foo(1, 2) should-be: [1, 2]
     }
 
     it: "starts after required args" so: {
-      bar(a, ... bs) := [a, bs]
+      bar(a, *bs) := [a, bs]
       { bar } should-raise: ArgumentError
       bar(1) should-be: [1, []]
       bar(1, 2) should-be: [1, [2]]
@@ -16,7 +16,7 @@ describe: "definitions" as: {
     }
 
     it: "appears before a block arg" so: {
-      baz(a, ... bs, &c) := [a, bs, c]
+      baz(a, *bs, &c) := [a, bs, c]
       x = {}
       { baz } should-raise: ArgumentError
       res = baz(1, &x)

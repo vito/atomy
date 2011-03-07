@@ -107,8 +107,6 @@ module Atomo::Patterns
       case n.operator
       when "."
         return HeadTail.new(from_node(n.lhs), from_node(n.rhs))
-      when "..."
-        return Splat.new(from_node(n.rhs))
       end
     when Atomo::AST::KeywordSend
       if n.receiver.is_a?(Atomo::AST::Primitive) && n.receiver.value == :self && n.arguments.size == 1
@@ -121,21 +119,23 @@ module Atomo::Patterns
     when Atomo::AST::Block
       return Metaclass.new(n)
     when Atomo::AST::GlobalVariable
-      return NamedGlobal.new(n.name)
+      return NamedGlobal.new(n.identifier)
     when Atomo::AST::InstanceVariable
-      return NamedInstance.new(n.name)
+      return NamedInstance.new(n.identifier)
     when Atomo::AST::ClassVariable
-      return NamedClass.new(n.name)
+      return NamedClass.new(n.identifier)
     when Atomo::AST::UnaryOperator
       case n.operator
       when "$"
-        return NamedGlobal.new(("$" + n.receiver.name).to_sym)
+        return NamedGlobal.new(n.receiver.name)
       when "@@"
-        return NamedClass.new(("@@" + n.receiver.name).to_sym)
+        return NamedClass.new(n.receiver.name)
       when "@"
-        return NamedInstance.new(("@" + n.receiver.name).to_sym)
+        return NamedInstance.new(n.receiver.name)
       when "&"
         return BlockPass.new(from_node(n.receiver))
+      when "*"
+        return Splat.new(from_node(n.receiver))
       end
     when Atomo::AST::Particle
       return Particle.new(n.name.to_sym) # TODO: other forms

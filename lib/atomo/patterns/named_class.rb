@@ -1,9 +1,10 @@
 module Atomo::Patterns
   class NamedClass < Pattern
-    attr_reader :name
+    attr_reader :name, :identifier
 
     def initialize(n)
-      @name = n.to_sym
+      @name = ("@@" + n).to_sym
+      @identifier = n
     end
 
     def ==(b)
