@@ -135,7 +135,7 @@ module Atomo
 
     mismatch.set!
     g.push_self
-    g.push_const :PatternMismatch
+    g.push_const :MethodFail
     g.push_literal name
     g.send :new, 1
     g.allow_private
