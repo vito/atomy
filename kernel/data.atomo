@@ -80,3 +80,10 @@ macro (data(root, &children))
 
     `(~decls call)
   } call
+
+for-macro quote: #w as: { c | c split }
+
+-- TODO: flags
+for-macro quote: #r as: { c | Regexp new(c) }
+
+for-macro quote: #raw as: { c | c }

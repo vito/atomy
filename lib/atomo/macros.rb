@@ -9,10 +9,23 @@ module Atomo
 
   module Macro
     class Environment
-      attr_accessor :macros
+      attr_accessor :macros, :quoters
 
       def initialize
         @macros = {}
+        @quoters = {}
+      end
+
+      define_method(:"quote:as:") do |name, action|
+        @quoters[name] = action
+      end
+
+      def quote(name, contents, flags)
+        if a = @quoters[name]
+          a.call(contents, flags)
+        else
+          raise "unknown quoter #{name}"
+        end
       end
     end
 
@@ -35,7 +48,9 @@ module Atomo
 
     def self.expand?(node)
       case node
-      when AST::BinarySend, AST::UnarySend, AST::KeywordSend, AST::UnaryOperator
+      when AST::BinarySend, AST::UnarySend,
+           AST::KeywordSend, AST::UnaryOperator,
+           AST::MacroQuote
         true
       else
         false
@@ -88,7 +103,10 @@ module Atomo
     def self.expand(root)
       root.through_quotes(proc { |x| expand? x }) do |node|
         name = node.method_name
-        next no_macro(node) unless name and CURRENT_ENV.respond_to?(intern name)
+        unless node.kind_of?(AST::MacroQuote) ||
+                name && CURRENT_ENV.respond_to?(intern name)
+          next no_macro(node)
+        end
 
         begin
           case node
@@ -119,6 +137,12 @@ module Atomo
               nil,
               node.receiver
             )
+          when AST::MacroQuote
+            CURRENT_ENV.quote(
+              node.name,
+              node.contents,
+              node.flags
+            ).to_node
           else
             # should be impossible
             no_macro(node)

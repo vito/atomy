@@ -119,6 +119,7 @@
                 | quasi_quote
                 | unquote
                 | string
+                | macro_quote
                 | particle
                 | constant
                 | variable
@@ -178,6 +179,9 @@
          string = line:line "\"" (("\\" escape) | str_seq)*:c "\""
                     { Atomo::AST::String.new(line, c.join) }
 
+    macro_quote = line:line identifier:n quoted:c (< [a-z] > { text })*:fs
+                    { Atomo::AST::MacroQuote.new(line, n, c, fs) }
+
        particle = line:line "#" f_identifier:n
                     { Atomo::AST::Particle.new(line, n) }
 
@@ -233,11 +237,11 @@
                     { Atomo::AST::List.new(line, Array(es)) }
 
      unary_args = "(" wsp expressions?:as wsp ")" { Array(as) }
-    sunary_send = line:line sunary_send:r @cont identifier:n !":" unary_args?:as (wsp block)?:b
+    sunary_send = line:line sunary_send:r @cont identifier:n !":" unary_args?:as (@cont block)?:b
                     { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) }
-                | line:line level1:r @cont identifier:n !":" unary_args?:as (sp block)?:b
+                | line:line level1:r @cont identifier:n !":" unary_args?:as (@cont block)?:b
                     { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) }
-                | line:line identifier:n unary_args?:as sp block:b
+                | line:line identifier:n unary_args?:as @cont block:b
                     { Atomo::AST::UnarySend.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
@@ -363,5 +367,41 @@
                 | < /\d{1,6}/ > { text.to_i.chr }
                 | /[oO]/ < /[0-7]{1,7}/ > { text.to_i(16).chr }
                 | /[uU]/ < /[0-9a-fA-F]{4}/ > { text.to_i(16).chr }
+
+         quoted = "\""
+                  ( "\\\"" { "\"" }
+                  | < "\\" . > { text }
+                  | < /[^\\"]+/ > { text }
+                  )*:c
+                  "\""
+                  { c.join }
+                | "{"
+                  ( "\\" < "{" | "}" > { text }
+                  | < "\\" . > { text }
+                  | < /[^\\\{\}]+/ > { text }
+                  )*:c
+                  "}"
+                  { c.join }
+                | "["
+                  ( "\\" < "[" | "]" > { text }
+                  | < "\\" . > { text }
+                  | < /[^\\\[\]]+/ > { text }
+                  )*:c
+                  "]"
+                  { c.join }
+                | "`"
+                  ( "\\`" { "`" }
+                  | < "\\" . > { text }
+                  | < /[^\\`]+/ > { text }
+                  )*:c
+                  "`"
+                  { c.join }
+                | "'"
+                  ( "\\'" { "'" }
+                  | < "\\" . > { text }
+                  | < /[^\\']+/ > { text }
+                  )*:c
+                  "'"
+                  { c.join }
 
            root = wsp expressions:es wsp !. { es }

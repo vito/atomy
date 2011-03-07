@@ -933,7 +933,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # level1 = (true | false | self | nil | number | macro | for_macro | op_assoc_pred | quote | quasi_quote | unquote | string | particle | constant | variable | grouped | block | list | unary_op)
+  # level1 = (true | false | self | nil | number | macro | for_macro | op_assoc_pred | quote | quasi_quote | unquote | string | macro_quote | particle | constant | variable | grouped | block | list | unary_op)
   def _level1
 
     _save = self.pos
@@ -972,6 +972,9 @@ class Atomo::Parser < KPeg::CompiledParser
     break if _tmp
     self.pos = _save
     _tmp = apply('string', :_string)
+    break if _tmp
+    self.pos = _save
+    _tmp = apply('macro_quote', :_macro_quote)
     break if _tmp
     self.pos = _save
     _tmp = apply('particle', :_particle)
@@ -1816,6 +1819,78 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
+  # macro_quote = line:line identifier:n quoted:c (< [a-z] > { text })*:fs { Atomo::AST::MacroQuote.new(line, n, c, fs) }
+  def _macro_quote
+
+    _save = self.pos
+    while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _tmp = apply('identifier', :_identifier)
+    n = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _tmp = apply('quoted', :_quoted)
+    c = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _ary = []
+    while true
+
+    _save2 = self.pos
+    while true # sequence
+    _text_start = self.pos
+    _tmp = get_byte
+    if _tmp
+      unless _tmp >= 97 and _tmp <= 122
+        fail_range('a', 'z')
+        _tmp = nil
+      end
+    end
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save2
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save2
+    end
+    break
+    end # end sequence
+
+    _ary << @result if _tmp
+    break unless _tmp
+    end
+    _tmp = true
+    @result = _ary
+    fs = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    @result = begin;  Atomo::AST::MacroQuote.new(line, n, c, fs) ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save
+    end
+    break
+    end # end sequence
+
+    return _tmp
+  end
+
   # particle = line:line "#" f_identifier:n { Atomo::AST::Particle.new(line, n) }
   def _particle
 
@@ -2376,7 +2451,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # sunary_send = (line:line sunary_send:r @cont identifier:n !":" unary_args?:as (wsp block)?:b { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) } | line:line level1:r @cont identifier:n !":" unary_args?:as (sp block)?:b { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) } | line:line identifier:n unary_args?:as sp block:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         n,                         Array(as),                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         n,                         as,                         b,                         true                       )                     })
+  # sunary_send = (line:line sunary_send:r @cont identifier:n !":" unary_args?:as (@cont block)?:b { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) } | line:line level1:r @cont identifier:n !":" unary_args?:as (@cont block)?:b { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) } | line:line identifier:n unary_args?:as @cont block:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         n,                         Array(as),                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         n,                         as,                         b,                         true                       )                     })
   def _sunary_send
 
     _save = self.pos
@@ -2431,7 +2506,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save5 = self.pos
     while true # sequence
-    _tmp = apply('wsp', :_wsp)
+    _tmp = _cont()
     unless _tmp
       self.pos = _save5
       break
@@ -2513,7 +2588,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save10 = self.pos
     while true # sequence
-    _tmp = apply('sp', :_sp)
+    _tmp = _cont()
     unless _tmp
       self.pos = _save10
       break
@@ -2572,7 +2647,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save11
       break
     end
-    _tmp = apply('sp', :_sp)
+    _tmp = _cont()
     unless _tmp
       self.pos = _save11
       break
@@ -4040,6 +4115,642 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = true
     unless _tmp
       self.pos = _save4
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
+    break
+    end # end choice
+
+    return _tmp
+  end
+
+  # quoted = ("\"" ("\\\"" { "\"" } | < "\\" . > { text } | < /[^\\"]+/ > { text })*:c "\"" { c.join } | "{" ("\\" < ("{" | "}") > { text } | < "\\" . > { text } | < /[^\\\{\}]+/ > { text })*:c "}" { c.join } | "[" ("\\" < ("[" | "]") > { text } | < "\\" . > { text } | < /[^\\\[\]]+/ > { text })*:c "]" { c.join } | "`" ("\\`" { "`" } | < "\\" . > { text } | < /[^\\`]+/ > { text })*:c "`" { c.join } | "'" ("\\'" { "'" } | < "\\" . > { text } | < /[^\\']+/ > { text })*:c "'" { c.join })
+  def _quoted
+
+    _save = self.pos
+    while true # choice
+
+    _save1 = self.pos
+    while true # sequence
+    _tmp = match_string("\"")
+    unless _tmp
+      self.pos = _save1
+      break
+    end
+    _ary = []
+    while true
+
+    _save3 = self.pos
+    while true # choice
+
+    _save4 = self.pos
+    while true # sequence
+    _tmp = match_string("\\\"")
+    unless _tmp
+      self.pos = _save4
+      break
+    end
+    @result = begin;  "\"" ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save4
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save3
+
+    _save5 = self.pos
+    while true # sequence
+    _text_start = self.pos
+
+    _save6 = self.pos
+    while true # sequence
+    _tmp = match_string("\\")
+    unless _tmp
+      self.pos = _save6
+      break
+    end
+    _tmp = get_byte
+    unless _tmp
+      self.pos = _save6
+    end
+    break
+    end # end sequence
+
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save5
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save5
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save3
+
+    _save7 = self.pos
+    while true # sequence
+    _text_start = self.pos
+    _tmp = scan(/\A(?-mix:[^\\"]+)/)
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save7
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save7
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save3
+    break
+    end # end choice
+
+    _ary << @result if _tmp
+    break unless _tmp
+    end
+    _tmp = true
+    @result = _ary
+    c = @result
+    unless _tmp
+      self.pos = _save1
+      break
+    end
+    _tmp = match_string("\"")
+    unless _tmp
+      self.pos = _save1
+      break
+    end
+    @result = begin;  c.join ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save1
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
+
+    _save8 = self.pos
+    while true # sequence
+    _tmp = match_string("{")
+    unless _tmp
+      self.pos = _save8
+      break
+    end
+    _ary = []
+    while true
+
+    _save10 = self.pos
+    while true # choice
+
+    _save11 = self.pos
+    while true # sequence
+    _tmp = match_string("\\")
+    unless _tmp
+      self.pos = _save11
+      break
+    end
+    _text_start = self.pos
+
+    _save12 = self.pos
+    while true # choice
+    _tmp = match_string("{")
+    break if _tmp
+    self.pos = _save12
+    _tmp = match_string("}")
+    break if _tmp
+    self.pos = _save12
+    break
+    end # end choice
+
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save11
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save11
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save10
+
+    _save13 = self.pos
+    while true # sequence
+    _text_start = self.pos
+
+    _save14 = self.pos
+    while true # sequence
+    _tmp = match_string("\\")
+    unless _tmp
+      self.pos = _save14
+      break
+    end
+    _tmp = get_byte
+    unless _tmp
+      self.pos = _save14
+    end
+    break
+    end # end sequence
+
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save13
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save13
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save10
+
+    _save15 = self.pos
+    while true # sequence
+    _text_start = self.pos
+    _tmp = scan(/\A(?-mix:[^\\\{\}]+)/)
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save15
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save15
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save10
+    break
+    end # end choice
+
+    _ary << @result if _tmp
+    break unless _tmp
+    end
+    _tmp = true
+    @result = _ary
+    c = @result
+    unless _tmp
+      self.pos = _save8
+      break
+    end
+    _tmp = match_string("}")
+    unless _tmp
+      self.pos = _save8
+      break
+    end
+    @result = begin;  c.join ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save8
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
+
+    _save16 = self.pos
+    while true # sequence
+    _tmp = match_string("[")
+    unless _tmp
+      self.pos = _save16
+      break
+    end
+    _ary = []
+    while true
+
+    _save18 = self.pos
+    while true # choice
+
+    _save19 = self.pos
+    while true # sequence
+    _tmp = match_string("\\")
+    unless _tmp
+      self.pos = _save19
+      break
+    end
+    _text_start = self.pos
+
+    _save20 = self.pos
+    while true # choice
+    _tmp = match_string("[")
+    break if _tmp
+    self.pos = _save20
+    _tmp = match_string("]")
+    break if _tmp
+    self.pos = _save20
+    break
+    end # end choice
+
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save19
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save19
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save18
+
+    _save21 = self.pos
+    while true # sequence
+    _text_start = self.pos
+
+    _save22 = self.pos
+    while true # sequence
+    _tmp = match_string("\\")
+    unless _tmp
+      self.pos = _save22
+      break
+    end
+    _tmp = get_byte
+    unless _tmp
+      self.pos = _save22
+    end
+    break
+    end # end sequence
+
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save21
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save21
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save18
+
+    _save23 = self.pos
+    while true # sequence
+    _text_start = self.pos
+    _tmp = scan(/\A(?-mix:[^\\\[\]]+)/)
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save23
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save23
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save18
+    break
+    end # end choice
+
+    _ary << @result if _tmp
+    break unless _tmp
+    end
+    _tmp = true
+    @result = _ary
+    c = @result
+    unless _tmp
+      self.pos = _save16
+      break
+    end
+    _tmp = match_string("]")
+    unless _tmp
+      self.pos = _save16
+      break
+    end
+    @result = begin;  c.join ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save16
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
+
+    _save24 = self.pos
+    while true # sequence
+    _tmp = match_string("`")
+    unless _tmp
+      self.pos = _save24
+      break
+    end
+    _ary = []
+    while true
+
+    _save26 = self.pos
+    while true # choice
+
+    _save27 = self.pos
+    while true # sequence
+    _tmp = match_string("\\`")
+    unless _tmp
+      self.pos = _save27
+      break
+    end
+    @result = begin;  "`" ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save27
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save26
+
+    _save28 = self.pos
+    while true # sequence
+    _text_start = self.pos
+
+    _save29 = self.pos
+    while true # sequence
+    _tmp = match_string("\\")
+    unless _tmp
+      self.pos = _save29
+      break
+    end
+    _tmp = get_byte
+    unless _tmp
+      self.pos = _save29
+    end
+    break
+    end # end sequence
+
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save28
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save28
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save26
+
+    _save30 = self.pos
+    while true # sequence
+    _text_start = self.pos
+    _tmp = scan(/\A(?-mix:[^\\`]+)/)
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save30
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save30
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save26
+    break
+    end # end choice
+
+    _ary << @result if _tmp
+    break unless _tmp
+    end
+    _tmp = true
+    @result = _ary
+    c = @result
+    unless _tmp
+      self.pos = _save24
+      break
+    end
+    _tmp = match_string("`")
+    unless _tmp
+      self.pos = _save24
+      break
+    end
+    @result = begin;  c.join ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save24
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
+
+    _save31 = self.pos
+    while true # sequence
+    _tmp = match_string("'")
+    unless _tmp
+      self.pos = _save31
+      break
+    end
+    _ary = []
+    while true
+
+    _save33 = self.pos
+    while true # choice
+
+    _save34 = self.pos
+    while true # sequence
+    _tmp = match_string("\\'")
+    unless _tmp
+      self.pos = _save34
+      break
+    end
+    @result = begin;  "'" ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save34
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save33
+
+    _save35 = self.pos
+    while true # sequence
+    _text_start = self.pos
+
+    _save36 = self.pos
+    while true # sequence
+    _tmp = match_string("\\")
+    unless _tmp
+      self.pos = _save36
+      break
+    end
+    _tmp = get_byte
+    unless _tmp
+      self.pos = _save36
+    end
+    break
+    end # end sequence
+
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save35
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save35
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save33
+
+    _save37 = self.pos
+    while true # sequence
+    _text_start = self.pos
+    _tmp = scan(/\A(?-mix:[^\\']+)/)
+    if _tmp
+      set_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save37
+      break
+    end
+    @result = begin;  text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save37
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save33
+    break
+    end # end choice
+
+    _ary << @result if _tmp
+    break unless _tmp
+    end
+    _tmp = true
+    @result = _ary
+    c = @result
+    unless _tmp
+      self.pos = _save31
+      break
+    end
+    _tmp = match_string("'")
+    unless _tmp
+      self.pos = _save31
+      break
+    end
+    @result = begin;  c.join ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save31
     end
     break
     end # end sequence
