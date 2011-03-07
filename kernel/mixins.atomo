@@ -46,13 +46,13 @@ obj unmix: (mod: Module) :=
               this-super module == mod))
         then: {
           Atomo::Mixins reset-method-cache: obj
-          last-super superclass = this-super direct_superclass
+          last-super superclass set!: this-super direct_superclass
           Atomo::Mixins reset-method-cache: obj
           return(nil)
         }
         else: {
-          last-super = this-super
-          this-super = this-super direct_superclass
+          last-super set!: this-super
+          this-super set!: this-super direct_superclass
         }
     }
 
