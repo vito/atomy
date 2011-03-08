@@ -9,8 +9,8 @@ data(Doc) {
 
 
 -- trivial emptiness check
-Empty empty? := True
-Doc empty? := False
+Empty empty? := true
+Doc empty? := false
 
 
 -- width of a document
@@ -45,7 +45,7 @@ Empty    <+> (d: Doc) := d
     rest = a below nest: (l width + 1)
     Above new(first, rest, a overlap?)
   } call
-(l: Doc) <+> (r: Doc) := Beside new(l, r, True)
+(l: Doc) <+> (r: Doc) := Beside new(l, r, true)
 
 
 -- position one document beside another unless either are empty
@@ -57,15 +57,15 @@ Empty    <> (d: Doc) := d
     rest = a below nest: l width
     Above new(first, rest, a overlap?)
   } call
-(l: Doc) <> (r: Doc) := Beside new(l, r, False)
+(l: Doc) <> (r: Doc) := Beside new(l, r, false)
 
 
 -- position one document above another, overlapping if possible
-(a: Doc) // (b: Doc) := Above new(a, b, True)
+(a: Doc) // (b: Doc) := Above new(a, b, true)
 
 
 -- position one document above another
-(a: Doc) /+/ (b: Doc) := Above new(a, b, False)
+(a: Doc) /+/ (b: Doc) := Above new(a, b, false)
 
 
 -- indent the document to a given depth
@@ -225,8 +225,8 @@ module(Atomo::AST) {
   Primitive pretty :=
     @value match: {
       #self -> text: "self"
-      #true -> text: "True"
-      #false -> text: "False"
+      #true -> text: "true"
+      #false -> text: "false"
       #nil -> text: "nil"
       x -> x pretty
     }

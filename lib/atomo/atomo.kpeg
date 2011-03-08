@@ -131,9 +131,9 @@
          level3 = keyword_send | level2
          level4 = binary_send | level3
 
-           true = line:line "True" !f_identifier
+           true = line:line "true" !f_identifier
                     { Atomo::AST::Primitive.new(line, :true) }
-          false = line:line "False" !f_identifier
+          false = line:line "false" !f_identifier
                     { Atomo::AST::Primitive.new(line, :false) }
 
            self = line:line "self" !f_identifier
