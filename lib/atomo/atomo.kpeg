@@ -122,6 +122,7 @@
                 | macro_quote
                 | particle
                 | constant
+                | meta
                 | variable
                 | grouped
                 | block
@@ -222,6 +223,11 @@
                       const_chain(line, names, true)
                     end
                 }
+
+           meta = line:line "__LINE__"
+                    { Atomo::AST::Primitive.new(line, line) }
+                | line:line "__FILE__"
+                    { Atomo::AST::File.new(line) }
 
        variable = line:line identifier:n !":"
                     { Atomo::AST::Variable.new(line, n) }

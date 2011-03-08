@@ -933,7 +933,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # level1 = (true | false | self | nil | number | macro | for_macro | op_assoc_pred | quote | quasi_quote | unquote | string | macro_quote | particle | constant | variable | grouped | block | list | unary_op)
+  # level1 = (true | false | self | nil | number | macro | for_macro | op_assoc_pred | quote | quasi_quote | unquote | string | macro_quote | particle | constant | meta | variable | grouped | block | list | unary_op)
   def _level1
 
     _save = self.pos
@@ -981,6 +981,9 @@ class Atomo::Parser < KPeg::CompiledParser
     break if _tmp
     self.pos = _save
     _tmp = apply('constant', :_constant)
+    break if _tmp
+    self.pos = _save
+    _tmp = apply('meta', :_meta)
     break if _tmp
     self.pos = _save
     _tmp = apply('variable', :_variable)
@@ -2125,6 +2128,65 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = true
     unless _tmp
       self.pos = _save5
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
+    break
+    end # end choice
+
+    return _tmp
+  end
+
+  # meta = (line:line "__LINE__" { Atomo::AST::Primitive.new(line, line) } | line:line "__FILE__" { Atomo::AST::File.new(line) })
+  def _meta
+
+    _save = self.pos
+    while true # choice
+
+    _save1 = self.pos
+    while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save1
+      break
+    end
+    _tmp = match_string("__LINE__")
+    unless _tmp
+      self.pos = _save1
+      break
+    end
+    @result = begin;  Atomo::AST::Primitive.new(line, line) ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save1
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
+
+    _save2 = self.pos
+    while true # sequence
+    _tmp = apply('line', :_line)
+    line = @result
+    unless _tmp
+      self.pos = _save2
+      break
+    end
+    _tmp = match_string("__FILE__")
+    unless _tmp
+      self.pos = _save2
+      break
+    end
+    @result = begin;  Atomo::AST::File.new(line) ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save2
     end
     break
     end # end sequence

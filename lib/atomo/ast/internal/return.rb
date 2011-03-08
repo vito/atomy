@@ -3,10 +3,6 @@ module Atomo
     class Return < Rubinius::AST::Return
       include NodeLike
 
-      def initialize(line, expr)
-        super
-      end
-
       def construct(g, d = nil)
         get(g)
         g.push_int @line
