@@ -81,6 +81,9 @@ macro (data(root, &children))
     `(~decls call)
   } call
 
+a .. b := Range new(a, b)
+a ... b := Range new(a, b, true)
+
 for-macro quote: #w as: { c | c split }
 
 -- TODO: flags
