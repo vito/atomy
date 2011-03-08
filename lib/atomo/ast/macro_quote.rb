@@ -10,13 +10,6 @@ module Atomo
         @line = line
       end
 
-      def ==(b)
-        b.kind_of?(MacroQuote) and \
-        @name == b.name and \
-        @contents == b.contents and \
-        @flags == b.flags
-      end
-
       def construct(g, d)
         get(g)
         g.push_int @line
@@ -27,6 +20,13 @@ module Atomo
         end
         g.make_array @flags.size
         g.send :new, 4
+      end
+
+      def ==(b)
+        b.kind_of?(MacroQuote) and \
+        @name == b.name and \
+        @contents == b.contents and \
+        @flags == b.flags
       end
 
       def bytecode(g)

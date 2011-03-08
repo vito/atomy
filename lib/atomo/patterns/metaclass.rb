@@ -6,6 +6,12 @@ module Atomo::Patterns
       @body = body
     end
 
+    def construct(g)
+      get(g)
+      @body.construct(g, nil)
+      g.send :new, 1
+    end
+
     def ==(b)
       b.kind_of?(Metaclass) and \
       @body == b.body

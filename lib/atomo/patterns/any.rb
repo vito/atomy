@@ -1,5 +1,10 @@
 module Atomo::Patterns
   class Any < Pattern
+    def construct(g)
+      get(g)
+      g.send :new, 0
+    end
+
     def ==(b)
       b.kind_of?(Any)
     end

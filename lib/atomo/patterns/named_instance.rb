@@ -7,6 +7,12 @@ module Atomo::Patterns
       @identifier = n
     end
 
+    def construct(g)
+      get(g)
+      g.push_literal @identifier
+      g.send :new, 1
+    end
+
     def ==(b)
       b.kind_of?(NamedInstance) and \
       @name == b.name

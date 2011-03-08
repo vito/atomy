@@ -7,6 +7,13 @@ module Atomo::Patterns
       @name = n
     end
 
+    def construct(g)
+      get(g)
+      @receiver.construct(g, nil)
+      g.push_literal @name
+      g.send :new, 2
+    end
+
     def ==(b)
       b.kind_of?(Unary) and \
       @receiver == b.receiver and \

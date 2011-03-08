@@ -9,6 +9,15 @@ module Atomo
         @else = elseb
       end
 
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        @condition.construct(g, d)
+        @then.construct(g, d)
+        @else.construct(g, d)
+        g.send :new, 4
+      end
+
       def recursively(stop = nil, &f)
         return f.call self if stop and stop.call(self)
 

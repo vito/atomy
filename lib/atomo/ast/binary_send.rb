@@ -12,6 +12,16 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        g.push_literal @operator
+        @lhs.construct(g, d)
+        @rhs.construct(g, d)
+        g.push_literal @private
+        g.send :new, 5
+      end
+
       def ==(b)
         b.kind_of?(BinarySend) and \
         @operator == b.operator and \
@@ -30,16 +40,6 @@ module Atomo
           @rhs.recursively(stop, &f),
           @private
         )
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        g.push_literal @operator
-        @lhs.construct(g, d)
-        @rhs.construct(g, d)
-        g.push_literal @private
-        g.send :new, 5
       end
 
       def register_macro(body)

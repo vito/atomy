@@ -1,6 +1,14 @@
 class(And < Atomo::AST::Node) {
   initialize(@line, @a, @b) := #ok
 
+  construct(g, d = nil) :=
+    { get(g)
+      g push_int(@line)
+      @a construct(g, d)
+      @b construct(g, d)
+      g send(#new, 3)
+    } call
+
   bytecode(g) :=
     { pos(g)
       done = g new_label
@@ -32,6 +40,14 @@ class(And < Atomo::AST::Node) {
 
 class(Or < Atomo::AST::Node) {
   initialize(@line, @a, @b) := #ok
+
+  construct(g, d = nil) :=
+    { get(g)
+      g push_int(@line)
+      @a construct(g, d)
+      @b construct(g, d)
+      g send(#new, 3)
+    } call
 
   bytecode(g) :=
     { pos(g)

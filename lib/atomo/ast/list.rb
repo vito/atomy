@@ -8,6 +8,16 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        @elements.each do |e|
+          e.construct(g, d)
+        end
+        g.make_array @elements.size
+        g.send :new, 2
+      end
+
       def ==(b)
         b.kind_of?(List) and \
         @elements == b.elements
@@ -22,16 +32,6 @@ module Atomo
             n.recursively(stop, &f)
           end
         )
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @elements.each do |e|
-          e.construct(g, d)
-        end
-        g.make_array @elements.size
-        g.send :new, 2
       end
 
       def bytecode(g)

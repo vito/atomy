@@ -8,6 +8,13 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        @expression.construct(g, quote(d))
+        g.send :new, 2
+      end
+
       def ==(b)
         b.kind_of?(QuasiQuote) and \
         @expression == b.expression
@@ -20,13 +27,6 @@ module Atomo
           @line,
           @expression.recursively(stop, &f)
         )
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @expression.construct(g, d + 1)
-        g.send :new, 2
       end
 
       def bytecode(g)

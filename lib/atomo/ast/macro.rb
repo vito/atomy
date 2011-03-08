@@ -9,18 +9,18 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        @pattern.construct(g)
+        @body.construct(g, d)
+        g.send :new, 3
+      end
+
       def ==(b)
         b.kind_of?(Macro) and \
         @pattern == b.pattern and \
         @body == b.body
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        g.push_literal @pattern
-        @body.construct(g, d)
-        g.send :new, 3
       end
 
       # TODO: if #recursively? is defined, see stages.rb;
@@ -28,7 +28,9 @@ module Atomo
 
       def bytecode(g)
         pos(g)
-        g.push_nil
+        @pattern.construct(g, nil)
+        @body.construct(g, nil)
+        g.send :register_macro, 1
       end
     end
   end

@@ -12,6 +12,26 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        @receiver.construct(g, d)
+        g.push_literal @method_name
+        @arguments.each do |a|
+          a.construct(g, d)
+        end
+        g.make_array @arguments.size
+
+        if @block
+          @block.construct(g, d)
+        else
+          g.push_nil
+        end
+
+        g.push_literal @private
+        g.send :new, 6
+      end
+
       def ==(b)
         b.kind_of?(UnarySend) and \
         @receiver == b.receiver and \
@@ -44,26 +64,6 @@ module Atomo
           @block ? @block.recursively(stop, &f) : nil,
           @private
         )
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @receiver.construct(g, d)
-        g.push_literal @method_name
-        @arguments.each do |a|
-          a.construct(g, d)
-        end
-        g.make_array @arguments.size
-
-        if @block
-          @block.construct(g, d)
-        else
-          g.push_nil
-        end
-
-        g.push_literal @private
-        g.send :new, 6
       end
 
       def bytecode(g)

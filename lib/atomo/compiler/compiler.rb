@@ -116,7 +116,7 @@ module Atomo
         block.deconstruct(g)
       end
 
-      meth.call(g)
+      meth.bytecode(g)
       g.goto done
 
       argmis.set!

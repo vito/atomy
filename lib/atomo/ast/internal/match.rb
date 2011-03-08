@@ -9,6 +9,14 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        @target.construct(g, d)
+        @body.construct(g, d)
+        g.send :new, 3
+      end
+
       def recursively(stop = nil, &f)
         return f.call self if stop and stop.call(self)
 

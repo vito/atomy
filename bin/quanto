@@ -9,15 +9,12 @@ require base + '/macros'
 require base + "/compiler/compiler"
 require base + "/compiler/stages"
 require base + '/parser'
+require base + '/code_loader'
 
 bnd = binding()
 
 Kernel.send(:define_method, :"load:") do |*as|
-  cm = Atomo::Compiler.compile_file *as
-
-  cm.create_script(false)
-
-  MAIN.__send__ :__script__
+  Atomo::CodeLoader.load_file *as
 end
 
 a = Time.now
@@ -26,7 +23,7 @@ send(:"load:", kernel + "/boot.atomo")
 puts Time.now - a
 
 if ARGV[0]
-  send(:"load:", ARGV[0], true)
+  send(:"load:", ARGV[0])
   exit(0)
 end
 

@@ -8,6 +8,13 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        g.push_literal @value
+        g.send :new, 2
+      end
+
       def ==(b)
         b.kind_of?(Primitive) and \
         @value == b.value

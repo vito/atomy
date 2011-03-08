@@ -7,6 +7,13 @@ module Atomo::Patterns
       @default = d
     end
 
+    def construct(g)
+      get(g)
+      @pattern.construct(g)
+      @default.construct(g, nil)
+      g.send :new, 2
+    end
+
     def ==(b)
       b.kind_of?(Default) and \
       @pattern == b.pattern and \

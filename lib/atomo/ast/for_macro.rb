@@ -8,16 +8,16 @@ module Atomo
         @line = line
       end
 
-      def ==(b)
-        b.kind_of?(ForMacro) and \
-        @body == b.body
-      end
-
       def construct(g, d)
         get(g)
         g.push_int @line
         @body.construct(g, d)
         g.send :new, 2
+      end
+
+      def ==(b)
+        b.kind_of?(ForMacro) and \
+        @body == b.body
       end
 
       def recursively(stop = nil, &f)
@@ -27,7 +27,13 @@ module Atomo
 
       def bytecode(g)
         pos(g)
-        g.push_nil
+        g.push_const :Atomo
+        g.find_const :Compiler
+        @body.construct(g, nil)
+        g.push_const :Atomo
+        g.find_const :Macro
+        g.find_const :CURRENT_ENV
+        g.send :evaluate_node, 2
       end
     end
   end

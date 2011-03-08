@@ -6,6 +6,15 @@ module Atomo::Patterns
       @patterns = ps
     end
 
+    def construct(g)
+      get(g)
+      @patterns.each do |p|
+        p.construct(g)
+      end
+      g.make_array @patterns.size
+      g.send :new, 1
+    end
+
     def ==(b)
       b.kind_of?(List) and \
       @patterns == b.patterns

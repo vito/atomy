@@ -7,6 +7,13 @@ module Atomo::Patterns
       @tail = tail
     end
 
+    def construct(g)
+      get(g)
+      @head.construct(g)
+      @tail.construct(g)
+      g.send :new, 2
+    end
+
     def ==(b)
       b.kind_of?(HeadTail) and \
       @head == b.head and \

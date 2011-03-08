@@ -6,6 +6,12 @@ module Atomo::Patterns
       @pattern = p
     end
 
+    def construct(g)
+      get(g)
+      @pattern.construct(g)
+      g.send :new, 1
+    end
+
     def ==(b)
       b.kind_of?(Splat) and \
       @pattern == b.pattern

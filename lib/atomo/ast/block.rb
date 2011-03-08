@@ -23,28 +23,42 @@ module Atomo
         @parent = nil
       end
 
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        @body.construct(g, d)
+        @arguments.construct(g, d)
+        g.send :new, 3
+      end
+
       attr_reader :body, :arguments
 
       def recursively(stop = nil, &f)
         return f.call self if stop and stop.call(self)
         f.call Block.new(@line, body.recursively(stop, &f), @arguments)
       end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @body.expressions.each do |e|
-          e.construct(g, d)
-        end
-        g.make_array @body.expressions.size
-        g.push_literal @arguments
-        g.send :new, 3
-      end
     end
 
     class BlockArguments < AST::Node
+      attr_reader :arguments
+
       def initialize(args)
-        @arguments = args.collect { |a| Patterns.from_node a }
+        @arguments = args.collect do |a|
+          if a.kind_of?(Patterns::Pattern)
+            a
+          else
+            Patterns.from_node a
+          end
+        end
+      end
+
+      def construct(g, d = nil)
+        get(g)
+        @arguments.each do |a|
+          a.construct(g)
+        end
+        g.make_array @arguments.size
+        g.send :new, 1
       end
 
       def bytecode(g)
@@ -102,6 +116,16 @@ module Atomo
       def initialize(line, expressions)
         @expressions = expressions
         @line = line
+      end
+
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        @expressions.each do |e|
+          e.construct(g, d)
+        end
+        g.make_array @expressions.size
+        g.send :new, 2
       end
 
       def empty?

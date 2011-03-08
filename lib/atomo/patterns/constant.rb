@@ -6,6 +6,12 @@ module Atomo::Patterns
       @constant = constant
     end
 
+    def construct(g)
+      get(g)
+      @constant.construct(g, nil)
+      g.send :new, 1
+    end
+
     def ==(b)
       b.kind_of?(Constant) and \
         @constant == b.constant

@@ -20,6 +20,23 @@ module Atomo
         end
 
         @body = Rubinius::AST::ClassScope.new @line, @name, body
+
+        @_name = name
+        @_superclass = superclass
+        @_body = body
+      end
+
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        @_name.construct(g, d)
+        if @_superclass
+          @_superclass.construct(g, d)
+        else
+          g.push_nil
+        end
+        @_body.construct(g, d)
+        g.send :new, 4
       end
 
       def recursively(stop = nil, &f)

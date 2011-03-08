@@ -19,8 +19,7 @@ module Atomo
       # an unquote at depth 0 should push the unquote's contents rather
       # than itself
       def construct(g, d)
-        pos(g)
-        g.push_literal self
+        raise Rubinius::CompileError, "no #construct for #{self}"
       end
 
       def through_quotes(stop_ = nil, &f)
@@ -78,6 +77,16 @@ module Atomo
         end
 
         recursively(stop, &scan)
+      end
+
+      def unquote(d)
+        return unless d
+        d - 1
+      end
+
+      def quote(d)
+        return unless d
+        d + 1
       end
 
       def get(g)

@@ -8,6 +8,13 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        @expression.construct(g, d)
+        g.send :new, 2
+      end
+
       def ==(b)
         b.kind_of?(Quote) and \
         @expression == b.expression
@@ -22,16 +29,9 @@ module Atomo
         )
       end
 
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @expression.construct(g, d)
-        g.send :new, 2
-      end
-
       def bytecode(g)
         pos(g)
-        g.push_literal @expression
+        @expression.construct(g, nil)
       end
     end
   end

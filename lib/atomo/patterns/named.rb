@@ -9,6 +9,13 @@ module Atomo::Patterns
       @variable = nil
     end
 
+    def construct(g)
+      get(g)
+      g.push_literal @name
+      @pattern.construct(g)
+      g.send :new, 2
+    end
+
     def ==(b)
       b.kind_of?(Named) and \
       @name == b.name and \

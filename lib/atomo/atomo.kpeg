@@ -162,8 +162,8 @@
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
         op_pred = sig_wsp < /[0-9]+/ > { text.to_i }
   op_assoc_pred = line:line "operator" op_assoc?:assoc op_pred:pred (sig_wsp operator)+:os
-                    { os.each do |o| set_op_info(o, assoc, pred) end
-                      Atomo::AST::Primitive.new(line, :nil)
+                    { Atomo::Macro.set_op_info(os, assoc, pred)
+                      Atomo::AST::Operator.new(line, os, assoc, pred)
                     }
 
           quote = line:line "'" level1:e

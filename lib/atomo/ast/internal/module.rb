@@ -18,6 +18,15 @@ module Atomo
         end
 
         @body = Rubinius::AST::ModuleScope.new @line, @name, body
+        @_body = body
+      end
+
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        @name.construct(g, d)
+        @_body.construct(g, d)
+        g.send :new, 3
       end
 
       def recursively(stop = nil, &f)

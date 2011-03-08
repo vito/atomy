@@ -5,8 +5,11 @@ module Atomo
 
       attr_reader :name
 
-      def initialize(line, body)
-        super
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        @body.construct(g, d)
+        g.send :new, 2
       end
 
       def ==(b)
@@ -21,13 +24,6 @@ module Atomo
           @line,
           @body.recursively(stop, &f)
         )
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @body.construct(g, d)
-        g.send :new, 2
       end
     end
   end

@@ -7,6 +7,15 @@ module Atomo
         @line = line
         @receiver = receiver
         @body = Rubinius::AST::SClassScope.new @line, body
+        @_body = body
+      end
+
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        @receiver.construct(g, d)
+        @_body.construct(g, d)
+        g.send :new, 3
       end
 
       def recursively(stop = nil, &f)

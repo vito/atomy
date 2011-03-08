@@ -11,6 +11,22 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        @receiver.construct(g, d)
+        @names.each do |n|
+          g.push_literal n
+        end
+        g.make_array @names.size
+        @arguments.each do |a|
+          a.construct(g, d)
+        end
+        g.make_array @arguments.size
+        g.push_literal @private
+        g.send :new, 5
+      end
+
       def ==(b)
         b.kind_of?(KeywordSend) and \
         @receiver == b.receiver and \
@@ -40,22 +56,6 @@ module Atomo
           end,
           @private
         )
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @receiver.construct(g, d)
-        @names.each do |n|
-          g.push_literal n
-        end
-        g.make_array @names.size
-        @arguments.each do |a|
-          a.construct(g, d)
-        end
-        g.make_array @arguments.size
-        g.push_literal @private
-        g.send :new, 5
       end
 
       def bytecode(g)

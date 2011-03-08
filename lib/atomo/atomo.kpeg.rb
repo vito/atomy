@@ -1513,7 +1513,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # op_assoc_pred = line:line "operator" op_assoc?:assoc op_pred:pred (sig_wsp operator)+:os { os.each do |o| set_op_info(o, assoc, pred) end                       Atomo::AST::Primitive.new(line, :nil)                     }
+  # op_assoc_pred = line:line "operator" op_assoc?:assoc op_pred:pred (sig_wsp operator)+:os { Atomo::Macro.set_op_info(os, assoc, pred)                       Atomo::AST::Operator.new(line, os, assoc, pred)                     }
   def _op_assoc_pred
 
     _save = self.pos
@@ -1595,8 +1595,8 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    @result = begin;  os.each do |o| set_op_info(o, assoc, pred) end
-                      Atomo::AST::Primitive.new(line, :nil)
+    @result = begin;  Atomo::Macro.set_op_info(os, assoc, pred)
+                      Atomo::AST::Operator.new(line, os, assoc, pred)
                     ; end
     _tmp = true
     unless _tmp

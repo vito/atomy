@@ -2,12 +2,25 @@ class MethodFail < ArgumentError
   def initialize(mn)
     @method_name = mn
   end
+
+  def message
+    "method #{@method_name} did not understand " +
+      "its arguments (non-exhaustive patterns)"
+  end
 end
 
 module Atomo
   OPERATORS = {}
 
   module Macro
+    def self.set_op_info(ops, assoc, prec)
+      ops.each do |o|
+        info = OPERATORS[o] ||= {}
+        info[:assoc] = assoc
+        info[:prec] = prec
+      end
+    end
+
     class Environment
       attr_accessor :macros, :quoters
 
@@ -36,7 +49,7 @@ module Atomo
       body = expand(body) # TODO: verify this
 
       methods = CURRENT_ENV.macros
-      method = [[Patterns::Any.new, args], body.method(:bytecode)]
+      method = [[Patterns::Any.new, args], body]
       if ms = methods[name]
         ms << method
       else

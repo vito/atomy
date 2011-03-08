@@ -23,6 +23,17 @@ module Atomo
         @body = body
       end
 
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        @lhs.construct(g, d)
+        g.push_literal @name
+        @receiver.construct(g)
+        @arguments.construct(g)
+        @body.construct(g, d)
+        g.send :new, 6
+      end
+
       def compile_body(g)
         meth = new_generator(g, "__atomo_#{@name}__".to_sym, @arguments)
         meth.push_state self
@@ -74,13 +85,13 @@ module Atomo
 
         create = g.new_label
         added = g.new_label
-        g.push_literal @receiver
+        @receiver.construct(g)
         @arguments.patterns.each do |p|
-          g.push_literal p
+          p.construct(g)
         end
         g.make_array @arguments.size
         g.make_array 2
-        g.push_unique_literal @body.method(:bytecode)
+        @body.construct(g, nil)
         g.make_array 2
 
         @receiver.target(g)
@@ -126,11 +137,20 @@ module Atomo
         @receiver.local_names + @arguments.local_names
       end
 
-      class DefineArguments
+      class DefineArguments < Node
         attr_accessor :patterns
 
         def initialize(args)
           @patterns = args.collect { |a| Patterns.from_node(a) }
+        end
+
+        def construct(g, d = nil)
+          get(g)
+          @patterns.each do |a|
+            a.construct(g)
+          end
+          g.make_array @patterns.size
+          g.send :new, 1
         end
 
         def bytecode(g)

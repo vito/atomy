@@ -25,6 +25,22 @@ module Atomo::Patterns
       g.pop
     end
 
+    # helper for pushing the current class const onto the stack
+    def get(g)
+      self.class.name.split("::").each_with_index do |n, i|
+        if i == 0
+          g.push_const n.to_sym
+        else
+          g.find_const n.to_sym
+        end
+      end
+    end
+
+    # create the pattern on the stack
+    def construct(g)
+      raise Rubinius::CompileError, "no #construct for #{self}"
+    end
+
     # try pattern-matching, erroring on failure
     # effect on the stack: top value removed
     def match(g, set = false)
@@ -51,7 +67,7 @@ module Atomo::Patterns
       g.pop
       g.push_self
       g.push_const :PatternMismatch
-      g.push_literal self
+      construct(g)
       g.send :new, 1
       g.allow_private
       g.send :raise, 1

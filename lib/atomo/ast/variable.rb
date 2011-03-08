@@ -9,6 +9,13 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        g.push_literal @name
+        g.send :new, 2
+      end
+
       def ==(b)
         b.kind_of?(Variable) and \
         @name == b.name

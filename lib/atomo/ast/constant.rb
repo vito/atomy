@@ -8,6 +8,13 @@ module Atomo
         @name = name.to_sym
       end
 
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        g.push_literal @name
+        g.send :new, 2
+      end
+
       def ==(b)
         b.kind_of?(Constant) and \
           @name == b.name
@@ -32,6 +39,13 @@ module Atomo
       def initialize(line, name)
         @line = line
         @name = name.to_sym
+      end
+
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        g.push_literal @name
+        g.send :new, 2
       end
 
       def ==(b)
@@ -60,6 +74,14 @@ module Atomo
         @line = line
         @parent = parent
         @name = name.to_sym
+      end
+
+      def construct(g, d = nil)
+        get(g)
+        g.push_int @line
+        @parent.construct(g, d)
+        g.push_literal @name
+        g.send :new, 3
       end
 
       def ==(b)

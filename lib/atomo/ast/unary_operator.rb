@@ -10,6 +10,14 @@ module Atomo
         @line = line
       end
 
+      def construct(g, d)
+        get(g)
+        g.push_int @line
+        g.push_literal @operator
+        @receiver.construct(g, d)
+        g.send :new, 3
+      end
+
       def ==(b)
         b.kind_of?(UnaryOperator) and \
         @operator == b.operator and \
@@ -24,14 +32,6 @@ module Atomo
           @operator,
           @receiver.recursively(stop, &f)
         )
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        g.push_literal @operator
-        @receiver.construct(g, d)
-        g.send :new, 3
       end
 
       def register_macro(body)

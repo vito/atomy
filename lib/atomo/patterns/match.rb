@@ -6,6 +6,12 @@ module Atomo::Patterns
       @value = x
     end
 
+    def construct(g)
+      get(g)
+      g.push_literal @value
+      g.send :new, 1
+    end
+
     def ==(b)
       b.kind_of?(Match) and \
       @value == b.value
