@@ -1,0 +1,37 @@
+describe: "pattern-matching" as: {
+  describe: "expressions" as: {
+    describe: "quote" as: {
+      it: "does basic expression equality check" so: {
+        ('abc match: { 'abc -> true }) should-be: true
+        ('(1 + 2) match: { '(1 + 2) -> true }) should-be: true
+        ('(1 * 2) match: { '(1 + 2) -> true }) should-be: nil
+      }
+    }
+
+    describe: "quasi-quote" as: {
+      it: "matches expressions like quote" so: {
+        ('abc match: { `abc -> true }) should-be: true
+      }
+
+      it: "allows destructural binding via unquote" so: {
+        ('(1 + 2) match: { `(1 + ~x) -> x }) should-be: '2
+      }
+
+      it: "matches expression attributes like method names" so: {
+        ('(1 + 2) match: { `(1 + 2) -> true }) should-be: true
+        ('(1 + 2) match: { `(1 * 2) -> true }) should-be: nil
+      }
+
+      it: "has the same quote/unquote semantics as a quasiquote" so: {
+        ('(1 + `(2 + ~x)) match: {
+          `(1 + `(2 + ~~y)) -> y
+        }) should-be: 'x
+      }
+
+      it: "allows arbitrary patterns in an unquote" so: {
+        ('(1 + 2) match: { `(1 + ~('2)) -> true }) should-be: true
+        ('(1 + 2) match: { `(1 + ~('3)) -> true }) should-be: nil
+      }
+    }
+  }
+}
