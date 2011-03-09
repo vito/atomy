@@ -26,6 +26,14 @@ describe: "pattern-matching" as: {
         ('(1 + `(2 + ~x)) match: {
           `(1 + `(2 + ~~y)) -> y
         }) should-be: 'x
+
+        ('(1 + `(~x + ~x)) match: {
+          `(1 + `(~x + ~~y)) -> y
+        }) should-be: 'x
+
+        ('(1 + `(~x + ~x)) match: {
+          `(1 + `(~y + ~~y)) -> y
+        }) should-be: nil
       }
 
       it: "allows arbitrary patterns in an unquote" so: {
