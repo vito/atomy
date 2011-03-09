@@ -133,7 +133,7 @@ module Atomo::Patterns
       them = g.new_stack_local
       g.set_stack_local them
       g.pop
-      
+
       where = []
       depth = 1
 
@@ -173,6 +173,78 @@ module Atomo::Patterns
       }
 
       @expression.recursively(pre, post, &action)
+    end
+
+    def local_names
+      names = []
+
+      depth = 1
+
+      pre = proc { |n, c|
+        n.kind_of?(Atomo::AST::QuasiQuote) ||
+          n.kind_of?(Atomo::AST::Unquote)
+      }
+
+      action = proc { |e|
+        if e.kind_of?(Atomo::AST::Unquote)
+          depth -= 1
+          if depth == 0
+            names += Atomo::Patterns.from_node(e.expression).local_names
+            depth += 1
+            next e
+          end
+          e.expression.recursively(pre, &action)
+          depth += 1
+        end
+
+        if e.kind_of?(Atomo::AST::QuasiQuote)
+          depth += 1
+          e.expression.recursively(pre, &action)
+          depth -= 1
+        end
+
+        e
+      }
+
+      @expression.recursively(pre, &action)
+
+      names
+    end
+
+    def bindings
+      bindings = 0
+
+      depth = 1
+
+      pre = proc { |n, c|
+        n.kind_of?(Atomo::AST::QuasiQuote) ||
+          n.kind_of?(Atomo::AST::Unquote)
+      }
+
+      action = proc { |e|
+        if e.kind_of?(Atomo::AST::Unquote)
+          depth -= 1
+          if depth == 0
+            bindings += Atomo::Patterns.from_node(e.expression).bindings
+            depth += 1
+            next e
+          end
+          e.expression.recursively(pre, &action)
+          depth += 1
+        end
+
+        if e.kind_of?(Atomo::AST::QuasiQuote)
+          depth += 1
+          e.expression.recursively(pre, &action)
+          depth -= 1
+        end
+
+        e
+      }
+
+      @expression.recursively(pre, &action)
+
+      bindings
     end
   end
 end
