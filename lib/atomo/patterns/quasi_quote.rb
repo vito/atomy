@@ -29,15 +29,18 @@ module Atomo::Patterns
       g.pop
 
       where = []
-      depth = 0
-      @expression.recursively(
-        proc { |n, c|
-          where << c if c
-          n.kind_of?(Atomo::AST::Unquote) || n.kind_of?(Atomo::AST::QuasiQuote)
-        },
-        proc { where.pop }
-      ) do |e|
+      depth = 1
+
+      pre = proc { |n, c|
+        where << c if c
+        n.kind_of?(Atomo::AST::QuasiQuote) || n.kind_of?(Atomo::AST::Unquote)
+      }
+
+      post = proc { where.pop }
+
+      action = proc { |e|
         if e.kind_of?(Atomo::AST::Unquote)
+          depth -= 1
           if depth == 0
             g.push_stack_local them
             where.each do |a|
@@ -45,12 +48,20 @@ module Atomo::Patterns
             end
             Atomo::Patterns.from_node(e.expression).matches?(g)
             g.gif mismatch
+            depth += 1
             next e
           end
-          depth -= 1
-        end
 
-        if e.kind_of?(Atomo::AST::QuasiQuote)
+          e.get(g)
+          g.push_stack_local them
+          where.each do |a|
+            g.send a, 0
+          end
+          g.kind_of
+          g.gif mismatch
+
+          where << :expression
+          e.expression.recursively(pre, post, &action)
           depth += 1
         end
 
@@ -61,6 +72,13 @@ module Atomo::Patterns
         end
         g.kind_of
         g.gif mismatch
+
+        if e.kind_of?(Atomo::AST::QuasiQuote)
+          depth += 1
+          where << :expression
+          e.expression.recursively(pre, post, &action)
+          depth -= 1
+        end
 
         e.details.each do |a|
           val = e.send(a)
@@ -90,8 +108,11 @@ module Atomo::Patterns
         end
         g.send :==, 1
         g.gif mismatch
+
         e
-      end
+      }
+
+      @expression.recursively(pre, post, &action)
 
       g.push_true
       g.goto done
@@ -106,35 +127,45 @@ module Atomo::Patterns
       them = g.new_stack_local
       g.set_stack_local them
       g.pop
-
+      
       where = []
-      depth = 0
-      @expression.recursively(
-        proc { |n, c|
-          where << c if c
-          n.kind_of?(Atomo::AST::Unquote) || n.kind_of?(Atomo::AST::QuasiQuote)
-        },
-        proc { where.pop }
-      ) do |e|
+      depth = 1
+
+      pre = proc { |n, c|
+        where << c if c
+        n.kind_of?(Atomo::AST::QuasiQuote) || n.kind_of?(Atomo::AST::Unquote)
+      }
+
+      post = proc { where.pop }
+
+      action = proc { |e|
         if e.kind_of?(Atomo::AST::Unquote)
+          depth -= 1
           if depth == 0
             g.push_stack_local them
             where.each do |a|
               g.send a, 0
             end
-            Atomo::Patterns.from_node(e.expression).deconstruct(g, locals)
+            Atomo::Patterns.from_node(e.expression).deconstruct(g)
+            depth += 1
             next e
           end
-
-          depth -= 1
+          where << :expression
+          e.expression.recursively(pre, post, &action)
+          depth += 1
         end
 
         if e.kind_of?(Atomo::AST::QuasiQuote)
           depth += 1
+          where << :expression
+          e.expression.recursively(pre, post, &action)
+          depth -= 1
         end
 
         e
-      end
+      }
+
+      @expression.recursively(pre, post, &action)
     end
   end
 end
