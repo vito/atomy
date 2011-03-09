@@ -16,10 +16,11 @@ macro ($(x: 'exception))
 macro ($(x: Variable))
   Atomo::AST::GlobalVariable new(x line, x name)
 
-macro (class(pair: BinarySend, &body))
-  if: (pair lhs == 'self)
-    then: { Atomo::AST::Metaclass new(pair line, pair rhs, body body) }
-    else: { Atomo::AST::Class new(pair line, pair lhs, body body, pair rhs) }
+macro (class(`(<< ~obj), &body))
+  Atomo::AST::Metaclass new(obj line, obj, body body)
+
+macro (class(`(~name < ~super), &body))
+  Atomo::AST::Class new(name line, name, body body, super)
 
 macro (class(name, &body))
   Atomo::AST::Class new(name line, name, body body)
