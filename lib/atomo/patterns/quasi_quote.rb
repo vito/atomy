@@ -26,7 +26,10 @@ module Atomo::Patterns
 
       them = g.new_stack_local
       g.set_stack_local them
-      g.pop
+      @expression.get(g)
+      g.swap
+      g.kind_of
+      g.gif mismatch
 
       where = []
       depth = 1
@@ -133,7 +136,8 @@ module Atomo::Patterns
 
       pre = proc { |n, c|
         where << c if c
-        n.kind_of?(Atomo::AST::QuasiQuote) || n.kind_of?(Atomo::AST::Unquote)
+        n.kind_of?(Atomo::AST::QuasiQuote) ||
+          n.kind_of?(Atomo::AST::Unquote)
       }
 
       post = proc { where.pop }

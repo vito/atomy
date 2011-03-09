@@ -13,6 +13,10 @@ describe: "pattern-matching" as: {
         ('abc match: { `abc -> true }) should-be: true
       }
 
+      it: "fails for expressions of different type" so: {
+        ('abc match: { `(1 + 1) -> true }) should-be: nil
+      }
+
       it: "allows destructural binding via unquote" so: {
         ('(1 + 2) match: { `(1 + ~x) -> x }) should-be: '2
       }

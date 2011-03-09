@@ -222,6 +222,7 @@ EOF
         raise Rubinius::CompileError, "no #construct for #{self}"
       end
 
+      # TODO: this might not be correct; compare to Patterns::QuasiQuote
       def through_quotes(stop_ = nil, &f)
         stop = proc { |x|
           (stop_ && stop_.call(x)) || \
