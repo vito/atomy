@@ -16,8 +16,11 @@ module Atomo::Patterns
     end
 
     def target(g)
-      # TODO
-      Constant.new(-1, @expression.class.name.split("::")).target(g)
+      names = @expression.class.name.split("::")
+      g.push_const names.slice!(0).to_sym
+      names.each do |n|
+        g.find_const n.to_sym
+      end
     end
 
     def matches?(g)
