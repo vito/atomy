@@ -31,7 +31,6 @@ module Atomo
         sub.reset_attributes
       end
 
-
       def spec(into, specs)
         specs.each do |s|
           if s.kind_of?(Array)
@@ -82,9 +81,9 @@ EOF
 EOF
 
         class_eval <<EOF
-          def construct(g, d)
+          def construct(g, d = nil)
             get(g)
-            g.push_int @line
+            g.push_int(@line)
 
             #{@@children[:required].collect { |n|
                 "@#{n}.construct(g, d)"
@@ -95,7 +94,7 @@ EOF
               }.join("; ")}
 
             #{@@attributes[:required].collect { |a|
-                "g.push_literal @#{a}"
+                "g.push_literal(@#{a})"
               }.join("; ")}
 
             #{@@attributes[:many].collect { |a|
@@ -107,7 +106,7 @@ EOF
               }.join("; ")}
 
             #{@@attributes[:optional].collect { |a, _|
-                "g.push_literal @#{a}"
+                "g.push_literal(@#{a})"
               }.join("; ")}
 
             g.send :new, #{all.size + 1}
@@ -123,17 +122,17 @@ EOF
 
         req_cs =
           @@children[:required].collect { |n|
-            ", @#{n}.recursively(stop, &f)"
+            ", @#{n}.recursively(pre, post, :#{n}, &f)"
           }.join
 
         many_cs =
           @@children[:many].collect { |n|
-            ", @#{n}.collect { |n| n.recursively(stop, &f) }"
+            ", @#{n}.collect { |n| n.recursively(pre, post, :#{n}, &f) }"
           }.join
 
         opt_cs =
           @@children[:optional].collect { |n, _|
-            ", @#{n} ? @#{n}.recursively(stop, &f) : nil"
+            ", @#{n} ? @#{n}.recursively(pre, post, :#{n}, &f) : nil"
           }.join
 
         req_as =
@@ -146,12 +145,46 @@ EOF
           }.join
 
         class_eval <<EOF
-          def recursively(stop = nil, &f)
-            return f.call(self) if stop and stop.call(self)
+          def recursively(pre = nil, post = nil, context = nil, &f)
+            if pre and pre.arity == 2
+              stop = pre.call(self, context)
+            elsif pre
+              stop = pre.call(self)
+            else
+              stop = false
+            end
 
-            f.call #{self.name}.new(
+            if stop
+              if f.arity == 2
+                res = f.call(self, context)
+                post.call(context) if post
+                return res
+              else
+                res = f.call(self)
+                post.call(context) if post
+                return res
+              end
+            end
+
+            recursed = #{self.name}.new(
               @line#{req_cs + many_cs + req_as + opt_cs + opt_as}
             )
+
+            if f.arity == 2
+              res = f.call(recursed, context)
+            else
+              res = f.call(recursed)
+            end
+
+            post.call(context) if post
+
+            res
+          end
+EOF
+
+        class_eval <<EOF
+          def bottom?
+            #{@@children.values.flatten(1).empty?.inspect}
           end
 EOF
       end

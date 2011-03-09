@@ -163,6 +163,8 @@ module Atomo::Patterns
       return Particle.new(n.name.to_sym) # TODO: other forms
     when Atomo::AST::UnarySend
       return Unary.new(n.receiver, n.method_name)
+    when Atomo::AST::QuasiQuote
+      return QuasiQuote.new(n.expression)
     end
 
     raise "unknown pattern: " + n.inspect
