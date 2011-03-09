@@ -168,7 +168,7 @@ module(Atomo::AST) {
   }
 
   Block pretty := doc {
-    lbrace <+> Atomo::AST semi-delim: @body expressions <+> rbrace
+    lbrace <+> Atomo::AST semi-delim: @contents <+> rbrace
   }
 
   BlockPass pretty := doc { text: "&" <> @body pretty }
@@ -185,7 +185,7 @@ module(Atomo::AST) {
         _ -> @name pretty
       }
 
-    body = lbrace <+> Atomo::AST semi-delim: @body body expressions <+> rbrace
+    body = lbrace <+> Atomo::AST semi-delim: @body expressions <+> rbrace
 
     text: "class" <> text: "(" <> name <+> sub <> text: ")" <+> body
   }

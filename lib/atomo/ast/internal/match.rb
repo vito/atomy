@@ -11,7 +11,7 @@ module Atomo
 
         @target.bytecode(g)
 
-        @body.body.expressions.each do |e|
+        @body.contents.each do |e|
           skip = g.new_label
 
           pat = Patterns.from_node(e.lhs)

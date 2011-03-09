@@ -5,7 +5,7 @@ me := Actor current
 Actor <- v := send(v)
 
 macro (receive(&body))
-  { bs = body body expressions collect { e |
+  { bs = body contents collect { e |
       blk = Atomo::AST::Block new(body line, [e rhs], [e lhs])
       `(e when(~(Atomo::Patterns from_node(e lhs)), &~blk))
     }
@@ -16,7 +16,7 @@ macro (receive(&body))
   } call
 
 macro (receive: body after: timeout)
-  { bs = body body expressions collect { e |
+  { bs = body contents collect { e |
       blk = Atomo::AST::Block new(body line, [e rhs], [e lhs])
       `(e when(~(Atomo::Patterns from_node(e lhs)), &~blk))
     }

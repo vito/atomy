@@ -28,7 +28,7 @@ macro (module(name, &body))
   Atomo::AST::Module new(name line, name, body body)
 
 macro (data(root, &children))
-  { cs = children body expressions map { e |
+  { cs = children contents map { e |
       e match: {
         Atomo::AST::UnarySend ->
           { init =

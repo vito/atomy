@@ -2,63 +2,68 @@ module Atomo
   module AST
     class Block < Rubinius::AST::Iter
       include NodeLike
+      extend SentientNode
 
-      attr_accessor :parent
+      children [:contents], [:arguments]
+      generate
 
-      def initialize(line, body, args)
-        @line = line
-
-        if body.kind_of? BlockBody
-          @body = body
-        else
-          @body = BlockBody.new @line, body
-        end
-
-        if args.kind_of? BlockArguments
-          @arguments = args
-        else
-          @arguments = BlockArguments.new args
-        end
-
-        @parent = nil
+      def block_arguments
+        BlockArguments.new @arguments
       end
 
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @body.construct(g, d)
-        @arguments.construct(g, d)
-        g.send :new, 3
+      def body
+        BlockBody.new @line, @contents
       end
 
-      attr_reader :body, :arguments
+      def bytecode(g)
+        pos(g)
 
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
-        f.call Block.new(@line, body.recursively(stop, &f), @arguments)
+        state = g.state
+        state.scope.nest_scope self
+
+        blk = new_block_generator g, block_arguments
+
+        blk.push_state self
+        blk.state.push_super state.super
+        blk.state.push_eval state.eval
+
+        blk.state.push_name blk.name
+
+        # Push line info down.
+        pos(blk)
+
+        block_arguments.bytecode(blk)
+
+        blk.state.push_block
+        blk.push_modifiers
+        blk.break = nil
+        blk.next = nil
+        blk.redo = blk.new_label
+        blk.redo.set!
+
+        body.bytecode(blk)
+
+        blk.pop_modifiers
+        blk.state.pop_block
+        blk.ret
+        blk.close
+        blk.pop_state
+
+        blk.splat_index = block_arguments.splat_index
+        blk.local_count = local_count
+        blk.local_names = local_names
+
+        g.create_block blk
       end
     end
 
-    class BlockArguments < AST::Node
+    class BlockArguments
       attr_reader :arguments
 
       def initialize(args)
         @arguments = args.collect do |a|
-          if a.kind_of?(Patterns::Pattern)
-            a
-          else
-            Patterns.from_node a
-          end
+          Patterns.from_node a
         end
-      end
-
-      def construct(g, d = nil)
-        get(g)
-        @arguments.each do |a|
-          a.construct(g)
-        end
-        g.make_array @arguments.size
-        g.send :new, 1
       end
 
       def bytecode(g)
@@ -111,29 +116,11 @@ module Atomo
     end
 
     class BlockBody < Node
-      attr_reader :expressions
-
-      def initialize(line, expressions)
-        @expressions = expressions
-        @line = line
-      end
-
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        @expressions.each do |e|
-          e.construct(g, d)
-        end
-        g.make_array @expressions.size
-        g.send :new, 2
-      end
+      children [:expressions]
+      generate
 
       def empty?
         @expressions.empty?
-      end
-
-      def recursively(stop, &f)
-        BlockBody.new(@line, @expressions.collect { |n| n.recursively(stop, &f) })
       end
 
       def bytecode(g)
