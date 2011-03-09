@@ -192,6 +192,7 @@ module(Atomo::AST) {
 
   ClassVariable pretty := doc { text: @name to_s }
 
+  -- TODO: broken?
   Constant pretty := doc { text: @name to_s }
 
   Define pretty := doc { @lhs pretty <+> text: ":=" <+> @body pretty }
