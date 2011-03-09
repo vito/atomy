@@ -86,7 +86,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = match_string("\t")
     break if _tmp
     self.pos = _save1
-    _tmp = apply('comment', :_comment)
+    _tmp = apply(:_comment)
     break if _tmp
     self.pos = _save1
     break
@@ -113,7 +113,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = match_string("\n")
     break if _tmp
     self.pos = _save1
-    _tmp = apply('comment', :_comment)
+    _tmp = apply(:_comment)
     break if _tmp
     self.pos = _save1
     break
@@ -137,7 +137,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = match_string("\t")
     break if _tmp
     self.pos = _save1
-    _tmp = apply('comment', :_comment)
+    _tmp = apply(:_comment)
     break if _tmp
     self.pos = _save1
     break
@@ -154,7 +154,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = match_string("\t")
     break if _tmp
     self.pos = _save2
-    _tmp = apply('comment', :_comment)
+    _tmp = apply(:_comment)
     break if _tmp
     self.pos = _save2
     break
@@ -184,7 +184,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = match_string("\n")
     break if _tmp
     self.pos = _save1
-    _tmp = apply('comment', :_comment)
+    _tmp = apply(:_comment)
     break if _tmp
     self.pos = _save1
     break
@@ -204,7 +204,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = match_string("\n")
     break if _tmp
     self.pos = _save2
-    _tmp = apply('comment', :_comment)
+    _tmp = apply(:_comment)
     break if _tmp
     self.pos = _save2
     break
@@ -236,7 +236,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save3
       break
     end
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save3
     end
@@ -253,7 +253,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save4
       break
     end
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save4
     end
@@ -284,7 +284,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save6 = self.pos
     while true # sequence
-    _tmp = apply('sig_sp', :_sig_sp)
+    _tmp = apply(:_sig_sp)
     unless _tmp
       self.pos = _save6
       break
@@ -302,7 +302,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save10
       break
     end
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save10
     end
@@ -319,7 +319,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save11
       break
     end
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save11
     end
@@ -378,7 +378,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[[a-z]_])/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -403,7 +403,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:([[:alnum:]\$\+\<=\>\^~_!@#%&*\-.\/\?])*)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -428,7 +428,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[\$\+\<=\>\^~!@&#%\|&*\-.\/\?:])/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -453,7 +453,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:([\$\+\<=\>\^~!@&#%\|&*\-.\/\?:])*)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -478,7 +478,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[[:alpha:]\$\+\<=\>\^`~_!@#%&*\-.\/\?])/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -504,12 +504,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save1 = self.pos
     while true # sequence
-    _tmp = apply('op_start', :_op_start)
+    _tmp = apply(:_op_start)
     unless _tmp
       self.pos = _save1
       break
     end
-    _tmp = apply('op_letters', :_op_letters)
+    _tmp = apply(:_op_letters)
     unless _tmp
       self.pos = _save1
     end
@@ -517,7 +517,7 @@ class Atomo::Parser < KPeg::CompiledParser
     end # end sequence
 
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -543,12 +543,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save1 = self.pos
     while true # sequence
-    _tmp = apply('ident_start', :_ident_start)
+    _tmp = apply(:_ident_start)
     unless _tmp
       self.pos = _save1
       break
     end
-    _tmp = apply('ident_letters', :_ident_letters)
+    _tmp = apply(:_ident_letters)
     unless _tmp
       self.pos = _save1
     end
@@ -556,7 +556,7 @@ class Atomo::Parser < KPeg::CompiledParser
     end # end sequence
 
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -582,12 +582,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save1 = self.pos
     while true # sequence
-    _tmp = apply('f_ident_start', :_f_ident_start)
+    _tmp = apply(:_f_ident_start)
     unless _tmp
       self.pos = _save1
       break
     end
-    _tmp = apply('ident_letters', :_ident_letters)
+    _tmp = apply(:_ident_letters)
     unless _tmp
       self.pos = _save1
     end
@@ -595,7 +595,7 @@ class Atomo::Parser < KPeg::CompiledParser
     end # end sequence
 
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -622,18 +622,18 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('expression', :_expression)
+    _tmp = apply(:_expression)
     x = @result
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
@@ -662,7 +662,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _tmp = scan(/\A(?-mix:--.*?$)/)
     break if _tmp
     self.pos = _save
-    _tmp = apply('multi_comment', :_multi_comment)
+    _tmp = apply(:_multi_comment)
     break if _tmp
     self.pos = _save
     break
@@ -681,7 +681,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('in_multi', :_in_multi)
+    _tmp = apply(:_in_multi)
     unless _tmp
       self.pos = _save
     end
@@ -726,7 +726,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save2
       break
     end
-    _tmp = apply('in_multi', :_in_multi)
+    _tmp = apply(:_in_multi)
     unless _tmp
       self.pos = _save2
       break
@@ -758,7 +758,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save3
       break
     end
-    _tmp = apply('in_multi', :_in_multi)
+    _tmp = apply(:_in_multi)
     unless _tmp
       self.pos = _save3
     end
@@ -781,7 +781,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save1 = self.pos
     while true # sequence
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save1
       break
@@ -802,7 +802,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save1
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save1
     end
@@ -815,7 +815,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save4 = self.pos
     while true # sequence
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save4
       break
@@ -825,7 +825,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save4
       break
     end
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save4
     end
@@ -837,7 +837,7 @@ class Atomo::Parser < KPeg::CompiledParser
     
     _save5 = self.pos
     while true # sequence
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save5
       break
@@ -847,7 +847,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save5
       break
     end
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save5
     end
@@ -870,7 +870,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
   # expression = level4
   def _expression
-    _tmp = apply('level4', :_level4)
+    _tmp = apply(:_level4)
     return _tmp
   end
 
@@ -879,7 +879,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('expression', :_expression)
+    _tmp = apply(:_expression)
     x = @result
     unless _tmp
       self.pos = _save
@@ -890,12 +890,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save2 = self.pos
     while true # sequence
-    _tmp = apply('delim', :_delim)
+    _tmp = apply(:_delim)
     unless _tmp
       self.pos = _save2
       break
     end
-    _tmp = apply('expression', :_expression)
+    _tmp = apply(:_expression)
     unless _tmp
       self.pos = _save2
     end
@@ -913,7 +913,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save3 = self.pos
-    _tmp = apply('delim', :_delim)
+    _tmp = apply(:_delim)
     unless _tmp
       _tmp = true
       self.pos = _save3
@@ -938,67 +938,67 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # choice
-    _tmp = apply('true', :_true)
+    _tmp = apply(:_true)
     break if _tmp
     self.pos = _save
-    _tmp = apply('false', :_false)
+    _tmp = apply(:_false)
     break if _tmp
     self.pos = _save
-    _tmp = apply('self', :_self)
+    _tmp = apply(:_self)
     break if _tmp
     self.pos = _save
-    _tmp = apply('nil', :_nil)
+    _tmp = apply(:_nil)
     break if _tmp
     self.pos = _save
-    _tmp = apply('number', :_number)
+    _tmp = apply(:_number)
     break if _tmp
     self.pos = _save
-    _tmp = apply('macro', :_macro)
+    _tmp = apply(:_macro)
     break if _tmp
     self.pos = _save
-    _tmp = apply('for_macro', :_for_macro)
+    _tmp = apply(:_for_macro)
     break if _tmp
     self.pos = _save
-    _tmp = apply('op_assoc_pred', :_op_assoc_pred)
+    _tmp = apply(:_op_assoc_pred)
     break if _tmp
     self.pos = _save
-    _tmp = apply('quote', :_quote)
+    _tmp = apply(:_quote)
     break if _tmp
     self.pos = _save
-    _tmp = apply('quasi_quote', :_quasi_quote)
+    _tmp = apply(:_quasi_quote)
     break if _tmp
     self.pos = _save
-    _tmp = apply('unquote', :_unquote)
+    _tmp = apply(:_unquote)
     break if _tmp
     self.pos = _save
-    _tmp = apply('string', :_string)
+    _tmp = apply(:_string)
     break if _tmp
     self.pos = _save
-    _tmp = apply('macro_quote', :_macro_quote)
+    _tmp = apply(:_macro_quote)
     break if _tmp
     self.pos = _save
-    _tmp = apply('particle', :_particle)
+    _tmp = apply(:_particle)
     break if _tmp
     self.pos = _save
-    _tmp = apply('constant', :_constant)
+    _tmp = apply(:_constant)
     break if _tmp
     self.pos = _save
-    _tmp = apply('meta', :_meta)
+    _tmp = apply(:_meta)
     break if _tmp
     self.pos = _save
-    _tmp = apply('variable', :_variable)
+    _tmp = apply(:_variable)
     break if _tmp
     self.pos = _save
-    _tmp = apply('grouped', :_grouped)
+    _tmp = apply(:_grouped)
     break if _tmp
     self.pos = _save
-    _tmp = apply('block', :_block)
+    _tmp = apply(:_block)
     break if _tmp
     self.pos = _save
-    _tmp = apply('list', :_list)
+    _tmp = apply(:_list)
     break if _tmp
     self.pos = _save
-    _tmp = apply('unary_op', :_unary_op)
+    _tmp = apply(:_unary_op)
     break if _tmp
     self.pos = _save
     break
@@ -1012,10 +1012,10 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # choice
-    _tmp = apply('unary_send', :_unary_send)
+    _tmp = apply(:_unary_send)
     break if _tmp
     self.pos = _save
-    _tmp = apply('level1', :_level1)
+    _tmp = apply(:_level1)
     break if _tmp
     self.pos = _save
     break
@@ -1029,10 +1029,10 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # choice
-    _tmp = apply('keyword_send', :_keyword_send)
+    _tmp = apply(:_keyword_send)
     break if _tmp
     self.pos = _save
-    _tmp = apply('level2', :_level2)
+    _tmp = apply(:_level2)
     break if _tmp
     self.pos = _save
     break
@@ -1046,10 +1046,10 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # choice
-    _tmp = apply('binary_send', :_binary_send)
+    _tmp = apply(:_binary_send)
     break if _tmp
     self.pos = _save
-    _tmp = apply('level3', :_level3)
+    _tmp = apply(:_level3)
     break if _tmp
     self.pos = _save
     break
@@ -1063,7 +1063,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1075,7 +1075,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save1 = self.pos
-    _tmp = apply('f_identifier', :_f_identifier)
+    _tmp = apply(:_f_identifier)
     _tmp = _tmp ? nil : true
     self.pos = _save1
     unless _tmp
@@ -1098,7 +1098,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1110,7 +1110,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save1 = self.pos
-    _tmp = apply('f_identifier', :_f_identifier)
+    _tmp = apply(:_f_identifier)
     _tmp = _tmp ? nil : true
     self.pos = _save1
     unless _tmp
@@ -1133,7 +1133,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1145,7 +1145,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save1 = self.pos
-    _tmp = apply('f_identifier', :_f_identifier)
+    _tmp = apply(:_f_identifier)
     _tmp = _tmp ? nil : true
     self.pos = _save1
     unless _tmp
@@ -1168,7 +1168,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1180,7 +1180,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save1 = self.pos
-    _tmp = apply('f_identifier', :_f_identifier)
+    _tmp = apply(:_f_identifier)
     _tmp = _tmp ? nil : true
     self.pos = _save1
     unless _tmp
@@ -1206,7 +1206,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save1 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save1
@@ -1215,7 +1215,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[\+\-]?0[oO][\da-fA-F]+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save1
@@ -1234,7 +1234,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save2 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save2
@@ -1243,7 +1243,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[\+\-]?0[xX][0-7]+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save2
@@ -1262,7 +1262,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save3 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save3
@@ -1271,7 +1271,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save3
@@ -1290,7 +1290,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save4 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save4
@@ -1299,7 +1299,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[\+\-]?\d+\.\d+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save4
@@ -1318,7 +1318,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save5 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save5
@@ -1327,7 +1327,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[\+\-]?\d+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save5
@@ -1354,7 +1354,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1365,7 +1365,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
@@ -1375,18 +1375,18 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('expression', :_expression)
+    _tmp = apply(:_expression)
     p = @result
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
@@ -1396,12 +1396,12 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('expression', :_expression)
+    _tmp = apply(:_expression)
     b = @result
     unless _tmp
       self.pos = _save
@@ -1423,7 +1423,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1434,12 +1434,12 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('expression', :_expression)
+    _tmp = apply(:_expression)
     b = @result
     unless _tmp
       self.pos = _save
@@ -1461,7 +1461,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('sig_wsp', :_sig_wsp)
+    _tmp = apply(:_sig_wsp)
     unless _tmp
       self.pos = _save
       break
@@ -1469,7 +1469,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:left|right)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -1491,7 +1491,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('sig_wsp', :_sig_wsp)
+    _tmp = apply(:_sig_wsp)
     unless _tmp
       self.pos = _save
       break
@@ -1499,7 +1499,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[0-9]+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -1521,7 +1521,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1533,7 +1533,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save1 = self.pos
-    _tmp = apply('op_assoc', :_op_assoc)
+    _tmp = apply(:_op_assoc)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
@@ -1544,7 +1544,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('op_pred', :_op_pred)
+    _tmp = apply(:_op_pred)
     pred = @result
     unless _tmp
       self.pos = _save
@@ -1555,12 +1555,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save3 = self.pos
     while true # sequence
-    _tmp = apply('sig_wsp', :_sig_wsp)
+    _tmp = apply(:_sig_wsp)
     unless _tmp
       self.pos = _save3
       break
     end
-    _tmp = apply('operator', :_operator)
+    _tmp = apply(:_operator)
     unless _tmp
       self.pos = _save3
     end
@@ -1573,12 +1573,12 @@ class Atomo::Parser < KPeg::CompiledParser
     
     _save4 = self.pos
     while true # sequence
-    _tmp = apply('sig_wsp', :_sig_wsp)
+    _tmp = apply(:_sig_wsp)
     unless _tmp
       self.pos = _save4
       break
     end
-    _tmp = apply('operator', :_operator)
+    _tmp = apply(:_operator)
     unless _tmp
       self.pos = _save4
     end
@@ -1616,7 +1616,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1627,7 +1627,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('level1', :_level1)
+    _tmp = apply(:_level1)
     e = @result
     unless _tmp
       self.pos = _save
@@ -1649,7 +1649,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1660,7 +1660,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('level1', :_level1)
+    _tmp = apply(:_level1)
     e = @result
     unless _tmp
       self.pos = _save
@@ -1682,7 +1682,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1693,7 +1693,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('level1', :_level1)
+    _tmp = apply(:_level1)
     e = @result
     unless _tmp
       self.pos = _save
@@ -1715,10 +1715,10 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # choice
-    _tmp = apply('number_escapes', :_number_escapes)
+    _tmp = apply(:_number_escapes)
     break if _tmp
     self.pos = _save
-    _tmp = apply('escapes', :_escapes)
+    _tmp = apply(:_escapes)
     break if _tmp
     self.pos = _save
     break
@@ -1735,7 +1735,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[^\\"]+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -1757,7 +1757,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1781,7 +1781,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save3
       break
     end
-    _tmp = apply('escape', :_escape)
+    _tmp = apply(:_escape)
     unless _tmp
       self.pos = _save3
     end
@@ -1790,7 +1790,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     break if _tmp
     self.pos = _save2
-    _tmp = apply('str_seq', :_str_seq)
+    _tmp = apply(:_str_seq)
     break if _tmp
     self.pos = _save2
     break
@@ -1827,19 +1827,19 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('identifier', :_identifier)
+    _tmp = apply(:_identifier)
     n = @result
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('quoted', :_quoted)
+    _tmp = apply(:_quoted)
     c = @result
     unless _tmp
       self.pos = _save
@@ -1859,7 +1859,7 @@ class Atomo::Parser < KPeg::CompiledParser
       end
     end
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save2
@@ -1899,7 +1899,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -1910,7 +1910,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('f_identifier', :_f_identifier)
+    _tmp = apply(:_f_identifier)
     n = @result
     unless _tmp
       self.pos = _save
@@ -1935,7 +1935,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[A-Z][a-zA-Z0-9_]*)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save
@@ -1960,13 +1960,13 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save1 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save1
       break
     end
-    _tmp = apply('constant_name', :_constant_name)
+    _tmp = apply(:_constant_name)
     m = @result
     unless _tmp
       self.pos = _save1
@@ -1982,7 +1982,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save3
       break
     end
-    _tmp = apply('constant_name', :_constant_name)
+    _tmp = apply(:_constant_name)
     unless _tmp
       self.pos = _save3
     end
@@ -2000,7 +2000,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save4 = self.pos
-    _tmp = apply('unary_args', :_unary_args)
+    _tmp = apply(:_unary_args)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
@@ -2041,7 +2041,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save5 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save5
@@ -2057,7 +2057,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save7
       break
     end
-    _tmp = apply('constant_name', :_constant_name)
+    _tmp = apply(:_constant_name)
     unless _tmp
       self.pos = _save7
     end
@@ -2075,7 +2075,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save8
       break
     end
-    _tmp = apply('constant_name', :_constant_name)
+    _tmp = apply(:_constant_name)
     unless _tmp
       self.pos = _save8
     end
@@ -2096,7 +2096,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save9 = self.pos
-    _tmp = apply('unary_args', :_unary_args)
+    _tmp = apply(:_unary_args)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
@@ -2148,7 +2148,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save1 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save1
@@ -2172,7 +2172,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save2 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save2
@@ -2204,13 +2204,13 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('identifier', :_identifier)
+    _tmp = apply(:_identifier)
     n = @result
     unless _tmp
       self.pos = _save
@@ -2240,19 +2240,19 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('operator', :_operator)
+    _tmp = apply(:_operator)
     o = @result
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('level1', :_level1)
+    _tmp = apply(:_level1)
     e = @result
     unless _tmp
       self.pos = _save
@@ -2279,12 +2279,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save2 = self.pos
     while true # sequence
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save2
       break
     end
-    _tmp = apply('level1', :_level1)
+    _tmp = apply(:_level1)
     n = @result
     unless _tmp
       self.pos = _save2
@@ -2298,12 +2298,12 @@ class Atomo::Parser < KPeg::CompiledParser
     
     _save3 = self.pos
     while true # sequence
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save3
       break
     end
-    _tmp = apply('level1', :_level1)
+    _tmp = apply(:_level1)
     n = @result
     unless _tmp
       self.pos = _save3
@@ -2324,7 +2324,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
@@ -2350,7 +2350,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -2362,7 +2362,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save1 = self.pos
-    _tmp = apply('block_args', :_block_args)
+    _tmp = apply(:_block_args)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
@@ -2373,13 +2373,13 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
     end
     _save2 = self.pos
-    _tmp = apply('expressions', :_expressions)
+    _tmp = apply(:_expressions)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
@@ -2390,7 +2390,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
@@ -2416,7 +2416,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
@@ -2427,13 +2427,13 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
     end
     _save1 = self.pos
-    _tmp = apply('expressions', :_expressions)
+    _tmp = apply(:_expressions)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
@@ -2444,7 +2444,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
@@ -2475,13 +2475,13 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
     end
     _save1 = self.pos
-    _tmp = apply('expressions', :_expressions)
+    _tmp = apply(:_expressions)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
@@ -2492,7 +2492,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
@@ -2521,13 +2521,13 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save1 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save1
       break
     end
-    _tmp = apply('sunary_send', :_sunary_send)
+    _tmp = apply(:_sunary_send)
     r = @result
     unless _tmp
       self.pos = _save1
@@ -2538,7 +2538,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save1
       break
     end
-    _tmp = apply('identifier', :_identifier)
+    _tmp = apply(:_identifier)
     n = @result
     unless _tmp
       self.pos = _save1
@@ -2553,7 +2553,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save3 = self.pos
-    _tmp = apply('unary_args', :_unary_args)
+    _tmp = apply(:_unary_args)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
@@ -2573,7 +2573,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save5
       break
     end
-    _tmp = apply('block', :_block)
+    _tmp = apply(:_block)
     unless _tmp
       self.pos = _save5
     end
@@ -2603,13 +2603,13 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save6 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save6
       break
     end
-    _tmp = apply('level1', :_level1)
+    _tmp = apply(:_level1)
     r = @result
     unless _tmp
       self.pos = _save6
@@ -2620,7 +2620,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save6
       break
     end
-    _tmp = apply('identifier', :_identifier)
+    _tmp = apply(:_identifier)
     n = @result
     unless _tmp
       self.pos = _save6
@@ -2635,7 +2635,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save8 = self.pos
-    _tmp = apply('unary_args', :_unary_args)
+    _tmp = apply(:_unary_args)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
@@ -2655,7 +2655,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save10
       break
     end
-    _tmp = apply('block', :_block)
+    _tmp = apply(:_block)
     unless _tmp
       self.pos = _save10
     end
@@ -2685,20 +2685,20 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save11 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save11
       break
     end
-    _tmp = apply('identifier', :_identifier)
+    _tmp = apply(:_identifier)
     n = @result
     unless _tmp
       self.pos = _save11
       break
     end
     _save12 = self.pos
-    _tmp = apply('unary_args', :_unary_args)
+    _tmp = apply(:_unary_args)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
@@ -2714,7 +2714,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save11
       break
     end
-    _tmp = apply('block', :_block)
+    _tmp = apply(:_block)
     b = @result
     unless _tmp
       self.pos = _save11
@@ -2741,19 +2741,19 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save13 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save13
       break
     end
-    _tmp = apply('identifier', :_identifier)
+    _tmp = apply(:_identifier)
     n = @result
     unless _tmp
       self.pos = _save13
       break
     end
-    _tmp = apply('unary_args', :_unary_args)
+    _tmp = apply(:_unary_args)
     as = @result
     unless _tmp
       self.pos = _save13
@@ -2763,12 +2763,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save15 = self.pos
     while true # sequence
-    _tmp = apply('sp', :_sp)
+    _tmp = apply(:_sp)
     unless _tmp
       self.pos = _save15
       break
     end
-    _tmp = apply('block', :_block)
+    _tmp = apply(:_block)
     unless _tmp
       self.pos = _save15
     end
@@ -2821,7 +2821,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('sunary_send', :_sunary_send)
+    _tmp = apply(:_sunary_send)
     t = @result
     unless _tmp
       self.pos = _save
@@ -2845,7 +2845,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('identifier', :_identifier)
+    _tmp = apply(:_identifier)
     n = @result
     unless _tmp
       self.pos = _save
@@ -2856,12 +2856,12 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('sig_sp', :_sig_sp)
+    _tmp = apply(:_sig_sp)
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('level2', :_level2)
+    _tmp = apply(:_level2)
     v = @result
     unless _tmp
       self.pos = _save
@@ -2883,7 +2883,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('keyword_pair', :_keyword_pair)
+    _tmp = apply(:_keyword_pair)
     a = @result
     unless _tmp
       self.pos = _save
@@ -2899,7 +2899,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save2
       break
     end
-    _tmp = apply('keyword_pair', :_keyword_pair)
+    _tmp = apply(:_keyword_pair)
     unless _tmp
       self.pos = _save2
     end
@@ -2947,13 +2947,13 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save1 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save1
       break
     end
-    _tmp = apply('level2', :_level2)
+    _tmp = apply(:_level2)
     r = @result
     unless _tmp
       self.pos = _save1
@@ -2964,7 +2964,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save1
       break
     end
-    _tmp = apply('keyword_args', :_keyword_args)
+    _tmp = apply(:_keyword_args)
     as = @result
     unless _tmp
       self.pos = _save1
@@ -2989,13 +2989,13 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save2 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save2
       break
     end
-    _tmp = apply('keyword_args', :_keyword_args)
+    _tmp = apply(:_keyword_args)
     as = @result
     unless _tmp
       self.pos = _save2
@@ -3036,7 +3036,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply('skeyword_send', :_skeyword_send)
+    _tmp = apply(:_skeyword_send)
     t = @result
     unless _tmp
       self.pos = _save
@@ -3060,13 +3060,13 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('level3', :_level3)
+    _tmp = apply(:_level3)
     r = @result
     unless _tmp
       self.pos = _save
@@ -3082,18 +3082,18 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save2
       break
     end
-    _tmp = apply('operator', :_operator)
+    _tmp = apply(:_operator)
     o = @result
     unless _tmp
       self.pos = _save2
       break
     end
-    _tmp = apply('sig_wsp', :_sig_wsp)
+    _tmp = apply(:_sig_wsp)
     unless _tmp
       self.pos = _save2
       break
     end
-    _tmp = apply('level3', :_level3)
+    _tmp = apply(:_level3)
     e = @result
     unless _tmp
       self.pos = _save2
@@ -3118,18 +3118,18 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save3
       break
     end
-    _tmp = apply('operator', :_operator)
+    _tmp = apply(:_operator)
     o = @result
     unless _tmp
       self.pos = _save3
       break
     end
-    _tmp = apply('sig_wsp', :_sig_wsp)
+    _tmp = apply(:_sig_wsp)
     unless _tmp
       self.pos = _save3
       break
     end
-    _tmp = apply('level3', :_level3)
+    _tmp = apply(:_level3)
     e = @result
     unless _tmp
       self.pos = _save3
@@ -3188,7 +3188,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save1
       break
     end
-    _tmp = apply('binary_chain', :_binary_chain)
+    _tmp = apply(:_binary_chain)
     t = @result
     unless _tmp
       self.pos = _save1
@@ -3209,24 +3209,24 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save2 = self.pos
     while true # sequence
-    _tmp = apply('line', :_line)
+    _tmp = apply(:_line)
     line = @result
     unless _tmp
       self.pos = _save2
       break
     end
-    _tmp = apply('operator', :_operator)
+    _tmp = apply(:_operator)
     o = @result
     unless _tmp
       self.pos = _save2
       break
     end
-    _tmp = apply('sig_wsp', :_sig_wsp)
+    _tmp = apply(:_sig_wsp)
     unless _tmp
       self.pos = _save2
       break
     end
-    _tmp = apply('expression', :_expression)
+    _tmp = apply(:_expression)
     r = @result
     unless _tmp
       self.pos = _save2
@@ -4091,7 +4091,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[0-9a-fA-F]{1,5})/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save1
@@ -4113,7 +4113,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:\d{1,6})/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save2
@@ -4140,7 +4140,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[0-7]{1,7})/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save3
@@ -4167,7 +4167,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[0-9a-fA-F]{4})/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save4
@@ -4245,7 +4245,7 @@ class Atomo::Parser < KPeg::CompiledParser
     end # end sequence
 
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save5
@@ -4267,7 +4267,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[^\\"]+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save7
@@ -4346,7 +4346,7 @@ class Atomo::Parser < KPeg::CompiledParser
     end # end choice
 
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save11
@@ -4382,7 +4382,7 @@ class Atomo::Parser < KPeg::CompiledParser
     end # end sequence
 
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save13
@@ -4404,7 +4404,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[^\\\{\}]+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save15
@@ -4483,7 +4483,7 @@ class Atomo::Parser < KPeg::CompiledParser
     end # end choice
 
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save19
@@ -4519,7 +4519,7 @@ class Atomo::Parser < KPeg::CompiledParser
     end # end sequence
 
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save21
@@ -4541,7 +4541,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[^\\\[\]]+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save23
@@ -4636,7 +4636,7 @@ class Atomo::Parser < KPeg::CompiledParser
     end # end sequence
 
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save28
@@ -4658,7 +4658,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[^\\`]+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save30
@@ -4753,7 +4753,7 @@ class Atomo::Parser < KPeg::CompiledParser
     end # end sequence
 
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save35
@@ -4775,7 +4775,7 @@ class Atomo::Parser < KPeg::CompiledParser
     _text_start = self.pos
     _tmp = scan(/\A(?-mix:[^\\']+)/)
     if _tmp
-      set_text(_text_start)
+      text = get_text(_text_start)
     end
     unless _tmp
       self.pos = _save37
@@ -4830,18 +4830,18 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('expressions', :_expressions)
+    _tmp = apply(:_expressions)
     es = @result
     unless _tmp
       self.pos = _save
       break
     end
-    _tmp = apply('wsp', :_wsp)
+    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
