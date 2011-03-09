@@ -1,42 +1,29 @@
 module Atomo
   module AST
-    class Module < Rubinius::AST::Class
-      include NodeLike
+    class Module < Node
+      children :name, :body
+      generate
 
-      def initialize(line, name, body)
-        @line = line
-
-        case name
+      def module_name
+        case @name
         when Constant
-          @name = Rubinius::AST::ModuleName.new @line, name.name
+          Rubinius::AST::ModuleName.new @line, @name.name
         when ToplevelConstant
-          @name = Rubinius::AST::ToplevelModuleName.new @line, name
+          Rubinius::AST::ToplevelModuleName.new @line, @name
         when ScopedConstant
-          @name = Rubinius::AST::ScopedModuleName.new @line, name
+          Rubinius::AST::ScopedModuleName.new @line, @name
         else
-          @name = name
+          @name
         end
-
-        @body = Rubinius::AST::ModuleScope.new @line, @name, body
-        @_body = body
       end
 
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        @name.construct(g, d)
-        @_body.construct(g, d)
-        g.send :new, 3
+      def module_body
+        Rubinius::AST::ModuleScope.new @line, module_name, @body
       end
 
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
-
-        Module.new(
-          @line,
-          @name,
-          @body.body.recursively(stop, &f)
-        )
+      def bytecode(g)
+        module_name.bytecode(g)
+        module_body.bytecode(g)
       end
     end
   end

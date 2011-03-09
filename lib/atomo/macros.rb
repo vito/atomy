@@ -63,7 +63,7 @@ module Atomo
       case node
       when AST::BinarySend, AST::UnarySend,
            AST::KeywordSend, AST::UnaryOperator,
-           AST::MacroQuote
+           AST::MacroQuote, AST::Macro
         true
       else
         false
@@ -79,17 +79,17 @@ module Atomo
       when AST::BinarySend
         AST::BinarySend.new(
           node.line,
-          node.operator,
           expand(node.lhs),
           expand(node.rhs),
+          node.operator,
           node.private
         )
       when AST::UnarySend
         AST::UnarySend.new(
           node.line,
           expand(node.receiver),
-          node.method_name,
           node.arguments.collect { |a| expand(a) },
+          node.method_name,
           node.block ? expand(node.block) : node.block,
           node.private
         )
@@ -97,15 +97,15 @@ module Atomo
         AST::KeywordSend.new(
           node.line,
           expand(node.receiver),
-          node.names,
           node.arguments.collect { |a| expand(a) },
+          node.names,
           node.private
         )
       when AST::UnaryOperator
         AST::UnaryOperator.new(
           node.line,
-          node.operator,
-          expand(node.receiver)
+          expand(node.receiver),
+          node.operator
         )
       else
         node
@@ -157,7 +157,7 @@ module Atomo
               node.flags
             ).to_node
           else
-            # should be impossible
+            # just stopping
             no_macro(node)
           end
         rescue MethodFail, ArgumentError => e

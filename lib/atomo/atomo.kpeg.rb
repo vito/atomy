@@ -42,7 +42,7 @@ class Atomo::Parser < KPeg::CompiledParser
   end
 
   def binary(o, l, r)
-    Atomo::AST::BinarySend.new(l.line, o, l, r)
+    Atomo::AST::BinarySend.new(l.line, l, r, o)
   end
 
   def op_chain(os, es)
@@ -1516,7 +1516,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # op_assoc_pred = line:line "operator" op_assoc?:assoc op_pred:pred (sig_wsp operator)+:os { Atomo::Macro.set_op_info(os, assoc, pred)                       Atomo::AST::Operator.new(line, os, assoc, pred)                     }
+  # op_assoc_pred = line:line "operator" op_assoc?:assoc op_pred:pred (sig_wsp operator)+:os { Atomo::Macro.set_op_info(os, assoc, pred)                       Atomo::AST::Operator.new(line, assoc, pred, os)                     }
   def _op_assoc_pred
 
     _save = self.pos
@@ -1599,7 +1599,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     @result = begin;  Atomo::Macro.set_op_info(os, assoc, pred)
-                      Atomo::AST::Operator.new(line, os, assoc, pred)
+                      Atomo::AST::Operator.new(line, assoc, pred, os)
                     ; end
     _tmp = true
     unless _tmp
@@ -1952,7 +1952,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # constant = (line:line constant_name:m ("::" constant_name)*:s unary_args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         msg,                         Array(as),                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line ("::" constant_name)+:s unary_args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         msg,                         Array(as),                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })
+  # constant = (line:line constant_name:m ("::" constant_name)*:s unary_args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line ("::" constant_name)+:s unary_args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })
   def _constant
 
     _save = self.pos
@@ -2020,8 +2020,8 @@ class Atomo::Parser < KPeg::CompiledParser
                         names.empty? ?
                             Atomo::AST::Primitive.new(line, :self) :
                             const_chain(line, names),
-                        msg,
                         Array(as),
+                        msg,
                         nil,
                         true
                       )
@@ -2116,8 +2116,8 @@ class Atomo::Parser < KPeg::CompiledParser
                         names.empty? ?
                             Atomo::AST::Primitive.new(line, :self) :
                             const_chain(line, names, true),
-                        msg,
                         Array(as),
+                        msg,
                         nil,
                         true
                       )
@@ -2235,7 +2235,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # unary_op = line:line operator:o level1:e { Atomo::AST::UnaryOperator.new(line, o, e) }
+  # unary_op = line:line operator:o level1:e { Atomo::AST::UnaryOperator.new(line, e, o) }
   def _unary_op
 
     _save = self.pos
@@ -2258,7 +2258,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    @result = begin;  Atomo::AST::UnaryOperator.new(line, o, e) ; end
+    @result = begin;  Atomo::AST::UnaryOperator.new(line, e, o) ; end
     _tmp = true
     unless _tmp
       self.pos = _save
@@ -2513,7 +2513,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # sunary_send = (line:line sunary_send:r @cont identifier:n !":" unary_args?:as (@cont block)?:b { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) } | line:line level1:r @cont identifier:n !":" unary_args?:as (@cont block)?:b { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) } | line:line identifier:n unary_args?:as @cont block:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         n,                         Array(as),                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         n,                         as,                         b,                         true                       )                     })
+  # sunary_send = (line:line sunary_send:r @cont identifier:n !":" unary_args?:as (@cont block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line level1:r @cont identifier:n !":" unary_args?:as (@cont block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line identifier:n unary_args?:as @cont block:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })
   def _sunary_send
 
     _save = self.pos
@@ -2590,7 +2590,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save1
       break
     end
-    @result = begin;  Atomo::AST::UnarySend.new(line, r, n, Array(as), b) ; end
+    @result = begin;  Atomo::AST::UnarySend.new(line, r, Array(as), n, b) ; end
     _tmp = true
     unless _tmp
       self.pos = _save1
@@ -2672,7 +2672,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save6
       break
     end
-    @result = begin;  Atomo::AST::UnarySend.new(line, r, n, Array(as), b) ; end
+    @result = begin;  Atomo::AST::UnarySend.new(line, r, Array(as), n, b) ; end
     _tmp = true
     unless _tmp
       self.pos = _save6
@@ -2723,8 +2723,8 @@ class Atomo::Parser < KPeg::CompiledParser
     @result = begin;  Atomo::AST::UnarySend.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
-                        n,
                         Array(as),
+                        n,
                         b,
                         true
                       )
@@ -2788,8 +2788,8 @@ class Atomo::Parser < KPeg::CompiledParser
     @result = begin;  Atomo::AST::UnarySend.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
-                        n,
                         as,
+                        n,
                         b,
                         true
                       )
@@ -2939,7 +2939,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # skeyword_send = (line:line level2:r @cont keyword_args:as { Atomo::AST::KeywordSend.new(                         line,                         r,                         as.first,                         as.last                       )                     } | line:line keyword_args:as { Atomo::AST::KeywordSend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as.first,                         as.last,                         true                       )                     })
+  # skeyword_send = (line:line level2:r @cont keyword_args:as { Atomo::AST::KeywordSend.new(                         line,                         r,                         as.last,                         as.first                       )                     } | line:line keyword_args:as { Atomo::AST::KeywordSend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as.last,                         as.first,                         true                       )                     })
   def _skeyword_send
 
     _save = self.pos
@@ -2973,8 +2973,8 @@ class Atomo::Parser < KPeg::CompiledParser
     @result = begin;  Atomo::AST::KeywordSend.new(
                         line,
                         r,
-                        as.first,
-                        as.last
+                        as.last,
+                        as.first
                       )
                     ; end
     _tmp = true
@@ -3004,8 +3004,8 @@ class Atomo::Parser < KPeg::CompiledParser
     @result = begin;  Atomo::AST::KeywordSend.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
-                        as.first,
                         as.last,
+                        as.first,
                         true
                       )
                     ; end
@@ -3173,7 +3173,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # binary_send = (~{ done } { save } binary_chain:t { op_chain(t[0], t[1]) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         o,                         Atomo::AST::Primitive.new(line, :self),                         r                       )                     })
+  # binary_send = (~{ done } { save } binary_chain:t { op_chain(t[0], t[1]) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         r,                         o                       )                     })
   def _binary_send
 
     _save = self.pos
@@ -3234,9 +3234,9 @@ class Atomo::Parser < KPeg::CompiledParser
     end
     @result = begin;  Atomo::AST::BinarySend.new(
                         line,
-                        o,
                         Atomo::AST::Primitive.new(line, :self),
-                        r
+                        r,
+                        o
                       )
                     ; end
     _tmp = true

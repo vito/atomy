@@ -2,37 +2,9 @@
 module Atomo
   module AST
     class UnaryOperator < Node
-      attr_reader :operator, :receiver
-
-      def initialize(line, operator, receiver)
-        @operator = operator
-        @receiver = receiver
-        @line = line
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        g.push_literal @operator
-        @receiver.construct(g, d)
-        g.send :new, 3
-      end
-
-      def ==(b)
-        b.kind_of?(UnaryOperator) and \
-        @operator == b.operator and \
-        @receiver == b.receiver
-      end
-
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
-
-        f.call UnaryOperator.new(
-          @line,
-          @operator,
-          @receiver.recursively(stop, &f)
-        )
-      end
+      children :receiver
+      attributes :operator
+      generate
 
       def register_macro(body)
         Atomo::Macro.register(

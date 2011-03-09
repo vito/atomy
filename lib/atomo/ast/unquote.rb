@@ -1,12 +1,8 @@
 module Atomo
   module AST
     class Unquote < Node
-      attr_reader :expression
-
-      def initialize(line, expression)
-        @expression = expression
-        @line = line
-      end
+      children :expression
+      generate
 
       def construct(g, d)
         pos(g)
@@ -20,20 +16,6 @@ module Atomo
           @expression.construct(g, unquote(d))
           g.send :new, 2
         end
-      end
-
-      def ==(b)
-        b.kind_of?(Unquote) and \
-        @expression == b.expression
-      end
-
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
-
-        f.call Unquote.new(
-          @line,
-          @expression.recursively(stop, &f)
-        )
       end
 
       def bytecode(g)

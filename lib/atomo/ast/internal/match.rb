@@ -1,39 +1,8 @@
 module Atomo
   module AST
     class Match < Node
-      attr_reader :target, :body
-
-      def initialize(line, target, body)
-        @target = target
-        @body = body
-        @line = line
-      end
-
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        @target.construct(g, d)
-        @body.construct(g, d)
-        g.send :new, 3
-      end
-
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
-
-        f.call Match.new(
-          @line,
-          target.recursively(stop, &f),
-          body.recursively(stop, &f)
-        )
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @target.construct(g, d)
-        @body.construct(g, d)
-        g.send :new, 3
-      end
+      children :target, :body
+      generate
 
       def bytecode(g)
         pos(g)

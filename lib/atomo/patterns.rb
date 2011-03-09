@@ -126,6 +126,8 @@ module Atomo::Patterns
       when "="
         return Default.new(from_node(n.lhs), n.rhs)
       end
+    when Atomo::AST::Assign
+      return Default.new(from_node(n.lhs), n.rhs)
     when Atomo::AST::KeywordSend
       if n.receiver.is_a?(Atomo::AST::Primitive) && n.receiver.value == :self && n.arguments.size == 1
         return Named.new(n.method_name.chop, from_node(n.arguments[0]))
@@ -137,11 +139,11 @@ module Atomo::Patterns
     when Atomo::AST::Block
       return Metaclass.new(n)
     when Atomo::AST::GlobalVariable
-      return NamedGlobal.new(n.identifier)
+      return NamedGlobal.new(n.name)
     when Atomo::AST::InstanceVariable
-      return NamedInstance.new(n.identifier)
+      return NamedInstance.new(n.name)
     when Atomo::AST::ClassVariable
-      return NamedClass.new(n.identifier)
+      return NamedClass.new(n.name)
     when Atomo::AST::UnaryOperator
       case n.operator
       when "$"
@@ -155,6 +157,8 @@ module Atomo::Patterns
       when "*"
         return Splat.new(from_node(n.receiver))
       end
+    when Atomo::AST::Splat
+      return Splat.new(from_node(n.value))
     when Atomo::AST::Particle
       return Particle.new(n.name.to_sym) # TODO: other forms
     when Atomo::AST::UnarySend

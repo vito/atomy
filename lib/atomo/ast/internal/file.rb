@@ -1,12 +1,12 @@
 module Atomo
   module AST
-    class File < Rubinius::AST::File
-      include NodeLike
+    class File < Node
+      generate
 
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        g.send :new, 1
+      def bytecode(g)
+        pos(g)
+        g.push_scope
+        g.send :active_path, 0
       end
     end
   end

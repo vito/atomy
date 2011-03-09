@@ -1,22 +1,28 @@
 module Atomo
   module AST
-    class Return < Rubinius::AST::Return
-      include NodeLike
+    class Return < Node
+      children :value
+      generate
 
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        @value.construct(g, d)
-        g.send :new, 2
-      end
+      def bytecode(g, force = false)
+        if @value
+          @value.bytecode(g)
+        else
+          g.push_nil
+        end
 
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
+        if lcl = g.state.rescue?
+          g.push_stack_local lcl
+          g.restore_esception_state
+        end
 
-        Return.new(
-          @line,
-          @value.recursively(stop, &f)
-        )
+        if g.state.block?
+          g.raise_return
+        elsif !force and g.state.ensure?
+          g.ensure_return
+        else
+          g.ret
+        end
       end
     end
   end

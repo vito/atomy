@@ -38,7 +38,7 @@
   end
 
   def binary(o, l, r)
-    Atomo::AST::BinarySend.new(l.line, o, l, r)
+    Atomo::AST::BinarySend.new(l.line, l, r, o)
   end
 
   def op_chain(os, es)
@@ -164,7 +164,7 @@
         op_pred = sig_wsp < /[0-9]+/ > { text.to_i }
   op_assoc_pred = line:line "operator" op_assoc?:assoc op_pred:pred (sig_wsp operator)+:os
                     { Atomo::Macro.set_op_info(os, assoc, pred)
-                      Atomo::AST::Operator.new(line, os, assoc, pred)
+                      Atomo::AST::Operator.new(line, assoc, pred, os)
                     }
 
           quote = line:line "'" level1:e
@@ -196,8 +196,8 @@
                         names.empty? ?
                             Atomo::AST::Primitive.new(line, :self) :
                             const_chain(line, names),
-                        msg,
                         Array(as),
+                        msg,
                         nil,
                         true
                       )
@@ -214,8 +214,8 @@
                         names.empty? ?
                             Atomo::AST::Primitive.new(line, :self) :
                             const_chain(line, names, true),
-                        msg,
                         Array(as),
+                        msg,
                         nil,
                         true
                       )
@@ -233,7 +233,7 @@
                     { Atomo::AST::Variable.new(line, n) }
 
        unary_op = line:line operator:o level1:e
-                    { Atomo::AST::UnaryOperator.new(line, o, e) }
+                    { Atomo::AST::UnaryOperator.new(line, e, o) }
 
      block_args = (sp level1:n)+:as wsp "|" { as }
           block = line:line "{" block_args?:as wsp expressions?:es wsp "}"
@@ -244,15 +244,15 @@
 
      unary_args = "(" wsp expressions?:as wsp ")" { Array(as) }
     sunary_send = line:line sunary_send:r @cont identifier:n !":" unary_args?:as (@cont block)?:b
-                    { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) }
+                    { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) }
                 | line:line level1:r @cont identifier:n !":" unary_args?:as (@cont block)?:b
-                    { Atomo::AST::UnarySend.new(line, r, n, Array(as), b) }
+                    { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) }
                 | line:line identifier:n unary_args?:as @cont block:b
                     { Atomo::AST::UnarySend.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
-                        n,
                         Array(as),
+                        n,
                         b,
                         true
                       )
@@ -261,8 +261,8 @@
                     { Atomo::AST::UnarySend.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
-                        n,
                         as,
+                        n,
                         b,
                         true
                       )
@@ -289,16 +289,16 @@
                     { Atomo::AST::KeywordSend.new(
                         line,
                         r,
-                        as.first,
-                        as.last
+                        as.last,
+                        as.first
                       )
                     }
                 | line:line keyword_args:as
                     { Atomo::AST::KeywordSend.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
-                        as.first,
                         as.last,
+                        as.first,
                         true
                       )
                     }
@@ -316,9 +316,9 @@
                 | line:line operator:o sig_wsp expression:r
                     { Atomo::AST::BinarySend.new(
                         line,
-                        o,
                         Atomo::AST::Primitive.new(line, :self),
-                        r
+                        r,
+                        o
                       )
                     }
 

@@ -19,10 +19,10 @@ macro ($(x: Variable))
 macro (class(pair: BinarySend, &body))
   if: (pair lhs == 'self)
     then: { Atomo::AST::Metaclass new(pair line, pair rhs, body body) }
-    else: { Atomo::AST::Class new(pair line, pair lhs, pair rhs, body body) }
+    else: { Atomo::AST::Class new(pair line, pair lhs, body body, pair rhs) }
 
 macro (class(name, &body))
-  Atomo::AST::Class new(name line, name, nil, body body)
+  Atomo::AST::Class new(name line, name, body body)
 
 macro (module(name, &body))
   Atomo::AST::Module new(name line, name, body body)
@@ -35,19 +35,19 @@ macro (data(root, &children))
               Atomo::AST::UnarySend new(
                 0
                 Atomo::AST::Primitive new(0, #self)
-                "initialize"
                 e arguments
+                "initialize"
               )
 
             accessors =
               Atomo::AST::UnarySend new(
                 0
                 Atomo::AST::Primitive new(0, #self)
-                "attr_accessor"
                 e arguments map { a |
                   name = a receiver name to_s
                   Atomo::AST::Particle new(0, name)
                 }
+                "attr_accessor"
               )
 
             name =

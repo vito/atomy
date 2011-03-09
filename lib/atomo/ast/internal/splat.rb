@@ -1,23 +1,13 @@
 module Atomo
   module AST
-    class Splat < Rubinius::AST::SplatValue
-      include NodeLike
-
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        @value.construct(g, d)
-        g.send :new, 2
-      end
-
-      def ==(b)
-        b.kind_of?(Splat) and \
-        @value == b.value
-      end
+    class Splat < Node
+      children :value
+      generate
 
       def bytecode(g)
         pos(g)
-        super
+        @value.bytecode(g)
+        g.cast_array unless @value.kind_of?(List)
       end
     end
   end

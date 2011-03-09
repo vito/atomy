@@ -1,31 +1,17 @@
 module Atomo
   module AST
-    class Metaclass < Rubinius::AST::SClass
-      include NodeLike
+    class Metaclass < Node
+      children :receiver, :body
+      generate
 
-      def initialize(line, receiver, body)
-        @line = line
-        @receiver = receiver
-        @body = Rubinius::AST::SClassScope.new @line, body
-        @_body = body
+      def sclass_body
+        Rubinius::AST::SClassScope.new @line, @body
       end
 
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        @receiver.construct(g, d)
-        @_body.construct(g, d)
-        g.send :new, 3
-      end
-
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
-
-        Metaclass.new(
-          @line,
-          @receiver,
-          @body.body.recursively(stop, &f)
-        )
+      def bytecode(g)
+        pos(g)
+        @receiver.bytecode(g)
+        sclass_body.bytecode(g)
       end
     end
   end

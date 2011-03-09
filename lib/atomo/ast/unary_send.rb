@@ -1,45 +1,9 @@
 module Atomo
   module AST
     class UnarySend < Node
-      attr_reader :receiver, :method_name, :arguments, :block, :private
-
-      def initialize(line, receiver, name, arguments, block = nil, privat = false)
-        @receiver = receiver
-        @method_name = name
-        @arguments = arguments
-        @block = block unless block == []
-        @private = privat
-        @line = line
-      end
-
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @receiver.construct(g, d)
-        g.push_literal @method_name
-        @arguments.each do |a|
-          a.construct(g, d)
-        end
-        g.make_array @arguments.size
-
-        if @block
-          @block.construct(g, d)
-        else
-          g.push_nil
-        end
-
-        g.push_literal @private
-        g.send :new, 6
-      end
-
-      def ==(b)
-        b.kind_of?(UnarySend) and \
-        @receiver == b.receiver and \
-        @method_name == b.method_name and \
-        @arguments == b.arguments and \
-        @block == b.block and \
-        @private == b.private
-      end
+      children :receiver, [:arguments], :block?
+      attributes :method_name, [:private, false]
+      generate
 
       def register_macro(body)
         Atomo::Macro.register(
@@ -48,21 +12,6 @@ module Atomo
             Atomo::Macro.macro_pattern n
           end,
           body
-        )
-      end
-
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
-
-        f.call UnarySend.new(
-          @line,
-          @receiver.recursively(stop, &f),
-          @method_name,
-          @arguments.collect do |n|
-            n.recursively(stop, &f)
-          end,
-          @block ? @block.recursively(stop, &f) : nil,
-          @private
         )
       end
 

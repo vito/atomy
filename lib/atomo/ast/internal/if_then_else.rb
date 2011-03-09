@@ -1,33 +1,8 @@
 module Atomo
   module AST
     class IfThenElse < Node
-
-      def initialize(line, cond, thenb, elseb)
-        @line = line
-        @condition = cond
-        @then = thenb
-        @else = elseb
-      end
-
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        @condition.construct(g, d)
-        @then.construct(g, d)
-        @else.construct(g, d)
-        g.send :new, 4
-      end
-
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
-
-        IfThenElse.new(
-          @line,
-          @condition.recursively(stop, &f),
-          @then.recursively(stop, &f),
-          @else.recursively(stop, &f)
-        )
-      end
+      children :condition, :then, :else
+      generate
 
       def bytecode(g)
         done = g.new_label

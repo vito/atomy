@@ -1,25 +1,8 @@
 module Atomo
   module AST
     class Variable < Node
-      attr_accessor :line
-      attr_reader :name
-
-      def initialize(line, name)
-        @name = name
-        @line = line
-      end
-
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        g.push_literal @name
-        g.send :new, 2
-      end
-
-      def ==(b)
-        b.kind_of?(Variable) and \
-        @name == b.name
-      end
+      attributes :name
+      generate
 
       def bytecode(g)
         pos(g)

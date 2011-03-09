@@ -1,27 +1,18 @@
 module Atomo
   module AST
-    class ClassVariable < Rubinius::AST::ClassVariableAccess
-      include NodeLike
+    class ClassVariable < Node
+      attributes :name
+      generate
 
-      attr_accessor :variable, :line
-      attr_reader :name, :identifier
-
-      def initialize(line, name)
-        @name = ("@@" + name).to_sym
-        @identifier = name
-        @line = line
-      end
-
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        g.push_literal @identifier
-        g.send :new, 2
-      end
-
-      def ==(b)
-        b.kind_of?(ClassVariable) and \
-        @name == b.name
+      def bytecode(g)
+        pos(g)
+        if g.state.scope.module?
+          g.push :self
+        else
+          g.push_scope
+        end
+        g.push_literal(("@@" + @name).to_sym)
+        g.send :class_variable_get, 1
       end
     end
   end

@@ -2,47 +2,55 @@ module Atomo
   module AST
     class Define < Rubinius::AST::ClosedScope
       include NodeLike
+      extend SentientNode
 
-      def initialize(line, lhs, name, recv, args, body)
-        @line = line
-        @lhs = lhs
-        @name = name
+      children :pattern, :body
+      generate
 
-        if recv.kind_of? Patterns::Pattern
-          @receiver = recv
+      def arguments
+        case pattern
+        when BinarySend
+          args = [pattern.rhs]
+        when Variable, UnaryOperator
+          args = []
         else
-          @receiver = Patterns.from_node(recv)
+          args = pattern.arguments
         end
 
-        if args.kind_of? DefineArguments
-          @arguments = args
-        else
-          @arguments = DefineArguments.new(args)
-        end
-
-        @body = body
+        DefineArguments.new args
       end
 
-      def construct(g, d = nil)
-        get(g)
-        g.push_int @line
-        @lhs.construct(g, d)
-        g.push_literal @name
-        @receiver.construct(g)
-        @arguments.construct(g)
-        @body.construct(g, d)
-        g.send :new, 6
+      def receiver
+        case pattern
+        when BinarySend
+          recv = pattern.lhs
+        when Variable
+          recv = Primitive.new(pattern.line, :self)
+        else
+          recv = pattern.receiver
+        end
+
+        Patterns.from_node(recv)
+      end
+
+      def method_name
+        case pattern
+        when Variable
+          pattern.name
+        else
+          pattern.method_name
+        end
       end
 
       def compile_body(g)
-        meth = new_generator(g, "__atomo_#{@name}__".to_sym, @arguments)
+        meth = new_generator(g, "__atomo_#{method_name}__".to_sym, arguments)
         meth.push_state self
         meth.state.push_super self
         meth.definition_line @line
-        meth.state.push_name @name
-        @arguments.bytecode(meth)
+        meth.state.push_name method_name
+        arguments.bytecode(meth)
         meth.push_self
-        @receiver.deconstruct(meth)
+        receiver.deconstruct(meth)
         @body.bytecode(meth)
         meth.state.pop_name
         meth.local_count = local_count
@@ -53,49 +61,36 @@ module Atomo
         meth
       end
 
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
-
-        f.call Define.new(
-          @line,
-          @lhs,
-          @name,
-          @receiver,
-          @arguments,
-          @body.recursively(stop, &f)
-        )
-      end
-
       def bytecode(g)
         pos(g)
 
-        defn = @receiver.kind_of?(Patterns::Match) && @receiver.value == :self
+        defn = receiver.kind_of?(Patterns::Match) && receiver.value == :self
 
         if defn
           g.push_rubinius
-          g.push_literal @name.to_sym
+          g.push_literal method_name.to_sym
           g.dup
           g.push_const :Atomo
           g.swap
         else
           g.push_const :Atomo
-          @receiver.target(g)
-          g.push_literal @name.to_sym
+          receiver.target(g)
+          g.push_literal method_name.to_sym
         end
 
         create = g.new_label
         added = g.new_label
-        @receiver.construct(g)
-        @arguments.patterns.each do |p|
+        receiver.construct(g)
+        arguments.patterns.each do |p|
           p.construct(g)
         end
-        g.make_array @arguments.size
+        g.make_array arguments.size
         g.make_array 2
         @body.construct(g, nil)
         g.make_array 2
 
-        @receiver.target(g)
-        g.push_literal "@__atomo_#{@name}__".to_sym
+        receiver.target(g)
+        g.push_literal "@__atomo_#{method_name}__".to_sym
         g.send :instance_variable_get, 1
         g.dup
         g.gif create
@@ -107,9 +102,9 @@ module Atomo
         create.set!
         g.pop
         g.make_array 1
-        @receiver.target(g)
+        receiver.target(g)
         g.swap
-        g.push_literal "@__atomo_#{@name}__".to_sym
+        g.push_literal "@__atomo_#{method_name}__".to_sym
         g.swap
         g.send :instance_variable_set, 2
 
@@ -134,7 +129,7 @@ module Atomo
       end
 
       def local_names
-        @receiver.local_names + @arguments.local_names
+        receiver.local_names + arguments.local_names
       end
 
       class DefineArguments < Node

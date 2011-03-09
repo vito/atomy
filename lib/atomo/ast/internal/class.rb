@@ -1,53 +1,29 @@
 module Atomo
   module AST
-    class Class < Rubinius::AST::Class
-      include NodeLike
+    class Class < Node
+      children :name, :body, [:superclass, "Primitive.new(0, :nil)"]
+      generate
 
-      def initialize(line, name, superclass, body)
-        @line = line
-
-        @superclass = superclass ? superclass : Primitive.new(line, :nil)
-
-        case name
+      def class_name
+        case @name
         when Constant
-          @name = Rubinius::AST::ClassName.new @line, name.name, @superclass
+          Rubinius::AST::ClassName.new @line, @name.name, @superclass
         when ToplevelConstant
-          @name = Rubinius::AST::ToplevelModuleName.new @line, name, @superclass
+          Rubinius::AST::ToplevelModuleName.new @line, @name, @superclass
         when ScopedConstant
-          @name = Rubinius::AST::ScopedClassName.new @line, name, @superclass
+          Rubinius::AST::ScopedClassName.new @line, @name, @superclass
         else
-          @name = name
+          @name
         end
-
-        @body = Rubinius::AST::ClassScope.new @line, @name, body
-
-        @_name = name
-        @_superclass = superclass
-        @_body = body
       end
 
-      def construct(g, d)
-        get(g)
-        g.push_int @line
-        @_name.construct(g, d)
-        if @_superclass
-          @_superclass.construct(g, d)
-        else
-          g.push_nil
-        end
-        @_body.construct(g, d)
-        g.send :new, 4
+      def class_body
+        Rubinius::AST::ClassScope.new @line, class_name, @body
       end
 
-      def recursively(stop = nil, &f)
-        return f.call self if stop and stop.call(self)
-
-        Class.new(
-          @line,
-          @name,
-          @superclass,
-          @body.body.recursively(stop, &f)
-        )
+      def bytecode(g)
+        class_name.bytecode(g)
+        class_body.bytecode(g)
       end
     end
   end

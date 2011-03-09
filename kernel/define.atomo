@@ -4,45 +4,8 @@ macro (x = y)
 macro (x set!: y)
   Atomo::AST::Set new(x line, x, y)
 
-macro ((x: BinarySend) := y)
-  Atomo::AST::Define new(
-    x line
-    x
-    x operator
-    x lhs
-    [x rhs]
-    y
-  )
-
-macro ((x: UnaryOperator) := y)
-  Atomo::AST::Define new(
-    x line
-    x
-    x method_name
-    x receiver
-    []
-    y
-  )
-
-macro ((x: Variable) := y)
-  Atomo::AST::Define new(
-    x line
-    x
-    x name
-    'self
-    []
-    y
-  )
-
 macro (x := y)
-  Atomo::AST::Define new(
-    x line
-    x
-    x method_name
-    x receiver
-    x arguments
-    y
-  )
+  Atomo::AST::Define new(x line, x, y)
 
 macro (x **= y) `(~x set!: (~x ** ~y))
 macro (x *= y) `(~x set!: (~x * ~y))
