@@ -62,6 +62,25 @@ module Atomo::Patterns
         g.kind_of
         g.gif mismatch
 
+        e.details.each do |a|
+          val = e.send(a)
+          if val.kind_of?(Array)
+            val.each do |v|
+              g.push_literal v
+            end
+            g.make_array val.size
+          else
+            g.push_literal val
+          end
+          g.push_stack_local them
+          where.each do |c|
+            g.send c, 0
+          end
+          g.send a, 0
+          g.send :==, 1
+          g.gif mismatch
+        end
+
         next unless e.bottom?
 
         e.construct(g)

@@ -187,6 +187,16 @@ EOF
             #{@@children.values.flatten(1).empty?.inspect}
           end
 EOF
+
+        attrs =
+          @@attributes[:required] + @@attributes[:many] +
+            @@attributes[:optional].collect(&:first)
+
+        class_eval <<EOF
+          def details
+            #{attrs.inspect}
+          end
+EOF
       end
     end
 
