@@ -1,0 +1,25 @@
+describe: "macros" as: {
+  describe: "unique name generation" as: {
+    it: "creates names via #names" so: {
+      macro (x m-foo-1) names { x | `'~x }
+      var-1 = 1 m-foo-1
+      var-2 = 2 m-foo-1
+      var-1 should-be: var-1
+      var-1 should: { != var-2 }
+    }
+
+    it: "decorates through block patterns" so: {
+      macro (x m-foo-2) names { x | `'{ ~x | 1 } }
+      var-1 = 1 m-foo-2
+      var-1 should-be: var-1
+      1 m-foo-2 should: { != 2 m-foo-2 }
+    }
+
+    it: "decorates through definition patterns" so: {
+      macro (x m-foo-3) names { x | `'(foo(~x) := 1) }
+      var-1 = 1 m-foo-3
+      var-1 should-be: var-1
+      1 m-foo-3 should: { != 2 m-foo-3 }
+    }
+  }
+}

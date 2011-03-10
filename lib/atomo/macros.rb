@@ -22,6 +22,8 @@ module Atomo
     end
 
     class Environment
+      @@salt = 0
+
       attr_accessor :macros, :quoters
 
       def initialize
@@ -39,6 +41,15 @@ module Atomo
         else
           raise "unknown quoter #{name}"
         end
+      end
+
+      def names(&block)
+        as = []
+        block.arity.times do
+          as << Atomo::AST::Variable.new(0, "s:" + @@salt.to_s)
+          @@salt += 1
+        end
+        block.call(*as)
       end
     end
 
