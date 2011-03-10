@@ -1,3 +1,6 @@
+macro (__LINE__) line
+macro (__FILE__) Atomo::AST::File new(line)
+
 load: "kernel/operators.atomo"
 load: "kernel/define.atomo"
 load: "kernel/control-flow.atomo"
