@@ -933,7 +933,7 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # level1 = (true | false | self | nil | number | macro | for_macro | op_assoc_pred | quote | quasi_quote | unquote | string | macro_quote | particle | constant | meta | variable | grouped | block | list | unary_op)
+  # level1 = (true | false | self | nil | number | quote | quasi_quote | unquote | string | macro_quote | particle | constant | meta | variable | grouped | block | list | unary_op)
   def _level1
 
     _save = self.pos
@@ -951,15 +951,6 @@ class Atomo::Parser < KPeg::CompiledParser
     break if _tmp
     self.pos = _save
     _tmp = apply(:_number)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_macro)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_for_macro)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_op_assoc_pred)
     break if _tmp
     self.pos = _save
     _tmp = apply(:_quote)
@@ -1041,11 +1032,20 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # level4 = (binary_send | level3)
+  # level4 = (macro | for_macro | op_assoc_prec | binary_send | level3)
   def _level4
 
     _save = self.pos
     while true # choice
+    _tmp = apply(:_macro)
+    break if _tmp
+    self.pos = _save
+    _tmp = apply(:_for_macro)
+    break if _tmp
+    self.pos = _save
+    _tmp = apply(:_op_assoc_prec)
+    break if _tmp
+    self.pos = _save
     _tmp = apply(:_binary_send)
     break if _tmp
     self.pos = _save
@@ -1486,8 +1486,8 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # op_pred = sig_wsp < /[0-9]+/ > { text.to_i }
-  def _op_pred
+  # op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
+  def _op_prec
 
     _save = self.pos
     while true # sequence
@@ -1516,8 +1516,8 @@ class Atomo::Parser < KPeg::CompiledParser
     return _tmp
   end
 
-  # op_assoc_pred = line:line "operator" op_assoc?:assoc op_pred:pred (sig_wsp operator)+:os { Atomo::Macro.set_op_info(os, assoc, pred)                       Atomo::AST::Operator.new(line, assoc, pred, os)                     }
-  def _op_assoc_pred
+  # op_assoc_prec = line:line "operator" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomo::Macro.set_op_info(os, assoc, prec)                       Atomo::AST::Operator.new(line, assoc, prec, os)                     }
+  def _op_assoc_prec
 
     _save = self.pos
     while true # sequence
@@ -1544,8 +1544,8 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    _tmp = apply(:_op_pred)
-    pred = @result
+    _tmp = apply(:_op_prec)
+    prec = @result
     unless _tmp
       self.pos = _save
       break
@@ -1598,8 +1598,8 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save
       break
     end
-    @result = begin;  Atomo::Macro.set_op_info(os, assoc, pred)
-                      Atomo::AST::Operator.new(line, assoc, pred, os)
+    @result = begin;  Atomo::Macro.set_op_info(os, assoc, prec)
+                      Atomo::AST::Operator.new(line, assoc, prec, os)
                     ; end
     _tmp = true
     unless _tmp

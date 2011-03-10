@@ -112,9 +112,6 @@
                 | self
                 | nil
                 | number
-                | macro
-                | for_macro
-                | op_assoc_pred
                 | quote
                 | quasi_quote
                 | unquote
@@ -130,7 +127,11 @@
                 | unary_op
          level2 = unary_send | level1
          level3 = keyword_send | level2
-         level4 = binary_send | level3
+         level4 = macro
+                | for_macro
+                | op_assoc_prec
+                | binary_send
+                | level3
 
            true = line:line "true" !f_identifier
                     { Atomo::AST::Primitive.new(line, :true) }
@@ -161,10 +162,10 @@
                     { Atomo::AST::ForMacro.new(line, b) }
 
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
-        op_pred = sig_wsp < /[0-9]+/ > { text.to_i }
-  op_assoc_pred = line:line "operator" op_assoc?:assoc op_pred:pred (sig_wsp operator)+:os
-                    { Atomo::Macro.set_op_info(os, assoc, pred)
-                      Atomo::AST::Operator.new(line, assoc, pred, os)
+        op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
+  op_assoc_prec = line:line "operator" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os
+                    { Atomo::Macro.set_op_info(os, assoc, prec)
+                      Atomo::AST::Operator.new(line, assoc, prec, os)
                     }
 
           quote = line:line "'" level1:e
