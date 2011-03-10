@@ -4,6 +4,14 @@ module Atomo
       attributes :name
       generate
 
+      def register_macro(body)
+        Atomo::Macro.register(
+          method_name,
+          [],
+          body
+        )
+      end
+
       def bytecode(g)
         pos(g)
 
@@ -14,6 +22,11 @@ module Atomo
           g.push_self
           g.send @name.to_sym, 0, true
         end
+      end
+
+      # used in macroexpansion
+      def method_name
+        name + ":@"
       end
     end
   end

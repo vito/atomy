@@ -75,7 +75,7 @@ module Atomo
       case node
       when AST::BinarySend, AST::UnarySend,
            AST::KeywordSend, AST::UnaryOperator,
-           AST::MacroQuote, AST::Macro
+           AST::MacroQuote, AST::Variable, AST::Macro
         true
       else
         false
@@ -163,6 +163,10 @@ module Atomo
               (intern name).to_sym,
               nil,
               node.receiver
+            ).to_node
+          when AST::Variable
+            expand CURRENT_ENV.send(
+              (intern name).to_sym
             ).to_node
           when AST::MacroQuote
             CURRENT_ENV.quote(
