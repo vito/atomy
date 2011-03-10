@@ -6,8 +6,8 @@ module Atomo
 
       def bytecode(g)
         pos(g)
-        @pattern.construct(g, nil)
-        @body.construct(g, nil)
+        @pattern.construct(g)
+        @body.construct(g)
         g.send :register_macro, 1
       end
     end

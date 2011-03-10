@@ -161,12 +161,13 @@ module(Atomo::AST) {
     hsep: (semi punctuate: es map { e | e pretty })
   }
 
-  Assign pretty := doc { @lhs pretty <+> text: "=" <+> @body pretty }
+  Assign pretty := doc { @lhs pretty <+> text: "=" <+> @rhs pretty }
 
   BinarySend pretty := doc {
     @lhs pretty <+> text: @operator <+> @rhs pretty
   }
 
+  -- TODO: arguments
   Block pretty := doc {
     lbrace <+> Atomo::AST semi-delim: @contents <+> rbrace
   }

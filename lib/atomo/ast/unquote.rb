@@ -4,7 +4,7 @@ module Atomo
       children :expression
       generate
 
-      def construct(g, d)
+      def construct(g, d = nil)
         pos(g)
         # TODO: fail if depth == 0
         if d == 1

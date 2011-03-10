@@ -6,7 +6,7 @@ module Atomo
 
       def bytecode(g)
         pos(g)
-        @expression.construct(g, nil)
+        @expression.construct(g)
       end
     end
   end

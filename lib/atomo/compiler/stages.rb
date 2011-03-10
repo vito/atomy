@@ -74,6 +74,7 @@ module Atomo
 
       def run
         @output = @input.dup
+
         @output.body = @input.body.collect do |n|
           n.through_quotes do |x|
             case x
@@ -85,6 +86,7 @@ module Atomo
             x
           end
         end
+
         run_next
       end
     end

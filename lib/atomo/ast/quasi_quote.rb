@@ -4,7 +4,7 @@ module Atomo
       children :expression
       generate
 
-      def construct(g, d)
+      def construct(g, d = nil)
         get(g)
         g.push_int @line
         @expression.construct(g, quote(d))
