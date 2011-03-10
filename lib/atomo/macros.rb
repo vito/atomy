@@ -24,11 +24,12 @@ module Atomo
     class Environment
       @@salt = 0
 
-      attr_accessor :macros, :quoters
+      attr_accessor :macros, :quoters, :line
 
       def initialize
         @macros = {}
         @quoters = {}
+        @line = 0
       end
 
       define_method(:"quote:as:") do |name, action|
@@ -132,6 +133,8 @@ module Atomo
           next no_macro(node)
         end
 
+        CURRENT_ENV.line ||= node.line
+
         begin
           case node
           when AST::BinarySend
@@ -175,6 +178,8 @@ module Atomo
           # expand normally if the macro doesn't seem to be a match
           raise unless e.instance_variable_get("@method_name") == intern(name).to_sym
           no_macro(node)
+        ensure
+          CURRENT_ENV.line = nil
         end
       end
     end

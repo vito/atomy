@@ -22,4 +22,18 @@ describe: "macros" as: {
       1 m-foo-3 should: { != 2 m-foo-3 }
     }
   }
+
+  describe: "line information" as: {
+    it: "is provided during macroexpansion via #line" so: {
+      macro (a m-foo-4) line
+      1 m-foo-4 should-be: __LINE__
+      2 m-foo-4 should-be: __LINE__
+    }
+
+    it: "retains the original line through multiple expansions" so: {
+      macro (a m-foo-5) line
+      macro (a m-foo-6) `(~a m-foo-5)
+      1 m-foo-6 should-be: __LINE__
+    }
+  }
 }
