@@ -140,27 +140,27 @@ module Atomo
               nil,
               node.lhs,
               node.rhs
-            )
+            ).to_node
           when AST::UnarySend
             expand CURRENT_ENV.send(
               (intern name).to_sym,
               node.block,
               node.receiver,
               *node.arguments
-            )
+            ).to_node
           when AST::KeywordSend
             expand CURRENT_ENV.send(
               (intern name).to_sym,
               nil,
               node.receiver,
               *node.arguments
-            )
+            ).to_node
           when AST::UnaryOperator
             expand CURRENT_ENV.send(
               (intern name).to_sym,
               nil,
               node.receiver
-            )
+            ).to_node
           when AST::MacroQuote
             CURRENT_ENV.quote(
               node.name,
