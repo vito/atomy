@@ -1,12 +1,16 @@
 module Atomo
   module AST
     class InstanceVariable < Node
-      attributes :name
+      attributes :identifier
       generate
+
+      def name
+        ("@" + @identifier).to_sym
+      end
 
       def bytecode(g)
         pos(g)
-        g.push_ivar(("@" + @name).to_sym)
+        g.push_ivar name
       end
     end
   end

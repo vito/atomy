@@ -139,11 +139,11 @@ module Atomo::Patterns
     when Atomo::AST::Block
       return Metaclass.new(n)
     when Atomo::AST::GlobalVariable
-      return NamedGlobal.new(n.name)
+      return NamedGlobal.new(n.identifier)
     when Atomo::AST::InstanceVariable
-      return NamedInstance.new(n.name)
+      return NamedInstance.new(n.identifier)
     when Atomo::AST::ClassVariable
-      return NamedClass.new(n.name)
+      return NamedClass.new(n.identifier)
     when Atomo::AST::UnaryOperator
       case n.operator
       when "$"

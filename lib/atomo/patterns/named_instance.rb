@@ -1,10 +1,13 @@
 module Atomo::Patterns
   class NamedInstance < Pattern
-    attr_reader :name, :identifier
+    attr_reader :identifier
 
     def initialize(n)
-      @name = ("@" + n).to_sym
       @identifier = n
+    end
+
+    def name
+      ("@" + @identifier).to_sym
     end
 
     def construct(g)
@@ -15,7 +18,7 @@ module Atomo::Patterns
 
     def ==(b)
       b.kind_of?(NamedInstance) and \
-      @name == b.name
+      @identifier == b.identifier
     end
 
     def target(g)
@@ -28,7 +31,7 @@ module Atomo::Patterns
     end
 
     def deconstruct(g, locals = {})
-      Rubinius::AST::InstanceVariableAssignment.new(0, @name, nil).bytecode(g)
+      Rubinius::AST::InstanceVariableAssignment.new(0, name, nil).bytecode(g)
       g.pop
     end
 

@@ -191,18 +191,17 @@ module(Atomo::AST) {
     text: "class" <> text: "(" <> name <+> sub <> text: ")" <+> body
   }
 
-  ClassVariable pretty := doc { text: @name to_s }
+  ClassVariable pretty := doc { text: name to_s }
 
-  -- TODO: broken?
-  Constant pretty := doc { text: @name to_s }
+  Constant pretty := doc { text: @identifier }
 
   Define pretty := doc { @lhs pretty <+> text: ":=" <+> @body pretty }
 
   ForMacro pretty := doc { text: "for-macro" <+> @body pretty }
 
-  GlobalVariable pretty := doc { text: @name to_s }
+  GlobalVariable pretty := doc { text: name to_s }
 
-  InstanceVariable pretty := doc { text: @name to_s }
+  InstanceVariable pretty := doc { text: name to_s }
 
   KeywordSend pretty := doc {
     pairs = @names zip(@arguments) collect { p |
@@ -238,12 +237,12 @@ module(Atomo::AST) {
   Quote pretty := doc { text: "'" <> @expression pretty }
 
   ScopedConstant pretty := doc {
-    @parent pretty <> text: "::" <> text: @name to_s
+    @parent pretty <> text: "::" <> text: name to_s
   }
 
   String pretty := @value pretty
 
-  ToplevelConstant pretty := doc { text: "::" <> text: @name to_s }
+  ToplevelConstant pretty := doc { text: "::" <> text: name to_s }
 
   UnarySend pretty := doc {
     block = if: @block then: { @block pretty } else: { empty }

@@ -1,8 +1,12 @@
 module Atomo
   module AST
     class ClassVariable < Node
-      attributes :name
+      attributes :identifier
       generate
+
+      def name
+        ("@@" + @identifier).to_sym
+      end
 
       def bytecode(g)
         pos(g)
@@ -11,7 +15,7 @@ module Atomo
         else
           g.push_scope
         end
-        g.push_literal(("@@" + @name).to_sym)
+        g.push_literal name
         g.send :class_variable_get, 1
       end
     end

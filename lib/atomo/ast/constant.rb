@@ -1,11 +1,11 @@
 module Atomo
   module AST
     class Constant < Node
-      attributes :name
+      attributes :identifier
       generate
 
       def name
-        @name.to_sym
+        @identifier.to_sym
       end
 
       def bytecode(g)
@@ -22,11 +22,11 @@ module Atomo
     end
 
     class ToplevelConstant < Node
-      attributes :name
+      attributes :identifier
       generate
 
       def name
-        @name.to_sym
+        @identifier.to_sym
       end
 
       def bytecode(g)
@@ -45,11 +45,11 @@ module Atomo
 
     class ScopedConstant < Node
       children :parent
-      attributes :name
+      attributes :identifier
       generate
 
       def name
-        @name.to_sym
+        @identifier.to_sym
       end
 
       def bytecode(g)
