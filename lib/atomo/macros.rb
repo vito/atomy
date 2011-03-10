@@ -67,7 +67,7 @@ module Atomo
         methods[name] = [method]
       end
 
-      Atomo.add_method(CURRENT_ENV.metaclass, name, methods[name], nil, true)
+      Atomo.add_method(CURRENT_ENV.metaclass, name, methods[name], nil, :public, true)
     end
 
     def self.expand?(node)

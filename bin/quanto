@@ -11,7 +11,7 @@ require base + "/compiler/stages"
 require base + '/parser'
 require base + '/code_loader'
 
-bnd = binding()
+bnd = TOPLEVEL_BINDING
 
 Kernel.send(:define_method, :"load:") do |*as|
   Atomo::CodeLoader.load_file *as

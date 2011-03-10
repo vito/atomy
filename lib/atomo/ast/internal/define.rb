@@ -116,7 +116,8 @@ module Atomo
           g.push_int @line
           g.send :build_method, 5
           g.push_scope
-          g.push_literal :public
+          g.push_variables
+          g.send :method_visibility, 0
           g.send :add_defn_method, 4
         else
           g.push_scope
