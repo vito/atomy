@@ -5,11 +5,12 @@ kernel = File.expand_path "../../kernel/", __FILE__
 
 require 'readline'
 
-require base + '/macros'
+require base + "/macros"
+require base + "/method"
 require base + "/compiler/compiler"
 require base + "/compiler/stages"
-require base + '/parser'
-require base + '/code_loader'
+require base + "/parser"
+require base + "/code_loader"
 
 bnd = TOPLEVEL_BINDING
 
