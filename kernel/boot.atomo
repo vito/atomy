@@ -1,14 +1,8 @@
 macro (__LINE__) line
 macro (__FILE__) Atomo::AST::File new(line)
 
-load: "kernel/operators.atomo"
-load: "kernel/define.atomo"
-load: "kernel/control-flow.atomo"
-load: "kernel/data.atomo"
-load: "kernel/comparison.atomo"
-load: "kernel/block.atomo"
-load: "kernel/errors.atomo"
-load: "kernel/therie.atomo"
-load: "kernel/mixins.atomo"
-load: "kernel/pretty.atomo"
-load: "kernel/concurrency.atomo"
+"operators define control-flow data comparison
+block errors therie mixins pretty concurrency" split each { k |
+  puts("loading " + k)
+  load: ("kernel/" + k + ".atomo")
+}
