@@ -1,3 +1,16 @@
+class Rubinius::Generator
+  def debug(name = "")
+    dup
+    send :inspect, 0
+    push_literal name + ": "
+    swap
+    push_literal "\n"
+    string_build 3
+    send :display, 0
+    pop
+  end
+end
+
 module Atomo
   module AST
     module SentientNode
