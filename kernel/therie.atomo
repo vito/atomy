@@ -62,9 +62,6 @@ it: description so: tests :=
     $stats failed += 1
     puts((Therie indentation + "✗ " + description) ansi-colored: #red)
     puts((Therie indentation + "  ` " + e class name + ": " + e message) ansi-colored: #yellow)
-    e backtrace each { l |
-      puts((Therie indentation + "    " + l) ansi-colored: #cyan)
-    }
   } else: {
     $stats passed += 1
   }
