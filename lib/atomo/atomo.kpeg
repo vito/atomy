@@ -19,12 +19,6 @@
     @wsp.pop
   end
 
-  def set_op_info(op, assoc, prec)
-    info = Atomo::OPERATORS[op] ||= {}
-    info[:assoc] = assoc
-    info[:prec] = prec
-  end
-
   def op_info(op)
     Atomo::OPERATORS[op] || {}
   end
