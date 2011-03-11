@@ -30,54 +30,54 @@ module Atomo
       parser.root Rubinius::AST::Script
       parser.input file, 1
 
-      if debug
-        printer = compiler.packager.print
-        printer.bytecode = true
-        printer.method_names = []
-      end
+      printer = compiler.packager.print
+      printer.bytecode = debug
 
       compiler.run
     end
 
-    def self.compile_string(string, file = "(eval)", line = 1)
+    def self.compile_string(string, file = "(eval)", line = 1, debug = false)
       compiler = new :atomo_string, :compiled_method
 
       parser = compiler.parser
       parser.root Rubinius::AST::Script
       parser.input string, file, line
 
-      printer = compiler.packager.print
-      printer.bytecode = true
-      printer.method_names = []
+      if debug
+        printer = compiler.packager.print
+        printer.bytecode = debug
+      end
 
       compiler.run
     end
 
-    def self.compile_eval(string, scope = nil, file = "(eval)", line = 1)
+    def self.compile_eval(string, scope = nil, file = "(eval)", line = 1, debug = false)
       compiler = new :atomo_string, :compiled_method
 
       parser = compiler.parser
       parser.root Rubinius::AST::EvalExpression
       parser.input string, file, line
 
-      printer = compiler.packager.print
-      printer.bytecode = true
-      printer.method_names = []
+      if debug
+        printer = compiler.packager.print
+        printer.bytecode = debug
+      end
 
       compiler.generator.variable_scope = scope
 
       compiler.run
     end
 
-    def self.compile_node(node, scope = nil, file = "(eval)", line = 1)
+    def self.compile_node(node, scope = nil, file = "(eval)", line = 1, debug = false)
       compiler = new :atomo_pragmas, :compiled_method
 
       eval = Rubinius::AST::EvalExpression.new(AST::Tree.new([node]))
       eval.file = file
 
-      printer = compiler.packager.print
-      printer.bytecode = true
-      printer.method_names = []
+      if debug
+        printer = compiler.packager.print
+        printer.bytecode = debug
+      end
 
       compiler.pragmas.input eval
 
@@ -101,7 +101,6 @@ module Atomo
 
       script = Rubinius::CompiledMethod::Script.new(cm, file, true)
       script.eval_binding = bnd
-      # script.eval_source = string
 
       cm.scope.script = script
 
