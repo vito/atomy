@@ -111,6 +111,7 @@
                 | unquote
                 | string
                 | macro_quote
+                | particle
                 | constant
                 | variable
                 | grouped
@@ -175,6 +176,9 @@
 
     macro_quote = line:line identifier:n quoted:c (< [a-z] > { text })*:fs
                     { Atomo::AST::MacroQuote.new(line, n, c, fs) }
+
+       particle = line:line "#" f_identifier:n
+                    { Atomo::AST::Particle.new(line, n) }
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
        constant = line:line constant_name:m ("::" constant_name)*:s unary_args?:as {
