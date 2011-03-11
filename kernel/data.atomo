@@ -4,6 +4,12 @@ macro (&x)
 macro (*x)
   Atomo::AST::Splat new(x line, x)
 
+macro (#(p: Primitive)) -- #true, #false, #self, etc.
+  Atomo::AST::Particle new(line, p value to_s)
+
+macro (#(x: Variable))
+  Atomo::AST::Particle new(line, x name)
+
 macro (@(x: Variable))
   Atomo::AST::InstanceVariable new(x line, x name)
 

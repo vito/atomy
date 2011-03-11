@@ -1217,7 +1217,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # level1 = (true | false | self | nil | number | quote | quasi_quote | unquote | string | macro_quote | particle | constant | variable | grouped | block | list | unary_op)
+  # level1 = (true | false | self | nil | number | quote | quasi_quote | unquote | string | macro_quote | constant | variable | grouped | block | list | unary_op)
   def _level1
 
     _save = self.pos
@@ -1250,9 +1250,6 @@ class Atomo::Parser
     break if _tmp
     self.pos = _save
     _tmp = apply(:_macro_quote)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_particle)
     break if _tmp
     self.pos = _save
     _tmp = apply(:_constant)
@@ -2194,40 +2191,6 @@ class Atomo::Parser
     end # end sequence
 
     set_failed_rule :_macro_quote unless _tmp
-    return _tmp
-  end
-
-  # particle = line:line "#" f_identifier:n { Atomo::AST::Particle.new(line, n) }
-  def _particle
-
-    _save = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("#")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_f_identifier)
-    n = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomo::AST::Particle.new(line, n) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    set_failed_rule :_particle unless _tmp
     return _tmp
   end
 
@@ -5093,7 +5056,7 @@ class Atomo::Parser
   Rules[:_delim] = rule_info("delim", "(wsp (\";\" | \",\") wsp | (sp \"\\n\" sp)+)")
   Rules[:_expression] = rule_info("expression", "level4")
   Rules[:_expressions] = rule_info("expressions", "expression:x (delim expression)*:xs delim? { [x] + Array(xs) }")
-  Rules[:_level1] = rule_info("level1", "(true | false | self | nil | number | quote | quasi_quote | unquote | string | macro_quote | particle | constant | variable | grouped | block | list | unary_op)")
+  Rules[:_level1] = rule_info("level1", "(true | false | self | nil | number | quote | quasi_quote | unquote | string | macro_quote | constant | variable | grouped | block | list | unary_op)")
   Rules[:_level2] = rule_info("level2", "(unary_send | level1)")
   Rules[:_level3] = rule_info("level3", "(keyword_send | level2)")
   Rules[:_level4] = rule_info("level4", "(macro | for_macro | op_assoc_prec | binary_send | level3)")
@@ -5114,7 +5077,6 @@ class Atomo::Parser
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
   Rules[:_string] = rule_info("string", "line:line \"\\\"\" (\"\\\\\" escape | str_seq)*:c \"\\\"\" { Atomo::AST::String.new(line, c.join) }")
   Rules[:_macro_quote] = rule_info("macro_quote", "line:line identifier:n quoted:c (< [a-z] > { text })*:fs { Atomo::AST::MacroQuote.new(line, n, c, fs) }")
-  Rules[:_particle] = rule_info("particle", "line:line \"#\" f_identifier:n { Atomo::AST::Particle.new(line, n) }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
   Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s unary_args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line (\"::\" constant_name)+:s unary_args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })")
   Rules[:_variable] = rule_info("variable", "line:line identifier:n !\":\" { Atomo::AST::Variable.new(line, n) }")
