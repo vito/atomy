@@ -1,22 +1,22 @@
 %% {
-  def initialize(str)
-    super
-    @wsp = []
+  def current_position(target=pos)
+    cur_offset = 0
+    cur_line = 0
+
+    line_lengths.each do |len|
+      cur_line += 1
+      return [cur_line, target - cur_offset] if cur_offset + len > target
+      cur_offset += len
+    end
   end
 
-  def continue?
-    x = @wsp.last
+  def line_lengths
+    @line_lengths ||= lines.collect { |l| l.size }
+  end
+
+  def continue?(x)
     y = current_position
     y[0] >= x[0] && y[1] > x[1]
-  end
-
-  def save
-    @wsp << current_position
-    true
-  end
-
-  def done
-    @wsp.pop
   end
 
   def op_info(op)
@@ -68,7 +68,7 @@
          sig_sp = (" " | "\t" | comment)+
         sig_wsp = (" " | "\t" | "\n" | comment)+
 
-           cont = ("\n" sp)+ &{ continue? } | sig_sp (("\n" sp)+ &{ continue? })?
+        cont(p) = ("\n" sp)+ &{ continue?(p) } | sig_sp (("\n" sp)+ &{ continue?(p) })?
 
            line = { current_line }
 
@@ -232,11 +232,11 @@
                     { Atomo::AST::List.new(line, Array(es)) }
 
      unary_args = "(" wsp expressions?:as wsp ")" { Array(as) }
-    sunary_send = line:line sunary_send:r @cont identifier:n !":" unary_args?:as (@cont block)?:b
+   unary_c(pos) = line:line unary_send:r cont(pos) identifier:n !":" unary_args?:as (cont(pos) block)?:b
                     { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) }
-                | line:line level1:r @cont identifier:n !":" unary_args?:as (@cont block)?:b
+                | line:line level1:r cont(pos) identifier:n !":" unary_args?:as (cont(pos) block)?:b
                     { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) }
-                | line:line identifier:n unary_args?:as @cont block:b
+                | line:line identifier:n unary_args?:as cont(pos) block:b
                     { Atomo::AST::UnarySend.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
@@ -256,11 +256,10 @@
                         true
                       )
                     }
-     unary_send = ~{ done } { save } sunary_send:t { t }
+     unary_send = unary_c(current_position)
 
-   keyword_pair = identifier:n ":" sig_sp level2:v
-                    { [n, v] }
-   keyword_args = keyword_pair:a (@cont keyword_pair)*:as {
+        kw_pair = identifier:n ":" sig_sp level2:v { [n, v] }
+   kw_args(pos) = kw_pair:a (cont(pos) kw_pair)*:as {
                     pairs = [a] + Array(as)
                     name = ""
                     names = []
@@ -274,7 +273,7 @@
                     [names, args]
                   }
 
-  skeyword_send = line:line level2:r @cont keyword_args:as
+ keyword_c(pos) = line:line level2:r cont(pos) kw_args(pos):as
                     { Atomo::AST::KeywordSend.new(
                         line,
                         r,
@@ -282,7 +281,7 @@
                         as.first
                       )
                     }
-                | line:line keyword_args:as
+                | line:line kw_args(pos):as
                     { Atomo::AST::KeywordSend.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
@@ -291,9 +290,9 @@
                         true
                       )
                     }
-   keyword_send = ~{ done } { save } skeyword_send:t { t }
+   keyword_send = keyword_c(current_position)
 
-   binary_chain = line:line level3:r (@cont operator:o sig_wsp level3:e { [o, e] })+:bs
+  binary_c(pos) = line:line level3:r (cont(pos) operator:o sig_wsp level3:e { [o, e] })+:bs
                     { os, es = [], [r]
                       bs.each do |o, e|
                         os << o
@@ -301,7 +300,7 @@
                       end
                       [os, es]
                     }
-    binary_send = ~{ done } { save } binary_chain:t { op_chain(t[0], t[1]) }
+    binary_send = binary_c(current_position):t { op_chain(t[0], t[1]) }
                 | line:line operator:o sig_wsp expression:r
                     { Atomo::AST::BinarySend.new(
                         line,

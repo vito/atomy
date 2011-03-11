@@ -1,32 +1,295 @@
-require 'kpeg/compiled_parser'
+class Atomo::Parser
+# STANDALONE START
+    def setup_parser(str, debug=false)
+      @string = str
+      @pos = 0
+      @memoizations = Hash.new { |h,k| h[k] = {} }
+      @result = nil
+      @failed_rule = nil
+      @failing_rule_offset = -1
+    end
 
-class Atomo::Parser < KPeg::CompiledParser
+    # This is distinct from setup_parser so that a standalone parser
+    # can redefine #initialize and still have access to the proper
+    # parser setup code.
+    #
+    def initialize(str, debug=false)
+      setup_parser(str, debug)
+    end
+
+    attr_reader :string
+    attr_reader :result, :failing_rule_offset
+    attr_accessor :pos
+
+    # STANDALONE START
+    def current_column(target=pos)
+      if c = string.rindex("\n", target-1)
+        return target - c - 1
+      end
+
+      target + 1
+    end
+
+    def current_line(target=pos)
+      cur_offset = 0
+      cur_line = 0
+
+      string.each_line do |line|
+        cur_line += 1
+        cur_offset += line.size
+        return cur_line if cur_offset >= target
+      end
+
+      -1
+    end
+
+    def lines
+      lines = []
+      string.each_line { |l| lines << l }
+      lines
+    end
+
+    #
+
+    def get_text(start)
+      @string[start..@pos-1]
+    end
+
+    def show_pos
+      width = 10
+      if @pos < width
+        "#{@pos} (\"#{@string[0,@pos]}\" @ \"#{@string[@pos,width]}\")"
+      else
+        "#{@pos} (\"... #{@string[@pos - width, width]}\" @ \"#{@string[@pos,width]}\")"
+      end
+    end
+
+    def failure_info
+      l = current_line @failing_rule_offset
+      c = current_column @failing_rule_offset
+      info = self.class::Rules[@failed_rule]
+
+      "line #{l}, column #{c}: failed rule '#{info.name}' = '#{info.rendered}'"
+    end
+
+    def failure_caret
+      l = current_line @failing_rule_offset
+      c = current_column @failing_rule_offset
+
+      line = lines[l-1]
+      "#{line}\n#{' ' * (c - 1)}^"
+    end
+
+    def failure_character
+      l = current_line @failing_rule_offset
+      c = current_column @failing_rule_offset
+      lines[l-1][c-1, 1]
+    end
+
+    def failure_oneline
+      l = current_line @failing_rule_offset
+      c = current_column @failing_rule_offset
+
+      info = self.class::Rules[@failed_rule]
+      char = lines[l-1][c-1, 1]
+
+      "@#{l}:#{c} failed rule '#{info.name}', got '#{char}'"
+    end
+
+    class ParseError < RuntimeError
+    end
+
+    def raise_error
+      raise ParseError, failure_oneline
+    end
+
+    def show_error(io=STDOUT)
+      error_pos = @failing_rule_offset
+      line_no = current_line(error_pos)
+      col_no = current_column(error_pos)
+
+      info = self.class::Rules[@failed_rule]
+      io.puts "On line #{line_no}, column #{col_no}:"
+      io.puts "Failed to match '#{info.rendered}' (rule '#{info.name}')"
+      io.puts "Got: #{string[error_pos,1].inspect}"
+      line = lines[line_no-1]
+      io.puts "=> #{line}"
+      io.print(" " * (col_no + 3))
+      io.puts "^"
+    end
+
+    def set_failed_rule(name)
+      if @pos > @failing_rule_offset
+        @failed_rule = name
+        @failing_rule_offset = @pos
+      end
+    end
+
+    attr_reader :failed_rule
+
+    def match_string(str)
+      len = str.size
+      if @string[pos,len] == str
+        @pos += len
+        return str
+      end
+
+      return nil
+    end
+
+    def scan(reg)
+      if m = reg.match(@string[@pos..-1])
+        width = m.end(0)
+        @pos += width
+        return true
+      end
+
+      return nil
+    end
+
+    if "".respond_to? :getbyte
+      def get_byte
+        if @pos >= @string.size
+          return nil
+        end
+
+        s = @string.getbyte @pos
+        @pos += 1
+        s
+      end
+    else
+      def get_byte
+        if @pos >= @string.size
+          return nil
+        end
+
+        s = @string[@pos]
+        @pos += 1
+        s
+      end
+    end
+
+    def parse
+      _root ? true : false
+    end
+
+    class LeftRecursive
+      def initialize(detected=false)
+        @detected = detected
+      end
+
+      attr_accessor :detected
+    end
+
+    class MemoEntry
+      def initialize(ans, pos)
+        @ans = ans
+        @pos = pos
+        @uses = 1
+        @result = nil
+      end
+
+      attr_reader :ans, :pos, :uses, :result
+
+      def inc!
+        @uses += 1
+      end
+
+      def move!(ans, pos, result)
+        @ans = ans
+        @pos = pos
+        @result = result
+      end
+    end
+
+    def apply(rule)
+      if m = @memoizations[rule][@pos]
+        m.inc!
+
+        prev = @pos
+        @pos = m.pos
+        if m.ans.kind_of? LeftRecursive
+          m.ans.detected = true
+          return nil
+        end
+
+        @result = m.result
+
+        return m.ans
+      else
+        lr = LeftRecursive.new(false)
+        m = MemoEntry.new(lr, @pos)
+        @memoizations[rule][@pos] = m
+        start_pos = @pos
+
+        ans = __send__ rule
+
+        m.move! ans, @pos, @result
+
+        # Don't bother trying to grow the left recursion
+        # if it's failing straight away (thus there is no seed)
+        if ans and lr.detected
+          return grow_lr(rule, start_pos, m)
+        else
+          return ans
+        end
+
+        return ans
+      end
+    end
+
+    def grow_lr(rule, start_pos, m)
+      while true
+        @pos = start_pos
+        @result = m.result
+
+        ans = __send__ rule
+        return nil unless ans
+
+        break if @pos <= m.pos
+
+        m.move! ans, @pos, @result
+      end
+
+      @result = m.result
+      @pos = m.pos
+      return m.ans
+    end
+
+    class RuleInfo
+      def initialize(name, rendered)
+        @name = name
+        @rendered = rendered
+      end
+
+      attr_reader :name, :rendered
+    end
+
+    def self.rule_info(name, rendered)
+      RuleInfo.new(name, rendered)
+    end
+
+    #
 
 
-  def initialize(str)
-    super
-    @wsp = []
+  def current_position(target=pos)
+    cur_offset = 0
+    cur_line = 0
+
+    line_lengths.each do |len|
+      cur_line += 1
+      return [cur_line, target - cur_offset] if cur_offset + len > target
+      cur_offset += len
+    end
   end
 
-  def continue?
-    x = @wsp.last
+  def line_lengths
+    @line_lengths ||= lines.collect { |l| l.size }
+  end
+
+  def continue?(x)
     y = current_position
     y[0] >= x[0] && y[1] > x[1]
-  end
-
-  def save
-    @wsp << current_position
-    true
-  end
-
-  def done
-    @wsp.pop
-  end
-
-  def set_op_info(op, assoc, prec)
-    info = Atomo::OPERATORS[op] ||= {}
-    info[:assoc] = assoc
-    info[:prec] = prec
   end
 
   def op_info(op)
@@ -95,6 +358,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break unless _tmp
     end
     _tmp = true
+    set_failed_rule :_sp unless _tmp
     return _tmp
   end
 
@@ -122,6 +386,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break unless _tmp
     end
     _tmp = true
+    set_failed_rule :_wsp unless _tmp
     return _tmp
   end
 
@@ -166,6 +431,7 @@ class Atomo::Parser < KPeg::CompiledParser
     else
       self.pos = _save
     end
+    set_failed_rule :_sig_sp unless _tmp
     return _tmp
   end
 
@@ -216,11 +482,12 @@ class Atomo::Parser < KPeg::CompiledParser
     else
       self.pos = _save
     end
+    set_failed_rule :_sig_wsp unless _tmp
     return _tmp
   end
 
-  # cont = (("\n" sp)+ &{ continue? } | sig_sp (("\n" sp)+ &{ continue? })?)
-  def _cont
+  # cont = (("\n" sp)+ &{ continue?(p) } | sig_sp (("\n" sp)+ &{ continue?(p) })?)
+  def _cont(p)
 
     _save = self.pos
     while true # choice
@@ -271,7 +538,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save5 = self.pos
-    _tmp = begin;  continue? ; end
+    _tmp = begin;  continue?(p) ; end
     self.pos = _save5
     unless _tmp
       self.pos = _save1
@@ -337,7 +604,7 @@ class Atomo::Parser < KPeg::CompiledParser
       break
     end
     _save12 = self.pos
-    _tmp = begin;  continue? ; end
+    _tmp = begin;  continue?(p) ; end
     self.pos = _save12
     unless _tmp
       self.pos = _save8
@@ -360,6 +627,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_cont unless _tmp
     return _tmp
   end
 
@@ -367,6 +635,7 @@ class Atomo::Parser < KPeg::CompiledParser
   def _line
     @result = begin;  current_line ; end
     _tmp = true
+    set_failed_rule :_line unless _tmp
     return _tmp
   end
 
@@ -392,6 +661,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_ident_start unless _tmp
     return _tmp
   end
 
@@ -417,6 +687,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_ident_letters unless _tmp
     return _tmp
   end
 
@@ -442,6 +713,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_op_start unless _tmp
     return _tmp
   end
 
@@ -467,6 +739,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_op_letters unless _tmp
     return _tmp
   end
 
@@ -492,6 +765,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_f_ident_start unless _tmp
     return _tmp
   end
 
@@ -531,6 +805,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_operator unless _tmp
     return _tmp
   end
 
@@ -570,6 +845,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_identifier unless _tmp
     return _tmp
   end
 
@@ -609,6 +885,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_f_identifier unless _tmp
     return _tmp
   end
 
@@ -651,6 +928,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_grouped unless _tmp
     return _tmp
   end
 
@@ -668,6 +946,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_comment unless _tmp
     return _tmp
   end
 
@@ -688,6 +967,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_multi_comment unless _tmp
     return _tmp
   end
 
@@ -770,6 +1050,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_in_multi unless _tmp
     return _tmp
   end
 
@@ -865,12 +1146,14 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_delim unless _tmp
     return _tmp
   end
 
   # expression = level4
   def _expression
     _tmp = apply(:_level4)
+    set_failed_rule :_expression unless _tmp
     return _tmp
   end
 
@@ -930,6 +1213,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_expressions unless _tmp
     return _tmp
   end
 
@@ -992,6 +1276,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_level1 unless _tmp
     return _tmp
   end
 
@@ -1009,6 +1294,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_level2 unless _tmp
     return _tmp
   end
 
@@ -1026,6 +1312,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_level3 unless _tmp
     return _tmp
   end
 
@@ -1052,6 +1339,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_level4 unless _tmp
     return _tmp
   end
 
@@ -1087,6 +1375,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_true unless _tmp
     return _tmp
   end
 
@@ -1122,6 +1411,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_false unless _tmp
     return _tmp
   end
 
@@ -1157,6 +1447,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_self unless _tmp
     return _tmp
   end
 
@@ -1192,6 +1483,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_nil unless _tmp
     return _tmp
   end
 
@@ -1343,6 +1635,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_number unless _tmp
     return _tmp
   end
 
@@ -1412,6 +1705,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_macro unless _tmp
     return _tmp
   end
 
@@ -1450,6 +1744,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_for_macro unless _tmp
     return _tmp
   end
 
@@ -1480,6 +1775,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_op_assoc unless _tmp
     return _tmp
   end
 
@@ -1510,6 +1806,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_op_prec unless _tmp
     return _tmp
   end
 
@@ -1605,6 +1902,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_op_assoc_prec unless _tmp
     return _tmp
   end
 
@@ -1638,6 +1936,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_quote unless _tmp
     return _tmp
   end
 
@@ -1671,6 +1970,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_quasi_quote unless _tmp
     return _tmp
   end
 
@@ -1704,6 +2004,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_unquote unless _tmp
     return _tmp
   end
 
@@ -1721,6 +2022,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_escape unless _tmp
     return _tmp
   end
 
@@ -1746,6 +2048,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_str_seq unless _tmp
     return _tmp
   end
 
@@ -1816,6 +2119,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_string unless _tmp
     return _tmp
   end
 
@@ -1848,10 +2152,11 @@ class Atomo::Parser < KPeg::CompiledParser
     _save2 = self.pos
     while true # sequence
     _text_start = self.pos
+    _save3 = self.pos
     _tmp = get_byte
     if _tmp
       unless _tmp >= 97 and _tmp <= 122
-        fail_range('a', 'z')
+        self.pos = _save3
         _tmp = nil
       end
     end
@@ -1888,6 +2193,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_macro_quote unless _tmp
     return _tmp
   end
 
@@ -1921,6 +2227,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_particle unless _tmp
     return _tmp
   end
 
@@ -1946,6 +2253,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_constant_name unless _tmp
     return _tmp
   end
 
@@ -2134,6 +2442,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_constant unless _tmp
     return _tmp
   end
 
@@ -2170,6 +2479,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_variable unless _tmp
     return _tmp
   end
 
@@ -2204,6 +2514,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_unary_op unless _tmp
     return _tmp
   end
 
@@ -2280,6 +2591,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_block_args unless _tmp
     return _tmp
   end
 
@@ -2346,6 +2658,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_block unless _tmp
     return _tmp
   end
 
@@ -2400,6 +2713,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_list unless _tmp
     return _tmp
   end
 
@@ -2448,11 +2762,12 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_unary_args unless _tmp
     return _tmp
   end
 
-  # sunary_send = (line:line sunary_send:r @cont identifier:n !":" unary_args?:as (@cont block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line level1:r @cont identifier:n !":" unary_args?:as (@cont block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line identifier:n unary_args?:as @cont block:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })
-  def _sunary_send
+  # unary_c = (line:line unary_send:r cont(pos) identifier:n !":" unary_args?:as (cont(pos) block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n !":" unary_args?:as (cont(pos) block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line identifier:n unary_args?:as cont(pos) block:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })
+  def _unary_c(pos)
 
     _save = self.pos
     while true # choice
@@ -2465,13 +2780,13 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save1
       break
     end
-    _tmp = apply(:_sunary_send)
+    _tmp = apply(:_unary_send)
     r = @result
     unless _tmp
       self.pos = _save1
       break
     end
-    _tmp = _cont()
+    _tmp = _cont(pos)
     unless _tmp
       self.pos = _save1
       break
@@ -2506,7 +2821,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save5 = self.pos
     while true # sequence
-    _tmp = _cont()
+    _tmp = _cont(pos)
     unless _tmp
       self.pos = _save5
       break
@@ -2553,7 +2868,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save6
       break
     end
-    _tmp = _cont()
+    _tmp = _cont(pos)
     unless _tmp
       self.pos = _save6
       break
@@ -2588,7 +2903,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save10 = self.pos
     while true # sequence
-    _tmp = _cont()
+    _tmp = _cont(pos)
     unless _tmp
       self.pos = _save10
       break
@@ -2647,7 +2962,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save11
       break
     end
-    _tmp = _cont()
+    _tmp = _cont(pos)
     unless _tmp
       self.pos = _save11
       break
@@ -2744,42 +3059,19 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_unary_c unless _tmp
     return _tmp
   end
 
-  # unary_send = ~{ done } { save } sunary_send:t { t }
+  # unary_send = unary_c(current_position)
   def _unary_send
-
-    _save = self.pos
-    begin
-    while true # sequence
-    @result = begin;  save ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_sunary_send)
-    t = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  t ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    ensure
- done     end
+    _tmp = _unary_c(current_position)
+    set_failed_rule :_unary_send unless _tmp
     return _tmp
   end
 
-  # keyword_pair = identifier:n ":" sig_sp level2:v { [n, v] }
-  def _keyword_pair
+  # kw_pair = identifier:n ":" sig_sp level2:v { [n, v] }
+  def _kw_pair
 
     _save = self.pos
     while true # sequence
@@ -2813,15 +3105,16 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_kw_pair unless _tmp
     return _tmp
   end
 
-  # keyword_args = keyword_pair:a (@cont keyword_pair)*:as {                     pairs = [a] + Array(as)                     name = ""                     names = []                     args = []                      pairs.each do |n, v|                       names << n                       args << v                     end                      [names, args]                   }
-  def _keyword_args
+  # kw_args = kw_pair:a (cont(pos) kw_pair)*:as {                     pairs = [a] + Array(as)                     name = ""                     names = []                     args = []                      pairs.each do |n, v|                       names << n                       args << v                     end                      [names, args]                   }
+  def _kw_args(pos)
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_keyword_pair)
+    _tmp = apply(:_kw_pair)
     a = @result
     unless _tmp
       self.pos = _save
@@ -2832,12 +3125,12 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save2 = self.pos
     while true # sequence
-    _tmp = _cont()
+    _tmp = _cont(pos)
     unless _tmp
       self.pos = _save2
       break
     end
-    _tmp = apply(:_keyword_pair)
+    _tmp = apply(:_kw_pair)
     unless _tmp
       self.pos = _save2
     end
@@ -2874,11 +3167,12 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_kw_args unless _tmp
     return _tmp
   end
 
-  # skeyword_send = (line:line level2:r @cont keyword_args:as { Atomo::AST::KeywordSend.new(                         line,                         r,                         as.last,                         as.first                       )                     } | line:line keyword_args:as { Atomo::AST::KeywordSend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as.last,                         as.first,                         true                       )                     })
-  def _skeyword_send
+  # keyword_c = (line:line level2:r cont(pos) kw_args(pos):as { Atomo::AST::KeywordSend.new(                         line,                         r,                         as.last,                         as.first                       )                     } | line:line kw_args(pos):as { Atomo::AST::KeywordSend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as.last,                         as.first,                         true                       )                     })
+  def _keyword_c(pos)
 
     _save = self.pos
     while true # choice
@@ -2897,12 +3191,12 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save1
       break
     end
-    _tmp = _cont()
+    _tmp = _cont(pos)
     unless _tmp
       self.pos = _save1
       break
     end
-    _tmp = apply(:_keyword_args)
+    _tmp = _kw_args(pos)
     as = @result
     unless _tmp
       self.pos = _save1
@@ -2933,7 +3227,7 @@ class Atomo::Parser < KPeg::CompiledParser
       self.pos = _save2
       break
     end
-    _tmp = apply(:_keyword_args)
+    _tmp = _kw_args(pos)
     as = @result
     unless _tmp
       self.pos = _save2
@@ -2959,42 +3253,19 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_keyword_c unless _tmp
     return _tmp
   end
 
-  # keyword_send = ~{ done } { save } skeyword_send:t { t }
+  # keyword_send = keyword_c(current_position)
   def _keyword_send
-
-    _save = self.pos
-    begin
-    while true # sequence
-    @result = begin;  save ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_skeyword_send)
-    t = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  t ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    ensure
- done     end
+    _tmp = _keyword_c(current_position)
+    set_failed_rule :_keyword_send unless _tmp
     return _tmp
   end
 
-  # binary_chain = line:line level3:r (@cont operator:o sig_wsp level3:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }
-  def _binary_chain
+  # binary_c = line:line level3:r (cont(pos) operator:o sig_wsp level3:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }
+  def _binary_c(pos)
 
     _save = self.pos
     while true # sequence
@@ -3015,7 +3286,7 @@ class Atomo::Parser < KPeg::CompiledParser
 
     _save2 = self.pos
     while true # sequence
-    _tmp = _cont()
+    _tmp = _cont(pos)
     unless _tmp
       self.pos = _save2
       break
@@ -3051,7 +3322,7 @@ class Atomo::Parser < KPeg::CompiledParser
     
     _save3 = self.pos
     while true # sequence
-    _tmp = _cont()
+    _tmp = _cont(pos)
     unless _tmp
       self.pos = _save3
       break
@@ -3108,25 +3379,19 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_binary_c unless _tmp
     return _tmp
   end
 
-  # binary_send = (~{ done } { save } binary_chain:t { op_chain(t[0], t[1]) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         r,                         o                       )                     })
+  # binary_send = (binary_c(current_position):t { op_chain(t[0], t[1]) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         r,                         o                       )                     })
   def _binary_send
 
     _save = self.pos
     while true # choice
 
     _save1 = self.pos
-    begin
     while true # sequence
-    @result = begin;  save ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply(:_binary_chain)
+    _tmp = _binary_c(current_position)
     t = @result
     unless _tmp
       self.pos = _save1
@@ -3140,8 +3405,6 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
-    ensure
- done     end
     break if _tmp
     self.pos = _save
 
@@ -3189,6 +3452,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_binary_send unless _tmp
     return _tmp
   end
 
@@ -4010,6 +4274,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_escapes unless _tmp
     return _tmp
   end
 
@@ -4124,6 +4389,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_number_escapes unless _tmp
     return _tmp
   end
 
@@ -4760,6 +5026,7 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end choice
 
+    set_failed_rule :_quoted unless _tmp
     return _tmp
   end
 
@@ -4800,6 +5067,72 @@ class Atomo::Parser < KPeg::CompiledParser
     break
     end # end sequence
 
+    set_failed_rule :_root unless _tmp
     return _tmp
   end
+
+  Rules = {}
+  Rules[:_sp] = rule_info("sp", "(\" \" | \"\\t\" | comment)*")
+  Rules[:_wsp] = rule_info("wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)*")
+  Rules[:_sig_sp] = rule_info("sig_sp", "(\" \" | \"\\t\" | comment)+")
+  Rules[:_sig_wsp] = rule_info("sig_wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)+")
+  Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })?)")
+  Rules[:_line] = rule_info("line", "{ current_line }")
+  Rules[:_ident_start] = rule_info("ident_start", "< /[[a-z]_]/ > { text }")
+  Rules[:_ident_letters] = rule_info("ident_letters", "< /([[:alnum:]\\$\\+\\<=\\>\\^~_!@#%&*\\-.\\/\\?])*/ > { text }")
+  Rules[:_op_start] = rule_info("op_start", "< /[\\$\\+\\<=\\>\\^~!@&#%\\|&*\\-.\\/\\?:]/ > { text }")
+  Rules[:_op_letters] = rule_info("op_letters", "< /([\\$\\+\\<=\\>\\^~!@&#%\\|&*\\-.\\/\\?:])*/ > { text }")
+  Rules[:_f_ident_start] = rule_info("f_ident_start", "< /[[:alpha:]\\$\\+\\<=\\>\\^`~_!@#%&*\\-.\\/\\?]/ > { text }")
+  Rules[:_operator] = rule_info("operator", "< op_start op_letters > { text }")
+  Rules[:_identifier] = rule_info("identifier", "< ident_start ident_letters > { text }")
+  Rules[:_f_identifier] = rule_info("f_identifier", "< f_ident_start ident_letters > { text }")
+  Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
+  Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")
+  Rules[:_multi_comment] = rule_info("multi_comment", "\"{-\" in_multi")
+  Rules[:_in_multi] = rule_info("in_multi", "(/[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ \"{-\" in_multi /[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ /[-{}]/ in_multi)")
+  Rules[:_delim] = rule_info("delim", "(wsp (\";\" | \",\") wsp | (sp \"\\n\" sp)+)")
+  Rules[:_expression] = rule_info("expression", "level4")
+  Rules[:_expressions] = rule_info("expressions", "expression:x (delim expression)*:xs delim? { [x] + Array(xs) }")
+  Rules[:_level1] = rule_info("level1", "(true | false | self | nil | number | quote | quasi_quote | unquote | string | macro_quote | particle | constant | variable | grouped | block | list | unary_op)")
+  Rules[:_level2] = rule_info("level2", "(unary_send | level1)")
+  Rules[:_level3] = rule_info("level3", "(keyword_send | level2)")
+  Rules[:_level4] = rule_info("level4", "(macro | for_macro | op_assoc_prec | binary_send | level3)")
+  Rules[:_true] = rule_info("true", "line:line \"true\" !f_identifier { Atomo::AST::Primitive.new(line, :true) }")
+  Rules[:_false] = rule_info("false", "line:line \"false\" !f_identifier { Atomo::AST::Primitive.new(line, :false) }")
+  Rules[:_self] = rule_info("self", "line:line \"self\" !f_identifier { Atomo::AST::Primitive.new(line, :self) }")
+  Rules[:_nil] = rule_info("nil", "line:line \"nil\" !f_identifier { Atomo::AST::Primitive.new(line, :nil) }")
+  Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][\\da-fA-F]+/ > { Atomo::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][0-7]+/ > { Atomo::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomo::AST::Primitive.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomo::AST::Primitive.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomo::AST::Primitive.new(line, text.to_i) })")
+  Rules[:_macro] = rule_info("macro", "line:line \"macro\" wsp \"(\" wsp expression:p wsp \")\" wsp expression:b { b; Atomo::AST::Macro.new(line, p, b) }")
+  Rules[:_for_macro] = rule_info("for_macro", "line:line \"for-macro\" wsp expression:b { Atomo::AST::ForMacro.new(line, b) }")
+  Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
+  Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
+  Rules[:_op_assoc_prec] = rule_info("op_assoc_prec", "line:line \"operator\" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomo::Macro.set_op_info(os, assoc, prec)                       Atomo::AST::Operator.new(line, assoc, prec, os)                     }")
+  Rules[:_quote] = rule_info("quote", "line:line \"'\" level1:e { Atomo::AST::Quote.new(line, e) }")
+  Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level1:e { Atomo::AST::QuasiQuote.new(line, e) }")
+  Rules[:_unquote] = rule_info("unquote", "line:line \"~\" level1:e { Atomo::AST::Unquote.new(line, e) }")
+  Rules[:_escape] = rule_info("escape", "(number_escapes | escapes)")
+  Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
+  Rules[:_string] = rule_info("string", "line:line \"\\\"\" (\"\\\\\" escape | str_seq)*:c \"\\\"\" { Atomo::AST::String.new(line, c.join) }")
+  Rules[:_macro_quote] = rule_info("macro_quote", "line:line identifier:n quoted:c (< [a-z] > { text })*:fs { Atomo::AST::MacroQuote.new(line, n, c, fs) }")
+  Rules[:_particle] = rule_info("particle", "line:line \"#\" f_identifier:n { Atomo::AST::Particle.new(line, n) }")
+  Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
+  Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s unary_args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line (\"::\" constant_name)+:s unary_args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })")
+  Rules[:_variable] = rule_info("variable", "line:line identifier:n !\":\" { Atomo::AST::Variable.new(line, n) }")
+  Rules[:_unary_op] = rule_info("unary_op", "line:line operator:o level1:e { Atomo::AST::UnaryOperator.new(line, e, o) }")
+  Rules[:_block_args] = rule_info("block_args", "(sp level1:n)+:as wsp \"|\" { as }")
+  Rules[:_block] = rule_info("block", "line:line \"{\" block_args?:as wsp expressions?:es wsp \"}\" { Atomo::AST::Block.new(line, Array(es), Array(as)) }")
+  Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomo::AST::List.new(line, Array(es)) }")
+  Rules[:_unary_args] = rule_info("unary_args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
+  Rules[:_unary_c] = rule_info("unary_c", "(line:line unary_send:r cont(pos) identifier:n !\":\" unary_args?:as (cont(pos) block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n !\":\" unary_args?:as (cont(pos) block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line identifier:n unary_args?:as cont(pos) block:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })")
+  Rules[:_unary_send] = rule_info("unary_send", "unary_c(current_position)")
+  Rules[:_kw_pair] = rule_info("kw_pair", "identifier:n \":\" sig_sp level2:v { [n, v] }")
+  Rules[:_kw_args] = rule_info("kw_args", "kw_pair:a (cont(pos) kw_pair)*:as {                     pairs = [a] + Array(as)                     name = \"\"                     names = []                     args = []                      pairs.each do |n, v|                       names << n                       args << v                     end                      [names, args]                   }")
+  Rules[:_keyword_c] = rule_info("keyword_c", "(line:line level2:r cont(pos) kw_args(pos):as { Atomo::AST::KeywordSend.new(                         line,                         r,                         as.last,                         as.first                       )                     } | line:line kw_args(pos):as { Atomo::AST::KeywordSend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as.last,                         as.first,                         true                       )                     })")
+  Rules[:_keyword_send] = rule_info("keyword_send", "keyword_c(current_position)")
+  Rules[:_binary_c] = rule_info("binary_c", "line:line level3:r (cont(pos) operator:o sig_wsp level3:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }")
+  Rules[:_binary_send] = rule_info("binary_send", "(binary_c(current_position):t { op_chain(t[0], t[1]) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         r,                         o                       )                     })")
+  Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" })")
+  Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { text.to_i(16).chr } | < /\\d{1,6}/ > { text.to_i.chr } | /[oO]/ < /[0-7]{1,7}/ > { text.to_i(16).chr } | /[uU]/ < /[0-9a-fA-F]{4}/ > { text.to_i(16).chr })")
+  Rules[:_quoted] = rule_info("quoted", "(\"\\\"\" (\"\\\\\\\"\" { \"\\\"\" } | < \"\\\\\" . > { text } | < /[^\\\\\"]+/ > { text })*:c \"\\\"\" { c.join } | \"{\" (\"\\\\\" < (\"{\" | \"}\") > { text } | < \"\\\\\" . > { text } | < /[^\\\\\\{\\}]+/ > { text })*:c \"}\" { c.join } | \"[\" (\"\\\\\" < (\"[\" | \"]\") > { text } | < \"\\\\\" . > { text } | < /[^\\\\\\[\\]]+/ > { text })*:c \"]\" { c.join } | \"`\" (\"\\\\`\" { \"`\" } | < \"\\\\\" . > { text } | < /[^\\\\`]+/ > { text })*:c \"`\" { c.join } | \"'\" (\"\\\\'\" { \"'\" } | < \"\\\\\" . > { text } | < /[^\\\\']+/ > { text })*:c \"'\" { c.join })")
+  Rules[:_root] = rule_info("root", "wsp expressions:es wsp !. { es }")
 end
