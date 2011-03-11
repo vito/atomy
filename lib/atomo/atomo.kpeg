@@ -306,7 +306,8 @@
                         line,
                         Atomo::AST::Primitive.new(line, :self),
                         r,
-                        o
+                        o,
+                        true
                       )
                     }
 
