@@ -39,6 +39,9 @@ module(Atomo::Patterns) {
     }
   }
 
+  -- TODO: constants should somehow detect subclassing
+  -- e.g. subclassed matches have higher precision
+
   (a: List) <=> (b: List) :=
     Atomo::Patterns
       compare: a patterns with: b patterns
@@ -47,13 +50,72 @@ module(Atomo::Patterns) {
     Atomo::Patterns
       compare: [a head, a tail] with: [b head, b tail]
 
-  (a: Named) <=> (b: Named) := a pattern <=> b pattern
+  (a: Named) <=> (b: Named) :=
+    a pattern <=> b pattern
   (n: Named) <=> (p: Pattern) := n pattern <=> p
   (p: Pattern) <=> (n: Named) := p <=> n pattern
 
-  (a: Default) <=> (b: Default) := a pattern <=> b pattern
+  (a: Default) <=> (b: Default) :=
+    a pattern <=> b pattern
   (n: Default) <=> (p: Pattern) := n pattern <=> p
   (p: Pattern) <=> (n: Default) := p <=> n pattern
+
+  -- TODO?:
+  -- Pattern <=> Pattern := -1
+
+  (a: Named) =~ (b: Named) :=
+    a pattern =~ b pattern
+  Named =~ (p: Pattern) := pattern =~ p
+  Pattern =~ (n: Named) := (=~ n pattern)
+
+  Any =~ Any := true
+
+  (a: BlockPass) =~ (b: BlockPass) :=
+    a pattern =~ b pattern
+
+  (a: Constant) =~ (b: Constant) :=
+    a constant =~ b constant
+
+  (a: Default) =~ (b: Default) :=
+    a pattern =~ b pattern
+  Default =~ (p: Pattern) := pattern =~ p
+  Pattern =~ (n: Default) := (=~ n pattern)
+
+  (a: HeadTail) =~ (b: HeadTail) :=
+    a head =~ b head && a tail =~ b tail
+
+  (a: List) =~ (b: List) :=
+    a zip(bs) all? { a b | a =~ b }
+
+  (a: Match) =~ (b: Match) :=
+    a value == b value
+
+  (a: Metaclass) =~ (b: Metaclass) :=
+    a body == b body
+
+  NamedClass =~ NamedClass := true
+
+  NamedGlobal =~ NamedGlobal := true
+
+  NamedInstance =~ NamedInstance := true
+
+  (a: Particle) =~ (b: Particle) :=
+    a value == b value
+
+  (a: QuasiQuote) =~ (b: QuasiQuote) :=
+    -- TODO: go through quotes.
+    a expression == b expression
+
+  (a: Quote) =~ (b: Quote) :=
+    a expression == b expression
+
+  (a: Splat) =~ (b: Splat) :=
+    a pattern =~ b pattern
+
+  (a: Unary) =~ (b: Unary) :=
+    a receiver == b receiver && a name == b name
+
+  Pattern =~ Pattern := false
 
   { self } compare: xs with: ys :=
     { total = 0

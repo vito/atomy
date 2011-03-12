@@ -95,8 +95,10 @@ module Atomo
         g.dup
         g.gif create
 
-        g.swap
-        g.send :<<, 1
+        g.push_cpath_top
+        g.find_const :Atomo
+        g.move_down 2
+        g.send :insert_method, 2
         g.goto added
 
         create.set!

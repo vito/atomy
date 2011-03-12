@@ -154,16 +154,48 @@ module Atomo
     g.package Rubinius::CompiledMethod
   end
 
-  def self.add_method(target, name, branches, static_scope = nil, visibility = :public, is_macro = false)
+  def self.add_method(target, name, branches, static_scope, visibility = :public, is_macro = false)
     cm = build_method(name, branches, is_macro)
-
-    unless static_scope
-      static_scope =
-        Rubinius::StaticScope.new(self, Rubinius::StaticScope.new(Object)) # TODO
-    end
 
     cm.scope = static_scope
 
     Rubinius.add_method name, cm, target, visibility
+  end
+
+  def self.compare_heads(xs, ys)
+    xs.zip(ys) do |x, y|
+      cmp = x <=> y
+      return cmp unless cmp == 0
+    end
+
+    0
+  end
+
+  def self.equivalent?(xs, ys)
+    xs.zip(ys) do |x, y|
+      return false unless x =~ y
+    end
+
+    true
+  end
+
+  def self.insert_method(new, branches)
+    (nr, na), nb = new
+    if nr.respond_to?(:<=>)
+      branches.each_with_index do |branch, i|
+        (r, a), b = branch
+        case compare_heads([nr] + na, [r] + a)
+        when 1
+          return branches.insert(i, new)
+        when 0
+          if equivalent?([nr] + na, [r] + a)
+            branches[i] = new
+            return branches
+          end
+        end
+      end
+    end
+
+    branches << new
   end
 end
