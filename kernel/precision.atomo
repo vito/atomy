@@ -19,7 +19,7 @@ module(Atomo::Patterns) {
       ps each { b |
         -- if they're the same class, they'll probably
         -- want to handle their own comparison.
-        -- (otherwise, the bottom Pattern <=> Pattern does this.)
+        -- (otherwise, the Pattern <=> Pattern does this.)
         unless(a == b) {
           %(a) <=> %(b) := 0
         }
@@ -62,11 +62,6 @@ module(Atomo::Patterns) {
         0
     }
 
-  (a: Default) <=> (b: Default) :=
-    a pattern <=> b pattern
-  (n: Default) <=> (p: Pattern) := n pattern <=> p
-  (p: Pattern) <=> (n: Default) := p <=> n pattern
-
   (a: HeadTail) <=> (b: HeadTail) :=
     Atomo::Patterns
       compare: [a head, a tail] with: [b head, b tail]
@@ -75,13 +70,18 @@ module(Atomo::Patterns) {
     Atomo::Patterns
       compare: a patterns with: b patterns
 
+  (a: Splat) <=> (b: Splat) :=
+    a pattern <=> b pattern
+
+  (a: Default) <=> (b: Default) :=
+    a pattern <=> b pattern
+  (n: Default) <=> (p: Pattern) := n pattern <=> p
+  (p: Pattern) <=> (n: Default) := p <=> n pattern
+
   (a: Named) <=> (b: Named) :=
     a pattern <=> b pattern
   (n: Named) <=> (p: Pattern) := n pattern <=> p
   (p: Pattern) <=> (n: Named) := p <=> n pattern
-
-  (a: Splat) <=> (b: Splat) :=
-    a pattern <=> b pattern
 
   Pattern <=> Pattern := 0
 
