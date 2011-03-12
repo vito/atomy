@@ -21,6 +21,11 @@ macro (x /= y) `(~x set!: (~x / ~y))
 macro (x ^= y) `(~x set!: (~x ^ ~y))
 macro (x %= y) `(~x set!: (~x % ~y))
 
+macro (x match: (b: Block))
+  { n = Atomo::AST::Match new(x line, x, b)
+    `({ ~n } call)
+  } call
+
 macro (class(`(<< ~obj), &body))
   Atomo::AST::Metaclass new(obj line, obj, body body)
 
