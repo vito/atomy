@@ -164,7 +164,7 @@ module(Atomo::AST) {
   Assign pretty := doc { @lhs pretty <+> text: "=" <+> @rhs pretty }
 
   BinarySend pretty := doc {
-    @lhs pretty <+> text: @operator <+> @rhs pretty
+    parens: (@lhs pretty <+> text: @operator <+> @rhs pretty)
   }
 
   -- TODO: arguments
