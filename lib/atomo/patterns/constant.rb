@@ -1,6 +1,6 @@
 module Atomo::Patterns
   class Constant < Pattern
-    attr_reader :name
+    attr_reader :constant
 
     def initialize(constant)
       @constant = constant
