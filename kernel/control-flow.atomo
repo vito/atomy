@@ -1,6 +1,14 @@
 macro (if: cond then: yes else: no)
   Atomo::AST::IfThenElse new(cond line, cond, yes, no)
 
+macro (otherwise) 'true
+
+macro (condition: (bs: Block))
+  bs contents reverse inject('nil)
+    { acc `(~x -> ~y) |
+      `(if: ~x then: { ~y } else: { ~acc })
+    }
+
 macro (while: cond do: body)
   Atomo::AST::While new(cond line, cond, `(~body call))
 
