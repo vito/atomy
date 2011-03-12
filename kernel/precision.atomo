@@ -1,0 +1,67 @@
+--macro (^x) `(Atomo::Patterns from_node('~x))
+
+module(Atomo::Patterns) {
+  -- pattern precision hierarchy, from least precise to most
+  PRECISION =
+    [ [ Any, BlockPass, Splat, Unary,
+        NamedClass, NamedGlobal, NamedInstance
+      ]
+
+      [Constant, Metaclass]
+
+      [HeadTail]
+
+      [List]
+
+      [Match, Quote]
+    ]
+
+  PRECISION each_with_index { ps i |
+    ps each { a |
+      ps each { b |
+        unless(a == List && b == List ||
+                 a == HeadTail && b == HeadTail) {
+          %(a) <=> %(b) := 0
+        }
+      }
+
+      PRECISION drop(i + 1) each { ps |
+        ps each { b |
+          %(a) <=> %(b) := -1
+        }
+      }
+
+      PRECISION take(i) each { ps |
+        ps each { b |
+          %(a) <=> %(b) := 1
+        }
+      }
+    }
+  }
+
+  (a: List) <=> (b: List) :=
+    Atomo::Patterns
+      compare: a patterns with: b patterns
+
+  (a: HeadTail) <=> (b: HeadTail) :=
+    Atomo::Patterns
+      compare: [a head, a tail] with: [b head, b tail]
+
+  (a: Named) <=> (b: Named) := a pattern <=> b pattern
+  (n: Named) <=> (p: Pattern) := n pattern <=> p
+  (p: Pattern) <=> (n: Named) := p <=> n pattern
+
+  (a: Default) <=> (b: Default) := a pattern <=> b pattern
+  (n: Default) <=> (p: Pattern) := n pattern <=> p
+  (p: Pattern) <=> (n: Default) := p <=> n pattern
+
+  { self } compare: xs with: ys :=
+    { total = 0
+
+      xs zip(ys) { [x, y] |
+        total += x <=> y
+      }
+
+      total <=> 0
+    } call
+}

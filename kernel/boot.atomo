@@ -3,7 +3,7 @@ macro (__FILE__) Atomo::AST::File new(line)
 
 "operators define control-flow data comparison
 block errors therie mixins pretty concurrency
-patterns" split each { k |
+patterns precision" split each { k |
   puts("loading " + k)
   load: ("kernel/" + k + ".atomo")
 }
