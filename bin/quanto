@@ -7,6 +7,7 @@ require 'readline'
 
 require base + "/macros"
 require base + "/method"
+require base + "/util"
 require base + "/compiler/compiler"
 require base + "/compiler/stages"
 require base + "/parser"

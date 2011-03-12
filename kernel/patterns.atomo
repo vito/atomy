@@ -1,7 +1,7 @@
 module(Atomo::Patterns) {
   data(Pattern) {
     Strict(@body)
-    RuntimeClass(@body, @id)
+    RuntimeClass(@body, @name)
     Predicate(@pattern, @test)
   }
 
@@ -29,23 +29,22 @@ module(Atomo::Patterns) {
       { get(g)
         @body construct(g)
         @body bytecode(g)
-        g send(#object_id, 0)
+        g send(#name, 0)
         g send(#new, 2)
       } call
 
     == b :=
       b kind_of?(Class) &&
         @body == b body &&
-        @id == b id
+        @name == b name
 
     target(g) :=
       @body bytecode(g)
 
     matches?(g) :=
-      { g send(#class, 0)
-        g send(#object_id, 0)
-        g push_int(@id)
-        g send(#==, 1)
+      { Atomo const_from_string(g, @name)
+        g swap
+        g kind_of
       } call
   }
 
