@@ -130,7 +130,11 @@ module Atomo
     g.gif mismatch
 
     g.push_block
-    g.send_super name, 0 # TODO?: args
+    if g.state.super?
+      g.zsuper g.state.super.name
+    else
+      g.zsuper nil
+    end
     g.goto done
 
     mismatch.set!
