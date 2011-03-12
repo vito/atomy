@@ -125,6 +125,10 @@ module Atomo::Patterns
         return HeadTail.new(from_node(n.lhs), from_node(n.rhs))
       when "="
         return Default.new(from_node(n.lhs), n.rhs)
+      when "=="
+        return Strict.new(n.rhs)
+      when "?"
+        return Predicate.new(n.private ? Any.new : from_node(n.lhs), n.rhs)
       end
     when Atomo::AST::Assign
       return Default.new(from_node(n.lhs), n.rhs)
@@ -152,6 +156,8 @@ module Atomo::Patterns
         return NamedClass.new(n.receiver.name)
       when "@"
         return NamedInstance.new(n.receiver.name)
+      when "%"
+        return RuntimeClass.new(n.receiver, nil)
       when "&"
         return BlockPass.new(from_node(n.receiver))
       when "*"
