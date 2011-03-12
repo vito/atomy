@@ -1,6 +1,6 @@
 MethodFail message :=
-  ("method '" + @method_name to_s + "' did not understand " +
+  ("method '" + @method-name to-s + "' did not understand " +
    "its arguments (non-exhaustive patterns)")
 
 PatternMismatch message :=
-  "irrefutable pattern failed for " + @pattern to_s
+  "irrefutable pattern failed for " + @pattern to-s

@@ -4,8 +4,8 @@ class(And < Atomo::AST::Node) {
 
   bytecode(g) :=
     { pos(g)
-      done = g new_label
-      no = g new_label
+      done = g new-label
+      no = g new-label
 
       @a bytecode(g)
       g gif(no)
@@ -14,7 +14,7 @@ class(And < Atomo::AST::Node) {
       g goto(done)
 
       no set!
-      g push_false
+      g push-false
 
       done set!
     } call
@@ -26,8 +26,8 @@ class(Or < Atomo::AST::Node) {
 
   bytecode(g) :=
     { pos(g)
-      done = g new_label
-      yes = g new_label
+      done = g new-label
+      yes = g new-label
 
       @a bytecode(g)
       g git(yes)
@@ -36,7 +36,7 @@ class(Or < Atomo::AST::Node) {
       g goto(done)
 
       yes set!
-      g push_true
+      g push-true
 
       done set!
     } call
@@ -48,17 +48,17 @@ class(Negate < Atomo::AST::Node) {
 
   bytecode(g) :=
     { pos(g)
-      done = g new_label
-      yes = g new_label
+      done = g new-label
+      yes = g new-label
 
       @expression bytecode(g)
       g git(yes)
 
-      g push_true
+      g push-true
       g goto(done)
 
       yes set!
-      g push_false
+      g push-false
 
       done set!
     } call

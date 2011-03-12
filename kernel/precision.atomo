@@ -14,7 +14,7 @@ module(Atomo::Patterns) {
       [Match, Quote]
     ]
 
-  PRECISION each_with_index { ps i |
+  PRECISION each-with-index { ps i |
     ps each { a |
       ps each { b |
         -- if they're the same class, they'll probably

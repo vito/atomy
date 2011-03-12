@@ -80,12 +80,12 @@ describe: "blocks" as: {
         res = foo call(1, &x)
         res at(0) should-be: 1
         res at(1) should-be: []
-        res at(2) should: { kind_of?(Proc) }
+        res at(2) should: { kind-of?(Proc) }
 
         res = foo call(1, 2, 3, &x)
         res at(0) should-be: 1
         res at(1) should-be: [2, 3]
-        res at(2) should: { kind_of?(Proc) }
+        res at(2) should: { kind-of?(Proc) }
       }
     }
   }

@@ -55,14 +55,14 @@ macro (data(root, &children))
                 0
                 Atomo::AST::Primitive new(0, #self)
                 e arguments map { a |
-                  name = a receiver name to_s
+                  name = a receiver name to-s
                   Atomo::AST::Particle new(0, name)
                 }
                 "attr_accessor"
               )
 
             name =
-              Atomo::AST::Constant new(0, e method_name)
+              Atomo::AST::Constant new(0, e method-name)
 
             `(class(~name < ~root) {
                 ~accessors
@@ -79,7 +79,7 @@ macro (data(root, &children))
         Atomo::AST::ToplevelConstant ->
           `(class(~e < ~root) {})
 
-        _ -> raise("unknown module name: " + e to_s)
+        _ -> raise("unknown module name: " + e to-s)
       }
     }
 

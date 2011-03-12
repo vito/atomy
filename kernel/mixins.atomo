@@ -6,7 +6,7 @@ module(Atomo::Mixins) {
 
   -- based on Blockenspiel, simplified a bit
   context with: mod do: body :=
-    { key = [context object_id, mod object_id]
+    { key = [context object-id, mod object-id]
 
       Sync synchronize {
         count = MixedIn fetch(key, 0)
@@ -31,28 +31,28 @@ module(Atomo::Mixins) {
 
   { self } reset-method-cache: obj :=
     obj methods each { name |
-      Rubinius::VM reset_method_cache(name to_sym)
+      Rubinius::VM reset-method-cache(name to-sym)
     }
 }
 
 -- based on Blockenspiel and Mixology
 obj unmix: (mod: Module) :=
   { last-super = obj metaclass
-    this-super = last-super direct_superclass
+    this-super = last-super direct-superclass
 
     while(this-super) {
       if: (this-super == mod ||
-            (this-super respond_to?(#module) &&
+            (this-super respond-to?(#module) &&
               this-super module == mod))
         then: {
           Atomo::Mixins reset-method-cache: obj
-          last-super superclass set!: this-super direct_superclass
+          last-super superclass set!: this-super direct-superclass
           Atomo::Mixins reset-method-cache: obj
           return(nil)
         }
         else: {
           last-super set!: this-super
-          this-super set!: this-super direct_superclass
+          this-super set!: this-super direct-superclass
         }
     }
 

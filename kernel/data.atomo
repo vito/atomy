@@ -52,16 +52,16 @@ class(Atomo::AST::Hash < Atomo::AST::Node) {
   generate
 
   bytecode(g) :=
-    { g push_cpath_top
-      g find_const(#Hash)
-      g push_int(@keys size)
-      g send(#new_from_literal, 1)
+    { g push-cpath-top
+      g find-const(#Hash)
+      g push-int(@keys size)
+      g send(#new-from-literal, 1)
 
-      @keys each_with_index { n i |
+      @keys each-with-index { n i |
         g dup
         n bytecode(g)
         @values at(i) bytecode(g)
-        g send("[]=" to_sym, 2)
+        g send("[]=" to-sym, 2)
         g pop
       }
     } call

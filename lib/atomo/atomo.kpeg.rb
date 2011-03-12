@@ -665,13 +665,13 @@ class Atomo::Parser
     return _tmp
   end
 
-  # ident_letters = < /([[:alnum:]\$\+\<=\>\^~_!@#%&*\-.\/\?])*/ > { text }
+  # ident_letters = < /([[:alnum:]\$\+\<=\>\^~!@#%&*\-.\/\?])*/ > { text }
   def _ident_letters
 
     _save = self.pos
     while true # sequence
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:([[:alnum:]\$\+\<=\>\^~_!@#%&*\-.\/\?])*)/)
+    _tmp = scan(/\A(?-mix:([[:alnum:]\$\+\<=\>\^~!@#%&*\-.\/\?])*)/)
     if _tmp
       text = get_text(_text_start)
     end
@@ -809,7 +809,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # identifier = < ident_start ident_letters > { text }
+  # identifier = < ident_start ident_letters > { text.tr("-", "_") }
   def _identifier
 
     _save = self.pos
@@ -837,7 +837,7 @@ class Atomo::Parser
       self.pos = _save
       break
     end
-    @result = begin;  text ; end
+    @result = begin;  text.tr("-", "_") ; end
     _tmp = true
     unless _tmp
       self.pos = _save
@@ -5080,12 +5080,12 @@ class Atomo::Parser
   Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })?)")
   Rules[:_line] = rule_info("line", "{ current_line }")
   Rules[:_ident_start] = rule_info("ident_start", "< /[[a-z]_]/ > { text }")
-  Rules[:_ident_letters] = rule_info("ident_letters", "< /([[:alnum:]\\$\\+\\<=\\>\\^~_!@#%&*\\-.\\/\\?])*/ > { text }")
+  Rules[:_ident_letters] = rule_info("ident_letters", "< /([[:alnum:]\\$\\+\\<=\\>\\^~!@#%&*\\-.\\/\\?])*/ > { text }")
   Rules[:_op_start] = rule_info("op_start", "< /[\\$\\+\\<=\\>\\^~!@&#%\\|&*\\-.\\/\\?:]/ > { text }")
   Rules[:_op_letters] = rule_info("op_letters", "< /([\\$\\+\\<=\\>\\^~!@&#%\\|&*\\-.\\/\\?:])*/ > { text }")
   Rules[:_f_ident_start] = rule_info("f_ident_start", "< /[[:alpha:]\\$\\+\\<=\\>\\^`~_!@#%&*\\-.\\/\\?]/ > { text }")
   Rules[:_operator] = rule_info("operator", "< op_start op_letters > { text }")
-  Rules[:_identifier] = rule_info("identifier", "< ident_start ident_letters > { text }")
+  Rules[:_identifier] = rule_info("identifier", "< ident_start ident_letters > { text.tr(\"-\", \"_\") }")
   Rules[:_f_identifier] = rule_info("f_identifier", "< f_ident_start ident_letters > { text }")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
   Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")

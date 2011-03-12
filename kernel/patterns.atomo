@@ -13,7 +13,7 @@ module(Atomo::Patterns) {
       } call
 
     == b :=
-      b kind_of?(Strict) && @body == b body
+      b kind-of?(Strict) && @body == b body
 
     target(g) :=
       @body bytecode(g)
@@ -34,7 +34,7 @@ module(Atomo::Patterns) {
       } call
 
     == b :=
-      b kind_of?(Class) &&
+      b kind-of?(Class) &&
         @body == b body &&
         @name == b name
 
@@ -42,9 +42,9 @@ module(Atomo::Patterns) {
       @body bytecode(g)
 
     matches?(g) :=
-      { Atomo const_from_string(g, @name)
+      { Atomo const-from-string(g, @name)
         g swap
-        g kind_of
+        g kind-of
       } call
   }
 
@@ -57,7 +57,7 @@ module(Atomo::Patterns) {
       } call
 
     == b :=
-      b kind_of?(Predicate) &&
+      b kind-of?(Predicate) &&
         @pattern == b pattern &&
         @test == b test
 
@@ -67,8 +67,8 @@ module(Atomo::Patterns) {
         else: { @pattern target(g) }
 
     matches?(g) :=
-      { mismatch = g new_label
-        done = g new_label
+      { mismatch = g new-label
+        done = g new-label
 
         g dup
         @pattern matches?(g)
@@ -76,12 +76,12 @@ module(Atomo::Patterns) {
 
         `{ ~@test } bytecode(g)
         g swap
-        g send(#call_on_instance, 1)
+        g send(#call-on-instance, 1)
         g goto(done)
 
         mismatch set!
         g pop
-        g push_false
+        g push-false
 
         done set!
       } call

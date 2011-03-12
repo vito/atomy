@@ -1,8 +1,8 @@
 Block = Rubinius::BlockEnvironment
 
-x join: (b: Block) := b call_on_instance(x)
+x join: (b: Block) := b call-on-instance(x)
 
 x do: (b: Block) :=
-  { b call_on_instance(x)
+  { b call-on-instance(x)
     x
   } call

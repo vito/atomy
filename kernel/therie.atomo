@@ -1,6 +1,6 @@
 module(Therie) {
   class(Stats) {
-    attr_accessor(#passed, #failed)
+    attr-accessor(#passed, #failed)
 
     initialize :=
       { @passed = 0
@@ -21,10 +21,10 @@ theorize: as :=
 
     $stats do: {
       [ "total of", failed + passed, "tests"
-        "(" + passed to_s ansi-colored: #green, "passed,"
+        "(" + passed to-s ansi-colored: #green, "passed,"
         if: (failed == 0)
           then: { "0" }
-          else: { failed to_s ansi-colored: #red }
+          else: { failed to-s ansi-colored: #red }
         "failed)"
       ] join(" ") display
 
@@ -41,15 +41,15 @@ x should-be: y := x should: { == y }
 
 x should-raise: y :=
   { x call } rescue: { e |
-    unless(e kind_of?(y)) {
-      raise("expected " + y to_s + ", got: " + e to_s)
+    unless(e kind-of?(y)) {
+      raise("expected " + y to-s + ", got: " + e to-s)
     }
   } else: {
     raise("#should-raise: - no exception raised")
   }
 
 describe: x as: body :=
-  { puts(Therie indentation + "- " + x to_s)
+  { puts(Therie indentation + "- " + x to-s)
     Therie::NESTING_LEVEL += 1
     body call
     Therie::NESTING_LEVEL -= 1
@@ -76,12 +76,12 @@ it: description so: tests :=
         #magenta
         #cyan
         #white
-      ] zip(Range new(0, 7) to_a)
+      ] zip(Range new(0, 7) to-a)
 
     hash = Hash new
     codes each { [p, n] |
       hash store(p, n)
     }
 
-    "\e[9" + hash fetch(color) to_s + "m" + s + "\e[0m"
+    "\e[9" + hash fetch(color) to-s + "m" + s + "\e[0m"
   } call
