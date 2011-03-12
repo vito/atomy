@@ -19,8 +19,10 @@ module(Atomo::Patterns) {
   PRECISION each_with_index { ps i |
     ps each { a |
       ps each { b |
-        unless(a == List && b == List ||
-                 a == HeadTail && b == HeadTail) {
+        -- TODO: parens shouldn't be needed here
+        unless((a == List && b == List) ||
+                 (a == HeadTail && b == HeadTail) ||
+                 (a == Constant && b == Constant)) {
           %(a) <=> %(b) := 0
         }
       }
@@ -49,6 +51,24 @@ module(Atomo::Patterns) {
   (a: HeadTail) <=> (b: HeadTail) :=
     Atomo::Patterns
       compare: [a head, a tail] with: [b head, b tail]
+
+  (a: Constant) <=> (b: Constant) :=
+    condition: {
+      (a ancestors nil? || b ancestors nil?) ->
+        0
+
+      (a ancestors first == b ancestors first) ->
+        0
+
+      b ancestors include?(a ancestors first) ->
+        -1
+
+      a ancestors include?(b ancestors first) ->
+        1
+
+      otherwise ->
+        0
+    }
 
   (a: Named) <=> (b: Named) :=
     a pattern <=> b pattern

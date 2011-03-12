@@ -1,15 +1,18 @@
 module Atomo::Patterns
   class Constant < Pattern
-    attr_reader :constant
+    attr_reader :constant, :ancestors
 
-    def initialize(constant)
+    def initialize(constant, ancestors = nil)
       @constant = constant
+      @ancestors = ancestors
     end
 
     def construct(g)
       get(g)
-      @constant.construct(g, nil)
-      g.send :new, 1
+      @constant.construct(g)
+      @constant.bytecode(g)
+      g.send :ancestors, 0
+      g.send :new, 2
     end
 
     def ==(b)
