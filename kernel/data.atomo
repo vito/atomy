@@ -16,70 +16,25 @@ macro ($(x: 'exception))
 macro ($(x: Variable))
   Atomo::AST::GlobalVariable new(x line, x name)
 
-macro (class(`(<< ~obj), &body))
-  Atomo::AST::Metaclass new(obj line, obj, body body)
+macro (#(b: Block))
+  { keys = []
+    values = []
 
-macro (class(`(~name < ~super), &body))
-  Atomo::AST::Class new(name line, name, body body, super)
-
-macro (class(name, &body))
-  Atomo::AST::Class new(name line, name, body body)
-
-macro (module(name, &body))
-  Atomo::AST::Module new(name line, name, body body)
-
-macro (data(root, &children))
-  { cs = children contents map { e |
-      e match: {
-        Atomo::AST::UnarySend ->
-          { init =
-              Atomo::AST::UnarySend new(
-                0
-                Atomo::AST::Primitive new(0, #self)
-                e arguments
-                "initialize"
-              )
-
-            accessors =
-              Atomo::AST::UnarySend new(
-                0
-                Atomo::AST::Primitive new(0, #self)
-                e arguments map { a |
-                  name = a receiver name to_s
-                  Atomo::AST::Particle new(0, name)
-                }
-                "attr_accessor"
-              )
-
-            name =
-              Atomo::AST::Constant new(0, e method_name)
-
-            `(class(~name < ~root) {
-                ~accessors
-                ~init := #ok
-              })
+    b contents each { p |
+      p match: {
+        `(~k -> ~v) ->
+          { keys << k
+            values << v
           } call
 
-        Atomo::AST::Constant ->
-          `(class(~e < ~root) {})
-
-        Atomo::AST::ScopedConstant ->
-          `(class(~e < ~root) {})
-
-        Atomo::AST::ToplevelConstant ->
-          `(class(~e < ~root) {})
-
-        _ -> raise("unknown module name: " + e to_s)
+        (v: Atomo::AST::KeywordSend) ->
+          { keys << Atomo::AST::Particle new(v line, v names first)
+            values << v arguments first
+          } call
       }
     }
 
-    decls = Atomo::AST::Block new(
-      root line
-      [`(class(~root) {})] + cs
-      []
-    )
-
-    `(~decls call)
+    Atomo::AST::Hash new(line, keys, values)
   } call
 
 a .. b := Range new(a, b)
@@ -91,3 +46,23 @@ for-macro quote: #w as: { c | c split }
 for-macro quote: #r as: { c | Regexp new(c) }
 
 for-macro quote: #raw as: { c | c }
+
+class(Atomo::AST::Hash < Atomo::AST::Node) {
+  children([#keys], [#values])
+  generate
+
+  bytecode(g) :=
+    { g push_cpath_top
+      g find_const(#Hash)
+      g push_int(@keys size)
+      g send(#new_from_literal, 1)
+
+      @keys each_with_index { n i |
+        g dup
+        n bytecode(g)
+        @values at(i) bytecode(g)
+        g send("[]=" to_sym, 2)
+        g pop
+      }
+    } call
+}

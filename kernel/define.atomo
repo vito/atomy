@@ -20,3 +20,70 @@ macro (x -= y) `(~x set!: (~x - ~y))
 macro (x /= y) `(~x set!: (~x / ~y))
 macro (x ^= y) `(~x set!: (~x ^ ~y))
 macro (x %= y) `(~x set!: (~x % ~y))
+
+macro (class(`(<< ~obj), &body))
+  Atomo::AST::Metaclass new(obj line, obj, body body)
+
+macro (class(`(~name < ~super), &body))
+  Atomo::AST::Class new(name line, name, body body, super)
+
+macro (class(name, &body))
+  Atomo::AST::Class new(name line, name, body body)
+
+macro (module(name, &body))
+  Atomo::AST::Module new(name line, name, body body)
+
+macro (data(root, &children))
+  { cs = children contents map { e |
+      e match: {
+        Atomo::AST::UnarySend ->
+          { init =
+              Atomo::AST::UnarySend new(
+                0
+                Atomo::AST::Primitive new(0, #self)
+                e arguments
+                "initialize"
+              )
+
+            accessors =
+              Atomo::AST::UnarySend new(
+                0
+                Atomo::AST::Primitive new(0, #self)
+                e arguments map { a |
+                  name = a receiver name to_s
+                  Atomo::AST::Particle new(0, name)
+                }
+                "attr_accessor"
+              )
+
+            name =
+              Atomo::AST::Constant new(0, e method_name)
+
+            `(class(~name < ~root) {
+                ~accessors
+                ~init := #ok
+              })
+          } call
+
+        Atomo::AST::Constant ->
+          `(class(~e < ~root) {})
+
+        Atomo::AST::ScopedConstant ->
+          `(class(~e < ~root) {})
+
+        Atomo::AST::ToplevelConstant ->
+          `(class(~e < ~root) {})
+
+        _ -> raise("unknown module name: " + e to_s)
+      }
+    }
+
+    decls = Atomo::AST::Block new(
+      root line
+      [`(class(~root) {})] + cs
+      []
+    )
+
+    `(~decls call)
+  } call
+
