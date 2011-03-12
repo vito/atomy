@@ -1,5 +1,3 @@
---macro (^x) `(Atomo::Patterns from_node('~x))
-
 module(Atomo::Patterns) {
   -- pattern precision hierarchy, from least precise to most
   PRECISION =
@@ -19,10 +17,10 @@ module(Atomo::Patterns) {
   PRECISION each_with_index { ps i |
     ps each { a |
       ps each { b |
-        -- TODO: parens shouldn't be needed here
-        unless((a == List && b == List) ||
-                 (a == HeadTail && b == HeadTail) ||
-                 (a == Constant && b == Constant)) {
+        -- if they're the same class, they'll probably
+        -- want to handle their own comparison.
+        -- (otherwise, the bottom Pattern <=> Pattern does this.)
+        unless(a == b) {
           %(a) <=> %(b) := 0
         }
       }
@@ -41,17 +39,11 @@ module(Atomo::Patterns) {
     }
   }
 
-  -- TODO: constants should somehow detect subclassing
-  -- e.g. subclassed matches have higher precision
+  (a: BlockPass) <=> (b: BlockPass) :=
+    a pattern <=> b pattern
 
-  (a: List) <=> (b: List) :=
-    Atomo::Patterns
-      compare: a patterns with: b patterns
-
-  (a: HeadTail) <=> (b: HeadTail) :=
-    Atomo::Patterns
-      compare: [a head, a tail] with: [b head, b tail]
-
+  -- if one constant is a subclass of another, it is
+  -- higher precision.
   (a: Constant) <=> (b: Constant) :=
     condition: {
       (a ancestors nil? || b ancestors nil?) ->
@@ -70,19 +62,31 @@ module(Atomo::Patterns) {
         0
     }
 
-  (a: Named) <=> (b: Named) :=
-    a pattern <=> b pattern
-  (n: Named) <=> (p: Pattern) := n pattern <=> p
-  (p: Pattern) <=> (n: Named) := p <=> n pattern
-
   (a: Default) <=> (b: Default) :=
     a pattern <=> b pattern
   (n: Default) <=> (p: Pattern) := n pattern <=> p
   (p: Pattern) <=> (n: Default) := p <=> n pattern
 
-  -- TODO?:
-  -- Pattern <=> Pattern := -1
+  (a: HeadTail) <=> (b: HeadTail) :=
+    Atomo::Patterns
+      compare: [a head, a tail] with: [b head, b tail]
 
+  (a: List) <=> (b: List) :=
+    Atomo::Patterns
+      compare: a patterns with: b patterns
+
+  (a: Named) <=> (b: Named) :=
+    a pattern <=> b pattern
+  (n: Named) <=> (p: Pattern) := n pattern <=> p
+  (p: Pattern) <=> (n: Named) := p <=> n pattern
+
+  (a: Splat) <=> (b: Splat) :=
+    a pattern <=> b pattern
+
+  Pattern <=> Pattern := 0
+
+
+  -- equivalence ignores named patterns
   (a: Named) =~ (b: Named) :=
     a pattern =~ b pattern
   Named =~ (p: Pattern) := pattern =~ p
@@ -137,6 +141,8 @@ module(Atomo::Patterns) {
 
   Pattern =~ Pattern := false
 
+
+  -- helper for comparing aggregate patterns like lists
   { self } compare: xs with: ys :=
     { total = 0
 
