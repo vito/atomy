@@ -849,7 +849,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # f_identifier = < f_ident_start ident_letters > { text }
+  # f_identifier = < f_ident_start ident_letters > { text.tr("-", "_") }
   def _f_identifier
 
     _save = self.pos
@@ -877,7 +877,7 @@ class Atomo::Parser
       self.pos = _save
       break
     end
-    @result = begin;  text ; end
+    @result = begin;  text.tr("-", "_") ; end
     _tmp = true
     unless _tmp
       self.pos = _save
@@ -5086,7 +5086,7 @@ class Atomo::Parser
   Rules[:_f_ident_start] = rule_info("f_ident_start", "< /[[:alpha:]\\$\\+\\<=\\>\\^`~_!@#%&*\\-.\\/\\?]/ > { text }")
   Rules[:_operator] = rule_info("operator", "< op_start op_letters > { text }")
   Rules[:_identifier] = rule_info("identifier", "< ident_start ident_letters > { text.tr(\"-\", \"_\") }")
-  Rules[:_f_identifier] = rule_info("f_identifier", "< f_ident_start ident_letters > { text }")
+  Rules[:_f_identifier] = rule_info("f_identifier", "< f_ident_start ident_letters > { text.tr(\"-\", \"_\") }")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
   Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")
   Rules[:_multi_comment] = rule_info("multi_comment", "\"{-\" in_multi")

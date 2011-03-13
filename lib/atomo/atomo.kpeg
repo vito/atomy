@@ -83,7 +83,7 @@
        operator = < op_start op_letters > { text }
 
      identifier = < ident_start ident_letters > { text.tr("-", "_") }
-   f_identifier = < f_ident_start ident_letters > { text }
+   f_identifier = < f_ident_start ident_letters > { text.tr("-", "_") }
 
         grouped = "(" wsp expression:x wsp ")" { x }
 
