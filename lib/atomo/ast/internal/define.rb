@@ -30,7 +30,7 @@ module Atomo
           recv = pattern.receiver
         end
 
-        Patterns.from_node(recv)
+        recv.to_pattern
       end
 
       def method_name
@@ -139,7 +139,7 @@ module Atomo
         attr_accessor :patterns
 
         def initialize(args)
-          @patterns = args.collect { |a| Patterns.from_node(a) }
+          @patterns = args.collect(&:to_pattern)
         end
 
         def construct(g, d = nil)

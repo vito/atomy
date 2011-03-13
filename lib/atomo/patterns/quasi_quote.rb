@@ -54,7 +54,7 @@ module Atomo::Patterns
             where.each do |a|
               g.send a, 0
             end
-            Atomo::Patterns.from_node(e.expression).matches?(g)
+            e.expression.to_pattern.matches?(g)
             g.gif mismatch
             depth += 1
             next e
@@ -155,7 +155,7 @@ module Atomo::Patterns
             where.each do |a|
               g.send a, 0
             end
-            Atomo::Patterns.from_node(e.expression).deconstruct(g)
+            e.expression.to_pattern.deconstruct(g)
             depth += 1
             next e
           end
@@ -191,7 +191,7 @@ module Atomo::Patterns
         if e.kind_of?(Atomo::AST::Unquote)
           depth -= 1
           if depth == 0
-            names += Atomo::Patterns.from_node(e.expression).local_names
+            names += e.expression.to_pattern.local_names
             depth += 1
             next e
           end
@@ -227,7 +227,7 @@ module Atomo::Patterns
         if e.kind_of?(Atomo::AST::Unquote)
           depth -= 1
           if depth == 0
-            bindings += Atomo::Patterns.from_node(e.expression).bindings
+            bindings += e.expression.to_pattern.bindings
             depth += 1
             next e
           end

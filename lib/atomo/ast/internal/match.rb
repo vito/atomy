@@ -14,7 +14,7 @@ module Atomo
         @body.contents.each do |e|
           skip = g.new_label
 
-          pat = Patterns.from_node(e.lhs)
+          pat = e.lhs.to_pattern
           exp = e.rhs
 
           g.dup

@@ -61,9 +61,7 @@ module Atomo
       attr_reader :arguments
 
       def initialize(args)
-        @arguments = args.collect do |a|
-          Patterns.from_node a
-        end
+        @arguments = args.collect(&:to_pattern)
       end
 
       def bytecode(g)

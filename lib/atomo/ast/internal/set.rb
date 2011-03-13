@@ -12,10 +12,9 @@ module Atomo
           return
         end
 
-        pat = Patterns.from_node(@lhs)
         @rhs.bytecode(g)
         g.dup
-        pat.match(g, true)
+        @lhs.to_pattern.match(g, true)
       end
     end
   end

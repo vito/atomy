@@ -216,10 +216,10 @@ module Atomo
             Atomo::AST::Primitive.new(n.line, :self)
           )
         else
-          n
+          n.to_pattern
         end
       else
-        Atomo::Patterns.from_node(n)
+        n.to_pattern
       end
     end
   end

@@ -104,82 +104,158 @@ module Atomo::Patterns
     end
   end
 
-  def self.from_node(n)
-    case n
-    when Atomo::AST::Variable
-      if n.name == "_"
-        return Any.new
-      else
-        return Named.new(n.name, Any.new)
-      end
-    when Atomo::AST::Primitive
-      return Match.new(n.value)
-    when Atomo::AST::List
-      return List.new(n.elements.collect { |e| from_node(e) })
-    when Atomo::AST::Constant, Atomo::AST::ToplevelConstant,
-         Atomo::AST::ScopedConstant
-      return Constant.new(n)
-    when Atomo::AST::BinarySend
-      case n.operator
-      when "."
-        return HeadTail.new(from_node(n.lhs), from_node(n.rhs))
-      when "="
-        return Default.new(from_node(n.lhs), n.rhs)
-      when "=="
-        return Strict.new(n.rhs)
-      when "?"
-        return Predicate.new(n.private ? Any.new : from_node(n.lhs), n.rhs)
-      end
-    when Atomo::AST::Assign
-      return Default.new(from_node(n.lhs), n.rhs)
-    when Atomo::AST::KeywordSend
-      if n.receiver.is_a?(Atomo::AST::Primitive) && n.receiver.value == :self && n.arguments.size == 1
-        return Named.new(n.method_name.chop, from_node(n.arguments[0]))
-      end
-    when Atomo::AST::BlockPass
-      return BlockPass.new(from_node(n.body))
-    when Atomo::AST::Quote
-      return Quote.new(n.expression)
-    when Atomo::AST::Block
-      return Metaclass.new(n)
-    when Atomo::AST::GlobalVariable
-      return NamedGlobal.new(n.identifier)
-    when Atomo::AST::InstanceVariable
-      return NamedInstance.new(n.identifier)
-    when Atomo::AST::ClassVariable
-      return NamedClass.new(n.identifier)
-    when Atomo::AST::UnaryOperator
-      case n.operator
-      when "$"
-        return NamedGlobal.new(n.receiver.name)
-      when "@@"
-        return NamedClass.new(n.receiver.name)
-      when "@"
-        return NamedInstance.new(n.receiver.name)
-      when "%"
-        return RuntimeClass.new(n.receiver, nil)
-      when "&"
-        return BlockPass.new(from_node(n.receiver))
-      when "*"
-        return Splat.new(from_node(n.receiver))
-      end
-    when Atomo::AST::Splat
-      return Splat.new(from_node(n.value))
-    when Atomo::AST::Particle
-      return Particle.new(n.name.to_sym) # TODO: other forms
-    when Atomo::AST::UnarySend
-      return Unary.new(n.receiver, n.method_name)
-    when Atomo::AST::QuasiQuote
-      return QuasiQuote.new(n.expression)
-    end
-
-    raise "unknown pattern: " + n.inspect
-  end
-
   # include all pattern classes
   path = File.expand_path("../patterns", __FILE__)
 
   Dir["#{path}/*.rb"].sort.each do |f|
     require path + "/#{File.basename f}"
+  end
+
+  class Atomo::AST::Variable
+    def to_pattern
+      if @name == "_"
+        Any.new
+      else
+        Named.new(@name, Any.new)
+      end
+    end
+  end
+
+  class Atomo::AST::Primitive
+    def to_pattern
+      Match.new(@value)
+    end
+  end
+
+  class Atomo::AST::List
+    def to_pattern
+      List.new(@elements.collect(&:to_pattern))
+    end
+  end
+
+  class Atomo::AST::Constant
+    def to_pattern
+      Constant.new(self)
+    end
+  end
+
+  class Atomo::AST::ScopedConstant
+    def to_pattern
+      Constant.new(self)
+    end
+  end
+
+  class Atomo::AST::ToplevelConstant
+    def to_pattern
+      Constant.new(self)
+    end
+  end
+
+  class Atomo::AST::BinarySend
+    def to_pattern
+      case @operator
+      when "."
+        HeadTail.new(@lhs.to_pattern, @rhs.to_pattern)
+      when "="
+        Default.new(@lhs.to_pattern, @rhs)
+      when "=="
+        Strict.new(@rhs)
+      when "?"
+        Predicate.new(@private ? Any.new : @lhs.to_pattern, @rhs)
+      end
+    end
+  end
+
+  class Atomo::AST::Assign
+    def to_pattern
+      Default.new(@lhs.to_pattern, @rhs)
+    end
+  end
+
+  class Atomo::AST::KeywordSend
+    def to_pattern
+      if @receiver.is_a?(Atomo::AST::Primitive) && @receiver.value == :self
+        Named.new(@names[0], @arguments[0].to_pattern)
+      end
+    end
+  end
+
+  class Atomo::AST::BlockPass
+    def to_pattern
+      BlockPass.new(@body.to_pattern)
+    end
+  end
+
+  class Atomo::AST::Quote
+    def to_pattern
+      Quote.new(@expression)
+    end
+  end
+
+  class Atomo::AST::Block
+    def to_pattern
+      Metaclass.new(self)
+    end
+  end
+
+  class Atomo::AST::GlobalVariable
+    def to_pattern
+      NamedGlobal.new(@identifier)
+    end
+  end
+
+  class Atomo::AST::InstanceVariable
+    def to_pattern
+      NamedInstance.new(@identifier)
+    end
+  end
+
+  class Atomo::AST::ClassVariable
+    def to_pattern
+      NamedClass.new(@identifier)
+    end
+  end
+
+  class Atomo::AST::UnaryOperator
+    def to_pattern
+      case @operator
+      when "$"
+        NamedGlobal.new(@receiver.name)
+      when "@@"
+        NamedClass.new(@receiver.name)
+      when "@"
+        NamedInstance.new(@receiver.name)
+      when "%"
+        RuntimeClass.new(@receiver, nil)
+      when "&"
+        BlockPass.new(@receiver.to_pattern)
+      when "*"
+        Splat.new(@receiver.to_pattern)
+      end
+    end
+  end
+
+  class Atomo::AST::Splat
+    def to_pattern
+      Splat.new(@value.to_pattern)
+    end
+  end
+
+  class Atomo::AST::Particle
+    def to_pattern
+      Particle.new(@name.to_sym) # TODO: other forms
+    end
+  end
+
+  class Atomo::AST::UnarySend
+    def to_pattern
+      Unary.new(@receiver, @method_name)
+    end
+  end
+
+  class Atomo::AST::QuasiQuote
+    def to_pattern
+      QuasiQuote.new(@expression)
+    end
   end
 end
