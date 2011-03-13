@@ -127,7 +127,7 @@ EOF
 
         many_cs =
           @@children[:many].collect { |n|
-            ", @#{n}.collect { |n| n.recursively(pre, post, :#{n}, &f) }"
+            ", @#{n}.each_with_index.collect { |n, i| n.recursively(pre, post, [:#{n}, i], &f) }"
           }.join
 
         opt_cs =

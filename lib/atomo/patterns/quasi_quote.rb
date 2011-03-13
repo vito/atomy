@@ -25,6 +25,20 @@ module Atomo::Patterns
       end
     end
 
+    def context(g, w)
+      w.each do |c|
+        # TODO: fail if out of bounds?
+        # e.g. `(foo(~bar, ~baz)) = '(foo(1))
+        if c.kind_of?(Array)
+          g.send c[0], 0
+          g.push_int c[1]
+          g.send :[], 1
+        else
+          g.send c, 0
+        end
+      end
+    end
+
     def matches?(g)
       mismatch = g.new_label
       done = g.new_label
@@ -51,9 +65,7 @@ module Atomo::Patterns
           depth -= 1
           if depth == 0
             g.push_stack_local them
-            where.each do |a|
-              g.send a, 0
-            end
+            context(g, where)
             e.expression.to_pattern.matches?(g)
             g.gif mismatch
             depth += 1
@@ -62,9 +74,7 @@ module Atomo::Patterns
 
           e.get(g)
           g.push_stack_local them
-          where.each do |a|
-            g.send a, 0
-          end
+          context(g, where)
           g.kind_of
           g.gif mismatch
 
@@ -75,9 +85,7 @@ module Atomo::Patterns
 
         e.get(g)
         g.push_stack_local them
-        where.each do |a|
-          g.send a, 0
-        end
+        context(g, where)
         g.kind_of
         g.gif mismatch
 
@@ -99,9 +107,7 @@ module Atomo::Patterns
             g.push_literal val
           end
           g.push_stack_local them
-          where.each do |c|
-            g.send c, 0
-          end
+          context(g, where)
           g.send a, 0
           g.send :==, 1
           g.gif mismatch
@@ -111,9 +117,7 @@ module Atomo::Patterns
 
         e.construct(g)
         g.push_stack_local them
-        where.each do |a|
-          g.send a, 0
-        end
+        context(g, where)
         g.send :==, 1
         g.gif mismatch
 
@@ -152,9 +156,7 @@ module Atomo::Patterns
           depth -= 1
           if depth == 0
             g.push_stack_local them
-            where.each do |a|
-              g.send a, 0
-            end
+            context(g, where)
             e.expression.to_pattern.deconstruct(g)
             depth += 1
             next e
