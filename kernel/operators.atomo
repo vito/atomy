@@ -5,6 +5,9 @@ operator right 0 = := **= *= <<= >>= &&=
 -- association
 operator right 1 <- ->
 
+-- predicate pattern
+operator right 2 ?
+
 -- ranges
 operator 1 .. ...
 
