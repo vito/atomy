@@ -1,0 +1,66 @@
+module(Atomo::Patterns) {
+  module(Atomo::AST) {
+    '_ to-pattern := Any new
+
+    Variable to-pattern :=
+      Named new(@name, Any new)
+
+    Primitive to-pattern :=
+      Atomo::Patterns::Match new(@value)
+
+    List to-pattern :=
+      Atomo::Patterns::List new(@elements collect { e | e to-pattern })
+
+    Constant to-pattern :=
+      Atomo::Patterns::Constant new(self)
+
+    ScopedConstant to-pattern :=
+      Atomo::Patterns::Constant new(self)
+
+    ToplevelConstant to-pattern :=
+      Atomo::Patterns::Constant new(self)
+
+    `(~h . ~t) to-pattern :=
+      HeadTail new(h to-pattern, t to-pattern)
+
+    `(~p = ~d) to-pattern :=
+      Default new(p to-pattern, d)
+
+    `(== ~v) to-pattern := Strict new(v)
+
+    `(? ~t) to-pattern := Predicate new(Any new, t)
+
+    `(~p ? ~t) to-pattern := Predicate new(p to-pattern, t)
+
+    (KeywordSend ? @receiver == 'self) to-pattern :=
+      Named new(@names first, @arguments first to-pattern)
+
+    Quote to-pattern :=
+      Atomo::Patterns::Quote new(@expression)
+
+    Block to-pattern := Metaclass new(self)
+
+    `@@~n to-pattern := NamedClass new(n identifier)
+
+    `$~n to-pattern := NamedGlobal new(n identifier)
+
+    `@~n to-pattern := NamedInstance new(n identifier)
+
+    `%~x to-pattern := RuntimeClass new(x, nil)
+
+    `&~x to-pattern :=
+      Atomo::Patterns::BlockPass new(x to-pattern)
+
+    `*~x to-pattern :=
+      Atomo::Patterns::Splat new(x to-pattern)
+
+    Particle to-pattern :=
+      Atomo::Patterns::Particle new(@name to-sym)
+
+    UnarySend to-pattern :=
+      Unary new(@receiver, @method-name)
+
+    QuasiQuote to-pattern :=
+      Atomo::Patterns::QuasiQuote new(@expression)
+  }
+}
