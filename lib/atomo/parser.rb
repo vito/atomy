@@ -4,7 +4,6 @@ $:.unshift File.expand_path("../../vendor/kpeg/lib", __FILE__)
 base = File.expand_path "../", __FILE__
 
 require base + "/atomo.kpeg.rb"
-require base + "/patterns"
 
 module Atomo
   class Parser

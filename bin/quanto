@@ -11,6 +11,7 @@ require base + "/util"
 require base + "/compiler/compiler"
 require base + "/compiler/stages"
 require base + "/parser"
+require base + "/patterns"
 require base + "/code_loader"
 
 bnd = TOPLEVEL_BINDING
