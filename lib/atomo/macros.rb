@@ -209,9 +209,19 @@ module Atomo
 
         x.arguments = as
 
-        y = x.receiver.dup
-        x.receiver = y
-        x = y
+        if x.receiver.kind_of?(Atomo::AST::Send)
+          y = x.receiver.dup
+          x.receiver = y
+          x = y
+        else
+          unless x.receiver.kind_of?(Atomo::AST::Primitive)
+            x.receiver = Atomo::AST::Unquote.new(
+              x.receiver.line,
+              x.receiver
+            )
+          end
+          break
+        end
       end
 
       Atomo::AST::QuasiQuote.new(d.line, d)
