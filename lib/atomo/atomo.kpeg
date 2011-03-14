@@ -96,7 +96,7 @@
 
        delim(c) = (wsp "," wsp) | (sp "\n" sp)+ &{ current_column >= c }
 
-     expression = level4
+     expression = level3
 
     expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)?
                     { [x] + Array(xs) }
@@ -119,12 +119,11 @@
                 | list
                 | unary_op
          level2 = unary_send | level1
-         level3 = level2
-         level4 = macro
+         level3 = macro
                 | for_macro
                 | op_assoc_prec
                 | binary_send
-                | level3
+                | level2
 
            true = line:line "true" !f_identifier
                     { Atomo::AST::Primitive.new(line, :true) }
@@ -258,41 +257,7 @@
                     }
      unary_send = unary_c(current_position)
 
-        kw_pair = identifier:n ":" sig_sp level2:v { [n, v] }
-   kw_args(pos) = kw_pair:a (cont(pos) kw_pair)*:as {
-                    pairs = [a] + Array(as)
-                    name = ""
-                    names = []
-                    args = []
-
-                    pairs.each do |n, v|
-                      names << n
-                      args << v
-                    end
-
-                    [names, args]
-                  }
-
- keyword_c(pos) = line:line level2:r cont(pos) kw_args(pos):as
-                    { Atomo::AST::KeywordSend.new(
-                        line,
-                        r,
-                        as.last,
-                        as.first
-                      )
-                    }
-                | line:line kw_args(pos):as
-                    { Atomo::AST::KeywordSend.new(
-                        line,
-                        Atomo::AST::Primitive.new(line, :self),
-                        as.last,
-                        as.first,
-                        true
-                      )
-                    }
-   keyword_send = keyword_c(current_position)
-
-  binary_c(pos) = line:line level3:r (cont(pos) operator:o sig_wsp level3:e { [o, e] })+:bs
+  binary_c(pos) = line:line level2:r (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs
                     { os, es = [], [r]
                       bs.each do |o, e|
                         os << o

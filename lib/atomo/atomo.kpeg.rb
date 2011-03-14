@@ -1162,9 +1162,9 @@ class Atomo::Parser
     return _tmp
   end
 
-  # expression = level4
+  # expression = level3
   def _expression
-    _tmp = apply(:_level4)
+    _tmp = apply(:_level3)
     set_failed_rule :_expression unless _tmp
     return _tmp
   end
@@ -1317,15 +1317,8 @@ class Atomo::Parser
     return _tmp
   end
 
-  # level3 = level2
+  # level3 = (macro | for_macro | op_assoc_prec | binary_send | level2)
   def _level3
-    _tmp = apply(:_level2)
-    set_failed_rule :_level3 unless _tmp
-    return _tmp
-  end
-
-  # level4 = (macro | for_macro | op_assoc_prec | binary_send | level3)
-  def _level4
 
     _save = self.pos
     while true # choice
@@ -1341,13 +1334,13 @@ class Atomo::Parser
     _tmp = apply(:_binary_send)
     break if _tmp
     self.pos = _save
-    _tmp = apply(:_level3)
+    _tmp = apply(:_level2)
     break if _tmp
     self.pos = _save
     break
     end # end choice
 
-    set_failed_rule :_level4 unless _tmp
+    set_failed_rule :_level3 unless _tmp
     return _tmp
   end
 
@@ -3056,201 +3049,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # kw_pair = identifier:n ":" sig_sp level2:v { [n, v] }
-  def _kw_pair
-
-    _save = self.pos
-    while true # sequence
-    _tmp = apply(:_identifier)
-    n = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string(":")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_sig_sp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_level2)
-    v = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  [n, v] ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    set_failed_rule :_kw_pair unless _tmp
-    return _tmp
-  end
-
-  # kw_args = kw_pair:a (cont(pos) kw_pair)*:as {                     pairs = [a] + Array(as)                     name = ""                     names = []                     args = []                      pairs.each do |n, v|                       names << n                       args << v                     end                      [names, args]                   }
-  def _kw_args(pos)
-
-    _save = self.pos
-    while true # sequence
-    _tmp = apply(:_kw_pair)
-    a = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _ary = []
-    while true
-
-    _save2 = self.pos
-    while true # sequence
-    _tmp = _cont(pos)
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = apply(:_kw_pair)
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
-
-    _ary << @result if _tmp
-    break unless _tmp
-    end
-    _tmp = true
-    @result = _ary
-    as = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin; 
-                    pairs = [a] + Array(as)
-                    name = ""
-                    names = []
-                    args = []
-
-                    pairs.each do |n, v|
-                      names << n
-                      args << v
-                    end
-
-                    [names, args]
-                  ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    set_failed_rule :_kw_args unless _tmp
-    return _tmp
-  end
-
-  # keyword_c = (line:line level2:r cont(pos) kw_args(pos):as { Atomo::AST::KeywordSend.new(                         line,                         r,                         as.last,                         as.first                       )                     } | line:line kw_args(pos):as { Atomo::AST::KeywordSend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as.last,                         as.first,                         true                       )                     })
-  def _keyword_c(pos)
-
-    _save = self.pos
-    while true # choice
-
-    _save1 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply(:_level2)
-    r = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = _cont(pos)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = _kw_args(pos)
-    as = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    @result = begin;  Atomo::AST::KeywordSend.new(
-                        line,
-                        r,
-                        as.last,
-                        as.first
-                      )
-                    ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save2 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = _kw_args(pos)
-    as = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    @result = begin;  Atomo::AST::KeywordSend.new(
-                        line,
-                        Atomo::AST::Primitive.new(line, :self),
-                        as.last,
-                        as.first,
-                        true
-                      )
-                    ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-    break
-    end # end choice
-
-    set_failed_rule :_keyword_c unless _tmp
-    return _tmp
-  end
-
-  # keyword_send = keyword_c(current_position)
-  def _keyword_send
-    _tmp = _keyword_c(current_position)
-    set_failed_rule :_keyword_send unless _tmp
-    return _tmp
-  end
-
-  # binary_c = line:line level3:r (cont(pos) operator:o sig_wsp level3:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }
+  # binary_c = line:line level2:r (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }
   def _binary_c(pos)
 
     _save = self.pos
@@ -3261,7 +3060,7 @@ class Atomo::Parser
       self.pos = _save
       break
     end
-    _tmp = apply(:_level3)
+    _tmp = apply(:_level2)
     r = @result
     unless _tmp
       self.pos = _save
@@ -3288,7 +3087,7 @@ class Atomo::Parser
       self.pos = _save2
       break
     end
-    _tmp = apply(:_level3)
+    _tmp = apply(:_level2)
     e = @result
     unless _tmp
       self.pos = _save2
@@ -3324,7 +3123,7 @@ class Atomo::Parser
       self.pos = _save3
       break
     end
-    _tmp = apply(:_level3)
+    _tmp = apply(:_level2)
     e = @result
     unless _tmp
       self.pos = _save3
@@ -5078,12 +4877,11 @@ class Atomo::Parser
   Rules[:_multi_comment] = rule_info("multi_comment", "\"{-\" in_multi")
   Rules[:_in_multi] = rule_info("in_multi", "(/[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ \"{-\" in_multi /[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ /[-{}]/ in_multi)")
   Rules[:_delim] = rule_info("delim", "(wsp \",\" wsp | (sp \"\\n\" sp)+ &{ current_column >= c })")
-  Rules[:_expression] = rule_info("expression", "level4")
+  Rules[:_expression] = rule_info("expression", "level3")
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }")
   Rules[:_level1] = rule_info("level1", "(true | false | self | nil | number | quote | quasi_quote | unquote | string | macro_quote | particle | constant | variable | block | grouped | list | unary_op)")
   Rules[:_level2] = rule_info("level2", "(unary_send | level1)")
-  Rules[:_level3] = rule_info("level3", "level2")
-  Rules[:_level4] = rule_info("level4", "(macro | for_macro | op_assoc_prec | binary_send | level3)")
+  Rules[:_level3] = rule_info("level3", "(macro | for_macro | op_assoc_prec | binary_send | level2)")
   Rules[:_true] = rule_info("true", "line:line \"true\" !f_identifier { Atomo::AST::Primitive.new(line, :true) }")
   Rules[:_false] = rule_info("false", "line:line \"false\" !f_identifier { Atomo::AST::Primitive.new(line, :false) }")
   Rules[:_self] = rule_info("self", "line:line \"self\" !f_identifier { Atomo::AST::Primitive.new(line, :self) }")
@@ -5112,11 +4910,7 @@ class Atomo::Parser
   Rules[:_unary_args] = rule_info("unary_args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_unary_c] = rule_info("unary_c", "(line:line unary_send:r cont(pos) identifier:n unary_args?:as (sp block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n unary_args?:as (sp block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line identifier:n unary_args?:as sp block:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })")
   Rules[:_unary_send] = rule_info("unary_send", "unary_c(current_position)")
-  Rules[:_kw_pair] = rule_info("kw_pair", "identifier:n \":\" sig_sp level2:v { [n, v] }")
-  Rules[:_kw_args] = rule_info("kw_args", "kw_pair:a (cont(pos) kw_pair)*:as {                     pairs = [a] + Array(as)                     name = \"\"                     names = []                     args = []                      pairs.each do |n, v|                       names << n                       args << v                     end                      [names, args]                   }")
-  Rules[:_keyword_c] = rule_info("keyword_c", "(line:line level2:r cont(pos) kw_args(pos):as { Atomo::AST::KeywordSend.new(                         line,                         r,                         as.last,                         as.first                       )                     } | line:line kw_args(pos):as { Atomo::AST::KeywordSend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as.last,                         as.first,                         true                       )                     })")
-  Rules[:_keyword_send] = rule_info("keyword_send", "keyword_c(current_position)")
-  Rules[:_binary_c] = rule_info("binary_c", "line:line level3:r (cont(pos) operator:o sig_wsp level3:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }")
+  Rules[:_binary_c] = rule_info("binary_c", "line:line level2:r (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }")
   Rules[:_binary_send] = rule_info("binary_send", "(binary_c(current_position):t { op_chain(t[0], t[1]) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" })")
   Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { text.to_i(16).chr } | < /\\d{1,6}/ > { text.to_i.chr } | /[oO]/ < /[0-7]{1,7}/ > { text.to_i(16).chr } | /[uU]/ < /[0-9a-fA-F]{4}/ > { text.to_i(16).chr })")

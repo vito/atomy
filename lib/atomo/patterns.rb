@@ -172,14 +172,6 @@ module Atomo::Patterns
     end
   end
 
-  class Atomo::AST::KeywordSend
-    def to_pattern
-      if @receiver.is_a?(Atomo::AST::Primitive) && @receiver.value == :self
-        Named.new(@names[0], @arguments[0].to_pattern)
-      end
-    end
-  end
-
   class Atomo::AST::BlockPass
     def to_pattern
       BlockPass.new(@body.to_pattern)

@@ -26,10 +26,6 @@ macro (#(b: Block)) do:
         keys << k
         values << v
 
-      (v: Atomo::AST::KeywordSend) -> do:
-        keys << Atomo::AST::Particle new(v line, v names first)
-        values << v arguments first
-
   Atomo::AST::Hash new(line, keys, values)
 
 a .. b := Range new(a, b)

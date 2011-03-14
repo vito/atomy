@@ -32,9 +32,6 @@ module(Atomo::Patterns):
 
     `(~p ? ~t) to-pattern := Predicate new(p to-pattern, t)
 
-    (KeywordSend ? @receiver == 'self) to-pattern :=
-      Named new(@names first, @arguments first to-pattern)
-
     Quote to-pattern :=
       Atomo::Patterns::Quote new(@expression)
 

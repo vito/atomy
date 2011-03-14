@@ -190,16 +190,6 @@ module(Atomo::AST):
 
   InstanceVariable pretty := doc: text(name to-s)
 
-  KeywordSend pretty := doc:
-    pairs = @names zip(@arguments) collect (p):
-      text(p first + ":") <+> p last pretty
-
-    if(@receiver kind-of?(Primitive) && @receiver value == #self)
-      then:
-        hsep(pairs)
-      else:
-        @receiver pretty <+> hsep(pairs)
-
   List pretty := doc: brackets(Atomo::AST comma-delim: @elements)
 
   Macro pretty := doc:
