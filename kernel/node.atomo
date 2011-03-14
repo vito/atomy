@@ -35,20 +35,20 @@ module(Atomo::Patterns):
     Quote to-pattern :=
       Atomo::Patterns::Quote new(@expression)
 
-    Block to-pattern := Metaclass new(self)
+    Block to-pattern := Atomo::Patterns::Metaclass new(self)
 
-    `@@~n to-pattern := NamedClass new(n identifier)
+    `@@(~n) to-pattern := NamedClass new(n identifier)
 
-    `$~n to-pattern := NamedGlobal new(n identifier)
+    `$(~n) to-pattern := NamedGlobal new(n identifier)
 
-    `@~n to-pattern := NamedInstance new(n identifier)
+    `@(~n) to-pattern := NamedInstance new(n identifier)
 
-    `%~x to-pattern := RuntimeClass new(x, nil)
+    `%(~x) to-pattern := RuntimeClass new(x, nil)
 
-    `&~x to-pattern :=
+    `&(~x) to-pattern :=
       Atomo::Patterns::BlockPass new(x to-pattern)
 
-    `*~x to-pattern :=
+    `*(~x) to-pattern :=
       Atomo::Patterns::Splat new(x to-pattern)
 
     Particle to-pattern :=
@@ -57,7 +57,10 @@ module(Atomo::Patterns):
     Send to-pattern :=
       if(@block)
         then: Named new(@method-name, @block contents at(0) to-pattern)
-        else: Unary new(@receiver, @method-name)
+        else: Atomo::Patterns::Unary new(@receiver, @method-name)
 
     QuasiQuote to-pattern :=
       Atomo::Patterns::QuasiQuote new(@expression)
+
+    Node to-pattern :=
+      raise("unknown pattern: " + self inspect)
