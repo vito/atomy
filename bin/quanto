@@ -48,8 +48,7 @@ while str = Readline.readline("> ")
 
   begin
     res = Atomo::Compiler.evaluate str, bnd
-    #puts "=> #{res.pretty.render}"
-    puts "=> #{res.inspect}"
+    puts "=> #{res.pretty.render}"
   rescue StandardError => e
     puts "ERROR!"
     puts "#{e}:\n  #{e.message}"
