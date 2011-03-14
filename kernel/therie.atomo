@@ -35,12 +35,12 @@ x should-be(y) := x should: == y
 
 x should-raise(y) :=
   begin:
-    x call;
-    rescue (e):
-      unless(e kind-of?(y)):
-        raise("expected " + y to-s + ", got: " + e to-s);
-    else:
-      raise("#should-raise: - no exception raised")
+    x call
+   rescue (e):
+     unless(e kind-of?(y)):
+       raise("expected " + y to-s + ", got: " + e to-s)
+   else:
+     raise("#should-raise - no exception raised")
 
 describe(x, &body) := do:
   puts(Therie indentation + "- " + x to-s)
@@ -51,13 +51,15 @@ describe(x, &body) := do:
 it(description, &tests) :=
   begin:
     tests call
-    puts((Therie indentation + "✓ " + description) ansi-colored(#green));
-    rescue (e):
-      $stats failed += 1
-      puts((Therie indentation + "✗ " + description) ansi-colored(#red))
-      puts((Therie indentation + "  ` " + e class name + ": " + e message) ansi-colored(#yellow));
-    else:
-      $stats passed += 1
+    puts((Therie indentation + "✓ " + description) ansi-colored(#green))
+   rescue (e):
+     $stats failed += 1
+     puts((Therie indentation + "✗ " + description) ansi-colored(#red))
+     puts((Therie indentation + "  ` " + e class name + ": " + e message) ansi-colored(#yellow))
+     e backtrace first(5) each (l):
+      puts(Therie indentation + "    " + l ansi-colored(#cyan))
+   else:
+     $stats passed += 1
 
 (s: String) ansi-colored(color) := do:
   codes =
