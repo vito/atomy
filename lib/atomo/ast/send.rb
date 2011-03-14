@@ -1,6 +1,6 @@
 module Atomo
   module AST
-    class UnarySend < Node
+    class Send < Node
       children :receiver, [:arguments], :block?
       attributes :method_name, [:private, false]
       generate

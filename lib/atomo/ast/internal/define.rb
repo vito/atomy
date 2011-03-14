@@ -11,7 +11,7 @@ module Atomo
         case pattern
         when BinarySend
           args = [pattern.rhs]
-        when Variable, UnaryOperator
+        when Variable, Unary
           args = []
         else
           args = pattern.arguments

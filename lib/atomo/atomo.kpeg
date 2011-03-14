@@ -184,7 +184,7 @@
                     names = [m] + Array(s)
                     if as
                       msg = names.pop
-                      Atomo::AST::UnarySend.new(
+                      Atomo::AST::Send.new(
                         line,
                         names.empty? ?
                             Atomo::AST::Primitive.new(line, :self) :
@@ -202,7 +202,7 @@
                     names = Array(s)
                     if as
                       msg = names.pop
-                      Atomo::AST::UnarySend.new(
+                      Atomo::AST::Send.new(
                         line,
                         names.empty? ?
                             Atomo::AST::Primitive.new(line, :self) :
@@ -221,7 +221,7 @@
                     { Atomo::AST::Variable.new(line, n) }
 
        unary_op = line:line operator:o level1:e
-                    { Atomo::AST::UnaryOperator.new(line, e, o) }
+                    { Atomo::AST::Unary.new(line, e, o) }
 
      block_args = "(" wsp expressions?:as wsp ")" { as }
           block = line:line block_args?:as ":" !operator wsp expressions?:es (wsp ";")?
@@ -232,11 +232,11 @@
 
      unary_args = "(" wsp expressions?:as wsp ")" { Array(as) }
    unary_c(pos) = line:line unary_send:r cont(pos) identifier:n unary_args?:as (sp block)?:b
-                    { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) }
+                    { Atomo::AST::Send.new(line, r, Array(as), n, b) }
                 | line:line level1:r cont(pos) identifier:n unary_args?:as (sp block)?:b
-                    { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) }
+                    { Atomo::AST::Send.new(line, r, Array(as), n, b) }
                 | line:line identifier:n unary_args?:as sp block:b
-                    { Atomo::AST::UnarySend.new(
+                    { Atomo::AST::Send.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
                         Array(as),
@@ -246,7 +246,7 @@
                       )
                     }
                 | line:line identifier:n unary_args:as (sp block)?:b
-                    { Atomo::AST::UnarySend.new(
+                    { Atomo::AST::Send.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
                         as,

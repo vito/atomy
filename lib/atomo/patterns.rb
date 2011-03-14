@@ -208,7 +208,7 @@ module Atomo::Patterns
     end
   end
 
-  class Atomo::AST::UnaryOperator
+  class Atomo::AST::Unary
     def to_pattern
       case @operator
       when "$"
@@ -239,7 +239,7 @@ module Atomo::Patterns
     end
   end
 
-  class Atomo::AST::UnarySend
+  class Atomo::AST::Send
     def to_pattern
       if @block
         Named.new(@method_name, @block.contents[0].to_pattern)

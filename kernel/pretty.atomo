@@ -216,7 +216,7 @@ module(Atomo::AST):
 
   ToplevelConstant pretty := doc: text("::") <> text(name to-s)
 
-  UnarySend pretty := doc:
+  Send pretty := doc:
     block = if(@block) then: @block pretty. else: empty
 
     args =

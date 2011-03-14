@@ -2258,7 +2258,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # constant = (line:line constant_name:m ("::" constant_name)*:s unary_args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line ("::" constant_name)+:s unary_args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })
+  # constant = (line:line constant_name:m ("::" constant_name)*:s unary_args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomo::AST::Send.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line ("::" constant_name)+:s unary_args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomo::AST::Send.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })
   def _constant
 
     _save = self.pos
@@ -2321,7 +2321,7 @@ class Atomo::Parser
                     names = [m] + Array(s)
                     if as
                       msg = names.pop
-                      Atomo::AST::UnarySend.new(
+                      Atomo::AST::Send.new(
                         line,
                         names.empty? ?
                             Atomo::AST::Primitive.new(line, :self) :
@@ -2417,7 +2417,7 @@ class Atomo::Parser
                     names = Array(s)
                     if as
                       msg = names.pop
-                      Atomo::AST::UnarySend.new(
+                      Atomo::AST::Send.new(
                         line,
                         names.empty? ?
                             Atomo::AST::Primitive.new(line, :self) :
@@ -2484,7 +2484,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # unary_op = line:line operator:o level1:e { Atomo::AST::UnaryOperator.new(line, e, o) }
+  # unary_op = line:line operator:o level1:e { Atomo::AST::Unary.new(line, e, o) }
   def _unary_op
 
     _save = self.pos
@@ -2507,7 +2507,7 @@ class Atomo::Parser
       self.pos = _save
       break
     end
-    @result = begin;  Atomo::AST::UnaryOperator.new(line, e, o) ; end
+    @result = begin;  Atomo::AST::Unary.new(line, e, o) ; end
     _tmp = true
     unless _tmp
       self.pos = _save
@@ -2761,7 +2761,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # unary_c = (line:line unary_send:r cont(pos) identifier:n unary_args?:as (sp block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n unary_args?:as (sp block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line identifier:n unary_args?:as sp block:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })
+  # unary_c = (line:line unary_send:r cont(pos) identifier:n unary_args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n unary_args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line identifier:n unary_args?:as sp block:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })
   def _unary_c(pos)
 
     _save = self.pos
@@ -2830,7 +2830,7 @@ class Atomo::Parser
       self.pos = _save1
       break
     end
-    @result = begin;  Atomo::AST::UnarySend.new(line, r, Array(as), n, b) ; end
+    @result = begin;  Atomo::AST::Send.new(line, r, Array(as), n, b) ; end
     _tmp = true
     unless _tmp
       self.pos = _save1
@@ -2904,7 +2904,7 @@ class Atomo::Parser
       self.pos = _save5
       break
     end
-    @result = begin;  Atomo::AST::UnarySend.new(line, r, Array(as), n, b) ; end
+    @result = begin;  Atomo::AST::Send.new(line, r, Array(as), n, b) ; end
     _tmp = true
     unless _tmp
       self.pos = _save5
@@ -2952,7 +2952,7 @@ class Atomo::Parser
       self.pos = _save9
       break
     end
-    @result = begin;  Atomo::AST::UnarySend.new(
+    @result = begin;  Atomo::AST::Send.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
                         Array(as),
@@ -3017,7 +3017,7 @@ class Atomo::Parser
       self.pos = _save11
       break
     end
-    @result = begin;  Atomo::AST::UnarySend.new(
+    @result = begin;  Atomo::AST::Send.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
                         as,
@@ -4901,14 +4901,14 @@ class Atomo::Parser
   Rules[:_macro_quote] = rule_info("macro_quote", "line:line identifier:n quoted:c (< [a-z] > { text })*:fs { Atomo::AST::MacroQuote.new(line, n, c, fs) }")
   Rules[:_particle] = rule_info("particle", "line:line \"#\" f_identifier:n { Atomo::AST::Particle.new(line, n) }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
-  Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s unary_args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line (\"::\" constant_name)+:s unary_args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomo::AST::UnarySend.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })")
+  Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s unary_args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomo::AST::Send.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line (\"::\" constant_name)+:s unary_args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomo::AST::Send.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })")
   Rules[:_variable] = rule_info("variable", "line:line identifier:n !\":\" { Atomo::AST::Variable.new(line, n) }")
-  Rules[:_unary_op] = rule_info("unary_op", "line:line operator:o level1:e { Atomo::AST::UnaryOperator.new(line, e, o) }")
+  Rules[:_unary_op] = rule_info("unary_op", "line:line operator:o level1:e { Atomo::AST::Unary.new(line, e, o) }")
   Rules[:_block_args] = rule_info("block_args", "\"(\" wsp expressions?:as wsp \")\" { as }")
   Rules[:_block] = rule_info("block", "line:line block_args?:as \":\" !operator wsp expressions?:es (wsp \";\")? { Atomo::AST::Block.new(line, Array(es), Array(as)) }")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomo::AST::List.new(line, Array(es)) }")
   Rules[:_unary_args] = rule_info("unary_args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
-  Rules[:_unary_c] = rule_info("unary_c", "(line:line unary_send:r cont(pos) identifier:n unary_args?:as (sp block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n unary_args?:as (sp block)?:b { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) } | line:line identifier:n unary_args?:as sp block:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::UnarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })")
+  Rules[:_unary_c] = rule_info("unary_c", "(line:line unary_send:r cont(pos) identifier:n unary_args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n unary_args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line identifier:n unary_args?:as sp block:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n unary_args:as (sp block)?:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })")
   Rules[:_unary_send] = rule_info("unary_send", "unary_c(current_position)")
   Rules[:_binary_c] = rule_info("binary_c", "line:line level2:r (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }")
   Rules[:_binary_send] = rule_info("binary_send", "(binary_c(current_position):t { op_chain(t[0], t[1]) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")

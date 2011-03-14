@@ -31,6 +31,14 @@ macro (#(b: Block)) do:
 a .. b := Range new(a, b)
 a ... b := Range new(a, b, true)
 
+macro (x at(y) put(z))
+  Atomo::AST::Send new(
+    line
+    x
+    [y, z]
+    "[]="
+  )
+
 --for-macro quote: #w as: (c): c split.
 
 -- TODO: flags

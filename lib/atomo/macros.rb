@@ -73,7 +73,7 @@ module Atomo
 
     def self.expand?(node)
       case node
-      when AST::BinarySend, AST::UnarySend, AST::UnaryOperator,
+      when AST::BinarySend, AST::Send, AST::Unary,
            AST::MacroQuote, AST::Variable, AST::Macro
         true
       else
@@ -95,8 +95,8 @@ module Atomo
           node.operator,
           node.private
         )
-      when AST::UnarySend
-        AST::UnarySend.new(
+      when AST::Send
+        AST::Send.new(
           node.line,
           expand(node.receiver),
           node.arguments.collect { |a| expand(a) },
@@ -104,8 +104,8 @@ module Atomo
           node.block ? expand(node.block) : node.block,
           node.private
         )
-      when AST::UnaryOperator
-        AST::UnaryOperator.new(
+      when AST::Unary
+        AST::Unary.new(
           node.line,
           expand(node.receiver),
           node.operator
@@ -135,14 +135,14 @@ module Atomo
               node.lhs,
               node.rhs
             ).to_node
-          when AST::UnarySend
+          when AST::Send
             expand CURRENT_ENV.send(
               (intern name).to_sym,
               node.block,
               node.receiver,
               *node.arguments
             ).to_node
-          when AST::UnaryOperator
+          when AST::Unary
             expand CURRENT_ENV.send(
               (intern name).to_sym,
               nil,
@@ -187,14 +187,14 @@ module Atomo
 
       d = n.dup
       x = d
-      while x.kind_of?(Atomo::AST::UnarySend)
+      while x.kind_of?(Atomo::AST::Send)
         if n.block
           next
         end
 
         as = []
         x.arguments.each do |a|
-          if a.kind_of?(Atomo::AST::UnaryOperator) && a.operator == "&"
+          if a.kind_of?(Atomo::AST::Unary) && a.operator == "&"
             x.block = Atomo::AST::Unquote.new(
               a.line,
               a.receiver
@@ -218,7 +218,7 @@ module Atomo
     end
 
     def self.macro_pattern(n)
-      if n.kind_of?(Atomo::AST::UnarySend) && !n.block
+      if n.kind_of?(Atomo::AST::Send) && !n.block
         n = unary_chain(n)
       end
 

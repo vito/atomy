@@ -7,7 +7,7 @@ macro (x =! y)
 macro (x := y)
   Atomo::AST::Define new(x line, x, y)
 
-macro (def(x, &y))
+macro (define(x, &y))
   Atomo::AST::Define new(x line, x, y body)
 
 macro (do(&b)) `(~b call)
@@ -45,9 +45,9 @@ macro (module(name, &body))
 macro (data(root, &children)) do:
   cs = children contents map (e):
     e match:
-      Atomo::AST::UnarySend -> do:
+      Atomo::AST::Send -> do:
         init =
-          Atomo::AST::UnarySend new(
+          Atomo::AST::Send new(
             0
             Atomo::AST::Primitive new(0, #self)
             e arguments
@@ -55,7 +55,7 @@ macro (data(root, &children)) do:
           )
 
         accessors =
-          Atomo::AST::UnarySend new(
+          Atomo::AST::Send new(
             0
             Atomo::AST::Primitive new(0, #self)
             e arguments map (a):

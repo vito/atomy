@@ -54,7 +54,7 @@ module(Atomo::Patterns):
     Particle to-pattern :=
       Atomo::Patterns::Particle new(@name to-sym)
 
-    UnarySend to-pattern :=
+    Send to-pattern :=
       if(@block)
         then: Named new(@method-name, @block contents at(0) to-pattern)
         else: Unary new(@receiver, @method-name)

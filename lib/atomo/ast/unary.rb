@@ -1,7 +1,7 @@
 # TODO: ensure binary sends do not end with @
 module Atomo
   module AST
-    class UnaryOperator < Node
+    class Unary < Node
       children :receiver
       attributes :operator
       generate
