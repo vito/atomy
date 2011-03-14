@@ -1,5 +1,7 @@
 module Atomo::Patterns
   class Quote < Pattern
+    attr_reader :expression
+
     def initialize(x)
       @expression = x
     end
