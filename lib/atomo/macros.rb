@@ -63,7 +63,7 @@ module Atomo
       methods = CURRENT_ENV.macros
       method = [[Patterns::Any.new, args], body]
       if ms = methods[name]
-        ms << method
+        Atomo.insert_method(method, ms)
       else
         methods[name] = [method]
       end
