@@ -102,7 +102,11 @@ module(Atomo::Patterns):
     a head =~ b head && a tail =~ b tail
 
   (a: List) =~ (b: List) :=
-    a zip(bs) all? (a, b): a =~ b
+    a zip(bs) all? (a, b):
+      when(a nil? || b nil?):
+        return(false)
+
+      a =~ b
 
   (a: Match) =~ (b: Match) :=
     a value == b value
@@ -140,6 +144,7 @@ module(Atomo::Patterns):
     total = 0
 
     xs zip(ys) ([x, y]):
-      total += x <=> y
+      unless(x nil? || y nil?):
+        total += x <=> y
 
     total <=> 0
