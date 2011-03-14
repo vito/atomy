@@ -179,6 +179,7 @@ module Atomo
             no_macro(node)
           end
         rescue MethodFail, ArgumentError => e
+          p :error => e.message
           # expand normally if the macro doesn't seem to be a match
           raise unless e.instance_variable_get("@method_name") == intern(name).to_sym
           no_macro(node)

@@ -16,17 +16,17 @@ require base + "/code_loader"
 
 bnd = TOPLEVEL_BINDING
 
-Kernel.send(:define_method, :"load:") do |*as|
+Kernel.send(:define_method, :"load") do |*as|
   Atomo::CodeLoader.load_file *as
 end
 
 a = Time.now
 puts "loading kernel"
-send(:"load:", kernel + "/boot.atomo")
+load(kernel + "/boot.atomo")
 puts Time.now - a
 
 if ARGV[0]
-  send(:"load:", ARGV[0])
+  load(ARGV[0])
   exit(0)
 end
 
@@ -48,7 +48,8 @@ while str = Readline.readline("> ")
 
   begin
     res = Atomo::Compiler.evaluate str, bnd
-    puts "=> #{res.pretty.render}"
+    #puts "=> #{res.pretty.render}"
+    puts "=> #{res.inspect}"
   rescue StandardError => e
     puts "ERROR!"
     puts "#{e}:\n  #{e.message}"

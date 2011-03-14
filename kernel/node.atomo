@@ -1,5 +1,5 @@
-module(Atomo::Patterns) {
-  module(Atomo::AST) {
+module(Atomo::Patterns):
+  module(Atomo::AST):
     '_ to-pattern := Any new
 
     Variable to-pattern :=
@@ -9,7 +9,7 @@ module(Atomo::Patterns) {
       Atomo::Patterns::Match new(@value)
 
     List to-pattern :=
-      Atomo::Patterns::List new(@elements collect { e | e to-pattern })
+      Atomo::Patterns::List new(@elements collect (e): e to-pattern)
 
     Constant to-pattern :=
       Atomo::Patterns::Constant new(self)
@@ -62,5 +62,3 @@ module(Atomo::Patterns) {
 
     QuasiQuote to-pattern :=
       Atomo::Patterns::QuasiQuote new(@expression)
-  }
-}

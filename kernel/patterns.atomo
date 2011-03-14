@@ -1,16 +1,14 @@
-module(Atomo::Patterns) {
-  data(Pattern) {
+module(Atomo::Patterns):
+  data(Pattern):
     Strict(@body)
     RuntimeClass(@body, @name)
     Predicate(@pattern, @test)
-  }
 
-  class(Strict) {
-    construct(g) :=
-      { get(g)
-        @body construct(g)
-        g send(#new, 1)
-      } call
+  class(Strict):
+    construct(g) := do:
+      get(g)
+      @body construct(g)
+      g send(#new, 1)
 
     == b :=
       b kind-of?(Strict) && @body == b body
@@ -18,20 +16,17 @@ module(Atomo::Patterns) {
     target(g) :=
       @body bytecode(g)
 
-    matches?(g) :=
-      { @body bytecode(g)
-        g send(#==, 1)
-      } call
-  }
+    matches?(g) := do:
+      @body bytecode(g)
+      g send(#==, 1)
 
-  class(RuntimeClass) {
-    construct(g) :=
-      { get(g)
-        @body construct(g)
-        @body bytecode(g)
-        g send(#name, 0)
-        g send(#new, 2)
-      } call
+  class(RuntimeClass):
+    construct(g) := do:
+      get(g)
+      @body construct(g)
+      @body bytecode(g)
+      g send(#name, 0)
+      g send(#new, 2)
 
     == b :=
       b kind-of?(Class) &&
@@ -41,20 +36,17 @@ module(Atomo::Patterns) {
     target(g) :=
       @body bytecode(g)
 
-    matches?(g) :=
-      { Atomo const-from-string(g, @name)
-        g swap
-        g kind-of
-      } call
-  }
+    matches?(g) := do:
+      Atomo const-from-string(g, @name)
+      g swap
+      g kind-of
 
-  class(Predicate) {
-    construct(g) :=
-      { get(g)
-        @pattern construct(g)
-        @test construct(g)
-        g send(#new, 2)
-      } call
+  class(Predicate):
+    construct(g) := do:
+      get(g)
+      @pattern construct(g)
+      @test construct(g)
+      g send(#new, 2)
 
     == b :=
       b kind-of?(Predicate) &&
@@ -62,28 +54,25 @@ module(Atomo::Patterns) {
         @test == b test
 
     target(g) :=
-      if: @pattern
-        then: { Any new target(g) }
-        else: { @pattern target(g) }
+      if(@pattern)
+        then: Any new target(g)
+        else: @pattern target(g)
 
-    matches?(g) :=
-      { mismatch = g new-label
-        done = g new-label
+    matches?(g) := do:
+      mismatch = g new-label
+      done = g new-label
 
-        g dup
-        @pattern matches?(g)
-        g gif(mismatch)
+      g dup
+      @pattern matches?(g)
+      g gif(mismatch)
 
-        `{ ~@test } bytecode(g)
-        g swap
-        g send(#call-on-instance, 1)
-        g goto(done)
+      `: ~@test ; bytecode(g)
+      g swap
+      g send(#call-on-instance, 1)
+      g goto(done)
 
-        mismatch set!
-        g pop
-        g push-false
+      mismatch set!
+      g pop
+      g push-false
 
-        done set!
-      } call
-  }
-}
+      done set!

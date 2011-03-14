@@ -49,11 +49,11 @@ module Atomo::Patterns
     end
 
     def local_names
-      [@name]
+      [@name] + @pattern.local_names
     end
 
     def bindings
-      1
+      1 + @pattern.bindings
     end
   end
 end

@@ -1,4 +1,4 @@
-module(Atomo::Patterns) {
+module(Atomo::Patterns):
   -- pattern precision hierarchy, from least precise to most
   PRECISION =
     [ [ Any, BlockPass, Splat, Unary,
@@ -14,30 +14,22 @@ module(Atomo::Patterns) {
       [Match, Quote]
     ]
 
-  PRECISION each-with-index { ps i |
-    ps each { a |
-      ps each { b |
+  PRECISION each-with-index (ps, i):
+    ps each (a):
+      ps each (b):
         -- if they're the same class, they'll probably
         -- want to handle their own comparison.
         -- (otherwise, the Pattern <=> Pattern does this.)
-        unless(a == b) {
+        unless(a == b):
           %(a) <=> %(b) := 0
-        }
-      }
 
-      PRECISION drop(i + 1) each { ps |
-        ps each { b |
+      PRECISION drop(i + 1) each (ps):
+        ps each (b):
           %(a) <=> %(b) := -1
-        }
-      }
 
-      PRECISION take(i) each { ps |
-        ps each { b |
+      PRECISION take(i) each (ps):
+        ps each (b):
           %(a) <=> %(b) := 1
-        }
-      }
-    }
-  }
 
   (a: BlockPass) <=> (b: BlockPass) :=
     a pattern <=> b pattern
@@ -45,7 +37,7 @@ module(Atomo::Patterns) {
   -- if one constant is a subclass of another, it is
   -- higher precision.
   (a: Constant) <=> (b: Constant) :=
-    condition: {
+    condition:
       (a ancestors nil? || b ancestors nil?) ->
         0
 
@@ -60,15 +52,14 @@ module(Atomo::Patterns) {
 
       otherwise ->
         0
-    }
 
   (a: HeadTail) <=> (b: HeadTail) :=
     Atomo::Patterns
-      compare: [a head, a tail] with: [b head, b tail]
+      compare([a head, a tail], [b head, b tail])
 
   (a: List) <=> (b: List) :=
     Atomo::Patterns
-      compare: a patterns with: b patterns
+      compare(a patterns, b patterns)
 
   (a: Splat) <=> (b: Splat) :=
     a pattern <=> b pattern
@@ -109,7 +100,7 @@ module(Atomo::Patterns) {
     a head =~ b head && a tail =~ b tail
 
   (a: List) =~ (b: List) :=
-    a zip(bs) all? { a b | a =~ b }
+    a zip(bs) all? (a, b): a =~ b
 
   (a: Match) =~ (b: Match) :=
     a value == b value
@@ -143,13 +134,10 @@ module(Atomo::Patterns) {
 
 
   -- helper for comparing aggregate patterns like lists
-  { self } compare: xs with: ys :=
-    { total = 0
+  : self ; compare(xs, ys) := do:
+    total = 0
 
-      xs zip(ys) { [x, y] |
-        total += x <=> y
-      }
+    xs zip(ys) ([x, y]):
+      total += x <=> y
 
-      total <=> 0
-    } call
-}
+    total <=> 0

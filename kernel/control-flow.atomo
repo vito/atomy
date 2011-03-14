@@ -1,16 +1,11 @@
-macro (if: cond then: yes else: no)
-  Atomo::AST::IfThenElse new(cond line, cond, yes, no)
-
+macro ((y: `(if(~x) then)) else(&z)) do:
+  Atomo::AST::IfThenElse new(x line, x, y block, z)
+  
 macro (otherwise) 'true
 
-macro (condition: (bs: Block))
-  bs contents reverse inject('nil)
-    { acc `(~x -> ~y) |
-      `(if: ~x then: { ~y } else: { ~acc })
-    }
-
-macro (while: cond do: body)
-  Atomo::AST::While new(cond line, cond, `(~body call))
+macro (condition(&bs))
+  bs contents reverse inject('nil) (acc, `(~x -> ~y)):
+    `(if(~x) then: ~y; else: ~acc)
 
 macro (while(cond, &body))
   Atomo::AST::While new(cond line, cond, `(~body call))
@@ -18,17 +13,19 @@ macro (while(cond, &body))
 macro (x return(y))
   Atomo::AST::Return new(x line, y)
 
-macro (x rescue: y)
-  Atomo::AST::Catch new(x line, `(~x call), `(~y call($exception)))
+macro ((x: `(begin())) rescue(&y))
+  Atomo::AST::Catch new(x line, x block body, `(~y call($exception)))
 
-macro (x rescue: y else: z)
-  Atomo::AST::Catch new(x line, `(~x call), `(~y call($exception)), z body)
+macro ((y: `(~(x: `(begin())) rescue)) else(&z))
+  Atomo::AST::Catch new(x line, x block body, `(~(y block) call($exception)), z body)
 
-macro (x ensuring: y)
+macro (x ensuring(&y))
   Atomo::AST::Ensure new(x line, `(~x call), `(~y call))
 
 unless(false, &blk) := blk call
-unless(true, &_) := nil
+unless(nil, &blk) := blk call
+unless(_, &_) := nil
 
-when(true, &blk) := blk call
 when(false, &_) := nil
+when(nil, &_) := nil
+when(_, &blk) := blk call

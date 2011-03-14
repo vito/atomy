@@ -1,68 +1,62 @@
-class(And < Atomo::AST::Node) {
+class(And < Atomo::AST::Node):
   children(#a, #b)
   generate
 
-  bytecode(g) :=
-    { pos(g)
-      done = g new-label
-      no = g new-label
+  bytecode(g) := do:
+    pos(g)
+    done = g new-label
+    no = g new-label
 
-      @a bytecode(g)
-      g gif(no)
+    @a bytecode(g)
+    g gif(no)
 
-      @b bytecode(g)
-      g goto(done)
+    @b bytecode(g)
+    g goto(done)
 
-      no set!
-      g push-false
+    no set!
+    g push-false
 
-      done set!
-    } call
-}
+    done set!
 
-class(Or < Atomo::AST::Node) {
+class(Or < Atomo::AST::Node):
   children(#a, #b)
   generate
 
-  bytecode(g) :=
-    { pos(g)
-      done = g new-label
-      yes = g new-label
+  bytecode(g) := do:
+    pos(g)
+    done = g new-label
+    yes = g new-label
 
-      @a bytecode(g)
-      g git(yes)
+    @a bytecode(g)
+    g git(yes)
 
-      @b bytecode(g)
-      g goto(done)
+    @b bytecode(g)
+    g goto(done)
 
-      yes set!
-      g push-true
+    yes set!
+    g push-true
 
-      done set!
-    } call
-}
+    done set!
 
-class(Negate < Atomo::AST::Node) {
+class(Negate < Atomo::AST::Node):
   children(#expression)
   generate
 
-  bytecode(g) :=
-    { pos(g)
-      done = g new-label
-      yes = g new-label
+  bytecode(g) := do:
+    pos(g)
+    done = g new-label
+    yes = g new-label
 
-      @expression bytecode(g)
-      g git(yes)
+    @expression bytecode(g)
+    g git(yes)
 
-      g push-true
-      g goto(done)
+    g push-true
+    g goto(done)
 
-      yes set!
-      g push-false
+    yes set!
+    g push-false
 
-      done set!
-    } call
-}
+    done set!
 
 macro (a && b) And new(a line, a, b)
 macro (a || b) Or new(a line, a, b)

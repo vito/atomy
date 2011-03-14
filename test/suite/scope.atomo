@@ -1,24 +1,18 @@
-describe: "assignment" as: {
-  describe: "=" as: {
-    it: "introduces a new local" so: {
+describe("assignment"):
+  describe("="):
+    it("introduces a new local"):
       a = 0
-      a should-be: 0
-      { a = 1; a should-be: 1 } call
-      a should-be: 0
-    }
-  }
+      a should-be(0)
+      do: a = 1, a should-be(1)
+      a should-be(0)
 
-  describe: "set!:" as: {
-    it: "overwrites an existing local" so: {
+  describe("=!"):
+    it("overwrites an existing local"):
       a = 0
-      a should-be: 0
-      { a set!: 1; a should-be: 1 } call
-      a should-be: 1
-    }
+      a should-be(0)
+      do: a =! 1, a should-be(1)
+      a should-be(1)
 
-    it: "introduces a new local if undefined" so: {
-      { a set!: 1; a should-be: 1 } call
-      { a } should-raise: NoMethodError
-    }
-  }
-}
+    it("introduces a new local if undefined"):
+      do: a =! 1, a should-be(1)
+      : a ; should-raise(NoMethodError)

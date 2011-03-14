@@ -1,39 +1,31 @@
-describe: "macros" as: {
-  describe: "unique name generation" as: {
-    it: "creates names via #names" so: {
-      macro (x m-foo-1) names { x | `'~x }
+describe("macros"):
+  describe("unique name generation"):
+    it("creates names via #names"):
+      macro (x m-foo-1) names (x): `'~x
       var-1 = 1 m-foo-1
       var-2 = 2 m-foo-1
-      var-1 should-be: var-1
-      var-1 should: { != var-2 }
-    }
+      var-1 should-be(var-1)
+      var-1 should: != var-2
 
-    it: "decorates through block patterns" so: {
-      macro (x m-foo-2) names { x | `'{ ~x | 1 } }
+    it("decorates through block patterns"):
+      macro (x m-foo-2) names (x): `'(~x): 1
       var-1 = 1 m-foo-2
-      var-1 should-be: var-1
-      1 m-foo-2 should: { != 2 m-foo-2 }
-    }
+      var-1 should-be(var-1)
+      1 m-foo-2 should: != 2 m-foo-2
 
-    it: "decorates through definition patterns" so: {
-      macro (x m-foo-3) names { x | `'(foo(~x) := 1) }
+    it("decorates through definition patterns"):
+      macro (x m-foo-3) names (x): `'(foo(~x) := 1)
       var-1 = 1 m-foo-3
-      var-1 should-be: var-1
-      1 m-foo-3 should: { != 2 m-foo-3 }
-    }
-  }
+      var-1 should-be(var-1)
+      1 m-foo-3 should: != 2 m-foo-3
 
-  describe: "line information" as: {
-    it: "is provided during macroexpansion via #line" so: {
+  describe("line information"):
+    it("is provided during macroexpansion via #line"):
       macro (a m-foo-4) line
-      1 m-foo-4 should-be: _LINE
-      2 m-foo-4 should-be: _LINE
-    }
+      1 m-foo-4 should-be(_LINE)
+      2 m-foo-4 should-be(_LINE)
 
-    it: "retains the original line through multiple expansions" so: {
+    it("retains the original line through multiple expansions"):
       macro (a m-foo-5) line
       macro (a m-foo-6) `(~a m-foo-5)
-      1 m-foo-6 should-be: _LINE
-    }
-  }
-}
+      1 m-foo-6 should-be(_LINE)

@@ -1,11 +1,10 @@
 -- define our document types structurally via the #data macro
-data(Doc) {
+data(Doc):
   Empty
   Beside(@left, @right, @space?)
   Above(@above, @below, @overlap?)
   Nest(@body, @depth)
   Text(@value)
-}
 
 
 -- trivial emptiness check
@@ -17,9 +16,9 @@ Doc empty? := false
 Empty width := 0
 Text width := @value size
 Beside width :=
-  if: @space?
-    then: { 1 + @left width + @right width }
-    else: { @left width + @right width }
+  if(@space?)
+    then: 1 + @left width + @right width
+    else: @left width + @right width
 Nest width := (@body width + @depth)
 Above width := [@above width, @below width] max
 
@@ -29,9 +28,9 @@ Empty width := 0
 Text height := 1
 Beside height := [@left height, @right height] max
 Above height :=
-  if: (@overlap? && @below kind-of?(Nest) && @below depth > @above width)
-    then: { @above height + @below height }
-    else: { 1 + @above height + @below height }
+  if(@overlap? && @below kind-of?(Nest) && @below depth > @above width)
+    then: @above height + @below height
+    else: 1 + @above height + @below height
 Nest height := @body height
 
 
@@ -40,11 +39,10 @@ Nest height := @body height
 (d: Doc) <+> Empty := d
 Empty    <+> (d: Doc) := d
 (l: Doc) <+> (n: Nest) := (l <+> n body)
-(l: Doc) <+> (a: Above) :=
-  { first = l <+> a above
-    rest = a below nest: (l width + 1)
-    Above new(first, rest, a overlap?)
-  } call
+(l: Doc) <+> (a: Above) := do:
+  first = l <+> a above
+  rest = a below nest(l width + 1)
+  Above new(first, rest, a overlap?)
 (l: Doc) <+> (r: Doc) := Beside new(l, r, true)
 
 
@@ -52,11 +50,10 @@ Empty    <+> (d: Doc) := d
 (d: Doc) <> Empty := d
 Empty    <> (d: Doc) := d
 (l: Doc) <> (n: Nest) := l <> n body
-(l: Doc) <> (a: Above) :=
-  { first = l <> a above
-    rest = a below nest: l width
-    Above new(first, rest, a overlap?)
-  } call
+(l: Doc) <> (a: Above) := do:
+  first = l <> a above
+  rest = a below nest(l width)
+  Above new(first, rest, a overlap?)
 (l: Doc) <> (r: Doc) := Beside new(l, r, false)
 
 
@@ -69,197 +66,179 @@ Empty    <> (d: Doc) := d
 
 
 -- indent the document to a given depth
-Nest nest: i := Nest new(@body, @depth + i)
-(d: Doc) nest: i := Nest new(d, i)
+Nest nest(i) := Nest new(@body, @depth + i)
+(d: Doc) nest(i) := Nest new(d, i)
 
 
 -- shortcut
-a hang: b indented: n := [a, b nest: n]
+a hang(b, n) := [a, b nest(n)]
 
 
 -- intersperse a delimiter Doc through a list of Docs
 -- x punctuate: [p1, ... pn] is [p1 <> x, p2 <> x, ... pn-1 <> x, pn]
-Doc punctuate: [] := []
-Doc punctuate: [d] := [d]
-(delim: Doc) punctuate: (d . ds) :=
-  (delim punctuate: ds) unshift(d <> delim)
+Doc punctuate([]) := []
+Doc punctuate([d]) := [d]
+(delim: Doc) punctuate(d . ds) :=
+  (delim punctuate(ds)) unshift(d <> delim)
 
 
 -- render a document as a string
 Text render := @value
 Empty render := ""
 Beside render :=
-  if: @space?
-    then: { @left render + " " + @right render }
-    else: { @left render + @right render }
-Above render :=
-  { a = @above render
-    b = @below render
+  if(@space?)
+    then: @left render + " " + @right render
+    else: @left render + @right render
+Above render := do:
+  a = @above render
+  b = @below render
 
-    if: (@overlap? && @below kind-of?(Nest) && @below depth > @above width)
-      then: {
-        b slice!(0, a size)
-        a + b
-      }
-      else: { a + "\n" + b }
-  } call
-Nest render :=
-  { b = @body render
-    x = ""
-    b each-line { l |
-      x << " " * @depth + l
-    }
-    x
-  } call
+  if(@overlap? && @below kind-of?(Nest) && @below depth > @above width)
+    then:
+      b slice!(0, a size)
+      a + b
+    else:
+      a + "\n" + b
+Nest render := do:
+  b = @body render
+  x = ""
+  b each-line (l):
+    x << " " * @depth + l
+  x
 
 
 -- helpers
-module(Pretty) {
+module(Pretty):
   -- text
-  text: s := Text new(s)
-  value: x := Text new(x inspect)
+  text(s) := Text new(s)
+  value(x) := Text new(x inspect)
 
   -- shortcuts
-  semi := text: ";"
-  comma := text: ","
-  colon := text: ":"
-  space := text: " "
-  equals := text: "="
-  lparen := text: "("
-  rparen := text: ")"
-  lbrack := text: "["
-  rbrack := text: "]"
-  lbrace := text: "{"
-  rbrace := text: "}"
+  semi := text(";")
+  comma := text(",")
+  colon := text(":")
+  space := text(" ")
+  equals := text("=")
+  lparen := text("(")
+  rparen := text(")")
+  lbrack := text("[")
+  rbrack := text("]")
+  lbrace := text("{")
+  rbrace := text("}")
 
   -- wrapping documents
-  parens: d := lparen <> d <> rparen
-  brackets: d := lbrack <> d <> rbrack
-  braces: d := lbrace <> d <> rbrace
-  quotes: d := text: "'" <> d <> text: "'"
-  double-quotes: d := text: "\"" <> d <> text: "\""
+  parens(d) := lparen <> d <> rparen
+  brackets(d) := lbrack <> d <> rbrack
+  braces(d) := lbrace <> d <> rbrace
+  quotes(d) := text("'") <> d <> text("'")
+  double-quotes(d) := text("\"") <> d <> text("\"")
 
   -- combining documents
   empty := Empty new
-  hcat: ds := ds inject(empty) { a b | a <> b }
-  hsep: ds := ds inject(empty) { a b | a <+> b }
-  vcat: ds := ds inject(empty) { a b | a // b }
-}
+  hcat(ds) := ds inject(empty) (a, b): a <> b
+  hsep(ds) := ds inject(empty) (a, b): a <+> b
+  vcat(ds) := ds inject(empty) (a, b): a // b
 
 Doc extend(Pretty)
 
-doc(&body) := with: Pretty do: body
+doc(&body) := with(Pretty, &body)
 
-(o: Object) pretty := Doc text: inspect
+(o: Object) pretty := doc: text(inspect)
 
-module(Atomo::AST) {
-  { self } comma-delim: es := doc {
-    hsep: (comma punctuate: es map { e | e pretty })
-  }
+module(Atomo::AST):
+  : self ; comma-delim(es) := doc:
+    hsep(comma punctuate(es map (e): e pretty))
 
-  { self } semi-delim: es := doc {
-    hsep: (semi punctuate: es map { e | e pretty })
-  }
+  : self ; semi-delim(es) := doc:
+    hsep(semi punctuate(es map (e): e pretty))
 
-  Assign pretty := doc { @lhs pretty <+> text: "=" <+> @rhs pretty }
+  Assign pretty := doc: @lhs pretty <+> text("=") <+> @rhs pretty
 
-  BinarySend pretty := doc {
-    parens: (@lhs pretty <+> text: @operator <+> @rhs pretty)
-  }
+  BinarySend pretty := doc:
+    parens(@lhs pretty <+> text(@operator) <+> @rhs pretty)
 
   -- TODO: arguments
-  Block pretty := doc {
+  Block pretty := doc:
     lbrace <+> Atomo::AST semi-delim: @contents <+> rbrace
-  }
 
-  BlockPass pretty := doc { text: "&" <> @body pretty }
+  BlockPass pretty := doc: text("&") <> @body pretty
 
-  Class pretty := doc {
+  Class pretty := doc:
     sub =
-      if: (@superclass kind-of?(Primitive) && @superclass value == #nil)
-        then: { empty }
-        else: { text: "<" <+> @superclass pretty }
+      if(@superclass kind-of?(Primitive) && @superclass value == #nil)
+        then: empty
+        else: text("<") <+> @superclass pretty
 
     name =
-      @name match: {
-        Rubinius::AST::ClassName -> text: @name name to-s
+      @name match:
+        Rubinius::AST::ClassName -> text(@name) name to-s
         _ -> @name pretty
-      }
 
-    body = lbrace <+> Atomo::AST semi-delim: @body expressions <+> rbrace
+    body = lbrace <+> Atomo::AST semi-delim(@body) expressions <+> rbrace
 
-    text: "class" <> text: "(" <> name <+> sub <> text: ")" <+> body
-  }
+    text("class") <> text("(") <> name <+> sub <> text(")") <+> body
 
-  ClassVariable pretty := doc { text: name to-s }
+  ClassVariable pretty := doc: text(name to-s)
 
-  Constant pretty := doc { text: @identifier }
+  Constant pretty := doc: text(@identifier)
 
-  Define pretty := doc { @lhs pretty <+> text: ":=" <+> @body pretty }
+  Define pretty := doc: @lhs pretty <+> text(":=") <+> @body pretty
 
-  ForMacro pretty := doc { text: "for-macro" <+> @body pretty }
+  ForMacro pretty := doc: text("for-macro") <+> @body pretty
 
-  GlobalVariable pretty := doc { text: name to-s }
+  GlobalVariable pretty := doc: text(name to-s)
 
-  InstanceVariable pretty := doc { text: name to-s }
+  InstanceVariable pretty := doc: text(name to-s)
 
-  KeywordSend pretty := doc {
-    pairs = @names zip(@arguments) collect { p |
-      text: (p first + ":") <+> p last pretty
-    }
+  KeywordSend pretty := doc:
+    pairs = @names zip(@arguments) collect (p):
+      text(p first + ":") <+> p last pretty
 
-    if: (@receiver kind-of?(Primitive) && @receiver value == #self)
-      then: { hsep: pairs }
-      else: {
-        @receiver pretty <+> hsep: pairs
-      }
-  }
+    if(@receiver kind-of?(Primitive) && @receiver value == #self)
+      then:
+        hsep(pairs)
+      else:
+        @receiver pretty <+> hsep(pairs)
 
-  List pretty := doc { brackets: (Atomo::AST comma-delim: @elements) }
+  List pretty := doc: brackets(Atomo::AST comma-delim: @elements)
 
-  Macro pretty := doc {
-    text: "macro" <+> parens: @pattern pretty <+> @body pretty
-  }
+  Macro pretty := doc:
+    text("macro") <+> parens(@pattern pretty <+> @body pretty)
 
-  Particle pretty := doc { text: "#" <> text: @name }
+  Particle pretty := doc: text("#") <> text(@name)
 
   Primitive pretty :=
-    @value match: {
-      #self -> text: "self"
-      #true -> text: "true"
-      #false -> text: "false"
-      #nil -> text: "nil"
+    @value match:
+      #self -> text("self")
+      #true -> text("true")
+      #false -> text("false")
+      #nil -> text("nil")
       x -> x pretty
-    }
 
-  QuasiQuote pretty := doc { text: "`" <> @expression pretty }
+  QuasiQuote pretty := doc: text("`") <> @expression pretty
 
-  Quote pretty := doc { text: "'" <> @expression pretty }
+  Quote pretty := doc: text("'") <> @expression pretty
 
-  ScopedConstant pretty := doc {
-    @parent pretty <> text: "::" <> text: name to-s
-  }
+  ScopedConstant pretty := doc:
+    @parent pretty <> text("::") <> text(name to-s)
 
   String pretty := @value pretty
 
-  ToplevelConstant pretty := doc { text: "::" <> text: name to-s }
+  ToplevelConstant pretty := doc: text("::") <> text(name to-s)
 
-  UnarySend pretty := doc {
-    block = if: @block then: { @block pretty } else: { empty }
+  UnarySend pretty := doc:
+    block = if(@block) then: @block pretty. else: empty
 
     args =
-      if: @arguments empty?
-        then: { empty }
-        else: { parens: (Atomo::AST comma-delim: @arguments) }
+      if(@arguments empty?)
+        then: empty
+        else: parens(Atomo::AST comma-delim: @arguments)
 
-    if: (@receiver kind-of?(Primitive) && @receiver value == #self)
-      then: { text: @method-name <> args <+> block }
-      else: {
-        @receiver pretty <+> text: @method-name <> args <+> block
-      }
-  }
+    if(@receiver kind-of?(Primitive) && @receiver value == #self)
+      then: text(@method-name) <> args <+> block
+      else:
+        @receiver pretty <+> text(@method-name) <> args <+> block
 
-  Unquote pretty := doc { text: "~" <> @expression pretty }
+  Unquote pretty := doc: text("~") <> @expression pretty
 
-  Variable pretty := doc { text: @name }
-}
+  Variable pretty := doc: text(@name)

@@ -1,9 +1,11 @@
 macro (_LINE) line
 macro (_FILE) Atomo::AST::File new(line)
 
+--"operators define control-flow data comparison
+--block errors therie mixins pretty concurrency
+--patterns precision node"
 "operators define control-flow data comparison
 block errors therie mixins pretty concurrency
-patterns precision node" split each { k |
+patterns precision node" split each (k):
   puts("loading " + k)
-  load: ("kernel/" + k + ".atomo")
-}
+  load("kernel/" + k + ".atomo")

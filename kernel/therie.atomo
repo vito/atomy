@@ -1,87 +1,78 @@
-module(Therie) {
-  class(Stats) {
+module(Therie):
+  class(Stats):
     attr-accessor(#passed, #failed)
 
-    initialize :=
-      { @passed = 0
-        @failed = 0
-      } call
-  }
+    initialize := do:
+      @passed = 0
+      @failed = 0
 
   NESTING_LEVEL = 0
 
-  { self } indentation := " " * (NESTING_LEVEL * 2)
-}
+  : self ; indentation := " " * (NESTING_LEVEL * 2)
 
-theorize: as :=
-  { $stats = Therie::Stats new
+theorize(&as) := do:
+  $stats = Therie::Stats new
 
-    as call
+  as call
+  puts
+
+  $stats join:
+    [ "total of", failed + passed, "tests"
+      "(" + passed to-s ansi-colored(#green), "passed,"
+      if(failed == 0)
+        then: "0"
+        else: failed to-s ansi-colored(#red)
+      "failed)"
+    ] join(" ") display
+
     puts
 
-    $stats do: {
-      [ "total of", failed + passed, "tests"
-        "(" + passed to-s ansi-colored: #green, "passed,"
-        if: (failed == 0)
-          then: { "0" }
-          else: { failed to-s ansi-colored: #red }
-        "failed)"
-      ] join(" ") display
-
-      puts
-    }
-  } call
-
-o should: (check: Block) :=
-  unless(o join: check) {
+o should(&check) :=
+  unless(o join(&check)):
     raise("assertion failed for " + o inspect)
-  }
 
-x should-be: y := x should: { == y }
+x should-be(y) := x should: == y
 
-x should-raise: y :=
-  { x call } rescue: { e |
-    unless(e kind-of?(y)) {
-      raise("expected " + y to-s + ", got: " + e to-s)
-    }
-  } else: {
-    raise("#should-raise: - no exception raised")
-  }
+x should-raise(y) :=
+  begin:
+    x call;
+    rescue (e):
+      unless(e kind-of?(y)):
+        raise("expected " + y to-s + ", got: " + e to-s);
+    else:
+      raise("#should-raise: - no exception raised")
 
-describe: x as: body :=
-  { puts(Therie indentation + "- " + x to-s)
-    Therie::NESTING_LEVEL += 1
-    body call
-    Therie::NESTING_LEVEL -= 1
-  } call
+describe(x, &body) := do:
+  puts(Therie indentation + "- " + x to-s)
+  Therie::NESTING_LEVEL += 1
+  body call
+  Therie::NESTING_LEVEL -= 1
 
-it: description so: tests :=
-  { tests call
-    puts((Therie indentation + "✓ " + description) ansi-colored: #green)
-  } rescue: { e |
-    $stats failed += 1
-    puts((Therie indentation + "✗ " + description) ansi-colored: #red)
-    puts((Therie indentation + "  ` " + e class name + ": " + e message) ansi-colored: #yellow)
-  } else: {
-    $stats passed += 1
-  }
+it(description, &tests) :=
+  begin:
+    tests call
+    puts((Therie indentation + "✓ " + description) ansi-colored(#green));
+    rescue (e):
+      $stats failed += 1
+      puts((Therie indentation + "✗ " + description) ansi-colored(#red))
+      puts((Therie indentation + "  ` " + e class name + ": " + e message) ansi-colored(#yellow));
+    else:
+      $stats passed += 1
 
-(s: String) ansi-colored: color :=
-  { codes =
-      [ #black
-        #red
-        #green
-        #yellow
-        #blue
-        #magenta
-        #cyan
-        #white
-      ] zip(Range new(0, 7) to-a)
+(s: String) ansi-colored(color) := do:
+  codes =
+    [ #black
+      #red
+      #green
+      #yellow
+      #blue
+      #magenta
+      #cyan
+      #white
+    ] zip(Range new(0, 7) to-a)
 
-    hash = Hash new
-    codes each { [p, n] |
-      hash store(p, n)
-    }
+  hash = Hash new
+  codes each ([p, n]):
+    hash store(p, n)
 
-    "\e[9" + hash fetch(color) to-s + "m" + s + "\e[0m"
-  } call
+  "\e[9" + hash fetch(color) to-s + "m" + s + "\e[0m"

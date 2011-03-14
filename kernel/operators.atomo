@@ -9,7 +9,7 @@ operator right 1 <- ->
 operator right 2 ?
 
 -- ranges
-operator 1 .. ...
+--operator 1 .. ...
 
 -- comparison
 operator 5 <=> < <= >= >

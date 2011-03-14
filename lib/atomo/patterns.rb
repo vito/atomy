@@ -249,7 +249,11 @@ module Atomo::Patterns
 
   class Atomo::AST::UnarySend
     def to_pattern
-      Unary.new(@receiver, @method_name)
+      if @block
+        Named.new(@method_name, @block.contents[0].to_pattern)
+      else
+        Unary.new(@receiver, @method_name)
+      end
     end
   end
 

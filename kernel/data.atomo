@@ -16,53 +16,45 @@ macro ($(x: 'exception))
 macro ($(x: Variable))
   Atomo::AST::GlobalVariable new(x line, x name)
 
-macro (#(b: Block))
-  { keys = []
-    values = []
+macro (#(b: Block)) do:
+  keys = []
+  values = []
 
-    b contents each { p |
-      p match: {
-        `(~k -> ~v) ->
-          { keys << k
-            values << v
-          } call
+  b contents each (p):
+    p match:
+      `(~k -> ~v) -> do:
+        keys << k
+        values << v
 
-        (v: Atomo::AST::KeywordSend) ->
-          { keys << Atomo::AST::Particle new(v line, v names first)
-            values << v arguments first
-          } call
-      }
-    }
+      (v: Atomo::AST::KeywordSend) -> do:
+        keys << Atomo::AST::Particle new(v line, v names first)
+        values << v arguments first
 
-    Atomo::AST::Hash new(line, keys, values)
-  } call
+  Atomo::AST::Hash new(line, keys, values)
 
 a .. b := Range new(a, b)
 a ... b := Range new(a, b, true)
 
-for-macro quote: #w as: { c | c split }
+--for-macro quote: #w as: (c): c split.
 
 -- TODO: flags
-for-macro quote: #r as: { c | Regexp new(c) }
+--for-macro quote: #r as: (c): Regexp new(c).
 
-for-macro quote: #raw as: { c | c }
+--for-macro quote: #raw as: (c): c.
 
-class(Atomo::AST::Hash < Atomo::AST::Node) {
+class(Atomo::AST::Hash < Atomo::AST::Node):
   children([#keys], [#values])
   generate
 
-  bytecode(g) :=
-    { g push-cpath-top
-      g find-const(#Hash)
-      g push-int(@keys size)
-      g send(#new-from-literal, 1)
+  bytecode(g) := do:
+    g push-cpath-top
+    g find-const(#Hash)
+    g push-int(@keys size)
+    g send(#new-from-literal, 1)
 
-      @keys each-with-index { n i |
-        g dup
-        n bytecode(g)
-        @values at(i) bytecode(g)
-        g send("[]=" to-sym, 2)
-        g pop
-      }
-    } call
-}
+    @keys each-with-index (n, i):
+      g dup
+      n bytecode(g)
+      @values at(i) bytecode(g)
+      g send("[]=" to-sym, 2)
+      g pop

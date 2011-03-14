@@ -4,29 +4,25 @@ me := Actor current
 
 Actor <- v := send(v)
 
-macro (receive(&body))
-  { bs = body contents collect { `(~pat -> ~body) |
-      blk = Atomo::AST::Block new(body line, [pat], [body])
-      `(e when(~(pat to-pattern), &~blk))
-    }
+macro (receive(&body)) do:
+  bs = body contents collect (`(~pat -> ~body)):
+    blk = Atomo::AST::Block new(body line, [pat], [body])
+    `(e when(~(pat to-pattern), &~blk))
 
-    branches = Atomo::AST::Block new(body line, bs, ['e])
+  branches = Atomo::AST::Block new(body line, bs, ['e])
 
-    `(Actor receive(&~branches))
-  } call
+  `(Actor receive(&~branches))
 
-macro (receive: body after: timeout)
-  { bs = body contents collect { `(~pat -> ~body) |
-      blk = Atomo::AST::Block new(body line, [pat], [body])
-      `(e when(~(pat to-pattern), &~blk))
-    }
+macro (receive: body after: timeout) do:
+  bs = body contents collect (`(~pat -> ~body)):
+    blk = Atomo::AST::Block new(body line, [pat], [body])
+    `(e when(~(pat to-pattern), &~blk))
 
-    bs << `(e after(~(timeout lhs), &{ ~(timeout rhs) }))
+  bs << `(e after(~(timeout lhs)): ~(timeout rhs))
 
-    branches = Atomo::AST::Block new(body line, bs, ['e])
+  branches = Atomo::AST::Block new(body line, bs, ['e])
 
-    `(Actor receive(&~branches))
-  } call
+  `(Actor receive(&~branches))
 
 spawn(&action) := Actor spawn(&action)
 

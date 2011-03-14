@@ -1,30 +1,34 @@
 macro (x = y)
   Atomo::AST::Assign new(x line, x, y)
 
-macro (x set!: y)
+macro (x =! y)
   Atomo::AST::Set new(x line, x, y)
 
 macro (x := y)
   Atomo::AST::Define new(x line, x, y)
 
-macro (x **= y) `(~x set!: (~x ** ~y))
-macro (x *= y) `(~x set!: (~x * ~y))
-macro (x <<= y) `(~x set!: (~x << ~y))
-macro (x >>= y) `(~x set!: (~x >> ~y))
-macro (x &&= y) `(~x set!: (~x && ~y))
-macro (x &= y) `(~x set!: (~x & ~y))
-macro (x ||= y) `(~x set!: (~x || ~y))
-macro (x |= y) `(~x set!: (~x | ~y))
-macro (x += y) `(~x set!: (~x + ~y))
-macro (x -= y) `(~x set!: (~x - ~y))
-macro (x /= y) `(~x set!: (~x / ~y))
-macro (x ^= y) `(~x set!: (~x ^ ~y))
-macro (x %= y) `(~x set!: (~x % ~y))
+macro (def(x, &y))
+  Atomo::AST::Define new(x line, x, y body)
 
-macro (x match: (b: Block))
-  { n = Atomo::AST::Match new(x line, x, b)
-    `({ ~n } call)
-  } call
+macro (do(&b)) `(~b call)
+
+macro (x **= y) `(~x =! (~x ** ~y))
+macro (x *= y) `(~x =! (~x * ~y))
+macro (x <<= y) `(~x =! (~x << ~y))
+macro (x >>= y) `(~x =! (~x >> ~y))
+macro (x &&= y) `(~x =! (~x && ~y))
+macro (x &= y) `(~x =! (~x & ~y))
+macro (x ||= y) `(~x =! (~x || ~y))
+macro (x |= y) `(~x =! (~x | ~y))
+macro (x += y) `(~x =! (~x + ~y))
+macro (x -= y) `(~x =! (~x - ~y))
+macro (x /= y) `(~x =! (~x / ~y))
+macro (x ^= y) `(~x =! (~x ^ ~y))
+macro (x %= y) `(~x =! (~x % ~y))
+
+macro (x match(&b)) do :
+  n = Atomo::AST::Match new(x line, x, b)
+  `(: ~n; call)
 
 macro (class(`(<< ~obj), &body))
   Atomo::AST::Metaclass new(obj line, obj, body body)
@@ -38,57 +42,50 @@ macro (class(name, &body))
 macro (module(name, &body))
   Atomo::AST::Module new(name line, name, body body)
 
-macro (data(root, &children))
-  { cs = children contents map { e |
-      e match: {
-        Atomo::AST::UnarySend ->
-          { init =
-              Atomo::AST::UnarySend new(
-                0
-                Atomo::AST::Primitive new(0, #self)
-                e arguments
-                "initialize"
-              )
+macro (data(root, &children)) do:
+  cs = children contents map (e):
+    e match:
+      Atomo::AST::UnarySend -> do:
+        init =
+          Atomo::AST::UnarySend new(
+            0
+            Atomo::AST::Primitive new(0, #self)
+            e arguments
+            "initialize"
+          )
 
-            accessors =
-              Atomo::AST::UnarySend new(
-                0
-                Atomo::AST::Primitive new(0, #self)
-                e arguments map { a |
-                  name = a receiver name to-s
-                  Atomo::AST::Particle new(0, name)
-                }
-                "attr_accessor"
-              )
+        accessors =
+          Atomo::AST::UnarySend new(
+            0
+            Atomo::AST::Primitive new(0, #self)
+            e arguments map (a):
+              name = a receiver name to-s
+              Atomo::AST::Particle new(0, name)
+            "attr_accessor"
+          )
 
-            name =
-              Atomo::AST::Constant new(0, e method-name)
+        name =
+          Atomo::AST::Constant new(0, e method-name)
 
-            `(class(~name < ~root) {
-                ~accessors
-                ~init := #ok
-              })
-          } call
+        `(class(~name < ~root):
+            ~accessors
+            ~init := #ok)
 
-        Atomo::AST::Constant ->
-          `(class(~e < ~root) {})
+      Atomo::AST::Constant ->
+        `(class(~e < ~root):)
 
-        Atomo::AST::ScopedConstant ->
-          `(class(~e < ~root) {})
+      Atomo::AST::ScopedConstant ->
+        `(class(~e < ~root):)
 
-        Atomo::AST::ToplevelConstant ->
-          `(class(~e < ~root) {})
+      Atomo::AST::ToplevelConstant ->
+        `(class(~e < ~root):)
 
-        _ -> raise("unknown module name: " + e to-s)
-      }
-    }
+      _ -> raise("unknown module name: " + e to-s)
 
-    decls = Atomo::AST::Block new(
-      root line
-      [`(class(~root) {})] + cs
-      []
-    )
+  decls = Atomo::AST::Block new(
+    root line
+    [`(class(~root):)] + cs
+    []
+  )
 
-    `(~decls call)
-  } call
-
+  `(~decls call)

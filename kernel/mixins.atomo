@@ -1,60 +1,48 @@
 require("thread")
 
-module(Atomo::Mixins) {
+module(Atomo::Mixins):
   MixedIn = Hash new
   Sync = Mutex new
 
   -- based on Blockenspiel, simplified a bit
-  context with: mod do: body :=
-    { key = [context object-id, mod object-id]
+  context with(mod, &body) := do:
+    key = [context object-id, mod object-id]
 
-      Sync synchronize {
-        count = MixedIn fetch(key, 0)
-        MixedIn store(key, count + 1)
-        context extend(mod)
-      }
+    Sync synchronize:
+      count = MixedIn fetch(key, 0)
+      MixedIn store(key, count + 1)
+      context extend(mod)
 
-      body ensuring: {
-        Sync synchronize {
-          count = MixedIn fetch(key, 1)
-          if: (count == 1)
-            then: {
-              MixedIn delete(key)
-              context unmix: mod
-            }
-            else: {
-              MixedIn store(key, count - 1)
-            }
-        }
-      }
-    } call
+    body ensuring:
+      Sync synchronize:
+        count = MixedIn fetch(key, 1)
+        if(count == 1)
+          then:
+            MixedIn delete(key)
+            context unmix(mod)
+          else:
+            MixedIn store(key, count - 1)
 
-  { self } reset-method-cache: obj :=
-    obj methods each { name |
+  : self ; reset-method-cache(obj) :=
+    obj methods each (name):
       Rubinius::VM reset-method-cache(name to-sym)
-    }
-}
 
 -- based on Blockenspiel and Mixology
-obj unmix: (mod: Module) :=
-  { last-super = obj metaclass
-    this-super = last-super direct-superclass
+obj unmix(mod: Module) := do:
+  last-super = obj metaclass
+  this-super = last-super direct-superclass
 
-    while(this-super) {
-      if: (this-super == mod ||
-            (this-super respond-to?(#module) &&
-              this-super module == mod))
-        then: {
-          Atomo::Mixins reset-method-cache: obj
-          last-super superclass set!: this-super direct-superclass
-          Atomo::Mixins reset-method-cache: obj
-          return(nil)
-        }
-        else: {
-          last-super set!: this-super
-          this-super set!: this-super direct-superclass
-        }
-    }
+  while(this-super) ():
+    if(this-super == mod ||
+          (this-super respond-to?(#module) &&
+            this-super module == mod))
+      then:
+        Atomo::Mixins reset-method-cache(obj)
+        last-super superclass =! this-super direct-superclass
+        Atomo::Mixins reset-method-cache(obj)
+        return(nil)
+      else:
+        last-super =! this-super
+        this-super =! this-super direct-superclass
 
-    nil
-  } call
+  nil

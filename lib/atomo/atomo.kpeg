@@ -80,7 +80,7 @@
 
   f_ident_start = < /[[:alpha:]\$\+\<=\>\^`~_!@#%&*\-.\/\?]/ > { text }
 
-       operator = < op_start op_letters > { text }
+       operator = < op_start op_letters > &{ text != ":" } { text }
 
      identifier = < ident_start ident_letters > { text.tr("-", "_") }
    f_identifier = < f_ident_start ident_letters > { text.tr("-", "_") }
@@ -94,11 +94,11 @@
                 | /[^\-\{\}]*/ "{-" in_multi /[^\-\{\}]*/ "-}"
                 | /[^\-\{\}]*/ /[-{}]/ in_multi
 
-          delim = (wsp (";" | ",") wsp) | (sp "\n" sp)+
+       delim(c) = (wsp "," wsp) | (sp "\n" sp)+ &{ current_column >= c }
 
      expression = level4
 
-    expressions = expression:x (delim expression)*:xs delim?
+    expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)?
                     { [x] + Array(xs) }
 
          level1 = true
@@ -114,12 +114,12 @@
                 | particle
                 | constant
                 | variable
-                | grouped
                 | block
+                | grouped
                 | list
                 | unary_op
          level2 = unary_send | level1
-         level3 = keyword_send | level2
+         level3 = level2
          level4 = macro
                 | for_macro
                 | op_assoc_prec
@@ -224,19 +224,19 @@
        unary_op = line:line operator:o level1:e
                     { Atomo::AST::UnaryOperator.new(line, e, o) }
 
-     block_args = (sp level1:n)+:as wsp "|" { as }
-          block = line:line "{" block_args?:as wsp expressions?:es wsp "}"
+     block_args = "(" wsp expressions?:as wsp ")" { as }
+          block = line:line block_args?:as ":" !operator wsp expressions?:es (wsp ";")?
                     { Atomo::AST::Block.new(line, Array(es), Array(as)) }
 
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomo::AST::List.new(line, Array(es)) }
 
      unary_args = "(" wsp expressions?:as wsp ")" { Array(as) }
-   unary_c(pos) = line:line unary_send:r cont(pos) identifier:n !":" unary_args?:as (cont(pos) block)?:b
+   unary_c(pos) = line:line unary_send:r cont(pos) identifier:n unary_args?:as (sp block)?:b
                     { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) }
-                | line:line level1:r cont(pos) identifier:n !":" unary_args?:as (cont(pos) block)?:b
+                | line:line level1:r cont(pos) identifier:n unary_args?:as (sp block)?:b
                     { Atomo::AST::UnarySend.new(line, r, Array(as), n, b) }
-                | line:line identifier:n unary_args?:as cont(pos) block:b
+                | line:line identifier:n unary_args?:as sp block:b
                     { Atomo::AST::UnarySend.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
