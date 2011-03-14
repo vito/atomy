@@ -173,7 +173,55 @@ module Atomo
       end
     end
 
+    # x(a) y(b)
+    #  to:
+    # `(x(~a)) y(b)
+    #
+    # x(a) y(b) z(c)
+    #  to:
+    # `(x(~a) y(~b)) z(c)
+    #
+    # x(&a) b(c) should bind the proc-arg
+    def self.unary_chain(n)
+      return n if n.block
+
+      d = n.dup
+      x = d
+      while x.kind_of?(Atomo::AST::UnarySend)
+        if n.block
+          next
+        end
+
+        as = []
+        x.arguments.each do |a|
+          if a.kind_of?(Atomo::AST::UnaryOperator) && a.operator == "&"
+            x.block = Atomo::AST::Unquote.new(
+              a.line,
+              a.receiver
+            )
+          else
+            as << Atomo::AST::Unquote.new(
+              a.line,
+              a
+            )
+          end
+        end
+
+        x.arguments = as
+
+        y = x.receiver.dup
+        x.receiver = y
+        x = y
+      end
+
+      Atomo::AST::QuasiQuote.new(d.line, d)
+    end
+
     def self.macro_pattern(n)
+      if n.kind_of?(Atomo::AST::UnarySend) && !n.block
+        n = unary_chain(n)
+      end
+
       n = n.recursively do |sub|
         case sub
         when Atomo::AST::Constant

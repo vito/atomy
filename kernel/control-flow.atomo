@@ -1,5 +1,5 @@
-macro ((y: `(if(~x) then)) else(&z)) do:
-  Atomo::AST::IfThenElse new(x line, x, y block, z)
+macro (if(x) then(&y) else(&z))
+  Atomo::AST::IfThenElse new(x line, x, y, z)
   
 macro (otherwise) 'true
 
@@ -13,11 +13,11 @@ macro (while(cond, &body))
 macro (x return(y))
   Atomo::AST::Return new(x line, y)
 
-macro ((x: `(begin())) rescue(&y))
-  Atomo::AST::Catch new(x line, x block body, `(~y call($exception)))
+macro (begin(&x) rescue(&y))
+  Atomo::AST::Catch new(x line, x body, `(~y call($exception)))
 
-macro ((y: `(~(x: `(begin())) rescue)) else(&z))
-  Atomo::AST::Catch new(x line, x block body, `(~(y block) call($exception)), z body)
+macro (begin(&x) rescue(&y) else(&z))
+  Atomo::AST::Catch new(x line, x body, `(~y call($exception)), z body)
 
 macro (x ensuring(&y))
   Atomo::AST::Ensure new(x line, `(~x call), `(~y call))
