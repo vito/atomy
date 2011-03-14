@@ -117,8 +117,9 @@
                 | block
                 | grouped
                 | list
-                | unary_op
-         level2 = unary_send | level1
+                | unary
+         level2 = send
+                | level1
          level3 = macro
                 | for_macro
                 | op_assoc_prec
@@ -180,7 +181,7 @@
                     { Atomo::AST::Particle.new(line, n) }
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
-       constant = line:line constant_name:m ("::" constant_name)*:s unary_args?:as {
+       constant = line:line constant_name:m ("::" constant_name)*:s args?:as {
                     names = [m] + Array(s)
                     if as
                       msg = names.pop
@@ -198,7 +199,7 @@
                       const_chain(line, names)
                     end
                   }
-                | line:line ("::" constant_name)+:s unary_args?:as {
+                | line:line ("::" constant_name)+:s args?:as {
                     names = Array(s)
                     if as
                       msg = names.pop
@@ -220,22 +221,22 @@
        variable = line:line identifier:n !":"
                     { Atomo::AST::Variable.new(line, n) }
 
-       unary_op = line:line operator:o level1:e
+          unary = line:line operator:o level1:e
                     { Atomo::AST::Unary.new(line, e, o) }
 
-     block_args = "(" wsp expressions?:as wsp ")" { as }
-          block = line:line block_args?:as ":" !operator wsp expressions?:es (wsp ";")?
+           args = "(" wsp expressions?:as wsp ")" { Array(as) }
+
+          block = line:line args?:as ":" !operator wsp expressions?:es (wsp ";")?
                     { Atomo::AST::Block.new(line, Array(es), Array(as)) }
 
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomo::AST::List.new(line, Array(es)) }
 
-     unary_args = "(" wsp expressions?:as wsp ")" { Array(as) }
-   unary_c(pos) = line:line unary_send:r cont(pos) identifier:n unary_args?:as (sp block)?:b
+     sends(pos) = line:line send:r cont(pos) identifier:n args?:as (sp block)?:b
                     { Atomo::AST::Send.new(line, r, Array(as), n, b) }
-                | line:line level1:r cont(pos) identifier:n unary_args?:as (sp block)?:b
+                | line:line level1:r cont(pos) identifier:n args?:as (sp block)?:b
                     { Atomo::AST::Send.new(line, r, Array(as), n, b) }
-                | line:line identifier:n unary_args?:as sp block:b
+                | line:line identifier:n args?:as sp block:b
                     { Atomo::AST::Send.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
@@ -245,7 +246,7 @@
                         true
                       )
                     }
-                | line:line identifier:n unary_args:as (sp block)?:b
+                | line:line identifier:n args:as (sp block)?:b
                     { Atomo::AST::Send.new(
                         line,
                         Atomo::AST::Primitive.new(line, :self),
@@ -255,7 +256,7 @@
                         true
                       )
                     }
-     unary_send = unary_c(current_position)
+           send = sends(current_position)
 
   binary_c(pos) = line:line level2:r (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs
                     { os, es = [], [r]
