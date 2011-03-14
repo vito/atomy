@@ -58,8 +58,8 @@ class(Negate < Atomo::AST::Node):
 
     done set!
 
-macro (a && b) And new(a line, a, b)
-macro (a || b) Or new(a line, a, b)
-macro (!a) Negate new(a line, a)
+macro (a && b) And new(line, a, b)
+macro (a || b) Or new(line, a, b)
+macro (!a) Negate new(line, a)
 macro (a != b) `!(~a == ~b)
 macro (a !~ b) `!(~a =~ ~b)

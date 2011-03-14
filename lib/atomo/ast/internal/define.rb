@@ -42,25 +42,6 @@ module Atomo
         end
       end
 
-      def compile_body(g)
-        meth = new_generator(g, "__atomo_#{method_name}__".to_sym, arguments)
-        meth.push_state self
-        meth.state.push_super self
-        meth.definition_line @line
-        meth.state.push_name method_name
-        arguments.bytecode(meth)
-        meth.push_self
-        receiver.deconstruct(meth)
-        @body.bytecode(meth)
-        meth.state.pop_name
-        meth.local_count = local_count
-        meth.local_names = local_names
-        meth.ret
-        meth.close
-        meth.pop_state
-        meth
-      end
-
       def bytecode(g)
         pos(g)
 
