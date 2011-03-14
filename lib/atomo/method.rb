@@ -33,7 +33,6 @@ module Atomo
 
     args.times do |n|
       g.local_names.unshift("arg:" + n.to_s)
-      g.state.scope.new_local("arg:" + n.to_s)
     end
 
     locals = {}
