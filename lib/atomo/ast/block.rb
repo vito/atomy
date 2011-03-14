@@ -54,6 +54,10 @@ module Atomo
         blk.local_names = local_names
 
         g.create_block blk
+        g.push_cpath_top
+        g.find_const :Proc
+        g.swap
+        g.send :__from_block__, 1
       end
     end
 
