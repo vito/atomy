@@ -213,10 +213,13 @@ module Atomo::Patterns
       case @operator
       when "$"
         NamedGlobal.new(@receiver.name)
-      when "@@"
-        NamedClass.new(@receiver.name)
       when "@"
-        NamedInstance.new(@receiver.name)
+        case @receiver
+        when Atomo::AST::Unary
+          NamedClass.new(@receiver.receiver.name)
+        else
+          NamedInstance.new(@receiver.name)
+        end
       when "%"
         RuntimeClass.new(@receiver, nil)
       when "&"

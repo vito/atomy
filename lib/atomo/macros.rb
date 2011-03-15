@@ -172,6 +172,35 @@ module Atomo
       end
     end
 
+    # @!x
+    #  to:
+    # @`(!~x)
+    #
+    # @!?x
+    #  to:
+    # @(`!?~x)
+    def self.unary_chain(n)
+      d = n.dup
+      x = d
+      while x.kind_of?(Atomo::AST::Unary)
+        if x.receiver.kind_of?(Atomo::AST::Unary)
+          y = x.receiver.dup
+          x.receiver = y
+          x = y
+        else
+          unless x.receiver.kind_of?(Atomo::AST::Primitive)
+            x.receiver = Atomo::AST::Unquote.new(
+              x.receiver.line,
+              x.receiver
+            )
+          end
+          break
+        end
+      end
+
+      Atomo::AST::QuasiQuote.new(d.line, d)
+    end
+
     # x(a) y(b)
     #  to:
     # `(x(~a)) y(b)
@@ -181,7 +210,7 @@ module Atomo
     # `(x(~a) y(~b)) z(c)
     #
     # x(&a) b(c) should bind the proc-arg
-    def self.unary_chain(n)
+    def self.send_chain(n)
       return n if n.block
 
       d = n.dup
@@ -228,6 +257,10 @@ module Atomo
 
     def self.macro_pattern(n)
       if n.kind_of?(Atomo::AST::Send) && !n.block
+        n = send_chain(n)
+      end
+
+      if n.kind_of?(Atomo::AST::Unary) && n.operator != "&"
         n = unary_chain(n)
       end
 
