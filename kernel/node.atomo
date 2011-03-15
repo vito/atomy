@@ -37,11 +37,11 @@ module(Atomo::Patterns):
 
     Block to-pattern := Atomo::Patterns::Metaclass new(self)
 
-    `@@(~n) to-pattern := NamedClass new(n identifier)
+    `@@(~n) to-pattern := NamedClass new(n name)
 
-    `$(~n) to-pattern := NamedGlobal new(n identifier)
+    `$(~n) to-pattern := NamedGlobal new(n name)
 
-    `@(~n) to-pattern := NamedInstance new(n identifier)
+    `@(~n) to-pattern := NamedInstance new(n name)
 
     `%(~x) to-pattern := RuntimeClass new(x, nil)
 
