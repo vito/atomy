@@ -6,22 +6,22 @@ Actor <- v := send(v)
 
 macro (receive(&body)) names (e):
   bs = body contents collect (`(~pat -> ~exp)):
-    `(~e when(~(pat to-pattern)) (~pat): ~exp)
+    `(~e when('~pat to-pattern) (~pat): ~exp)
 
   branches = Atomo::AST::Block new(line, bs, [e])
 
   `(Actor receive(&(~branches)))
 
-macro (receive(&body) after(&timeout)) do:
-  bs = body contents collect (`(~pat -> ~body)):
-    `(e when(~(pat to-pattern)) (~pat): ~body)
+macro (receive(&body) after(timeout)) names (e):
+  bs = body contents collect (`(~pat -> ~exp)):
+    `(~e when('~pat to-pattern) (~pat): ~exp)
 
-  bs << `(e after(~(timeout lhs)): ~(timeout rhs))
+  bs << `(~e after(~(timeout lhs)): ~(timeout rhs))
 
-  branches = Atomo::AST::Block new(line, bs, ['e])
+  branches = Atomo::AST::Block new(line, bs, [e])
 
-  `(Actor receive(&~branches))
+  `(Actor receive(&(~branches)))
 
 spawn(&action) := Actor spawn(&action)
 
-spawn-link(&action) := Actor spawn(&action)
+spawn-link(&action) := Actor spawn-link(&action)
