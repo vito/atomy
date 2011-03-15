@@ -45,17 +45,24 @@ module Atomo::Patterns
 
       them = g.new_stack_local
       g.set_stack_local them
-      @expression.get(g)
-      g.swap
-      g.kind_of
-      g.gif mismatch
+      g.pop
 
       where = []
       depth = 1
 
       pre = proc { |n, c|
         where << c if c
-        n.kind_of?(Atomo::AST::QuasiQuote) || n.kind_of?(Atomo::AST::Unquote)
+        if n.kind_of?(Atomo::AST::QuasiQuote) ||
+            n.kind_of?(Atomo::AST::Unquote)
+          true
+        else
+          n.get(g)
+          g.push_stack_local them
+          context(g, where)
+          g.kind_of
+          g.gif mismatch
+          false
+        end
       }
 
       post = proc { where.pop }
@@ -72,22 +79,10 @@ module Atomo::Patterns
             next e
           end
 
-          e.get(g)
-          g.push_stack_local them
-          context(g, where)
-          g.kind_of
-          g.gif mismatch
-
           where << :expression
           e.expression.recursively(pre, post, &action)
           depth += 1
         end
-
-        e.get(g)
-        g.push_stack_local them
-        context(g, where)
-        g.kind_of
-        g.gif mismatch
 
         if e.kind_of?(Atomo::AST::QuasiQuote)
           depth += 1
