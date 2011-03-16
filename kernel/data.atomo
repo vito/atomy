@@ -28,8 +28,8 @@ macro (#(b: Block)) do:
 
   Atomo::AST::Hash new(line, keys, values)
 
-a .. b := Range new(a, b)
-a ... b := Range new(a, b, true)
+macro (a .. b) `(Range new(~a, ~b))
+macro (a ... b) `(Range new(~a, ~b, true))
 
 macro (x at(y) put(z))
   Atomo::AST::Send new(
