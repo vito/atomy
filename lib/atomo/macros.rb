@@ -32,15 +32,15 @@ module Atomo
         @line = 0
       end
 
-      define_method(:"quote:as:") do |name, action|
-        @quoters[name] = action
+      def quoter(name, &blk)
+        @quoters[name] = blk
       end
 
       def quote(name, contents, flags)
-        if a = @quoters[name]
+        if a = @quoters[name.to_sym]
           a.call(contents, flags)
         else
-          raise "unknown quoter #{name}"
+          raise "unknown quoter #{name.inspect}"
         end
       end
 

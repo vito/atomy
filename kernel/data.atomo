@@ -39,12 +39,12 @@ macro (x at(y) put(z))
     "[]="
   )
 
---for-macro quote: #w as: (c): c split.
+for-macro quoter(#w) (c): c split
 
 -- TODO: flags
---for-macro quote: #r as: (c): Regexp new(c).
+for-macro quoter(#r) (c): Regexp new(c)
 
---for-macro quote: #raw as: (c): c.
+for-macro quoter(#raw) (c): c
 
 class(Atomo::AST::Hash < Atomo::AST::Node):
   children([#keys], [#values])
