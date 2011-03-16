@@ -25,7 +25,25 @@ module Atomo
         compiled
       end
 
+      def find_file(fn)
+        if fn.suffix?(".atomo") || fn.suffix?(".rb")
+          fn
+        elsif File.exists?(fn + ".atomo")
+          fn + ".atomo"
+        elsif File.exists?(fn + ".rb")
+          fn + ".rb"
+        else
+          fn
+        end
+      end
+
       def load_file(fn)
+        fn = find_file(fn)
+        if fn.suffix?(".rb")
+          require(fn)
+          return
+        end
+
         cfn = compile_if_needed(fn)
         cl = Rubinius::CodeLoader.new(cfn)
         cm = cl.load_compiled_file(cfn, 0)
