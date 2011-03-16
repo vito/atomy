@@ -39,10 +39,7 @@ module Atomo
 
       def load_file(fn)
         fn = find_file(fn)
-        if fn.suffix?(".rb")
-          require(fn)
-          return
-        end
+        return require(fn) unless fn.suffix?(".atomo")
 
         cfn = compile_if_needed(fn)
         cl = Rubinius::CodeLoader.new(cfn)
