@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.email = "i.am@toogeneric.com"
 
   files =
-    ["README.md", "LICENSE", "bin/quanto"] +
+    ["README.md", "COPYING", "bin/quanto"] +
     Dir.glob("lib/**/*.rb") + Dir.glob("kernel/**/*")
 
   files = files.reject{ |f| f =~ /\.(atomoc|rbc)$/ }
