@@ -37,18 +37,18 @@ module(Atomo::Patterns):
 
     Block to-pattern := Atomo::Patterns::Metaclass new(self)
 
-    `@@(~n) to-pattern := NamedClass new(n name)
+    `@@~n to-pattern := NamedClass new(n name)
 
-    `$(~n) to-pattern := NamedGlobal new(n name)
+    `$~n to-pattern := NamedGlobal new(n name)
 
-    `@(~n) to-pattern := NamedInstance new(n name)
+    `@~n to-pattern := NamedInstance new(n name)
 
-    `%(~x) to-pattern := RuntimeClass new(x, nil)
+    `%~x to-pattern := RuntimeClass new(x, nil)
 
-    `&(~x) to-pattern :=
+    `&~x to-pattern :=
       Atomo::Patterns::BlockPass new(x to-pattern)
 
-    `*(~x) to-pattern :=
+    `*~x to-pattern :=
       Atomo::Patterns::Splat new(x to-pattern)
 
     Particle to-pattern :=
