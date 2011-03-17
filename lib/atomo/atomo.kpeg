@@ -77,12 +77,9 @@
 
       op_letter = < /[\$\+\<=\>\^~!@&#%\|&*\-.\/\?:]/ > { text }
 
-  f_ident_start = < /[[:alpha:]\$\+\<=\>\^`~_!@#%&*\-.\/\?]/ > { text }
-
        operator = < op_letter+ > &{ text != ":" } { text }
 
      identifier = < ident_start ident_letters > { text.tr("-", "_") }
-   f_identifier = < f_ident_start ident_letters > { text.tr("-", "_") }
 
         grouped = "(" wsp expression:x wsp ")" { x }
 
@@ -125,15 +122,15 @@
                 | binary_send
                 | level2
 
-           true = line:line "true" !f_identifier
+           true = line:line "true" !identifier
                     { Atomo::AST::Primitive.new(line, :true) }
-          false = line:line "false" !f_identifier
+          false = line:line "false" !identifier
                     { Atomo::AST::Primitive.new(line, :false) }
 
-           self = line:line "self" !f_identifier
+           self = line:line "self" !identifier
                     { Atomo::AST::Primitive.new(line, :self) }
 
-            nil = line:line "nil" !f_identifier
+            nil = line:line "nil" !identifier
                     { Atomo::AST::Primitive.new(line, :nil) }
 
          number = line:line < /[\+\-]?0[oO][\da-fA-F]+/ >
@@ -176,7 +173,7 @@
     macro_quote = line:line identifier:n quoted:c (< [a-z] > { text })*:fs
                     { Atomo::AST::MacroQuote.new(line, n, c, fs) }
 
-       particle = line:line "#" f_identifier:n
+       particle = line:line "#" (identifier | operator !identifier):n
                     { Atomo::AST::Particle.new(line, n) }
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }

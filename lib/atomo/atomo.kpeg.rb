@@ -717,32 +717,6 @@ class Atomo::Parser
     return _tmp
   end
 
-  # f_ident_start = < /[[:alpha:]\$\+\<=\>\^`~_!@#%&*\-.\/\?]/ > { text }
-  def _f_ident_start
-
-    _save = self.pos
-    while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[[:alpha:]\$\+\<=\>\^`~_!@#%&*\-.\/\?])/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    set_failed_rule :_f_ident_start unless _tmp
-    return _tmp
-  end
-
   # operator = < op_letter+ > &{ text != ":" } { text }
   def _operator
 
@@ -823,46 +797,6 @@ class Atomo::Parser
     end # end sequence
 
     set_failed_rule :_identifier unless _tmp
-    return _tmp
-  end
-
-  # f_identifier = < f_ident_start ident_letters > { text.tr("-", "_") }
-  def _f_identifier
-
-    _save = self.pos
-    while true # sequence
-    _text_start = self.pos
-
-    _save1 = self.pos
-    while true # sequence
-    _tmp = apply(:_f_ident_start)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply(:_ident_letters)
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
-
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  text.tr("-", "_") ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    set_failed_rule :_f_identifier unless _tmp
     return _tmp
   end
 
@@ -1314,7 +1248,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # true = line:line "true" !f_identifier { Atomo::AST::Primitive.new(line, :true) }
+  # true = line:line "true" !identifier { Atomo::AST::Primitive.new(line, :true) }
   def _true
 
     _save = self.pos
@@ -1331,7 +1265,7 @@ class Atomo::Parser
       break
     end
     _save1 = self.pos
-    _tmp = apply(:_f_identifier)
+    _tmp = apply(:_identifier)
     _tmp = _tmp ? nil : true
     self.pos = _save1
     unless _tmp
@@ -1350,7 +1284,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # false = line:line "false" !f_identifier { Atomo::AST::Primitive.new(line, :false) }
+  # false = line:line "false" !identifier { Atomo::AST::Primitive.new(line, :false) }
   def _false
 
     _save = self.pos
@@ -1367,7 +1301,7 @@ class Atomo::Parser
       break
     end
     _save1 = self.pos
-    _tmp = apply(:_f_identifier)
+    _tmp = apply(:_identifier)
     _tmp = _tmp ? nil : true
     self.pos = _save1
     unless _tmp
@@ -1386,7 +1320,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # self = line:line "self" !f_identifier { Atomo::AST::Primitive.new(line, :self) }
+  # self = line:line "self" !identifier { Atomo::AST::Primitive.new(line, :self) }
   def _self
 
     _save = self.pos
@@ -1403,7 +1337,7 @@ class Atomo::Parser
       break
     end
     _save1 = self.pos
-    _tmp = apply(:_f_identifier)
+    _tmp = apply(:_identifier)
     _tmp = _tmp ? nil : true
     self.pos = _save1
     unless _tmp
@@ -1422,7 +1356,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # nil = line:line "nil" !f_identifier { Atomo::AST::Primitive.new(line, :nil) }
+  # nil = line:line "nil" !identifier { Atomo::AST::Primitive.new(line, :nil) }
   def _nil
 
     _save = self.pos
@@ -1439,7 +1373,7 @@ class Atomo::Parser
       break
     end
     _save1 = self.pos
-    _tmp = apply(:_f_identifier)
+    _tmp = apply(:_identifier)
     _tmp = _tmp ? nil : true
     self.pos = _save1
     unless _tmp
@@ -2168,7 +2102,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # particle = line:line "#" f_identifier:n { Atomo::AST::Particle.new(line, n) }
+  # particle = line:line "#" (identifier | operator !identifier):n { Atomo::AST::Particle.new(line, n) }
   def _particle
 
     _save = self.pos
@@ -2184,7 +2118,35 @@ class Atomo::Parser
       self.pos = _save
       break
     end
-    _tmp = apply(:_f_identifier)
+
+    _save1 = self.pos
+    while true # choice
+    _tmp = apply(:_identifier)
+    break if _tmp
+    self.pos = _save1
+
+    _save2 = self.pos
+    while true # sequence
+    _tmp = apply(:_operator)
+    unless _tmp
+      self.pos = _save2
+      break
+    end
+    _save3 = self.pos
+    _tmp = apply(:_identifier)
+    _tmp = _tmp ? nil : true
+    self.pos = _save3
+    unless _tmp
+      self.pos = _save2
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save1
+    break
+    end # end choice
+
     n = @result
     unless _tmp
       self.pos = _save
@@ -4796,10 +4758,8 @@ class Atomo::Parser
   Rules[:_ident_start] = rule_info("ident_start", "< /[[a-z]_]/ > { text }")
   Rules[:_ident_letters] = rule_info("ident_letters", "< /([[:alnum:]\\$\\+\\<=\\>\\^~!@#%&*\\-.\\/\\?])*/ > { text }")
   Rules[:_op_letter] = rule_info("op_letter", "< /[\\$\\+\\<=\\>\\^~!@&#%\\|&*\\-.\\/\\?:]/ > { text }")
-  Rules[:_f_ident_start] = rule_info("f_ident_start", "< /[[:alpha:]\\$\\+\\<=\\>\\^`~_!@#%&*\\-.\\/\\?]/ > { text }")
   Rules[:_operator] = rule_info("operator", "< op_letter+ > &{ text != \":\" } { text }")
   Rules[:_identifier] = rule_info("identifier", "< ident_start ident_letters > { text.tr(\"-\", \"_\") }")
-  Rules[:_f_identifier] = rule_info("f_identifier", "< f_ident_start ident_letters > { text.tr(\"-\", \"_\") }")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
   Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")
   Rules[:_multi_comment] = rule_info("multi_comment", "\"{-\" in_multi")
@@ -4810,10 +4770,10 @@ class Atomo::Parser
   Rules[:_level1] = rule_info("level1", "(true | false | self | nil | number | quote | quasi_quote | unquote | string | macro_quote | particle | constant | variable | block | grouped | list | unary)")
   Rules[:_level2] = rule_info("level2", "(send | level1)")
   Rules[:_level3] = rule_info("level3", "(macro | for_macro | op_assoc_prec | binary_send | level2)")
-  Rules[:_true] = rule_info("true", "line:line \"true\" !f_identifier { Atomo::AST::Primitive.new(line, :true) }")
-  Rules[:_false] = rule_info("false", "line:line \"false\" !f_identifier { Atomo::AST::Primitive.new(line, :false) }")
-  Rules[:_self] = rule_info("self", "line:line \"self\" !f_identifier { Atomo::AST::Primitive.new(line, :self) }")
-  Rules[:_nil] = rule_info("nil", "line:line \"nil\" !f_identifier { Atomo::AST::Primitive.new(line, :nil) }")
+  Rules[:_true] = rule_info("true", "line:line \"true\" !identifier { Atomo::AST::Primitive.new(line, :true) }")
+  Rules[:_false] = rule_info("false", "line:line \"false\" !identifier { Atomo::AST::Primitive.new(line, :false) }")
+  Rules[:_self] = rule_info("self", "line:line \"self\" !identifier { Atomo::AST::Primitive.new(line, :self) }")
+  Rules[:_nil] = rule_info("nil", "line:line \"nil\" !identifier { Atomo::AST::Primitive.new(line, :nil) }")
   Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][\\da-fA-F]+/ > { Atomo::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][0-7]+/ > { Atomo::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomo::AST::Primitive.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomo::AST::Primitive.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomo::AST::Primitive.new(line, text.to_i) })")
   Rules[:_macro] = rule_info("macro", "line:line \"macro\" wsp \"(\" wsp expression:p wsp \")\" wsp expression:b { b; Atomo::AST::Macro.new(line, p, b) }")
   Rules[:_for_macro] = rule_info("for_macro", "line:line \"for-macro\" wsp expression:b { Atomo::AST::ForMacro.new(line, b) }")
@@ -4827,7 +4787,7 @@ class Atomo::Parser
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
   Rules[:_string] = rule_info("string", "line:line \"\\\"\" (\"\\\\\" escape | str_seq)*:c \"\\\"\" { Atomo::AST::String.new(line, c.join) }")
   Rules[:_macro_quote] = rule_info("macro_quote", "line:line identifier:n quoted:c (< [a-z] > { text })*:fs { Atomo::AST::MacroQuote.new(line, n, c, fs) }")
-  Rules[:_particle] = rule_info("particle", "line:line \"#\" f_identifier:n { Atomo::AST::Particle.new(line, n) }")
+  Rules[:_particle] = rule_info("particle", "line:line \"#\" (identifier | operator !identifier):n { Atomo::AST::Particle.new(line, n) }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
   Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomo::AST::Send.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line (\"::\" constant_name)+:s args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomo::AST::Send.new(                         line,                         names.empty? ?                             Atomo::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })")
   Rules[:_variable] = rule_info("variable", "line:line identifier:n !\":\" { Atomo::AST::Variable.new(line, n) }")
