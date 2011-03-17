@@ -67,6 +67,7 @@ module(Atomo::Patterns):
       g gif(mismatch)
 
       `: ~@test ; bytecode(g)
+      g send(#block, 0)
       g swap
       g send(#call-on-instance, 1)
       g goto(done)
