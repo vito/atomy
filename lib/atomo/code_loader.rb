@@ -37,8 +37,28 @@ module Atomo
         end
       end
 
+      def loadable?(fn)
+        return false unless File.exists? fn
+
+        stat = File.stat fn
+        stat.file? && stat.readable?
+      end
+
+      def search_path(fn)
+        $LOAD_PATH.each do |dir|
+          path = find_file("#{dir}/#{fn}")
+          return path if loadable? path
+        end
+
+        nil
+      end
+
+      def qualified_path?(path)
+        path[0] == ?/ or path.prefix?("./") or path.prefix?("../")
+      end
+
       def load_file(fn)
-        fn = find_file(fn)
+        fn = search_path(fn) unless qualified_path?(fn)
         return require(fn) unless fn.suffix?(".atomo")
 
         cfn = compile_if_needed(fn)
