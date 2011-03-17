@@ -72,7 +72,7 @@
 
            line = { current_line }
 
-    ident_start = < /[[a-z]_]/ > { text }
+    ident_start = < /[a-z_]/ > { text }
   ident_letters = < /([[:alnum:]\$\+\<=\>\^~!@#%&*\-.\/\?])*/ > { text }
 
       op_letter = < /[\$\+\<=\>\^~!@&#%\|&*\-.\/\?:]/ > { text }

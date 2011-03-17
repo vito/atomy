@@ -639,13 +639,13 @@ class Atomo::Parser
     return _tmp
   end
 
-  # ident_start = < /[[a-z]_]/ > { text }
+  # ident_start = < /[a-z_]/ > { text }
   def _ident_start
 
     _save = self.pos
     while true # sequence
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[[a-z]_])/)
+    _tmp = scan(/\A(?-mix:[a-z_])/)
     if _tmp
       text = get_text(_text_start)
     end
@@ -4755,7 +4755,7 @@ class Atomo::Parser
   Rules[:_sig_wsp] = rule_info("sig_wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)+")
   Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })?)")
   Rules[:_line] = rule_info("line", "{ current_line }")
-  Rules[:_ident_start] = rule_info("ident_start", "< /[[a-z]_]/ > { text }")
+  Rules[:_ident_start] = rule_info("ident_start", "< /[a-z_]/ > { text }")
   Rules[:_ident_letters] = rule_info("ident_letters", "< /([[:alnum:]\\$\\+\\<=\\>\\^~!@#%&*\\-.\\/\\?])*/ > { text }")
   Rules[:_op_letter] = rule_info("op_letter", "< /[\\$\\+\\<=\\>\\^~!@&#%\\|&*\\-.\\/\\?:]/ > { text }")
   Rules[:_operator] = rule_info("operator", "< op_letter+ > &{ text != \":\" } { text }")
