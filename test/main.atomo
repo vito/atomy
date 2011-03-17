@@ -1,3 +1,3 @@
 theorize:
   Dir glob("test/suite/*.atomo") each (t):
-    load(t)
+    import(t)
