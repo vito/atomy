@@ -51,10 +51,12 @@ module Atomo
           g.push_rubinius
           g.push_literal method_name.to_sym
           g.dup
-          g.push_const :Atomo
+          g.push_cpath_top
+          g.find_const :Atomo
           g.swap
         else
-          g.push_const :Atomo
+          g.push_cpath_top
+          g.find_const :Atomo
           receiver.target(g)
           g.push_literal method_name.to_sym
         end

@@ -27,12 +27,9 @@ module Atomo::Patterns
 
     # helper for pushing the current class const onto the stack
     def get(g)
-      self.class.name.split("::").each_with_index do |n, i|
-        if i == 0
-          g.push_const n.to_sym
-        else
-          g.find_const n.to_sym
-        end
+      g.push_cpath_top
+      self.class.name.split("::").each do |n|
+        g.find_const n.to_sym
       end
     end
 
