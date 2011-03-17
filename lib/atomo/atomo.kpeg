@@ -320,10 +320,10 @@
                 | "ESC" { "\e" }
                 | "DEL" { "\177" }
 
- number_escapes = /[xX]/ < /[0-9a-fA-F]{1,5}/ > { text.to_i(16).chr }
-                | < /\d{1,6}/ > { text.to_i.chr }
-                | /[oO]/ < /[0-7]{1,7}/ > { text.to_i(16).chr }
-                | /[uU]/ < /[0-9a-fA-F]{4}/ > { text.to_i(16).chr }
+ number_escapes = /[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack("U*") }
+                | < /\d{1,6}/ > { [text.to_i].pack("U*") }
+                | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack("U*") }
+                | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack("U*") }
 
          quoted = "\""
                   ( "\\\"" { "\"" }

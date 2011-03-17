@@ -3955,7 +3955,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # number_escapes = (/[xX]/ < /[0-9a-fA-F]{1,5}/ > { text.to_i(16).chr } | < /\d{1,6}/ > { text.to_i.chr } | /[oO]/ < /[0-7]{1,7}/ > { text.to_i(16).chr } | /[uU]/ < /[0-9a-fA-F]{4}/ > { text.to_i(16).chr })
+  # number_escapes = (/[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack("U*") } | < /\d{1,6}/ > { [text.to_i].pack("U*") } | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack("U*") } | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack("U*") })
   def _number_escapes
 
     _save = self.pos
@@ -3977,7 +3977,7 @@ class Atomo::Parser
       self.pos = _save1
       break
     end
-    @result = begin;  text.to_i(16).chr ; end
+    @result = begin;  [text.to_i(16)].pack("U*") ; end
     _tmp = true
     unless _tmp
       self.pos = _save1
@@ -3999,7 +3999,7 @@ class Atomo::Parser
       self.pos = _save2
       break
     end
-    @result = begin;  text.to_i.chr ; end
+    @result = begin;  [text.to_i].pack("U*") ; end
     _tmp = true
     unless _tmp
       self.pos = _save2
@@ -4026,7 +4026,7 @@ class Atomo::Parser
       self.pos = _save3
       break
     end
-    @result = begin;  text.to_i(16).chr ; end
+    @result = begin;  [text.to_i(16)].pack("U*") ; end
     _tmp = true
     unless _tmp
       self.pos = _save3
@@ -4053,7 +4053,7 @@ class Atomo::Parser
       self.pos = _save4
       break
     end
-    @result = begin;  text.to_i(16).chr ; end
+    @result = begin;  [text.to_i(16)].pack("U*") ; end
     _tmp = true
     unless _tmp
       self.pos = _save4
@@ -4800,7 +4800,7 @@ class Atomo::Parser
   Rules[:_binary_c] = rule_info("binary_c", "line:line level2:r (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }")
   Rules[:_binary_send] = rule_info("binary_send", "(binary_c(current_position):t { op_chain(t[0], t[1]) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" })")
-  Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { text.to_i(16).chr } | < /\\d{1,6}/ > { text.to_i.chr } | /[oO]/ < /[0-7]{1,7}/ > { text.to_i(16).chr } | /[uU]/ < /[0-9a-fA-F]{4}/ > { text.to_i(16).chr })")
+  Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack(\"U*\") } | < /\\d{1,6}/ > { [text.to_i].pack(\"U*\") } | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack(\"U*\") } | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack(\"U*\") })")
   Rules[:_quoted] = rule_info("quoted", "(\"\\\"\" (\"\\\\\\\"\" { \"\\\"\" } | < \"\\\\\" . > { text } | < /[^\\\\\"]+/ > { text })*:c \"\\\"\" { c.join } | \"{\" (\"\\\\\" < (\"{\" | \"}\") > { text } | < \"\\\\\" . > { text } | < /[^\\\\\\{\\}]+/ > { text })*:c \"}\" { c.join } | \"[\" (\"\\\\\" < (\"[\" | \"]\") > { text } | < \"\\\\\" . > { text } | < /[^\\\\\\[\\]]+/ > { text })*:c \"]\" { c.join } | \"`\" (\"\\\\`\" { \"`\" } | < \"\\\\\" . > { text } | < /[^\\\\`]+/ > { text })*:c \"`\" { c.join } | \"'\" (\"\\\\'\" { \"'\" } | < \"\\\\\" . > { text } | < /[^\\\\']+/ > { text })*:c \"'\" { c.join })")
   Rules[:_root] = rule_info("root", "wsp expressions:es wsp !. { es }")
 end
