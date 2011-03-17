@@ -66,8 +66,8 @@ module(Atomo::Patterns):
 
   (a: Default) <=> (b: Default) :=
     a pattern <=> b pattern
-  (n: Default) <=> (p: Pattern) := n pattern <=> p
-  (p: Pattern) <=> (n: Default) := p <=> n pattern
+  (d: Default) <=> (p: Pattern) := d pattern <=> p
+  (p: Pattern) <=> (d: Default) := p <=> d pattern
 
   (a: Named) <=> (b: Named) :=
     a pattern <=> b pattern

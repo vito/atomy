@@ -163,6 +163,7 @@ module Atomo
 
   def self.compare_heads(xs, ys)
     xs.zip(ys) do |x, y|
+      return 0 if x.nil? || y.nil?
       cmp = x <=> y
       return cmp unless cmp == 0
     end
