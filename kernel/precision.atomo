@@ -102,7 +102,7 @@ module(Atomo::Patterns):
     a head =~ b head && a tail =~ b tail
 
   (a: List) =~ (b: List) :=
-    a zip(bs) all? (a, b):
+    a patterns zip(b patterns) all? (a, b):
       when(a nil? || b nil?):
         return(false)
 
