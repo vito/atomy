@@ -23,9 +23,9 @@ module Atomo
     defs = 0
     g.local_names = branches.collect do |pats, meth|
       segs = segments(pats[1])
-      reqs = segs[0].size
-      defs = segs[1].size
-      args = reqs + defs
+      reqs = [reqs, segs[0].size].max
+      defs = [defs, segs[1].size].max
+      args = [reqs + defs, args].max
       pats[0].local_names + pats[1].collect { |p| p.local_names }.flatten
     end.flatten.uniq
 
