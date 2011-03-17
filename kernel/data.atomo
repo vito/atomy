@@ -10,8 +10,14 @@ macro (@(x: Variable))
 macro (@@(x: Variable))
   Atomo::AST::ClassVariable new(x line, x name)
 
-macro ($(x: 'exception))
-  Atomo::AST::GlobalVariable new(x line, "!")
+macro ($'exception)
+  Atomo::AST::GlobalVariable new(line, "!")
+
+macro ($'path)
+  Atomo::AST::GlobalVariable new(line, ":")
+
+macro ($(x: Constant))
+  Atomo::AST::GlobalVariable new(x line, x identifier)
 
 macro ($(x: Variable))
   Atomo::AST::GlobalVariable new(x line, x name)
