@@ -42,7 +42,7 @@ macro (x at(y) put(z))
 for-macro quoter(#w) (c): c split
 
 -- TODO: flags
-for-macro quoter(#r) (c): Regexp new(c)
+for-macro quoter(#r) (c): `(Regexp new(~c))
 
 for-macro quoter(#raw) (c): c
 
