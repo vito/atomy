@@ -22,6 +22,9 @@ macro ($(x: Constant))
 macro ($(x: Variable))
   Atomo::AST::GlobalVariable new(x line, x name)
 
+macro (#(x: Constant))
+  Atomo::AST::Particle new(x line, x identifier)
+
 macro (#(x: Variable))
   Atomo::AST::Particle new(x line, x name)
 
