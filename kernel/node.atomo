@@ -62,5 +62,8 @@ module(Atomo::Patterns):
     QuasiQuote to-pattern :=
       Atomo::Patterns::QuasiQuote new(@expression)
 
+    String to-pattern :=
+      Atomo::Patterns::Match new(@value)
+
     Node to-pattern :=
       raise("unknown pattern: " + self inspect)

@@ -33,7 +33,12 @@ module Atomo::Patterns
     end
 
     def matches?(g)
-      g.push @value
+      case @value
+      when :true, :false, :self, :nil, Integer
+        g.push @value
+      else
+        g.push_literal @value
+      end
       g.send :==, 1
     end
   end
