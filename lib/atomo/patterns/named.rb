@@ -1,12 +1,10 @@
 module Atomo::Patterns
   class Named < Pattern
     attr_reader :name, :pattern
-    attr_accessor :variable
 
     def initialize(n, p)
       @name = n
       @pattern = p
-      @variable = nil
     end
 
     def construct(g)
@@ -31,11 +29,14 @@ module Atomo::Patterns
     end
 
     def deconstruct(g, locals = {})
-      unless @variable
-        if locals[@name]
-          @variable = locals[@name]
+      if locals[@name]
+        local = locals[@name]
+      else
+        var = g.state.scope.search_local(@name)
+        if var && var.depth == 0
+          local = var
         else
-          g.state.scope.assign_local_reference self
+          local = g.state.scope.new_local(@name).reference
         end
       end
 
@@ -44,7 +45,7 @@ module Atomo::Patterns
         @pattern.deconstruct(g, locals)
       end
 
-      @variable.set_bytecode(g)
+      local.set_bytecode(g)
       g.pop
     end
 
