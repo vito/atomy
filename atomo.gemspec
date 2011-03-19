@@ -8,7 +8,11 @@ Gem::Specification.new do |s|
 
   files =
     ["README.md", "COPYING", "bin/quanto"] +
-    Dir.glob("lib/**/*.rb") + Dir.glob("kernel/**/*")
+    Dir.glob("lib/atomo/ast/**/*.rb") +
+    Dir.glob("lib/atomo/patterns/**/*.rb") +
+    Dir.glob("lib/atomo/compiler/**/*.rb") +
+    Dir.glob("lib/atomo/*.rb") +
+    Dir.glob("kernel/**/*.atomo")
 
   files = files.reject{ |f| f =~ /\.(atomoc|rbc)$/ }
 

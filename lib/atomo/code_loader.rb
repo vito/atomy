@@ -58,10 +58,17 @@ module Atomo
       end
 
       def load_file(fn)
-        fn = search_path(fn) unless qualified_path?(fn)
-        return require(fn) unless fn.suffix?(".atomo")
+        if qualified_path?(fn)
+          file = find_file(fn)
+        else
+          file = search_path(fn)
+        end
 
-        cfn = compile_if_needed(fn)
+        raise("cannot find file to load for #{fn}") unless file
+
+        return require(file) unless file.suffix?(".atomo")
+
+        cfn = compile_if_needed(file)
         cl = Rubinius::CodeLoader.new(cfn)
         cm = cl.load_compiled_file(cfn, 0)
         script = cm.create_script(false)

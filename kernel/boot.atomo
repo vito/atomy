@@ -7,4 +7,4 @@ macro (import(name)) `(require-quanto(~name))
 patterns precision node block errors therie mixins
 pretty concurrency" split each (k):
   puts("loading " + k)
-  import("kernel/" + k)
+  import(File expand-path("../", _FILE) + "/" + k)
