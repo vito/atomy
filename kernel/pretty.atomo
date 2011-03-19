@@ -194,7 +194,7 @@ module(Atomo::AST):
 
   Particle pretty := doc: text("#") <> text(@name)
 
-  Primitive pretty :=
+  Primitive pretty := doc:
     @value match:
       #self -> text("self")
       #true -> text("true")
