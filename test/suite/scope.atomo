@@ -16,3 +16,10 @@ describe("assignment"):
     it("introduces a new local if undefined"):
       do: a =! 1, a should-be(1)
       : a ; should-raise(NoMethodError)
+
+  describe("match"):
+    it("shadows local variables"):
+      a = 0
+      a should-be(0)
+      1 match: a -> a should-be(1)
+      a should-be(0)
