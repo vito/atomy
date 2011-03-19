@@ -10,6 +10,9 @@ macro (condition(&bs))
 macro (while(cond, &body))
   Atomo::AST::While new(line, cond, `(~body call))
 
+macro (until(cond, &body))
+  Atomo::AST::While new(line, `!~cond, `(~body call))
+
 macro (return(y))
   Atomo::AST::Return new(line, y)
 
