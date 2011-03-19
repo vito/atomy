@@ -7,6 +7,11 @@ class Atomo::Parser
       @result = nil
       @failed_rule = nil
       @failing_rule_offset = -1
+
+      setup_foreign_grammar
+    end
+
+    def setup_foreign_grammar
     end
 
     # This is distinct from setup_parser so that a standalone parser
@@ -67,9 +72,13 @@ class Atomo::Parser
     def failure_info
       l = current_line @failing_rule_offset
       c = current_column @failing_rule_offset
-      info = self.class::Rules[@failed_rule]
 
-      "line #{l}, column #{c}: failed rule '#{info.name}' = '#{info.rendered}'"
+      if @failed_rule.kind_of? Symbol
+        info = self.class::Rules[@failed_rule]
+        "line #{l}, column #{c}: failed rule '#{info.name}' = '#{info.rendered}'"
+      else
+        "line #{l}, column #{c}: failed rule '#{@failed_rule}'"
+      end
     end
 
     def failure_caret
@@ -90,10 +99,14 @@ class Atomo::Parser
       l = current_line @failing_rule_offset
       c = current_column @failing_rule_offset
 
-      info = self.class::Rules[@failed_rule]
       char = lines[l-1][c-1, 1]
 
-      "@#{l}:#{c} failed rule '#{info.name}', got '#{char}'"
+      if @failed_rule.kind_of? Symbol
+        info = self.class::Rules[@failed_rule]
+        "@#{l}:#{c} failed rule '#{info.name}', got '#{char}'"
+      else
+        "@#{l}:#{c} failed rule '#{@failed_rule}', got '#{char}'"
+      end
     end
 
     class ParseError < RuntimeError
@@ -108,9 +121,15 @@ class Atomo::Parser
       line_no = current_line(error_pos)
       col_no = current_column(error_pos)
 
-      info = self.class::Rules[@failed_rule]
       io.puts "On line #{line_no}, column #{col_no}:"
-      io.puts "Failed to match '#{info.rendered}' (rule '#{info.name}')"
+
+      if @failed_rule.kind_of? Symbol
+        info = self.class::Rules[@failed_rule]
+        io.puts "Failed to match '#{info.rendered}' (rule '#{info.name}')"
+      else
+        io.puts "Failed to match rule '#{@failed_rule}'"
+      end
+
       io.puts "Got: #{string[error_pos,1].inspect}"
       line = lines[line_no-1]
       io.puts "=> #{line}"
@@ -199,6 +218,26 @@ class Atomo::Parser
         @ans = ans
         @pos = pos
         @result = result
+      end
+    end
+
+    def external_invoke(other, rule, *args)
+      old_pos = @pos
+      old_string = @string
+
+      @pos = other.pos
+      @string = other.string
+
+      begin
+        if val = __send__(rule, *args)
+          other.pos = @pos
+        else
+          other.set_failed_rule "#{self.class}##{rule}"
+        end
+        val
+      ensure
+        @pos = old_pos
+        @string = old_string
       end
     end
 
@@ -336,6 +375,7 @@ class Atomo::Parser
   end
 
 
+  def setup_foreign_grammar; end
 
   # sp = (" " | "\t" | comment)*
   def _sp

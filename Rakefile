@@ -1,5 +1,5 @@
 task :parser do
-  sh "rbx -Ilib/vendor/kpeg/lib ./lib/vendor/kpeg/bin/kpeg -f -s -n Atomo::Parser lib/atomo/atomo.kpeg"
+  sh "kpeg -f -s -n Atomo::Parser lib/atomo/atomo.kpeg"
 end
 
 task :clean do
