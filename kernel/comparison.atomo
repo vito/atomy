@@ -8,13 +8,11 @@ class(And < Atomo::AST::Node):
     no = g new-label
 
     @a bytecode(g)
-    g gif(no)
+    g dup
+    g gif(done)
 
+    g pop
     @b bytecode(g)
-    g goto(done)
-
-    no set!
-    g push-false
 
     done set!
 
@@ -25,16 +23,13 @@ class(Or < Atomo::AST::Node):
   bytecode(g) := do:
     pos(g)
     done = g new-label
-    yes = g new-label
 
     @a bytecode(g)
-    g git(yes)
+    g dup
+    g git(done)
 
+    g pop
     @b bytecode(g)
-    g goto(done)
-
-    yes set!
-    g push-true
 
     done set!
 
