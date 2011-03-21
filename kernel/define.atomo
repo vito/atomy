@@ -33,8 +33,8 @@ macro (x match(&b)) do :
 macro (class(`(<< ~obj), &body))
   Atomo::AST::Metaclass new(obj line, obj, body body)
 
-macro (class(`(~name < ~super), &body))
-  Atomo::AST::Class new(name line, name, body body, super)
+macro (class(`(~name < ~sup), &body))
+  Atomo::AST::Class new(name line, name, body body, sup)
 
 macro (class(name, &body))
   Atomo::AST::Class new(name line, name, body body)

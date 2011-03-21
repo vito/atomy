@@ -32,3 +32,19 @@ unless(_, &_) := nil
 when(false, &_) := nil
 when(nil, &_) := nil
 when(_, &blk) := blk call
+
+class(Atomo::AST::ZSuper < Atomo::AST::Node):
+  generate
+
+  bytecode(g) := do:
+    pos(g)
+
+    g push-block
+
+    if(g state super?)
+      then:
+        g zsuper(g state super name)
+      else:
+        g zsuper(nil)
+
+macro(super) Atomo::AST::ZSuper new(line)
