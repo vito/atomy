@@ -27,11 +27,14 @@ theorize(&as) := do:
 
     puts
 
+-- TODO: this seems to be broken.
 o should(&check) :=
   unless(o join(&check)):
     raise("assertion failed for " + o inspect)
 
-x should-be(y) := x should: == y
+x should-be(y) :=
+  unless(x == y):
+    raise("expected " + y inspect + ", got " + x inspect)
 
 x should-raise(y) :=
   begin:
