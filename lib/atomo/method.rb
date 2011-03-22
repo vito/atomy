@@ -100,6 +100,7 @@ module Atomo
           g.git passed
 
           d.default.bytecode(g)
+          g.set_local num
           g.goto decons
 
           passed.set!
