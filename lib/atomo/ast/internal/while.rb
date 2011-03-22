@@ -5,7 +5,7 @@ module Atomo
       extend SentientNode
 
       children :condition, :body
-      attributes [:check_first, false]
+      attributes [:check_first, true]
       generate
     end
   end
