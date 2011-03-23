@@ -28,11 +28,11 @@ macro (#(x: Constant))
 macro (#(x: Variable))
   Atomo::AST::Particle new(x line, x name)
 
-macro (#(b: Block)) do:
+macro (#(l: List)) do:
   keys = []
   values = []
 
-  b contents each (p):
+  l elements each (p):
     p match:
       `(~k -> ~v) -> do:
         keys << k
