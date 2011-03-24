@@ -4,7 +4,7 @@ macro (_FILE) Atomo::AST::File new(line)
 macro (import(name)) `(require-quanto(~name))
 
 "operators define data comparison control-flow
-patterns precision node block errors therie mixins
-pretty concurrency" split each (k):
+hashes patterns precision node block errors therie
+mixins pretty concurrency" split each (k):
   puts("loading " + k)
   import(File expand-path("../", _FILE) + "/" + k)

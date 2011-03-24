@@ -28,18 +28,6 @@ macro (#(x: Constant))
 macro (#(x: Variable))
   Atomo::AST::Particle new(x line, x name)
 
-macro (#(l: List)) do:
-  keys = []
-  values = []
-
-  l elements each (p):
-    p match:
-      `(~k -> ~v) -> do:
-        keys << k
-        values << v
-
-  Atomo::AST::Hash new(line, keys, values)
-
 macro (a .. b) `(Range new(~a, ~b))
 macro (a ... b) `(Range new(~a, ~b, true))
 
@@ -57,20 +45,3 @@ for-macro quoter(#w) (c): c split
 for-macro quoter(#r) (c): `(Regexp new(~c))
 
 for-macro quoter(#raw) (c): c
-
-class(Atomo::AST::Hash < Atomo::AST::Node):
-  children([#keys], [#values])
-  generate
-
-  bytecode(g) := do:
-    g push-cpath-top
-    g find-const(#Hash)
-    g push-int(@keys size)
-    g send(#new-from-literal, 1)
-
-    @keys each-with-index (n, i):
-      g dup
-      n bytecode(g)
-      @values at(i) bytecode(g)
-      g send("[]=" to-sym, 2)
-      g pop

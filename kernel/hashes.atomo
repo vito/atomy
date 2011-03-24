@@ -1,0 +1,34 @@
+macro (#(l: List)) do:
+  keys = []
+  values = []
+
+  l elements each (p):
+    p match:
+      `(~k -> ~v) -> do:
+        keys << k
+        values << v
+
+      Atomo::AST::Send -> do:
+        while(p respond-to?(#block) && p block):
+          keys << Atomo::AST::Particle new(p line, p method-name)
+          values << p block contents first
+          p =! p receiver
+
+  Atomo::AST::Hash new(line, keys, values)
+
+class(Atomo::AST::Hash < Atomo::AST::Node):
+  children([#keys], [#values])
+  generate
+
+  bytecode(g) := do:
+    g push-cpath-top
+    g find-const(#Hash)
+    g push-int(@keys size)
+    g send(#new-from-literal, 1)
+
+    @keys each-with-index (n, i):
+      g dup
+      n bytecode(g)
+      @values at(i) bytecode(g)
+      g send("[]=" to-sym, 2)
+      g pop
