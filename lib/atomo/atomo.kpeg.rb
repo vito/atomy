@@ -2692,7 +2692,7 @@ class Atomo::Parser
     return _tmp
   end
 
-  # sends = (line:line send:r cont(pos) identifier:n args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line identifier:n args?:as sp block:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n args:as (sp block)?:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })
+  # sends = (line:line send:r cont(pos) identifier:n args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) args:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), "call", b) } | line:line identifier:n args?:as sp block:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n args:as (sp block)?:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })
   def _sends(pos)
 
     _save = self.pos
@@ -2854,33 +2854,95 @@ class Atomo::Parser
       self.pos = _save9
       break
     end
-    _tmp = apply(:_identifier)
-    n = @result
+    _tmp = apply(:_level1)
+    r = @result
     unless _tmp
       self.pos = _save9
       break
     end
-    _save10 = self.pos
-    _tmp = apply(:_args)
-    @result = nil unless _tmp
+    _tmp = _cont(pos)
     unless _tmp
-      _tmp = true
-      self.pos = _save10
+      self.pos = _save9
+      break
     end
+    _tmp = apply(:_args)
     as = @result
     unless _tmp
       self.pos = _save9
       break
     end
+    _save10 = self.pos
+
+    _save11 = self.pos
+    while true # sequence
     _tmp = apply(:_sp)
     unless _tmp
+      self.pos = _save11
+      break
+    end
+    _tmp = apply(:_block)
+    unless _tmp
+      self.pos = _save11
+    end
+    break
+    end # end sequence
+
+    @result = nil unless _tmp
+    unless _tmp
+      _tmp = true
+      self.pos = _save10
+    end
+    b = @result
+    unless _tmp
       self.pos = _save9
+      break
+    end
+    @result = begin;  Atomo::AST::Send.new(line, r, Array(as), "call", b) ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save9
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
+
+    _save12 = self.pos
+    while true # sequence
+    _tmp = apply(:_line)
+    line = @result
+    unless _tmp
+      self.pos = _save12
+      break
+    end
+    _tmp = apply(:_identifier)
+    n = @result
+    unless _tmp
+      self.pos = _save12
+      break
+    end
+    _save13 = self.pos
+    _tmp = apply(:_args)
+    @result = nil unless _tmp
+    unless _tmp
+      _tmp = true
+      self.pos = _save13
+    end
+    as = @result
+    unless _tmp
+      self.pos = _save12
+      break
+    end
+    _tmp = apply(:_sp)
+    unless _tmp
+      self.pos = _save12
       break
     end
     _tmp = apply(:_block)
     b = @result
     unless _tmp
-      self.pos = _save9
+      self.pos = _save12
       break
     end
     @result = begin;  Atomo::AST::Send.new(
@@ -2894,7 +2956,7 @@ class Atomo::Parser
                     ; end
     _tmp = true
     unless _tmp
-      self.pos = _save9
+      self.pos = _save12
     end
     break
     end # end sequence
@@ -2902,38 +2964,38 @@ class Atomo::Parser
     break if _tmp
     self.pos = _save
 
-    _save11 = self.pos
+    _save14 = self.pos
     while true # sequence
     _tmp = apply(:_line)
     line = @result
     unless _tmp
-      self.pos = _save11
+      self.pos = _save14
       break
     end
     _tmp = apply(:_identifier)
     n = @result
     unless _tmp
-      self.pos = _save11
+      self.pos = _save14
       break
     end
     _tmp = apply(:_args)
     as = @result
     unless _tmp
-      self.pos = _save11
+      self.pos = _save14
       break
     end
-    _save12 = self.pos
+    _save15 = self.pos
 
-    _save13 = self.pos
+    _save16 = self.pos
     while true # sequence
     _tmp = apply(:_sp)
     unless _tmp
-      self.pos = _save13
+      self.pos = _save16
       break
     end
     _tmp = apply(:_block)
     unless _tmp
-      self.pos = _save13
+      self.pos = _save16
     end
     break
     end # end sequence
@@ -2941,11 +3003,11 @@ class Atomo::Parser
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
-      self.pos = _save12
+      self.pos = _save15
     end
     b = @result
     unless _tmp
-      self.pos = _save11
+      self.pos = _save14
       break
     end
     @result = begin;  Atomo::AST::Send.new(
@@ -2959,7 +3021,7 @@ class Atomo::Parser
                     ; end
     _tmp = true
     unless _tmp
-      self.pos = _save11
+      self.pos = _save14
     end
     break
     end # end sequence
@@ -4835,7 +4897,7 @@ class Atomo::Parser
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_block] = rule_info("block", "line:line args?:as \":\" !operator wsp expressions?:es (wsp \";\")? { Atomo::AST::Block.new(line, Array(es), Array(as)) }")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomo::AST::List.new(line, Array(es)) }")
-  Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) identifier:n args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line identifier:n args?:as sp block:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n args:as (sp block)?:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })")
+  Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) identifier:n args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n args?:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) args:as (sp block)?:b { Atomo::AST::Send.new(line, r, Array(as), \"call\", b) } | line:line identifier:n args?:as sp block:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n args:as (sp block)?:b { Atomo::AST::Send.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })")
   Rules[:_send] = rule_info("send", "sends(current_position)")
   Rules[:_binary_c] = rule_info("binary_c", "line:line level2:r (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { os, es = [], [r]                       bs.each do |o, e|                         os << o                         es << e                       end                       [os, es]                     }")
   Rules[:_binary_send] = rule_info("binary_send", "(binary_c(current_position):t { op_chain(t[0], t[1]) } | line:line operator:o sig_wsp expression:r { Atomo::AST::BinarySend.new(                         line,                         Atomo::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")

@@ -232,6 +232,8 @@
                     { Atomo::AST::Send.new(line, r, Array(as), n, b) }
                 | line:line level1:r cont(pos) identifier:n args?:as (sp block)?:b
                     { Atomo::AST::Send.new(line, r, Array(as), n, b) }
+                | line:line level1:r cont(pos) args:as (sp block)?:b
+                    { Atomo::AST::Send.new(line, r, Array(as), "call", b) }
                 | line:line identifier:n args?:as sp block:b
                     { Atomo::AST::Send.new(
                         line,
