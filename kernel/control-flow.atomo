@@ -33,18 +33,49 @@ when(false, &_) := nil
 when(nil, &_) := nil
 when(_, &blk) := blk call
 
-class(Atomo::AST::ZSuper < Atomo::AST::Node):
-  generate
+macro (super) Atomo::AST::ZSuper new(line)
 
-  bytecode(g) := do:
-    pos(g)
+macro (super(*args, &blk)) Atomo::AST::Super new(line, args, blk)
 
-    g push-block
+module(Atomo::AST):
+  class(ZSuper < Node):
+    generate
 
-    if(g state super?)
-      then:
-        g zsuper(g state super name)
-      else:
-        g zsuper(nil)
+    bytecode(g) := do:
+      pos(g)
 
-macro(super) Atomo::AST::ZSuper new(line)
+      g push-block
+
+      if(g state super?)
+        then:
+          g zsuper(g state super name)
+        else:
+          g zsuper(nil)
+
+  class(Super < Node):
+    children([#arguments], #block?)
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+
+      block = @block
+      when(@arguments last kind-of?(BlockPass)):
+        block =! @arguments pop
+
+      splat = @arguments select (n): n kind-of?(Splat); at(0)
+      when(splat):
+        @arguments reject! (n): n kind-of?(Splat)
+
+      @arguments each (a):
+        a bytecode(g)
+
+      when(splat):
+        splat bytecode(g)
+        g case-array
+
+      if(block)
+        then: block bytecode(g)
+        else: g push-nil
+
+      g send-super(nil, @arguments size, splat)
