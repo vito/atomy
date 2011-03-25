@@ -18,6 +18,8 @@ module Atomo
 
     g.push_state Rubinius::AST::ClosedScope.new(line)
 
+    block_offset = is_macro ? 1 : 0
+
     args = 0
     reqs = 0
     defs = 0
@@ -29,7 +31,7 @@ module Atomo
       pats[0].local_names + pats[1].collect { |p| p.local_names }.flatten
     end.flatten.uniq
 
-    args += 1 if is_macro
+    args += block_offset
 
     args.times do |n|
       g.local_names.unshift("arg:" + n.to_s)
@@ -49,7 +51,7 @@ module Atomo
       recv = pats[0]
       reqs, defs, splat, block = segments(pats[1])
 
-      g.splat_index = (reqs.size + defs.size) if splat
+      g.splat_index = (block_offset + reqs.size + defs.size) if splat
 
       skip = g.new_label
       argmis = g.new_label
@@ -68,14 +70,14 @@ module Atomo
         block.pattern.deconstruct(g, locals)
       end
 
-      if !is_macro && splat
-        g.push_local(reqs.size + defs.size)
+      if splat
+        g.push_local(block_offset + reqs.size + defs.size)
         splat.pattern.deconstruct(g)
       end
 
       unless reqs.empty?
         reqs.each_with_index do |a, i|
-          n = is_macro ? i + 1 : i
+          n = i + block_offset
           g.push_local(n)
 
           if a.bindings > 0

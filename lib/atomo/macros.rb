@@ -260,7 +260,7 @@ module Atomo
         n = send_chain(n)
       end
 
-      if n.kind_of?(Atomo::AST::Unary) && n.operator != "&"
+      if n.kind_of?(Atomo::AST::Unary) && n.operator != "&" && n.operator != "*"
         n = unary_chain(n)
       end
 
