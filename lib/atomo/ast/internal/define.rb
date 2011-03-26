@@ -1,9 +1,6 @@
 module Atomo
   module AST
-    class Define < Rubinius::AST::ClosedScope
-      include NodeLike
-      extend SentientNode
-
+    class Define < Node
       children :pattern, :body
       generate
 

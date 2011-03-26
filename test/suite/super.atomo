@@ -4,6 +4,7 @@ class(ZSuperA):
   test-3(&x) := [#super, x call]
   test-4(x = 1) := [#super, x]
   test-5(x = 1, &y) := [#super, x, y call]
+  test-6(x) := [#super, x]
 
 class(ZSuperB < ZSuperA):
   test-1 := super
@@ -11,6 +12,7 @@ class(ZSuperB < ZSuperA):
   test-3(&x) := super
   test-4(x = 0) := super
   test-5(x = 0, &y) := super
+  test-6(x) := do: super
 
 describe("zsuper"):
   it("resends the message to the superclass"):
@@ -30,6 +32,9 @@ describe("zsuper"):
     ZSuperB new test-5(3): 2; should-be([#super, 3, 2])
     ZSuperB new test-5: 2; should-be([#super, 0, 2])
 
+  it("works from inside of a block"):
+    ZSuperB new test-6(1) should-be([#super, 1])
+
 class(SuperA):
   test-1 := #super
   test-2(x) := [#super, x]
@@ -38,6 +43,7 @@ class(SuperA):
   test-5(x = 1) := [#super, x]
   test-6(x = 1) := [#super, x]
   test-7(x = 1, &y) := [#super, x, y call]
+  test-8(x) := [#super, x]
 
 class(SuperB < SuperA):
   test-1 := super()
@@ -47,6 +53,7 @@ class(SuperB < SuperA):
   test-5(x = 0) := super(x + 1)
   test-6(x = 0) := super()
   test-7(x = 0, &y) := super(x + 1, &y)
+  test-8(x) := do: super(1)
 
 describe("super"):
   it("resends the message to the superclass"):
@@ -70,3 +77,5 @@ describe("super"):
     SuperB new test-7(3): 2; should-be([#super, 4, 2])
     SuperB new test-7: 2; should-be([#super, 1, 2])
 
+  it("works from inside of a block"):
+    SuperB new test-8(0) should-be([#super, 1])

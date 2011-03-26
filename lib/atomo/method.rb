@@ -18,6 +18,8 @@ module Atomo
 
     g.push_state Rubinius::AST::ClosedScope.new(line)
 
+    g.state.push_name name
+
     block_offset = is_macro ? 1 : 0
 
     args = 0
@@ -148,9 +150,10 @@ module Atomo
     g.send :raise, 1
 
     done.set!
+    g.state.pop_name
     g.ret
     g.close
-    g.use_detected
+    g.pop_state
     g.encode
 
     g.package Rubinius::CompiledMethod
