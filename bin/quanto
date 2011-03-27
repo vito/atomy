@@ -1,6 +1,6 @@
 #!/usr/bin/env rbx
 
-base = File.expand_path "../../lib/atomo/", __FILE__
+base = File.expand_path "../../lib/", __FILE__
 kernel = File.expand_path "../../kernel/", __FILE__
 
 require 'readline'
