@@ -6,9 +6,9 @@ module Atomy
       end
 
       def source_name(fn)
-        if fn.suffix? ".compiled.atomyc"
-          fn[0..-(".compiled.atomyc".size)]
-        elsif fn.suffix? ".atomyc"
+        if fn.suffix? ".compiled.ayc"
+          fn[0..-(".compiled.ayc".size)]
+        elsif fn.suffix? ".ayc"
           fn[0..-2]
         end
       end
@@ -26,10 +26,10 @@ module Atomy
       end
 
       def find_file(fn)
-        if fn.suffix?(".atomy") || fn.suffix?(".rb")
+        if fn.suffix?(".ay") || fn.suffix?(".rb")
           fn
-        elsif File.exists?(fn + ".atomy")
-          fn + ".atomy"
+        elsif File.exists?(fn + ".ay")
+          fn + ".ay"
         elsif File.exists?(fn + ".rb")
           fn + ".rb"
         else
@@ -66,7 +66,7 @@ module Atomy
 
         raise("cannot find file to load for #{fn}") unless file
 
-        return require(file) unless file.suffix?(".atomy")
+        return require(file) unless file.suffix?(".ay")
 
         cfn = compile_if_needed(file)
         cl = Rubinius::CodeLoader.new(cfn)

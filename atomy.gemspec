@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
     Dir.glob("lib/patterns/**/*.rb") +
     Dir.glob("lib/compiler/**/*.rb") +
     Dir.glob("lib/*.rb") +
-    Dir.glob("kernel/**/*.atomy")
+    Dir.glob("kernel/**/*.ay")
 
   files = files.reject{ |f| f =~ /\.(atomyc|rbc)$/ }
 

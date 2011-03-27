@@ -3,10 +3,10 @@ module Atomy
     attr_accessor :expander, :pragmas
 
     def self.compiled_name(file)
-      if file.suffix? ".atomy"
+      if file.suffix? ".ay"
         file + "c"
       else
-        file + ".compiled.atomyc"
+        file + ".compiled.ayc"
       end
     end
 

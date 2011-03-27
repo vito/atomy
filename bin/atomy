@@ -22,7 +22,7 @@ end
 
 a = Time.now
 puts "loading kernel"
-require_atomy(kernel + "/boot.atomy")
+require_atomy(kernel + "/boot.ay")
 puts Time.now - a
 
 if ARGV[0]
