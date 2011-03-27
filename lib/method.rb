@@ -61,14 +61,14 @@ module Atomy
       skip = g.new_label
       argmis = g.new_label
 
-      g.dup
-      recv.matches?(g) # TODO: skip kind_of matches
-      g.gif skip
-
       if reqs.size > min_reqs
         g.passed_arg(reqs.size - 1)
         g.gif skip
       end
+
+      g.dup
+      recv.matches?(g) # TODO: skip kind_of matches
+      g.gif skip
 
       if recv.bindings > 0
         g.push_self
@@ -133,7 +133,6 @@ module Atomy
 
       argmis.set!
       g.pop
-      g.goto skip
 
       skip.set!
     end
