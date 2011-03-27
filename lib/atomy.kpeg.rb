@@ -320,6 +320,8 @@ class Atomy::Parser
       return [cur_line, target - cur_offset] if cur_offset + len > target
       cur_offset += len
     end
+
+    [cur_line, cur_offset]
   end
 
   def line_lengths

@@ -1,5 +1,5 @@
 task :parser do
-  sh "kpeg -f -s -n Atomy::Parser lib/atomy/atomy.kpeg"
+  sh "kpeg -f -s -n Atomy::Parser lib/atomy.kpeg"
 end
 
 task :clean do
