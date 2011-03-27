@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     class BinarySend < Node
       children :lhs, :rhs
@@ -8,10 +8,10 @@ module Atomo
       alias :method_name :operator
 
       def register_macro(body)
-        Atomo::Macro.register(
+        Atomy::Macro.register(
           @operator,
           [@lhs, @rhs].collect do |n|
-            Atomo::Macro.macro_pattern n
+            Atomy::Macro.macro_pattern n
           end,
           body
         )

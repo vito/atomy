@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class Particle < Pattern
     attr_reader :value
 

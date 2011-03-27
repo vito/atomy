@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     class IfThenElse < Node
       children :condition, :then, :else

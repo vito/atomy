@@ -9,7 +9,7 @@ class MethodFail < ArgumentError
   end
 end
 
-module Atomo
+module Atomy
   OPERATORS = {}
 
   module Macro
@@ -47,7 +47,7 @@ module Atomo
       def names(&block)
         as = []
         block.arity.times do
-          as << Atomo::AST::Variable.new(0, "s:" + @@salt.to_s)
+          as << Atomy::AST::Variable.new(0, "s:" + @@salt.to_s)
           @@salt += 1
         end
         block.call(*as)
@@ -63,12 +63,12 @@ module Atomo
       methods = CURRENT_ENV.macros
       method = [[Patterns::Any.new, args], body]
       if ms = methods[name]
-        Atomo.insert_method(method, ms)
+        Atomy.insert_method(method, ms)
       else
         methods[name] = [method]
       end
 
-      Atomo.add_method(CURRENT_ENV.metaclass, name, methods[name], nil, :public, true)
+      Atomy.add_method(CURRENT_ENV.metaclass, name, methods[name], nil, :public, true)
     end
 
     def self.expand?(node)
@@ -82,7 +82,7 @@ module Atomo
     end
 
     def self.intern(name)
-      "atomo_macro::" + name
+      "atomy_macro::" + name
     end
 
     def self.no_macro(node)
@@ -182,14 +182,14 @@ module Atomo
     def self.unary_chain(n)
       d = n.dup
       x = d
-      while x.kind_of?(Atomo::AST::Unary)
-        if x.receiver.kind_of?(Atomo::AST::Unary)
+      while x.kind_of?(Atomy::AST::Unary)
+        if x.receiver.kind_of?(Atomy::AST::Unary)
           y = x.receiver.dup
           x.receiver = y
           x = y
         else
-          unless x.receiver.kind_of?(Atomo::AST::Primitive)
-            x.receiver = Atomo::AST::Unquote.new(
+          unless x.receiver.kind_of?(Atomy::AST::Primitive)
+            x.receiver = Atomy::AST::Unquote.new(
               x.receiver.line,
               x.receiver
             )
@@ -198,7 +198,7 @@ module Atomo
         end
       end
 
-      Atomo::AST::QuasiQuote.new(d.line, d)
+      Atomy::AST::QuasiQuote.new(d.line, d)
     end
 
     # x(a) y(b)
@@ -215,20 +215,20 @@ module Atomo
 
       d = n.dup
       x = d
-      while x.kind_of?(Atomo::AST::Send)
+      while x.kind_of?(Atomy::AST::Send)
         if n.block
           next
         end
 
         as = []
         x.arguments.each do |a|
-          if a.kind_of?(Atomo::AST::Unary) && a.operator == "&"
-            x.block = Atomo::AST::Unquote.new(
+          if a.kind_of?(Atomy::AST::Unary) && a.operator == "&"
+            x.block = Atomy::AST::Unquote.new(
               a.line,
               a.receiver
             )
           else
-            as << Atomo::AST::Unquote.new(
+            as << Atomy::AST::Unquote.new(
               a.line,
               a
             )
@@ -237,13 +237,13 @@ module Atomo
 
         x.arguments = as
 
-        if x.receiver.kind_of?(Atomo::AST::Send)
+        if x.receiver.kind_of?(Atomy::AST::Send)
           y = x.receiver.dup
           x.receiver = y
           x = y
         else
-          unless x.receiver.kind_of?(Atomo::AST::Primitive)
-            x.receiver = Atomo::AST::Unquote.new(
+          unless x.receiver.kind_of?(Atomy::AST::Primitive)
+            x.receiver = Atomy::AST::Unquote.new(
               x.receiver.line,
               x.receiver
             )
@@ -252,28 +252,28 @@ module Atomo
         end
       end
 
-      Atomo::AST::QuasiQuote.new(d.line, d)
+      Atomy::AST::QuasiQuote.new(d.line, d)
     end
 
     def self.macro_pattern(n)
-      if n.kind_of?(Atomo::AST::Send) && !n.block
+      if n.kind_of?(Atomy::AST::Send) && !n.block
         n = send_chain(n)
       end
 
-      if n.kind_of?(Atomo::AST::Unary) && n.operator != "&" && n.operator != "*"
+      if n.kind_of?(Atomy::AST::Unary) && n.operator != "&" && n.operator != "*"
         n = unary_chain(n)
       end
 
       n = n.recursively do |sub|
         case sub
-        when Atomo::AST::Constant
-          Atomo::AST::ScopedConstant.new(
+        when Atomy::AST::Constant
+          Atomy::AST::ScopedConstant.new(
             sub.line,
-            Atomo::AST::ScopedConstant.new(
+            Atomy::AST::ScopedConstant.new(
               sub.line,
-              Atomo::AST::Constant.new(
+              Atomy::AST::Constant.new(
                 sub.line,
-                "Atomo"
+                "Atomy"
               ),
               "AST"
             ),
@@ -285,10 +285,10 @@ module Atomo
       end
 
       case n
-      when Atomo::AST::Primitive
+      when Atomy::AST::Primitive
         if n.value == :self
-          Atomo::Patterns::Quote.new(
-            Atomo::AST::Primitive.new(n.line, :self)
+          Atomy::Patterns::Quote.new(
+            Atomy::AST::Primitive.new(n.line, :self)
           )
         else
           n.to_pattern

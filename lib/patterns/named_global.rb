@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class NamedGlobal < Pattern
     attr_reader :identifier
 

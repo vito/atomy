@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class HeadTail < Pattern
     attr_reader :head, :tail
 

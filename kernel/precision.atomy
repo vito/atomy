@@ -1,4 +1,4 @@
-module(Atomo::Patterns):
+module(Atomy::Patterns):
   -- pattern precision hierarchy, from least precise to most
   PRECISION =
     [ [ Any, BlockPass, Splat, Unary,
@@ -54,11 +54,11 @@ module(Atomo::Patterns):
         0
 
   (a: HeadTail) <=> (b: HeadTail) :=
-    Atomo::Patterns
+    Atomy::Patterns
       compare([a head, a tail], [b head, b tail])
 
   (a: List) <=> (b: List) :=
-    Atomo::Patterns
+    Atomy::Patterns
       compare(a patterns, b patterns)
 
   (a: Splat) <=> (b: Splat) :=

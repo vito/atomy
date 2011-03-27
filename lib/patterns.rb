@@ -4,7 +4,7 @@ class PatternMismatch < RuntimeError
   end
 end
 
-module Atomo::Patterns
+module Atomy::Patterns
   class Pattern
     attr_accessor :variable
 
@@ -108,7 +108,7 @@ module Atomo::Patterns
     require path + "/#{File.basename f}"
   end
 
-  class Atomo::AST::Variable
+  class Atomy::AST::Variable
     def to_pattern
       if @name == "_"
         Any.new
@@ -118,37 +118,37 @@ module Atomo::Patterns
     end
   end
 
-  class Atomo::AST::Primitive
+  class Atomy::AST::Primitive
     def to_pattern
       Match.new(@value)
     end
   end
 
-  class Atomo::AST::List
+  class Atomy::AST::List
     def to_pattern
       List.new(@elements.collect(&:to_pattern))
     end
   end
 
-  class Atomo::AST::Constant
+  class Atomy::AST::Constant
     def to_pattern
       Constant.new(self)
     end
   end
 
-  class Atomo::AST::ScopedConstant
+  class Atomy::AST::ScopedConstant
     def to_pattern
       Constant.new(self)
     end
   end
 
-  class Atomo::AST::ToplevelConstant
+  class Atomy::AST::ToplevelConstant
     def to_pattern
       Constant.new(self)
     end
   end
 
-  class Atomo::AST::BinarySend
+  class Atomy::AST::BinarySend
     def to_pattern
       case @operator
       when "."
@@ -163,56 +163,56 @@ module Atomo::Patterns
     end
   end
 
-  class Atomo::AST::Assign
+  class Atomy::AST::Assign
     def to_pattern
       Default.new(@lhs.to_pattern, @rhs)
     end
   end
 
-  class Atomo::AST::BlockPass
+  class Atomy::AST::BlockPass
     def to_pattern
       BlockPass.new(@body.to_pattern)
     end
   end
 
-  class Atomo::AST::Quote
+  class Atomy::AST::Quote
     def to_pattern
       Quote.new(@expression)
     end
   end
 
-  class Atomo::AST::Block
+  class Atomy::AST::Block
     def to_pattern
       Metaclass.new(self)
     end
   end
 
-  class Atomo::AST::GlobalVariable
+  class Atomy::AST::GlobalVariable
     def to_pattern
       NamedGlobal.new(@identifier)
     end
   end
 
-  class Atomo::AST::InstanceVariable
+  class Atomy::AST::InstanceVariable
     def to_pattern
       NamedInstance.new(@identifier)
     end
   end
 
-  class Atomo::AST::ClassVariable
+  class Atomy::AST::ClassVariable
     def to_pattern
       NamedClass.new(@identifier)
     end
   end
 
-  class Atomo::AST::Unary
+  class Atomy::AST::Unary
     def to_pattern
       case @operator
       when "$"
         NamedGlobal.new(@receiver.name)
       when "@"
         case @receiver
-        when Atomo::AST::Unary
+        when Atomy::AST::Unary
           NamedClass.new(@receiver.receiver.name)
         else
           NamedInstance.new(@receiver.name)
@@ -227,19 +227,19 @@ module Atomo::Patterns
     end
   end
 
-  class Atomo::AST::Splat
+  class Atomy::AST::Splat
     def to_pattern
       Splat.new(@value.to_pattern)
     end
   end
 
-  class Atomo::AST::Particle
+  class Atomy::AST::Particle
     def to_pattern
       Particle.new(@name.to_sym) # TODO: other forms
     end
   end
 
-  class Atomo::AST::Send
+  class Atomy::AST::Send
     def to_pattern
       if @block
         Named.new(@method_name, @block.contents[0].to_pattern)
@@ -249,7 +249,7 @@ module Atomo::Patterns
     end
   end
 
-  class Atomo::AST::QuasiQuote
+  class Atomy::AST::QuasiQuote
     def to_pattern
       QuasiQuote.new(@expression)
     end

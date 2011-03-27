@@ -16,21 +16,21 @@ require base + "/code_loader"
 
 bnd = TOPLEVEL_BINDING
 
-def require_quanto(*as)
-  Atomo::CodeLoader.load_file *as
+def require_atomy(*as)
+  Atomy::CodeLoader.load_file *as
 end
 
 a = Time.now
 puts "loading kernel"
-require_quanto(kernel + "/boot.atomo")
+require_atomy(kernel + "/boot.atomy")
 puts Time.now - a
 
 if ARGV[0]
-  require_quanto(ARGV[0])
+  require_atomy(ARGV[0])
   exit(0)
 end
 
-HISTORY_FILE = File.expand_path("~/.quanto_history")
+HISTORY_FILE = File.expand_path("~/.atomy_history")
 
 if File.exists?(HISTORY_FILE)
   File.open(HISTORY_FILE, "r") do |f|
@@ -47,7 +47,7 @@ while str = Readline.readline("> ")
   SANE_HISTORY << str
 
   begin
-    res = Atomo::Compiler.evaluate str, bnd
+    res = Atomy::Compiler.evaluate str, bnd
     puts "=> #{res.pretty.render}"
   rescue StandardError => e
     puts "ERROR!"

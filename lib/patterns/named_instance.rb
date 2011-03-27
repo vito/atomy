@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class NamedInstance < Pattern
     attr_reader :identifier
 

@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   def self.segments(args)
     req = args.reject { |a| a.kind_of?(Patterns::BlockPass) || a.kind_of?(Patterns::Splat) || a.kind_of?(Patterns::Default) }
     dfs = args.select { |a| a.kind_of?(Patterns::Default) }

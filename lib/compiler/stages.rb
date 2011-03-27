@@ -1,7 +1,7 @@
-module Atomo
+module Atomy
   class Compiler
     class Generator < Rubinius::Compiler::Stage
-      stage :atomo_bytecode
+      stage :atomy_bytecode
       next_stage Rubinius::Compiler::Encoder
 
       attr_accessor :variable_scope
@@ -26,7 +26,7 @@ module Atomo
     end
 
     class MacroExpander < Rubinius::Compiler::Stage
-      stage :atomo_expand
+      stage :atomy_expand
       next_stage Generator
 
       def initialize(compiler, last)
@@ -47,14 +47,14 @@ module Atomo
       def run
         @output = @input.dup
         @output.body = @input.body.collect do |n|
-          Atomo::Macro.expand(n)
+          Atomy::Macro.expand(n)
         end
         run_next
       end
     end
 
     class Pragmas < Rubinius::Compiler::Stage
-      stage :atomo_pragmas
+      stage :atomy_pragmas
       next_stage MacroExpander
 
       def initialize(compiler, last)
@@ -78,10 +78,10 @@ module Atomo
         @output.body = @input.body.collect do |n|
           n.through_quotes do |x|
             case x
-            when Atomo::AST::Macro
+            when Atomy::AST::Macro
               x.pattern.register_macro x.body
-            when Atomo::AST::ForMacro
-              Atomo::Compiler.evaluate_node x.body, Atomo::Macro::CURRENT_ENV
+            when Atomy::AST::ForMacro
+              Atomy::Compiler.evaluate_node x.body, Atomy::Macro::CURRENT_ENV
             end
             x
           end
@@ -92,7 +92,7 @@ module Atomo
     end
 
     class Parser < Rubinius::Compiler::Stage
-      stage :atomo_parser
+      stage :atomy_parser
       next_stage Pragmas
 
       def initialize(compiler, last)
@@ -122,7 +122,7 @@ module Atomo
     end
 
     class FileParser < Parser
-      stage :atomo_file
+      stage :atomy_file
       next_stage Pragmas
 
       def input(file, line = 1)
@@ -131,16 +131,16 @@ module Atomo
       end
 
       def parse
-        Atomo::Parser.parse_file(@file)
+        Atomy::Parser.parse_file(@file)
       end
     end
 
     class StringParser < Parser
-      stage :atomo_string
+      stage :atomy_string
       next_stage Pragmas
 
       def parse
-        Atomo::Parser.parse_string(@input)
+        Atomy::Parser.parse_string(@input)
       end
     end
   end

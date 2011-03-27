@@ -1,5 +1,5 @@
 # TODO: ensure binary sends do not end with @
-module Atomo
+module Atomy
   module AST
     class Unary < Node
       children :receiver
@@ -7,9 +7,9 @@ module Atomo
       generate
 
       def register_macro(body)
-        Atomo::Macro.register(
+        Atomy::Macro.register(
           @operator + "@",
-          [Atomo::Macro.macro_pattern(@receiver)],
+          [Atomy::Macro.macro_pattern(@receiver)],
           body
         )
       end

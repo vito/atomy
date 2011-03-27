@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     module SentientNode
       # hash from attribute to the type of child node it is
@@ -235,14 +235,14 @@ EOF
         search = nil
         scan = proc do |x|
           case x
-          when Atomo::AST::Quote
-            Atomo::AST::Quote.new(
+          when Atomy::AST::Quote
+            Atomy::AST::Quote.new(
               x.line,
               x.expression.recursively(stop, &search)
             )
-          when Atomo::AST::QuasiQuote
+          when Atomy::AST::QuasiQuote
             depth += 1
-            Atomo::AST::QuasiQuote.new(
+            Atomy::AST::QuasiQuote.new(
               x.line,
               x.expression.recursively(stop, &search)
             )
@@ -253,21 +253,21 @@ EOF
 
         search = proc do |x|
           case x
-          when Atomo::AST::QuasiQuote
+          when Atomy::AST::QuasiQuote
             depth += 1
-            Atomo::AST::QuasiQuote.new(
+            Atomy::AST::QuasiQuote.new(
               x.line,
               x.expression.recursively(stop, &search)
             )
-          when Atomo::AST::Unquote
+          when Atomy::AST::Unquote
             depth -= 1
             if depth == 0
-              Atomo::AST::Unquote.new(
+              Atomy::AST::Unquote.new(
                 x.line,
                 x.expression.recursively(stop, &scan)
               )
             else
-              Atomo::AST::Unquote.new(
+              Atomy::AST::Unquote.new(
                 x.line,
                 x.expression.recursively(stop, &search)
               )
@@ -331,6 +331,6 @@ end
 
 class Object
   def to_node
-    Atomo::AST::Primitive.new -1, self
+    Atomy::AST::Primitive.new -1, self
   end
 end

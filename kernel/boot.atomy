@@ -1,7 +1,7 @@
 macro (_LINE) line
-macro (_FILE) Atomo::AST::File new(line)
+macro (_FILE) Atomy::AST::File new(line)
 
-macro (import(name)) `(require-quanto(~name))
+macro (import(name)) `(require-atomy(~name))
 
 "operators define data comparison control-flow
 hashes patterns precision node block errors therie

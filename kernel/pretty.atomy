@@ -145,7 +145,7 @@ doc(&body) := with(Pretty, &body)
 
 (o: Object) pretty := Doc text(inspect)
 
-module(Atomo::AST):
+module(Atomy::AST):
   : self ; comma-delim(es) := doc:
     hsep(comma punctuate(es map (e): e pretty))
 
@@ -156,7 +156,7 @@ module(Atomo::AST):
 
   -- TODO: arguments
   Block pretty := doc:
-    colon <+> Atomo::AST comma-delim(@contents) <+> semi
+    colon <+> Atomy::AST comma-delim(@contents) <+> semi
 
   BlockPass pretty := doc: text("&") <> @body pretty
 
@@ -171,7 +171,7 @@ module(Atomo::AST):
         Rubinius::AST::ClassName -> text(@name) name to-s
         _ -> @name pretty
 
-    body = lbrace <+> Atomo::AST semi-delim(@body) expressions <+> rbrace
+    body = lbrace <+> Atomy::AST semi-delim(@body) expressions <+> rbrace
 
     text("class") <> text("(") <> name <+> sub <> text(")") <+> body
 
@@ -187,7 +187,7 @@ module(Atomo::AST):
 
   InstanceVariable pretty := doc: text(name to-s)
 
-  List pretty := doc: brackets(Atomo::AST comma-delim(@elements))
+  List pretty := doc: brackets(Atomy::AST comma-delim(@elements))
 
   Macro pretty := doc:
     text("macro") <+> parens(@pattern pretty <+> @body pretty)
@@ -219,7 +219,7 @@ module(Atomo::AST):
     args =
       if(@arguments empty?)
         then: empty
-        else: parens(Atomo::AST comma-delim(@arguments))
+        else: parens(Atomy::AST comma-delim(@arguments))
 
     if(@receiver kind-of?(Primitive) && @receiver value == #self)
       then: text(@method-name) <> args <+> block

@@ -1,14 +1,14 @@
-module Atomo
+module Atomy
   class CodeLoader
     class << self
       def compiled_name(fn)
-        Atomo::Compiler.compiled_name(fn)
+        Atomy::Compiler.compiled_name(fn)
       end
 
       def source_name(fn)
-        if fn.suffix? ".compiled.atomoc"
-          fn[0..-(".compiled.atomoc".size)]
-        elsif fn.suffix? ".atomoc"
+        if fn.suffix? ".compiled.atomyc"
+          fn[0..-(".compiled.atomyc".size)]
+        elsif fn.suffix? ".atomyc"
           fn[0..-2]
         end
       end
@@ -26,10 +26,10 @@ module Atomo
       end
 
       def find_file(fn)
-        if fn.suffix?(".atomo") || fn.suffix?(".rb")
+        if fn.suffix?(".atomy") || fn.suffix?(".rb")
           fn
-        elsif File.exists?(fn + ".atomo")
-          fn + ".atomo"
+        elsif File.exists?(fn + ".atomy")
+          fn + ".atomy"
         elsif File.exists?(fn + ".rb")
           fn + ".rb"
         else
@@ -66,7 +66,7 @@ module Atomo
 
         raise("cannot find file to load for #{fn}") unless file
 
-        return require(file) unless file.suffix?(".atomo")
+        return require(file) unless file.suffix?(".atomy")
 
         cfn = compile_if_needed(file)
         cl = Rubinius::CodeLoader.new(cfn)

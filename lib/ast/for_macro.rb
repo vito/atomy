@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     class ForMacro < Node
       children :body
@@ -6,10 +6,10 @@ module Atomo
 
       def bytecode(g)
         pos(g)
-        g.push_const :Atomo
+        g.push_const :Atomy
         g.find_const :Compiler
         @body.construct(g, nil)
-        g.push_const :Atomo
+        g.push_const :Atomy
         g.find_const :Macro
         g.find_const :CURRENT_ENV
         g.send :evaluate_node, 2

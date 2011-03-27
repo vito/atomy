@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class BlockPass < Pattern
     attr_reader :pattern
 

@@ -11,7 +11,7 @@ class Rubinius::Generator
   end
 end
 
-module Atomo
+module Atomy
   def self.const_from_string(g, name)
     g.push_cpath_top
     top = nil

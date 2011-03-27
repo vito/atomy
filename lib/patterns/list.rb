@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class List < Pattern
     attr_reader :patterns
 

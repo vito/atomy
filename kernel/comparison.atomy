@@ -1,4 +1,4 @@
-class(And < Atomo::AST::Node):
+class(And < Atomy::AST::Node):
   children(#a, #b)
   generate
 
@@ -16,7 +16,7 @@ class(And < Atomo::AST::Node):
 
     done set!
 
-class(Or < Atomo::AST::Node):
+class(Or < Atomy::AST::Node):
   children(#a, #b)
   generate
 
@@ -33,7 +33,7 @@ class(Or < Atomo::AST::Node):
 
     done set!
 
-class(Negate < Atomo::AST::Node):
+class(Negate < Atomy::AST::Node):
   children(#expression)
   generate
 

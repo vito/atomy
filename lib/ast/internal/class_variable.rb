@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     class ClassVariable < Node
       attributes :identifier

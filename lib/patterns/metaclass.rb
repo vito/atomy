@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class Metaclass < Pattern
     attr_reader :body
 

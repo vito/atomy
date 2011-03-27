@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class Match < Pattern
     attr_reader :value
 

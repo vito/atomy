@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class Splat < Pattern
     attr_accessor :pattern
 

@@ -20,7 +20,7 @@
   end
 
   def op_info(op)
-    Atomo::OPERATORS[op] || {}
+    Atomy::OPERATORS[op] || {}
   end
 
   def prec(o)
@@ -32,7 +32,7 @@
   end
 
   def binary(o, l, r)
-    Atomo::AST::BinarySend.new(l.line, l, r, o)
+    Atomy::AST::BinarySend.new(l.line, l, r, o)
   end
 
   def op_chain(os, es)
@@ -52,11 +52,11 @@
     p = nil
     ns.each do |n|
       if p
-        p = Atomo::AST::ScopedConstant.new(l, p, n)
+        p = Atomy::AST::ScopedConstant.new(l, p, n)
       elsif top
-        p = Atomo::AST::ToplevelConstant.new(l, n)
+        p = Atomy::AST::ToplevelConstant.new(l, n)
       else
-        p = Atomo::AST::Constant.new(l, n)
+        p = Atomy::AST::Constant.new(l, n)
       end
     end
     p
@@ -123,68 +123,68 @@
                 | level2
 
            true = line:line "true" !identifier
-                    { Atomo::AST::Primitive.new(line, :true) }
+                    { Atomy::AST::Primitive.new(line, :true) }
           false = line:line "false" !identifier
-                    { Atomo::AST::Primitive.new(line, :false) }
+                    { Atomy::AST::Primitive.new(line, :false) }
 
            self = line:line "self" !identifier
-                    { Atomo::AST::Primitive.new(line, :self) }
+                    { Atomy::AST::Primitive.new(line, :self) }
 
             nil = line:line "nil" !identifier
-                    { Atomo::AST::Primitive.new(line, :nil) }
+                    { Atomy::AST::Primitive.new(line, :nil) }
 
          number = line:line < /[\+\-]?0[oO][\da-fA-F]+/ >
-                    { Atomo::AST::Primitive.new(line, text.to_i(8)) }
+                    { Atomy::AST::Primitive.new(line, text.to_i(8)) }
                 | line:line < /[\+\-]?0[xX][0-7]+/ >
-                    { Atomo::AST::Primitive.new(line, text.to_i(16)) }
+                    { Atomy::AST::Primitive.new(line, text.to_i(16)) }
                 | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ >
-                    { Atomo::AST::Primitive.new(line, text.to_f) }
+                    { Atomy::AST::Primitive.new(line, text.to_f) }
                 | line:line < /[\+\-]?\d+\.\d+/ >
-                    { Atomo::AST::Primitive.new(line, text.to_f) }
+                    { Atomy::AST::Primitive.new(line, text.to_f) }
                 | line:line < /[\+\-]?\d+/ >
-                    { Atomo::AST::Primitive.new(line, text.to_i) }
+                    { Atomy::AST::Primitive.new(line, text.to_i) }
 
           macro = line:line "macro" wsp "(" wsp expression:p wsp ")" wsp expression:b
-                    { b; Atomo::AST::Macro.new(line, p, b) }
+                    { b; Atomy::AST::Macro.new(line, p, b) }
 
       for_macro = line:line "for-macro" wsp expression:b
-                    { Atomo::AST::ForMacro.new(line, b) }
+                    { Atomy::AST::ForMacro.new(line, b) }
 
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
         op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
   op_assoc_prec = line:line "operator" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os
-                    { Atomo::Macro.set_op_info(os, assoc, prec)
-                      Atomo::AST::Operator.new(line, assoc, prec, os)
+                    { Atomy::Macro.set_op_info(os, assoc, prec)
+                      Atomy::AST::Operator.new(line, assoc, prec, os)
                     }
 
           quote = line:line "'" level1:e
-                    { Atomo::AST::Quote.new(line, e) }
+                    { Atomy::AST::Quote.new(line, e) }
     quasi_quote = line:line "`" level1:e
-                    { Atomo::AST::QuasiQuote.new(line, e) }
+                    { Atomy::AST::QuasiQuote.new(line, e) }
         unquote = line:line "~" level1:e
-                    { Atomo::AST::Unquote.new(line, e) }
+                    { Atomy::AST::Unquote.new(line, e) }
 
          escape = number_escapes | escapes
 
         str_seq = < /[^\\"]+/ > { text }
          string = line:line "\"" (("\\" escape) | str_seq)*:c "\""
-                    { Atomo::AST::String.new(line, c.join) }
+                    { Atomy::AST::String.new(line, c.join) }
 
     macro_quote = line:line identifier:n quoted:c (< [a-z] > { text })*:fs
-                    { Atomo::AST::MacroQuote.new(line, n, c, fs) }
+                    { Atomy::AST::MacroQuote.new(line, n, c, fs) }
 
        particle = line:line "#" (identifier | operator !identifier):n
-                    { Atomo::AST::Particle.new(line, n) }
+                    { Atomy::AST::Particle.new(line, n) }
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
        constant = line:line constant_name:m ("::" constant_name)*:s args?:as {
                     names = [m] + Array(s)
                     if as
                       msg = names.pop
-                      Atomo::AST::Send.new(
+                      Atomy::AST::Send.new(
                         line,
                         names.empty? ?
-                            Atomo::AST::Primitive.new(line, :self) :
+                            Atomy::AST::Primitive.new(line, :self) :
                             const_chain(line, names),
                         Array(as),
                         msg,
@@ -199,10 +199,10 @@
                     names = Array(s)
                     if as
                       msg = names.pop
-                      Atomo::AST::Send.new(
+                      Atomy::AST::Send.new(
                         line,
                         names.empty? ?
-                            Atomo::AST::Primitive.new(line, :self) :
+                            Atomy::AST::Primitive.new(line, :self) :
                             const_chain(line, names, true),
                         Array(as),
                         msg,
@@ -215,29 +215,29 @@
                 }
 
        variable = line:line identifier:n !":"
-                    { Atomo::AST::Variable.new(line, n) }
+                    { Atomy::AST::Variable.new(line, n) }
 
           unary = line:line !":" op_letter:o level1:e
-                    { Atomo::AST::Unary.new(line, e, o) }
+                    { Atomy::AST::Unary.new(line, e, o) }
 
            args = "(" wsp expressions?:as wsp ")" { Array(as) }
 
           block = line:line args?:as ":" !operator wsp expressions?:es (wsp ";")?
-                    { Atomo::AST::Block.new(line, Array(es), Array(as)) }
+                    { Atomy::AST::Block.new(line, Array(es), Array(as)) }
 
            list = line:line "[" wsp expressions?:es wsp "]"
-                    { Atomo::AST::List.new(line, Array(es)) }
+                    { Atomy::AST::List.new(line, Array(es)) }
 
      sends(pos) = line:line send:r cont(pos) identifier:n args?:as (sp block)?:b
-                    { Atomo::AST::Send.new(line, r, Array(as), n, b) }
+                    { Atomy::AST::Send.new(line, r, Array(as), n, b) }
                 | line:line level1:r cont(pos) identifier:n args?:as (sp block)?:b
-                    { Atomo::AST::Send.new(line, r, Array(as), n, b) }
+                    { Atomy::AST::Send.new(line, r, Array(as), n, b) }
                 | line:line level1:r cont(pos) args:as !":" (sp block)?:b
-                    { Atomo::AST::Send.new(line, r, Array(as), "call", b) }
+                    { Atomy::AST::Send.new(line, r, Array(as), "call", b) }
                 | line:line identifier:n args?:as sp block:b
-                    { Atomo::AST::Send.new(
+                    { Atomy::AST::Send.new(
                         line,
-                        Atomo::AST::Primitive.new(line, :self),
+                        Atomy::AST::Primitive.new(line, :self),
                         Array(as),
                         n,
                         b,
@@ -245,9 +245,9 @@
                       )
                     }
                 | line:line identifier:n args:as (sp block)?:b
-                    { Atomo::AST::Send.new(
+                    { Atomy::AST::Send.new(
                         line,
-                        Atomo::AST::Primitive.new(line, :self),
+                        Atomy::AST::Primitive.new(line, :self),
                         as,
                         n,
                         b,
@@ -266,9 +266,9 @@
                     }
     binary_send = binary_c(current_position):t { op_chain(t[0], t[1]) }
                 | line:line operator:o sig_wsp expression:r
-                    { Atomo::AST::BinarySend.new(
+                    { Atomy::AST::BinarySend.new(
                         line,
-                        Atomo::AST::Primitive.new(line, :self),
+                        Atomy::AST::Primitive.new(line, :self),
                         r,
                         o,
                         true

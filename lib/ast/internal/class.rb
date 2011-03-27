@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     class Class < Node
       children :name, :body, [:superclass, "Primitive.new(0, :nil)"]

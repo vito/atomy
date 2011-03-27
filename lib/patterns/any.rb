@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class Any < Pattern
     def construct(g)
       get(g)

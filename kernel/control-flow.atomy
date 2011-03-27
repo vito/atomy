@@ -1,5 +1,5 @@
 macro (if(x) then(&y) else(&z))
-  Atomo::AST::IfThenElse new(line, x, y, z)
+  Atomy::AST::IfThenElse new(line, x, y, z)
   
 macro (otherwise) 'true
 
@@ -8,22 +8,22 @@ macro (condition(&bs))
     `(if(~x) then: ~y; else: ~acc)
 
 macro (while(cond, &body))
-  Atomo::AST::While new(line, cond, `(~body call))
+  Atomy::AST::While new(line, cond, `(~body call))
 
 macro (until(cond, &body))
-  Atomo::AST::While new(line, `!~cond, `(~body call))
+  Atomy::AST::While new(line, `!~cond, `(~body call))
 
 macro (return(y))
-  Atomo::AST::Return new(line, y)
+  Atomy::AST::Return new(line, y)
 
 macro (begin(&x) rescue(&y))
-  Atomo::AST::Catch new(line, x body, `(~y call($exception)))
+  Atomy::AST::Catch new(line, x body, `(~y call($exception)))
 
 macro (begin(&x) rescue(&y) else(&z))
-  Atomo::AST::Catch new(line, x body, `(~y call($exception)), z body)
+  Atomy::AST::Catch new(line, x body, `(~y call($exception)), z body)
 
 macro (x ensuring(&y))
-  Atomo::AST::Ensure new(line, `(~x call), `(~y call))
+  Atomy::AST::Ensure new(line, `(~x call), `(~y call))
 
 unless(false, &blk) := blk call
 unless(nil, &blk) := blk call
@@ -33,11 +33,11 @@ when(false, &_) := nil
 when(nil, &_) := nil
 when(_, &blk) := blk call
 
-macro (super) Atomo::AST::ZSuper new(line)
+macro (super) Atomy::AST::ZSuper new(line)
 
-macro (super(*args, &blk)) Atomo::AST::Super new(line, args, blk)
+macro (super(*args, &blk)) Atomy::AST::Super new(line, args, blk)
 
-module(Atomo::AST):
+module(Atomy::AST):
   class(ZSuper < Node):
     generate
 

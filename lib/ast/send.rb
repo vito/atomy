@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     class Send < Node
       children :receiver, [:arguments], :block?
@@ -6,10 +6,10 @@ module Atomo
       generate
 
       def register_macro(body)
-        Atomo::Macro.register(
+        Atomy::Macro.register(
           @method_name,
           ([@receiver] + @arguments).collect do |n|
-            Atomo::Macro.macro_pattern n
+            Atomy::Macro.macro_pattern n
           end,
           body
         )

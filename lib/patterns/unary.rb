@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class Unary < Pattern
     attr_reader :receiver, :name
 

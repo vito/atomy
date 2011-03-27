@@ -1,17 +1,17 @@
-module Atomo
+module Atomy
   class Compiler < Rubinius::Compiler
     attr_accessor :expander, :pragmas
 
     def self.compiled_name(file)
-      if file.suffix? ".atomo"
+      if file.suffix? ".atomy"
         file + "c"
       else
-        file + ".compiled.atomoc"
+        file + ".compiled.atomyc"
       end
     end
 
     def self.compile(file, output = nil, line = 1)
-      compiler = new :atomo_file, :compiled_file
+      compiler = new :atomy_file, :compiled_file
 
       parser = compiler.parser
       parser.root Rubinius::AST::Script
@@ -24,7 +24,7 @@ module Atomo
     end
 
     def self.compile_file(file, debug = false)
-      compiler = new :atomo_file, :compiled_method
+      compiler = new :atomy_file, :compiled_method
 
       parser = compiler.parser
       parser.root Rubinius::AST::Script
@@ -37,7 +37,7 @@ module Atomo
     end
 
     def self.compile_string(string, file = "(eval)", line = 1, debug = false)
-      compiler = new :atomo_string, :compiled_method
+      compiler = new :atomy_string, :compiled_method
 
       parser = compiler.parser
       parser.root Rubinius::AST::Script
@@ -52,7 +52,7 @@ module Atomo
     end
 
     def self.compile_eval(string, scope = nil, file = "(eval)", line = 1, debug = false)
-      compiler = new :atomo_string, :compiled_method
+      compiler = new :atomy_string, :compiled_method
 
       parser = compiler.parser
       parser.root Rubinius::AST::EvalExpression
@@ -69,7 +69,7 @@ module Atomo
     end
 
     def self.compile_node(node, scope = nil, file = "(eval)", line = 1, debug = false)
-      compiler = new :atomo_pragmas, :compiled_method
+      compiler = new :atomy_pragmas, :compiled_method
 
       eval = Rubinius::AST::EvalExpression.new(AST::Tree.new([node]))
       eval.file = file
@@ -97,7 +97,7 @@ module Atomo
 
       cm = compile_node(node, bnd.variables, file, line)
       cm.scope = bnd.static_scope.dup
-      cm.name = :__atomo_eval__
+      cm.name = :__atomy_eval__
 
       script = Rubinius::CompiledMethod::Script.new(cm, file, true)
       script.eval_binding = bnd

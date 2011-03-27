@@ -8,15 +8,15 @@ macro (#(l: List)) do:
         keys << k
         values << v
 
-      Atomo::AST::Send -> do:
+      Atomy::AST::Send -> do:
         while(p respond-to?(#block) && p block):
-          keys << Atomo::AST::Particle new(p line, p method-name)
+          keys << Atomy::AST::Particle new(p line, p method-name)
           values << p block contents first
           p =! p receiver
 
-  Atomo::AST::Hash new(line, keys, values)
+  Atomy::AST::Hash new(line, keys, values)
 
-class(Atomo::AST::Hash < Atomo::AST::Node):
+class(Atomy::AST::Hash < Atomy::AST::Node):
   children([#keys], [#values])
   generate
 

@@ -1,6 +1,6 @@
 require("thread")
 
-module(Atomo::Mixins):
+module(Atomy::Mixins):
   MixedIn = Hash new
   Sync = Mutex new
 
@@ -37,9 +37,9 @@ obj unmix(mod: Module) := do:
           (this-super respond-to?(#module) &&
             this-super module == mod))
       then:
-        Atomo::Mixins reset-method-cache(obj)
+        Atomy::Mixins reset-method-cache(obj)
         last-super superclass =! this-super direct-superclass
-        Atomo::Mixins reset-method-cache(obj)
+        Atomy::Mixins reset-method-cache(obj)
         return(nil)
       else:
         last-super =! this-super

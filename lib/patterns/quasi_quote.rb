@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class QuasiQuote < Pattern
     attr_reader :expression
 
@@ -52,8 +52,8 @@ module Atomo::Patterns
 
       pre = proc { |n, c|
         where << c if c
-        if n.kind_of?(Atomo::AST::QuasiQuote) ||
-            n.kind_of?(Atomo::AST::Unquote)
+        if n.kind_of?(Atomy::AST::QuasiQuote) ||
+            n.kind_of?(Atomy::AST::Unquote)
           true
         else
           n.get(g)
@@ -68,7 +68,7 @@ module Atomo::Patterns
       post = proc { where.pop }
 
       action = proc { |e|
-        if e.kind_of?(Atomo::AST::Unquote)
+        if e.kind_of?(Atomy::AST::Unquote)
           depth -= 1
           if depth == 0
             g.push_stack_local them
@@ -84,7 +84,7 @@ module Atomo::Patterns
           depth += 1
         end
 
-        if e.kind_of?(Atomo::AST::QuasiQuote)
+        if e.kind_of?(Atomy::AST::QuasiQuote)
           depth += 1
           where << :expression
           e.expression.recursively(pre, post, &action)
@@ -140,14 +140,14 @@ module Atomo::Patterns
 
       pre = proc { |n, c|
         where << c if c
-        n.kind_of?(Atomo::AST::QuasiQuote) ||
-          n.kind_of?(Atomo::AST::Unquote)
+        n.kind_of?(Atomy::AST::QuasiQuote) ||
+          n.kind_of?(Atomy::AST::Unquote)
       }
 
       post = proc { where.pop }
 
       action = proc { |e|
-        if e.kind_of?(Atomo::AST::Unquote)
+        if e.kind_of?(Atomy::AST::Unquote)
           depth -= 1
           if depth == 0
             g.push_stack_local them
@@ -161,7 +161,7 @@ module Atomo::Patterns
           depth += 1
         end
 
-        if e.kind_of?(Atomo::AST::QuasiQuote)
+        if e.kind_of?(Atomy::AST::QuasiQuote)
           depth += 1
           where << :expression
           e.expression.recursively(pre, post, &action)
@@ -180,12 +180,12 @@ module Atomo::Patterns
       depth = 1
 
       pre = proc { |n, c|
-        n.kind_of?(Atomo::AST::QuasiQuote) ||
-          n.kind_of?(Atomo::AST::Unquote)
+        n.kind_of?(Atomy::AST::QuasiQuote) ||
+          n.kind_of?(Atomy::AST::Unquote)
       }
 
       action = proc { |e|
-        if e.kind_of?(Atomo::AST::Unquote)
+        if e.kind_of?(Atomy::AST::Unquote)
           depth -= 1
           if depth == 0
             names += e.expression.to_pattern.local_names
@@ -196,7 +196,7 @@ module Atomo::Patterns
           depth += 1
         end
 
-        if e.kind_of?(Atomo::AST::QuasiQuote)
+        if e.kind_of?(Atomy::AST::QuasiQuote)
           depth += 1
           e.expression.recursively(pre, &action)
           depth -= 1
@@ -216,12 +216,12 @@ module Atomo::Patterns
       depth = 1
 
       pre = proc { |n, c|
-        n.kind_of?(Atomo::AST::QuasiQuote) ||
-          n.kind_of?(Atomo::AST::Unquote)
+        n.kind_of?(Atomy::AST::QuasiQuote) ||
+          n.kind_of?(Atomy::AST::Unquote)
       }
 
       action = proc { |e|
-        if e.kind_of?(Atomo::AST::Unquote)
+        if e.kind_of?(Atomy::AST::Unquote)
           depth -= 1
           if depth == 0
             bindings += e.expression.to_pattern.bindings
@@ -232,7 +232,7 @@ module Atomo::Patterns
           depth += 1
         end
 
-        if e.kind_of?(Atomo::AST::QuasiQuote)
+        if e.kind_of?(Atomy::AST::QuasiQuote)
           depth += 1
           e.expression.recursively(pre, &action)
           depth -= 1

@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     class Ensure < Rubinius::AST::Ensure
       include NodeLike

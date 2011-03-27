@@ -1,11 +1,11 @@
-module Atomo
+module Atomy
   module AST
     class Variable < Node
       attributes :name
       generate
 
       def register_macro(body)
-        Atomo::Macro.register(
+        Atomy::Macro.register(
           method_name,
           [],
           body

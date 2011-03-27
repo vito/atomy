@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     class Block < Rubinius::AST::Iter
       include NodeLike

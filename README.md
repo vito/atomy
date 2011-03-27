@@ -1,3 +1,1 @@
-Atomo implementation on Rubinius.
-
-Initially based on evanphx's Prattle.
+Atomo-like language on the Rubinius VM.

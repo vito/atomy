@@ -1,3 +1,0 @@
-theorize:
-  Dir glob("test/suite/*.atomo") each (t):
-    import(t)

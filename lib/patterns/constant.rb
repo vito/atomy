@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class Constant < Pattern
     attr_reader :constant, :ancestors
 

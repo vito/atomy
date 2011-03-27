@@ -1,24 +1,24 @@
-module(Atomo::Patterns):
-  module(Atomo::AST):
+module(Atomy::Patterns):
+  module(Atomy::AST):
     '_ to-pattern := Any new
 
     Variable to-pattern :=
       Named new(@name, Any new)
 
     Primitive to-pattern :=
-      Atomo::Patterns::Match new(@value)
+      Atomy::Patterns::Match new(@value)
 
     List to-pattern :=
-      Atomo::Patterns::List new(@elements collect (e): e to-pattern)
+      Atomy::Patterns::List new(@elements collect (e): e to-pattern)
 
     Constant to-pattern :=
-      Atomo::Patterns::Constant new(self)
+      Atomy::Patterns::Constant new(self)
 
     ScopedConstant to-pattern :=
-      Atomo::Patterns::Constant new(self)
+      Atomy::Patterns::Constant new(self)
 
     ToplevelConstant to-pattern :=
-      Atomo::Patterns::Constant new(self)
+      Atomy::Patterns::Constant new(self)
 
     `(~h . ~t) to-pattern :=
       HeadTail new(h to-pattern, t to-pattern)
@@ -33,9 +33,9 @@ module(Atomo::Patterns):
     `(~p ? ~t) to-pattern := Predicate new(p to-pattern, t)
 
     Quote to-pattern :=
-      Atomo::Patterns::Quote new(@expression)
+      Atomy::Patterns::Quote new(@expression)
 
-    Block to-pattern := Atomo::Patterns::Metaclass new(self)
+    Block to-pattern := Atomy::Patterns::Metaclass new(self)
 
     `@@~n to-pattern := NamedClass new(n name)
 
@@ -46,24 +46,24 @@ module(Atomo::Patterns):
     `%~x to-pattern := RuntimeClass new(x, nil)
 
     `&~x to-pattern :=
-      Atomo::Patterns::BlockPass new(x to-pattern)
+      Atomy::Patterns::BlockPass new(x to-pattern)
 
     `*~x to-pattern :=
-      Atomo::Patterns::Splat new(x to-pattern)
+      Atomy::Patterns::Splat new(x to-pattern)
 
     Particle to-pattern :=
-      Atomo::Patterns::Particle new(@name to-sym)
+      Atomy::Patterns::Particle new(@name to-sym)
 
     Send to-pattern :=
       if(@block)
         then: Named new(@method-name, @block contents at(0) to-pattern)
-        else: Atomo::Patterns::Unary new(@receiver, @method-name)
+        else: Atomy::Patterns::Unary new(@receiver, @method-name)
 
     QuasiQuote to-pattern :=
-      Atomo::Patterns::QuasiQuote new(@expression)
+      Atomy::Patterns::QuasiQuote new(@expression)
 
     String to-pattern :=
-      Atomo::Patterns::Match new(@value)
+      Atomy::Patterns::Match new(@value)
 
     Node to-pattern :=
       raise("unknown pattern: " + self inspect)

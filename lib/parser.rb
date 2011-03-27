@@ -1,8 +1,8 @@
 base = File.expand_path "../", __FILE__
 
-require base + "/atomo.kpeg.rb"
+require base + "/atomy.kpeg.rb"
 
-module Atomo
+module Atomy
   class Parser
     def self.parse_string(source)
       p = new(source)

@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     class Define < Node
       children :pattern, :body
@@ -49,11 +49,11 @@ module Atomo
           g.push_literal method_name.to_sym
           g.dup
           g.push_cpath_top
-          g.find_const :Atomo
+          g.find_const :Atomy
           g.swap
         else
           g.push_cpath_top
-          g.find_const :Atomo
+          g.find_const :Atomy
           receiver.target(g)
           g.push_literal method_name.to_sym
         end
@@ -70,13 +70,13 @@ module Atomo
         g.make_array 2
 
         receiver.target(g)
-        g.push_literal "@__atomo_#{method_name}__".to_sym
+        g.push_literal "@__atomy_#{method_name}__".to_sym
         g.send :instance_variable_get, 1
         g.dup
         g.gif create
 
         g.push_cpath_top
-        g.find_const :Atomo
+        g.find_const :Atomy
         g.move_down 2
         g.send :insert_method, 2
         g.goto added
@@ -86,7 +86,7 @@ module Atomo
         g.make_array 1
         receiver.target(g)
         g.swap
-        g.push_literal "@__atomo_#{method_name}__".to_sym
+        g.push_literal "@__atomy_#{method_name}__".to_sym
         g.swap
         g.send :instance_variable_set, 2
 

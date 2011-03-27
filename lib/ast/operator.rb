@@ -1,4 +1,4 @@
-module Atomo
+module Atomy
   module AST
     class Operator < Node
       attributes [:operators], :associativity, :precedence
@@ -6,7 +6,7 @@ module Atomo
 
       def bytecode(g)
         pos(g)
-        g.push_const :Atomo
+        g.push_const :Atomy
         g.find_const :Macro
         @operators.each do |o|
           g.push_literal o

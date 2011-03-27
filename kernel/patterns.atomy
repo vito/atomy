@@ -1,4 +1,4 @@
-module(Atomo::Patterns):
+module(Atomy::Patterns):
   data(Pattern):
     Strict(@body)
     RuntimeClass(@body, @name)
@@ -37,7 +37,7 @@ module(Atomo::Patterns):
       @body bytecode(g)
 
     matches?(g) := do:
-      Atomo const-from-string(g, @name)
+      Atomy const-from-string(g, @name)
       g swap
       g kind-of
 

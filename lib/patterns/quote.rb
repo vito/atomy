@@ -1,4 +1,4 @@
-module Atomo::Patterns
+module Atomy::Patterns
   class Quote < Pattern
     attr_reader :expression
 
