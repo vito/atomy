@@ -23,10 +23,13 @@ module Atomy
     block_offset = is_macro ? 1 : 0
 
     args = 0
+    min_reqs = nil
     reqs = 0
     defs = 0
     g.local_names = branches.collect do |pats, meth|
       segs = segments(pats[1])
+      min_reqs ||= segs[0].size
+      min_reqs = [min_reqs, segs[0].size].min
       reqs = [reqs, segs[0].size].max
       defs = [defs, segs[1].size].max
       args = [reqs + defs, args].max
@@ -45,7 +48,7 @@ module Atomy
     end
 
     g.total_args = args
-    g.required_args = reqs
+    g.required_args = min_reqs
     g.local_count = args + g.local_names.size
 
     g.push_self
@@ -61,6 +64,11 @@ module Atomy
       g.dup
       recv.matches?(g) # TODO: skip kind_of matches
       g.gif skip
+
+      if reqs.size > min_reqs
+        g.passed_arg(reqs.size - 1)
+        g.gif skip
+      end
 
       if recv.bindings > 0
         g.push_self
@@ -169,8 +177,10 @@ module Atomy
   end
 
   def self.compare_heads(xs, ys)
+    return 1 if xs.size > ys.size
+    return -1 if xs.size < ys.size
+
     xs.zip(ys) do |x, y|
-      return 0 if x.nil? || y.nil?
       cmp = x <=> y
       return cmp unless cmp == 0
     end
