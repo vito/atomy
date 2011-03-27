@@ -154,6 +154,7 @@ module Atomy
     g.ret
     g.close
     g.pop_state
+    g.use_detected
     g.encode
 
     g.package Rubinius::CompiledMethod
