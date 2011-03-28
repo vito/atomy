@@ -37,16 +37,17 @@
     Atomy::AST::BinarySend.new(l.line, l, r, o)
   end
 
-  def op_chain(os, es)
-    return binary(os[0], es[0], es[1]) if os.size == 1
+  def resolve(a, e, chain)
+    return [e, []] if chain.empty?
 
-    a, b, *cs = os
-    w, x, y, *zs = es
+    b, *rest = chain
 
-    if prec(b) > prec(a) || assoc(a) == :right && prec(b) == prec(a)
-      binary(a, w, op_chain([b] + cs, [x, y] + zs))
+    if a && (prec(a) > prec(b) || (prec(a) == prec(b) && assoc(a) == :left))
+      [e, chain]
     else
-      op_chain([b] + cs, [binary(a, w, x), y] + zs)
+      e2, *rest2 = rest
+      r, rest3 = resolve(b, e2, rest2)
+      resolve(a, binary(b, e, r), rest3)
     end
   end
 
@@ -258,15 +259,10 @@
                     }
            send = sends(current_position)
 
-  binary_c(pos) = line:line level2:r (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs
-                    { os, es = [], [r]
-                      bs.each do |o, e|
-                        os << o
-                        es << e
-                      end
-                      [os, es]
+  binary_c(pos) = (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { bs.flatten }
+    binary_send = line:line level2:l binary_c(current_position):c
+                    { resolve(nil, l, c).first
                     }
-    binary_send = binary_c(current_position):t { op_chain(t[0], t[1]) }
                 | line:line operator:o sig_wsp expression:r
                     { Atomy::AST::BinarySend.new(
                         line,
