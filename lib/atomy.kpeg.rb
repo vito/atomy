@@ -734,13 +734,13 @@ class Atomy::Parser
     return _tmp
   end
 
-  # op_letter = < /[\$\+\<=\>\^~!@&#%\|&*\-.\/\?:]/ > { text }
+  # op_letter = < /[\<\>~!@#\$%\^&*\-=\+\\\|:.\/\?]/ > { text }
   def _op_letter
 
     _save = self.pos
     while true # sequence
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\$\+\<=\>\^~!@&#%\|&*\-.\/\?:])/)
+    _tmp = scan(/\A(?-mix:[\<\>~!@#\$%\^&*\-=\+\\\|:.\/\?])/)
     if _tmp
       text = get_text(_text_start)
     end
@@ -4858,7 +4858,7 @@ class Atomy::Parser
   Rules[:_line] = rule_info("line", "{ current_line }")
   Rules[:_ident_start] = rule_info("ident_start", "< /[a-z_]/ > { text }")
   Rules[:_ident_letters] = rule_info("ident_letters", "< /([[:alnum:]\\$\\+\\<=\\>\\^~!@#%&*\\-.\\/\\?])*/ > { text }")
-  Rules[:_op_letter] = rule_info("op_letter", "< /[\\$\\+\\<=\\>\\^~!@&#%\\|&*\\-.\\/\\?:]/ > { text }")
+  Rules[:_op_letter] = rule_info("op_letter", "< /[\\<\\>~!@#\\$%\\^&*\\-=\\+\\\\\\|:.\\/\\?]/ > { text }")
   Rules[:_operator] = rule_info("operator", "< op_letter+ > &{ text != \":\" } { text }")
   Rules[:_identifier] = rule_info("identifier", "< ident_start ident_letters > { text.tr(\"-\", \"_\") }")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")

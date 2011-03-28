@@ -78,7 +78,7 @@
     ident_start = < /[a-z_]/ > { text }
   ident_letters = < /([[:alnum:]\$\+\<=\>\^~!@#%&*\-.\/\?])*/ > { text }
 
-      op_letter = < /[\$\+\<=\>\^~!@&#%\|&*\-.\/\?:]/ > { text }
+      op_letter = < /[\<\>~!@#\$%\^&*\-=\+\\\|:.\/\?]/ > { text }
 
        operator = < op_letter+ > &{ text != ":" } { text }
 
