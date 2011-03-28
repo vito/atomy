@@ -10,7 +10,7 @@ module(Atomy::Patterns):
       @body construct(g)
       g send(#new, 1)
 
-    == b :=
+    (== b) :=
       b kind-of?(Strict) && @body == b body
 
     target(g) :=
@@ -28,8 +28,8 @@ module(Atomy::Patterns):
       g send(#name, 0)
       g send(#new, 2)
 
-    == b :=
-      b kind-of?(Class) &&
+    (== b) :=
+      b kind-of?(RuntimeClass) &&
         @body == b body &&
         @name == b name
 
@@ -48,7 +48,7 @@ module(Atomy::Patterns):
       @test construct(g)
       g send(#new, 2)
 
-    == b :=
+    (== b) :=
       b kind-of?(Predicate) &&
         @pattern == b pattern &&
         @test == b test
