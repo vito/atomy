@@ -7,6 +7,19 @@ module Atomy
     [req, dfs, spl, blk]
   end
 
+  def self.match_self?(pat)
+    case pat
+    when Patterns::Match
+      pat.value != :self
+    when Patterns::Constant
+      false
+    when Patterns::Named
+      match_self?(pat.pattern)
+    else
+      true
+    end
+  end
+
   def self.build_method(name, branches, is_macro = false, file = :dynamic, line = 1)
     g = Rubinius::Generator.new
     g.name = name.to_sym
@@ -66,9 +79,11 @@ module Atomy
         g.gif skip
       end
 
-      g.dup
-      recv.matches?(g) # TODO: skip kind_of matches
-      g.gif skip
+      if match_self?(recv)
+        g.dup
+        recv.matches?(g)
+        g.gif skip
+      end
 
       if recv.bindings > 0
         g.push_self
