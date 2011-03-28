@@ -86,7 +86,7 @@ module Atomy
       end
 
       if recv.bindings > 0
-        g.push_self
+        g.dup
         recv.deconstruct(g, locals)
       end
 
