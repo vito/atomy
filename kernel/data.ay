@@ -41,7 +41,18 @@ macro (x at(y) put(z))
 
 for-macro quoter(#w) (c): c split
 
--- TODO: flags
-for-macro quoter(#r) (c): `(Regexp new(~c))
+for-macro quoter(#r) (c, fs):
+  flags = 0
+
+  when(fs include?("m")):
+    flags |= Regexp::MULTILINE
+
+  when(fs include?("i")):
+    flags |= Regexp::IGNORECASE
+
+  when(fs include?("x")):
+    flags |= Regexp::EXTENDED
+
+  `(Regexp new(~c, ~flags))
 
 for-macro quoter(#raw) (c): c
