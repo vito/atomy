@@ -154,9 +154,13 @@ module(Atomy::AST):
   BinarySend pretty := doc:
     parens(@lhs pretty <+> text(@operator) <+> @rhs pretty)
 
-  -- TODO: arguments
   Block pretty := doc:
-    colon <+> Atomy::AST comma-delim(@contents) <+> semi
+    args =
+      if(@arguments empty?)
+        then: empty
+        else: parens(Atomy::AST comma-delim(@arguments))
+
+    args <> colon <+> Atomy::AST comma-delim(@contents) <> semi
 
   BlockPass pretty := doc: text("&") <> @body pretty
 
