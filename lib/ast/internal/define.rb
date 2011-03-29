@@ -14,7 +14,7 @@ module Atomy
           args = pattern.arguments
         end
 
-        DefineArguments.new args
+        args.collect(&:to_pattern)
       end
 
       def receiver
@@ -61,7 +61,7 @@ module Atomy
         create = g.new_label
         added = g.new_label
         receiver.construct(g)
-        arguments.patterns.each do |p|
+        arguments.each do |p|
           p.construct(g)
         end
         g.make_array arguments.size
@@ -112,57 +112,8 @@ module Atomy
       end
 
       def local_names
-        receiver.local_names + arguments.local_names
-      end
-
-      class DefineArguments < Node
-        attr_accessor :patterns
-
-        def initialize(args)
-          @patterns = args.collect(&:to_pattern)
-        end
-
-        def construct(g, d = nil)
-          get(g)
-          @patterns.each do |a|
-            a.construct(g)
-          end
-          g.make_array @patterns.size
-          g.send :new, 1
-        end
-
-        def bytecode(g)
-          return if @patterns.empty?
-          g.cast_for_multi_block_arg
-          @patterns.each do |a|
-            g.shift_array
-            a.deconstruct(g)
-          end
-          g.pop
-        end
-
-        def local_names
-          @patterns.collect { |a| a.local_names }.flatten
-        end
-
-        def size
-          @patterns.size
-        end
-
-        def locals
-          local_names.size
-        end
-
-        def required_args
-          size # TODO
-        end
-
-        def total_args
-          size # TODO
-        end
-
-        def splat_index
-          nil
+        arguments.inject(receiver.local_names) do |acc, a|
+          acc + a.local_names
         end
       end
     end
