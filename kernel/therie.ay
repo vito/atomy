@@ -27,7 +27,6 @@ theorize(&as) := do:
 
     puts
 
--- TODO: this seems to be broken.
 o should(&check) :=
   unless(o join(&check)):
     raise("assertion failed for " + o inspect)
