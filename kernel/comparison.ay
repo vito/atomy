@@ -1,60 +1,61 @@
-class(And < Atomy::AST::Node):
-  children(#a, #b)
-  generate
+module(Atomy::AST):
+  class(And < Node):
+    children(#a, #b)
+    generate
 
-  bytecode(g) := do:
-    pos(g)
-    done = g new-label
-    no = g new-label
+    bytecode(g) := do:
+      pos(g)
+      done = g new-label
+      no = g new-label
 
-    @a bytecode(g)
-    g dup
-    g gif(done)
+      @a bytecode(g)
+      g dup
+      g gif(done)
 
-    g pop
-    @b bytecode(g)
+      g pop
+      @b bytecode(g)
 
-    done set!
+      done set!
 
-class(Or < Atomy::AST::Node):
-  children(#a, #b)
-  generate
+  class(Or < Node):
+    children(#a, #b)
+    generate
 
-  bytecode(g) := do:
-    pos(g)
-    done = g new-label
+    bytecode(g) := do:
+      pos(g)
+      done = g new-label
 
-    @a bytecode(g)
-    g dup
-    g git(done)
+      @a bytecode(g)
+      g dup
+      g git(done)
 
-    g pop
-    @b bytecode(g)
+      g pop
+      @b bytecode(g)
 
-    done set!
+      done set!
 
-class(Negate < Atomy::AST::Node):
-  children(#expression)
-  generate
+  class(Negate < Node):
+    children(#expression)
+    generate
 
-  bytecode(g) := do:
-    pos(g)
-    done = g new-label
-    yes = g new-label
+    bytecode(g) := do:
+      pos(g)
+      done = g new-label
+      yes = g new-label
 
-    @expression bytecode(g)
-    g git(yes)
+      @expression bytecode(g)
+      g git(yes)
 
-    g push-true
-    g goto(done)
+      g push-true
+      g goto(done)
 
-    yes set!
-    g push-false
+      yes set!
+      g push-false
 
-    done set!
+      done set!
 
-macro (a && b) And new(line, a, b)
-macro (a || b) Or new(line, a, b)
-macro (!a) Negate new(line, a)
+macro (a && b) Atomy::AST::And new(line, a, b)
+macro (a || b) Atomy::AST::Or new(line, a, b)
+macro (!a) Atomy::AST::Negate new(line, a)
 macro (a != b) `!(~a == ~b)
 macro (a !~ b) `!(~a =~ ~b)
