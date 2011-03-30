@@ -25,13 +25,11 @@ macro (begin(&x) rescue(&y) else(&z))
 macro (x ensuring(&y))
   Atomy::AST::Ensure new(line, `(~x call), `(~y call))
 
-unless(false, &blk) := blk call
-unless(nil, &blk) := blk call
-unless(_, &_) := nil
+macro (when(c, &b))
+  Atomy::AST::When new(line, c, `(~b call))
 
-when(false, &_) := nil
-when(nil, &_) := nil
-when(_, &blk) := blk call
+macro (unless(c, &b))
+  Atomy::AST::When new(line, `!~c, `(~b call))
 
 macro (super) Atomy::AST::ZSuper new(line)
 
