@@ -56,3 +56,11 @@ for-macro quoter(#r) (c, fs):
   `(Regexp new(~c, ~flags))
 
 for-macro quoter(#raw) (c): c
+
+macro (x for(e) in(c)) `(~c collect (~e): ~x)
+
+macro (x for(e) in(c) if(t)) names (tmp):
+  `([] tap (~tmp):
+      ~c each (~e):
+        when(~t):
+          ~tmp << ~x)
