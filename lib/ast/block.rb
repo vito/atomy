@@ -11,8 +11,12 @@ module Atomy
         BlockArguments.new @arguments
       end
 
-      def body
+      def block_body
         BlockBody.new @line, @contents
+      end
+
+      def body
+        InlinedBody.new @line, @contents
       end
 
       def bytecode(g)
@@ -41,7 +45,7 @@ module Atomy
         blk.redo = blk.new_label
         blk.redo.set!
 
-        body.bytecode(blk)
+        block_body.bytecode(blk)
 
         blk.pop_modifiers
         blk.state.pop_block
@@ -58,6 +62,80 @@ module Atomy
         g.find_const :Proc
         g.swap
         g.send :__from_block__, 1
+      end
+    end
+
+    class InlinedBody < Node
+      children [:expressions]
+      generate
+
+      attr_accessor :parent
+
+      def variables
+        @variables ||= {}
+      end
+
+      def local_count
+        @parent.local_names
+      end
+
+      def local_names
+        @parent.local_names
+      end
+
+      def allocate_slot
+        @parent.allocate_slot
+      end
+
+      def nest_scope(scope)
+        scope.parent = self
+      end
+
+      def search_local(name)
+        if variable = variables[name]
+          variable.nested_reference
+        else
+          @parent.search_local(name)
+        end
+      end
+
+      def pseudo_local(name)
+        if variable = variables[name]
+          variable.nested_reference
+        elsif reference = @parent.search_local(name)
+          reference.depth += 1
+          reference
+        end
+      end
+
+      def new_local(name)
+        variables[name] =
+          @parent.new_local(name + ":" + @parent.allocate_slot.to_s)
+      end
+
+      def new_nested_local(name)
+        @parent.new_local(name).nested_reference
+      end
+
+      def empty?
+        @expressions.empty?
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        g.state.scope.nest_scope self
+
+        g.push_state self
+
+        g.push_nil if empty?
+
+        @expressions.each_with_index do |node,idx|
+          g.pop unless idx == 0
+          node.bytecode(g)
+        end
+
+        g.pop_state
       end
     end
 

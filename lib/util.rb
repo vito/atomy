@@ -20,4 +20,18 @@ module Atomy
       g.find_const s.to_sym
     end
   end
+
+  def self.assign_local(g, name, set = false)
+    if !set && g.state.scope.respond_to?(:pseudo_local)
+      var = g.state.scope.pseudo_local(name)
+    else
+      var = g.state.scope.search_local(name)
+    end
+
+    if var && (set || var.depth == 0)
+      var
+    else
+      g.state.scope.new_local(name).reference
+    end
+  end
 end

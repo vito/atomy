@@ -1,5 +1,5 @@
 macro (if(x) then(&y) else(&z))
-  Atomy::AST::IfThenElse new(line, x, y, z)
+  Atomy::AST::IfThenElse new(line, x, y body, z body)
   
 macro (otherwise) 'true
 
@@ -8,10 +8,10 @@ macro (condition(&bs))
     `(if(~x) then: ~y; else: ~acc)
 
 macro (while(cond, &body))
-  Atomy::AST::While new(line, cond, `(~body call))
+  Atomy::AST::While new(line, cond, body body)
 
 macro (until(cond, &body))
-  Atomy::AST::While new(line, `!~cond, `(~body call))
+  Atomy::AST::While new(line, `!~cond, body body)
 
 macro (return(y))
   Atomy::AST::Return new(line, y)
@@ -23,13 +23,13 @@ macro (begin(&x) rescue(&y) else(&z))
   Atomy::AST::Catch new(line, x body, `(~y call($exception)), z body)
 
 macro (x ensuring(&y))
-  Atomy::AST::Ensure new(line, `(~x call), `(~y call))
+  Atomy::AST::Ensure new(line, `(~x call), y body)
 
 macro (when(c, &b))
-  Atomy::AST::When new(line, c, `(~b call))
+  Atomy::AST::When new(line, c, b body)
 
 macro (unless(c, &b))
-  Atomy::AST::When new(line, `!~c, `(~b call))
+  Atomy::AST::When new(line, `!~c, b body)
 
 macro (super) Atomy::AST::ZSuper new(line)
 

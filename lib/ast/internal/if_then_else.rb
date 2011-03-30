@@ -12,12 +12,10 @@ module Atomy
         g.gif nope
 
         @then.bytecode(g)
-        g.send :call, 0
         g.goto done
 
         nope.set!
         @else.bytecode(g)
-        g.send :call, 0
 
         done.set!
       end

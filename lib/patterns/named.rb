@@ -32,12 +32,7 @@ module Atomy::Patterns
       if locals[@name]
         local = locals[@name]
       else
-        var = g.state.scope.search_local(@name)
-        if var && var.depth == 0
-          local = var
-        else
-          local = g.state.scope.new_local(@name).reference
-        end
+        local = Atomy.assign_local(g, @name)
       end
 
       if @pattern.bindings > 0

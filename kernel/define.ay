@@ -8,9 +8,9 @@ macro (x := y)
   Atomy::AST::Define new(x line, x, y)
 
 macro (define(x, &y))
-  Atomy::AST::Define new(x line, x, y body)
+  Atomy::AST::Define new(x line, x, y block-body)
 
-macro (do(&b)) `(~b call)
+macro (do(&b)) b body
 
 macro (x **= y) `(~x =! (~x ** ~y))
 macro (x *= y) `(~x =! (~x * ~y))
@@ -26,21 +26,21 @@ macro (x /= y) `(~x =! (~x / ~y))
 macro (x ^= y) `(~x =! (~x ^ ~y))
 macro (x %= y) `(~x =! (~x % ~y))
 
-macro (x match(&b)) do :
+macro (x match(&b)) do:
   n = Atomy::AST::Match new(x line, x, b)
   `(: ~n; call)
 
 macro (class(`(<< ~obj), &body))
-  Atomy::AST::Metaclass new(obj line, obj, body body)
+  Atomy::AST::Metaclass new(obj line, obj, body block-body)
 
 macro (class(`(~name < ~sup), &body))
-  Atomy::AST::Class new(name line, name, body body, sup)
+  Atomy::AST::Class new(name line, name, body block-body, sup)
 
 macro (class(name, &body))
-  Atomy::AST::Class new(name line, name, body body)
+  Atomy::AST::Class new(name line, name, body block-body)
 
 macro (module(name, &body))
-  Atomy::AST::Module new(name line, name, body body)
+  Atomy::AST::Module new(name line, name, body block-body)
 
 macro (data(root, &children)) do:
   cs = children contents map (e):
