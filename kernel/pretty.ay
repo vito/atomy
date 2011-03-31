@@ -194,7 +194,7 @@ module(Atomy::AST):
   List pretty := doc: brackets(Atomy::AST comma-delim(@elements))
 
   Macro pretty := doc:
-    text("macro") <+> parens(@pattern pretty <+> @body pretty)
+    text("macro") <+> parens(@pattern pretty) <+> @body pretty
 
   Particle pretty := doc: text("#") <> text(@name)
 
