@@ -11,25 +11,21 @@ describe("quasiquotation"):
       `(1 + ~a) should-be('(1 + 2))
 
     it("unquotes through nested quasiquotation"):
-      `(1 + `(2 * ~~'4)) should-be('(1 + `(2 * ~4)))
-
       a = '3
+      `(1 + `(2 * ~~'4)) should-be('(1 + `(2 * ~4)))
       `(1 + `(2 * ~~a)) should-be('(1 + `(2 * ~3)))
+      ``(1 + `(2 * ~~~'4)) should-be('`(1 + `(2 * ~~4)))
+      ``(1 + `(2 * ~~~a)) should-be('`(1 + `(2 * ~~3)))
 
   describe("splice-quotes"):
     it("unquotes a list of expressions, merging into a 'many' part"):
-      `[1, 2, ~*['3, '4]] should-be('[1, 2, 3, 4])
-
       a = ['3, '4]
+      `[1, 2, ~*['3, '4]] should-be('[1, 2, 3, 4])
       `[1, 2, ~*a] should-be('[1, 2, 3, 4])
 
     it("splices through nested quasiquotation"):
+      a = ['3, '4]
       ``[1, 2, ~~*['3, '4]] should-be('`[1, 2, ~*['3, '4]])
-
-      a = ['3, '4]
       ``[1, 2, ~~*a] should-be('`[1, 2, ~*['3, '4]])
-
       ```[1, 2, ~~~*['3, '4]] should-be('``[1, 2, ~~*['3, '4]])
-
-      a = ['3, '4]
       ```[1, 2, ~~~*a] should-be('``[1, 2, ~~*['3, '4]])
