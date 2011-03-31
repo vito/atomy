@@ -331,6 +331,6 @@ end
 
 class Object
   def to_node
-    Atomy::AST::Primitive.new -1, self
+    raise "not a node: #{self.inspect}"
   end
 end
