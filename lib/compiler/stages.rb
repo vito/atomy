@@ -72,18 +72,23 @@ module Atomy
         @print = true
       end
 
+      def self.do_pragmas(x)
+        case x
+        when Atomy::AST::Macro
+          x.pattern.register_macro x.body
+        when Atomy::AST::ForMacro
+          Atomy::Compiler.evaluate_node x.body, Atomy::Macro::CURRENT_ENV
+        end
+
+        x
+      end
+
       def run
         @output = @input.dup
 
         @output.body = @input.body.collect do |n|
           n.through_quotes do |x|
-            case x
-            when Atomy::AST::Macro
-              x.pattern.register_macro x.body
-            when Atomy::AST::ForMacro
-              Atomy::Compiler.evaluate_node x.body, Atomy::Macro::CURRENT_ENV
-            end
-            x
+            Pragmas.do_pragmas(x)
           end
         end
 

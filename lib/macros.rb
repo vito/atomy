@@ -129,29 +129,29 @@ module Atomy
         begin
           case node
           when AST::BinarySend
-            expand CURRENT_ENV.send(
+            expand_res CURRENT_ENV.send(
               (intern name).to_sym,
               nil,
               node.lhs,
               node.rhs
-            ).to_node
+            )
           when AST::Send
-            expand CURRENT_ENV.send(
+            expand_res CURRENT_ENV.send(
               (intern name).to_sym,
               node.block,
               node.receiver,
               *node.arguments
-            ).to_node
+            )
           when AST::Unary
-            expand CURRENT_ENV.send(
+            expand_res CURRENT_ENV.send(
               (intern name).to_sym,
               nil,
               node.receiver
-            ).to_node
+            )
           when AST::Variable
-            expand CURRENT_ENV.send(
+            expand_res CURRENT_ENV.send(
               (intern name).to_sym
-            ).to_node
+            )
           when AST::MacroQuote
             CURRENT_ENV.quote(
               node.name,
@@ -170,6 +170,13 @@ module Atomy
           CURRENT_ENV.line = nil
         end
       end
+    end
+
+    # helper method for #expand
+    def self.expand_res(node)
+      Atomy::Compiler::Pragmas.do_pragmas(
+        expand(node.to_node)
+      )
     end
 
     # @!x

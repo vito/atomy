@@ -29,3 +29,40 @@ describe("macros"):
       macro (a m-foo-5) line
       macro (a m-foo-6) `(~a m-foo-5)
       1 m-foo-6 should-be(_LINE)
+
+  describe("macro definition"):
+    it("can pattern-match node types via constants"):
+      macro (Block m-foo-7) '1
+      macro (Variable m-foo-7) '2
+      macro (Primitive m-foo-7) '3
+
+      : 1 ; m-foo-7 should-be(1)
+      x m-foo-7 should-be(2)
+      1 m-foo-7 should-be(3)
+
+    it("can destructurually pattern-match expressions"):
+      macro (`(~x + 1) m-foo-8) `[~x, 1]
+      (2 + 1) m-foo-8 should-be([2, 1])
+
+    it("matches destructuring before constants"):
+      macro (`(~x + 1) m-foo-9) `1
+      macro (BinarySend m-foo-9) `2
+
+      macro (BinarySend m-foo-10) `2
+      macro (`(~x + 1) m-foo-10) `1
+
+      (2 + 1) m-foo-9 should-be(1)
+      (2 + 1) m-foo-10 should-be(1)
+
+    it("can define macros in their expansion"):
+      macro (x m-foo-11) `(macro (~x) '42)
+      ('1 m-foo-110) m-foo-11
+      1 m-foo-110 should-be(42)
+      : 2 m-foo-110 ; should-raise(NoMethodError)
+
+    it("can use for-macro in their expansion"):
+      macro (x m-foo-12) `(for-macro @abc = ~x)
+      10 m-foo-12
+      Atomy::Macro::CURRENT_ENV
+        instance-variable-get("@abc")
+        should-be(10)
