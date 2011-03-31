@@ -2182,7 +2182,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # particle = line:line "#" (identifier | operator !identifier):n { Atomy::AST::Particle.new(line, n) }
+  # particle = line:line "#" (identifier | operator !level1):n { Atomy::AST::Particle.new(line, n) }
   def _particle
 
     _save = self.pos
@@ -2213,7 +2213,7 @@ class Atomy::Parser
       break
     end
     _save3 = self.pos
-    _tmp = apply(:_identifier)
+    _tmp = apply(:_level1)
     _tmp = _tmp ? nil : true
     self.pos = _save3
     unless _tmp
@@ -4926,7 +4926,7 @@ class Atomy::Parser
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
   Rules[:_string] = rule_info("string", "line:line \"\\\"\" (\"\\\\\" escape | str_seq)*:c \"\\\"\" { Atomy::AST::String.new(line, c.join) }")
   Rules[:_macro_quote] = rule_info("macro_quote", "line:line identifier:n quoted:c (< [a-z] > { text })*:fs { Atomy::AST::MacroQuote.new(line, n, c, fs) }")
-  Rules[:_particle] = rule_info("particle", "line:line \"#\" (identifier | operator !identifier):n { Atomy::AST::Particle.new(line, n) }")
+  Rules[:_particle] = rule_info("particle", "line:line \"#\" (identifier | operator !level1):n { Atomy::AST::Particle.new(line, n) }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
   Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomy::AST::Send.new(                         line,                         names.empty? ?                             Atomy::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line (\"::\" constant_name)+:s args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomy::AST::Send.new(                         line,                         names.empty? ?                             Atomy::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })")
   Rules[:_variable] = rule_info("variable", "line:line identifier:n !\":\" { Atomy::AST::Variable.new(line, n) }")

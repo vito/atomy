@@ -179,7 +179,7 @@
     macro_quote = line:line identifier:n quoted:c (< [a-z] > { text })*:fs
                     { Atomy::AST::MacroQuote.new(line, n, c, fs) }
 
-       particle = line:line "#" (identifier | operator !identifier):n
+       particle = line:line "#" (identifier | operator !level1):n
                     { Atomy::AST::Particle.new(line, n) }
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
