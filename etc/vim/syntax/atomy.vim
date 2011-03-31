@@ -52,27 +52,28 @@ syn match   atomyLineComment        "---*\s\?\([^-!#$%&\*\+./<=>\?@\\^|~].*\)\?$
 syn region  atomyBlockComment       start="{-"  end="-}" contains=atomyBlockComment
 
 " Regexp fun, ported from the Ruby syntax
-syn region atomyRegexpComment       matchgroup=atomyRegexpSpecial  start="(?#"  skip="\\)"  end=")"  contained
-syn region atomyRegexpParens        matchgroup=atomyRegexpSpecial  start="(\(?:\|?<\=[=!]\|?>\|?<[a-z_]\w*>\|?[imx]*-[imx]*:\=\|\%(?#\)\@!\)" skip="\\)"  end=")"  contained transparent contains=@atomyRegexpSpecial
-syn region atomyRegexpBrackets      matchgroup=atomyRegexpCharClass start="\[\^\="  skip="\\\]" end="\]" contained transparent contains=atomyStringEscape,atomyRegexpEscape,atomyRegexpCharClass oneline
-syn match   atomyRegexpCharClass     "\\[DdHhSsWw]"           contained display
+syn region  atomyRegexpComment       matchgroup=atomyRegexpSpecial  start="(?#"  skip="\\)"  end=")"  contained
+syn region  atomyRegexpParens        matchgroup=atomyRegexpSpecial  start="(\(?:\|?<\=[=!]\|?>\|?<[a-z_]\w*>\|?[imx]*-[imx]*:\=\|\%(?#\)\@!\)" skip="\\)"  end=")"  contained transparent contains=@atomyRegexpSpecial
+syn region  atomyRegexpBrackets      matchgroup=atomyRegexpCharClass start="\[\^\="  skip="\\\]" end="\]" contained transparent contains=atomyStringEscape,atomyRegexpEscape,atomyRegexpCharClass oneline
 syn match   atomyRegexpCharClass     "\[:\^\=\%(alnum\|alpha\|ascii\|blank\|cntrl\|digit\|graph\|lower\|print\|punct\|space\|upper\|xdigit\):\]" contained
-syn match   atomyRegexpEscape        "\\[].*?+^$|\\/(){}[]" contained
-syn match   atomyRegexpQuantifier    "[*?+][?+]\="            contained display
-syn match   atomyRegexpQuantifier    "{\d\+\%(,\d*\)\=}?\=" contained display
-syn match   atomyRegexpAnchor        "[$^]\|\\[ABbGZz]"     contained display
-syn match   atomyRegexpDot           "\."               contained display
-syn match   atomyRegexpSpecial       "|"                contained display
-syn match   atomyRegexpSpecial       "\\[1-9]\d\=\d\@!"     contained display
+syn match   atomyRegexpCharClass     "\\[DdHhSsWw]"                                contained display
+syn match   atomyRegexpEscape        "\\[].*?+^$|\\/(){}[]"                        contained
+syn match   atomyRegexpQuantifier    "[*?+][?+]\="                                 contained display
+syn match   atomyRegexpQuantifier    "{\d\+\%(,\d*\)\=}?\="                        contained display
+syn match   atomyRegexpAnchor        "[$^]\|\\[ABbGZz]"                            contained display
+syn match   atomyRegexpDot           "\."                                          contained display
+syn match   atomyRegexpSpecial       "|"                                           contained display
+syn match   atomyRegexpSpecial       "\\[1-9]\d\=\d\@!"                            contained display
 syn match   atomyRegexpSpecial       "\\k<\%([a-z_]\w*\|-\=\d\+\)\%([+-]\d\+\)\=>" contained display
 syn match   atomyRegexpSpecial       "\\k'\%([a-z_]\w*\|-\=\d\+\)\%([+-]\d\+\)\='" contained display
-syn match   atomyRegexpSpecial       "\\g<\%([a-z_]\w*\|-\=\d\+\)>" contained display
-syn match   atomyRegexpSpecial       "\\g'\%([a-z_]\w*\|-\=\d\+\)'" contained display
+syn match   atomyRegexpSpecial       "\\g<\%([a-z_]\w*\|-\=\d\+\)>"                contained display
+syn match   atomyRegexpSpecial       "\\g'\%([a-z_]\w*\|-\=\d\+\)'"                contained display
 
 syn cluster atomyRegexpSpecial      contains=atomyInterpolation,atomyNoInterpolation,atomyStringEscape,atomyRegexpSpecial,atomyRegexpEscape,atomyRegexpBrackets,atomyRegexpCharClass,atomyRegexpDot,atomyRegexpQuantifier,atomyRegexpAnchor,atomyRegexpParens,atomyRegexpComment
 
 syn region  atomyRegexp             start=+r{+  skip=+\\\\\|\\}+  end=+}+  contains=@atomyRegexpSpecial keepend
 syn region  atomyRegexp             start=+r"+  skip=+\\\\\|\\"+  end=+"+  contains=@atomyRegexpSpecial keepend
+
 
 " Define the default highlighting.
 " For version 5.7 and earlier: only when not done already
