@@ -33,7 +33,7 @@ o should(&check) :=
 
 x should-be(y) :=
   unless(x == y):
-    raise("expected " + y inspect + ", got " + x inspect)
+    raise("expected " + y pretty render + ", got " + x pretty render)
 
 x should-raise(y) :=
   begin:
