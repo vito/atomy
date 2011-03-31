@@ -60,9 +60,16 @@ describe("macros"):
       1 m-foo-110 should-be(42)
       : 2 m-foo-110 ; should-raise(NoMethodError)
 
+    it("can define macros that define macros in their expansion in their expansion"):
+      macro (`[~x, ~y] m-foo-12) `(macro (~x) '(macro (~y) '42))
+      ['1 m-foo-120, '1 m-foo-121] m-foo-12
+      1 m-foo-120
+      1 m-foo-121 should-be(42)
+      : 2 m-foo-121 ; should-raise(NoMethodError)
+
     it("can use for-macro in their expansion"):
-      macro (x m-foo-12) `(for-macro @abc = ~x)
-      10 m-foo-12
+      macro (x m-foo-13) `(for-macro @abc = ~x)
+      10 m-foo-13
       Atomy::Macro::CURRENT_ENV
         instance-variable-get("@abc")
         should-be(10)
