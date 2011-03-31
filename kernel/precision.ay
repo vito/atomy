@@ -1,5 +1,6 @@
 module(Atomy::Patterns):
   -- pattern precision hierarchy, from least precise to most
+  -- TODO: Strict, Predicate, Metaclass, RuntimeClass
   PRECISION =
     [ [ Any, BlockPass, Splat, Unary,
         NamedClass, NamedGlobal, NamedInstance
@@ -9,7 +10,7 @@ module(Atomy::Patterns):
 
       [HeadTail]
 
-      [List]
+      [List, QuasiQuote, Particle]
 
       [Match, Quote]
     ]
