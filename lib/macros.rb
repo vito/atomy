@@ -44,13 +44,20 @@ module Atomy
         end
       end
 
-      def names(&block)
+      def names(num = 0, &block)
+        num = block.arity if block
+
         as = []
-        block.arity.times do
+        num.times do
           as << Atomy::AST::Variable.new(0, "s:" + @@salt.to_s)
           @@salt += 1
         end
-        block.call(*as)
+
+        if block
+          block.call(*as)
+        else
+          as
+        end
       end
     end
 
