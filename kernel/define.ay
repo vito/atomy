@@ -26,9 +26,8 @@ macro (x /= y) `(~x =! (~x / ~y))
 macro (x ^= y) `(~x =! (~x ^ ~y))
 macro (x %= y) `(~x =! (~x % ~y))
 
-macro (x match(&b)) do:
-  n = Atomy::AST::Match new(x line, x, b)
-  `(: ~n ; call)
+macro (x match(&b))
+  `(do: ~(Atomy::AST::Match new(line, x, b)))
 
 macro (class(`(<< ~obj), &body))
   Atomy::AST::Metaclass new(obj line, obj, body block-body)
@@ -41,51 +40,3 @@ macro (class(name, &body))
 
 macro (module(name, &body))
   Atomy::AST::Module new(name line, name, body block-body)
-
-macro (data(root, &children)) do:
-  cs = children contents map (e):
-    e match:
-      Atomy::AST::Send -> do:
-        init =
-          Atomy::AST::Send new(
-            0
-            Atomy::AST::Primitive new(0, #self)
-            e arguments
-            "initialize"
-          )
-
-        accessors =
-          Atomy::AST::Send new(
-            0
-            Atomy::AST::Primitive new(0, #self)
-            e arguments map (a):
-              name = a receiver name to-s
-              Atomy::AST::Particle new(0, name)
-            "attr_accessor"
-          )
-
-        name =
-          Atomy::AST::Constant new(0, e method-name)
-
-        `(class(~name < ~root):
-            ~accessors
-            ~init := #ok)
-
-      Atomy::AST::Constant ->
-        `(class(~e < ~root):)
-
-      Atomy::AST::ScopedConstant ->
-        `(class(~e < ~root):)
-
-      Atomy::AST::ToplevelConstant ->
-        `(class(~e < ~root):)
-
-      _ -> raise("unknown module name: " + e to-s)
-
-  decls = Atomy::AST::Block new(
-    root line
-    [`(class(~root):)] + cs
-    []
-  )
-
-  `(~decls call)

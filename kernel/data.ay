@@ -65,6 +65,39 @@ macro (x for(e) in(c) if(t)) names (tmp):
         when(~t):
           ~tmp << ~x)
 
+macro (data(root, &children)) do:
+  cs = children contents map (e):
+    e match:
+      Atomy::AST::Send -> do:
+        name =
+          Atomy::AST::Constant new(0, e method-name)
+
+        `(class(~name < ~root):
+            attr-accessor(~*(
+              e arguments collect (a):
+                `#~(a receiver)))
+
+            initialize(~*(e arguments)) := #ok)
+
+      Atomy::AST::Constant ->
+        `(class(~e < ~root):)
+
+      Atomy::AST::ScopedConstant ->
+        `(class(~e < ~root):)
+
+      Atomy::AST::ToplevelConstant ->
+        `(class(~e < ~root):)
+
+      _ -> raise("unknown module name: " + e to-s)
+
+  decls = Atomy::AST::Block new(
+    root line
+    [`(class(~root):)] + cs
+    []
+  )
+
+  `(~decls call)
+
 class(Object):
   dynamic-method(#at) (g):
     g total-args = 1

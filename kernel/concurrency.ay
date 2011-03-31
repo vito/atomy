@@ -8,9 +8,7 @@ macro (receive(&body)) names (e):
   bs = body contents collect (`(~pat -> ~exp)):
     `(~e when('~pat to-pattern) (~pat): ~exp)
 
-  branches = Atomy::AST::Block new(line, bs, [e])
-
-  `(Actor receive(&(~branches)))
+  `(Actor receive (~e): ~*bs)
 
 macro (receive(&body) after(timeout)) names (e):
   bs = body contents collect (`(~pat -> ~exp)):
@@ -18,9 +16,7 @@ macro (receive(&body) after(timeout)) names (e):
 
   bs << `(~e after(~(timeout lhs)): ~(timeout rhs))
 
-  branches = Atomy::AST::Block new(line, bs, [e])
-
-  `(Actor receive(&(~branches)))
+  `(Actor receive (~e): ~*bs)
 
 spawn(&action) := Actor spawn(&action)
 
