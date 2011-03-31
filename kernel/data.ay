@@ -64,3 +64,14 @@ macro (x for(e) in(c) if(t)) names (tmp):
       ~c each (~e):
         when(~t):
           ~tmp << ~x)
+
+class(Object):
+  dynamic-method(#at) (g):
+    g total-args = 1
+    g required-args = 1
+    g local-count = 1
+
+    g push-self
+    g push-local(0)
+    g send("[]" to-sym, 1)
+    g ret
