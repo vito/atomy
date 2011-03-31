@@ -153,11 +153,11 @@ module Atomy
               (intern name).to_sym
             )
           when AST::MacroQuote
-            CURRENT_ENV.quote(
+            expand_res CURRENT_ENV.quote(
               node.name,
               node.contents,
               node.flags
-            ).to_node
+            )
           else
             # just stopping
             no_macro(node)
