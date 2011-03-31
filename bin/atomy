@@ -48,7 +48,11 @@ while str = Readline.readline("> ")
 
   begin
     res = Atomy::Compiler.evaluate str, bnd
-    puts "=> #{res.pretty.render}"
+    if res.respond_to?(:pretty)
+      puts "=> #{res.pretty.render}"
+    else
+      puts "=> #{res.inspect}"
+    end
   rescue StandardError => e
     puts "ERROR!"
     puts "#{e}:\n  #{e.message}"
