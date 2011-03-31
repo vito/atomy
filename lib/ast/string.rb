@@ -1,7 +1,6 @@
 module Atomy
   module AST
     class String < Node
-
       attributes :value
       generate
 

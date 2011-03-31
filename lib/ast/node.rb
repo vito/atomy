@@ -334,3 +334,21 @@ class Object
     raise "not a node: #{self.inspect}"
   end
 end
+
+class Integer
+  def to_node
+    Atomy::AST::Primitive.new -1, self
+  end
+end
+
+class String
+  def to_node
+    Atomy::AST::String.new -1, self
+  end
+end
+
+class Array
+  def to_node
+    Atomy::AST::List.new -1, collect(&:to_node)
+  end
+end
