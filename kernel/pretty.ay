@@ -230,6 +230,8 @@ module(Atomy::AST):
       else:
         @receiver pretty <+> text(@method-name) <> args <+> block
 
+  Splice pretty := doc: text("~*") <> @expression pretty
+
   Unquote pretty := doc: text("~") <> @expression pretty
 
   Variable pretty := doc: text(@name)

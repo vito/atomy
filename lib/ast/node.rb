@@ -1,4 +1,10 @@
 module Atomy
+  def self.unquote_splice(n)
+    n.collect do |x|
+      Atomy::AST::Quote.new(x.line, x)
+    end.to_node
+  end
+
   module AST
     module SentientNode
       # hash from attribute to the type of child node it is
@@ -55,6 +61,30 @@ module Atomy
         spec(@@children, specs)
       end
 
+      def many_construct(n)
+        x = <<END
+          spliced = false
+          size = 0
+          @#{n}.each do |e|
+            if e.kind_of?(::Atomy::AST::Splice) && d == 1
+              g.make_array size if size > 0
+              e.construct(g, d)
+              g.send :+, 1 if size > 0 || spliced
+              spliced = true
+              size = 0
+            else
+              e.construct(g, d)
+              size += 1
+            end
+          end
+
+          g.make_array size
+
+          g.send :+, 1 if spliced
+END
+        x
+      end
+
       def generate
         all = []
         args = ""
@@ -90,7 +120,7 @@ EOF
               }.join("; ")}
 
             #{@@children[:many].collect { |n|
-                "@#{n}.each { |n| n.construct(g, d) }; g.make_array(@#{n}.size)"
+                many_construct(n)
               }.join("; ")}
 
             #{@@attributes[:required].collect { |a|

@@ -107,6 +107,7 @@
                 | number
                 | quote
                 | quasi_quote
+                | splice
                 | unquote
                 | string
                 | macro_quote
@@ -164,6 +165,8 @@
                     { Atomy::AST::Quote.new(line, e) }
     quasi_quote = line:line "`" level1:e
                     { Atomy::AST::QuasiQuote.new(line, e) }
+         splice = line:line "~*" level1:e
+                    { Atomy::AST::Splice.new(line, e) }
         unquote = line:line "~" level1:e
                     { Atomy::AST::Unquote.new(line, e) }
 

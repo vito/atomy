@@ -1183,7 +1183,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level1 = (true | false | self | nil | number | quote | quasi_quote | unquote | string | macro_quote | particle | constant | variable | block | grouped | list | unary)
+  # level1 = (true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | macro_quote | particle | constant | variable | block | grouped | list | unary)
   def _level1
 
     _save = self.pos
@@ -1207,6 +1207,9 @@ class Atomy::Parser
     break if _tmp
     self.pos = _save
     _tmp = apply(:_quasi_quote)
+    break if _tmp
+    self.pos = _save
+    _tmp = apply(:_splice)
     break if _tmp
     self.pos = _save
     _tmp = apply(:_unquote)
@@ -1919,6 +1922,40 @@ class Atomy::Parser
     end # end sequence
 
     set_failed_rule :_quasi_quote unless _tmp
+    return _tmp
+  end
+
+  # splice = line:line "~*" level1:e { Atomy::AST::Splice.new(line, e) }
+  def _splice
+
+    _save = self.pos
+    while true # sequence
+    _tmp = apply(:_line)
+    line = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _tmp = match_string("~*")
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    _tmp = apply(:_level1)
+    e = @result
+    unless _tmp
+      self.pos = _save
+      break
+    end
+    @result = begin;  Atomy::AST::Splice.new(line, e) ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save
+    end
+    break
+    end # end sequence
+
+    set_failed_rule :_splice unless _tmp
     return _tmp
   end
 
@@ -4868,7 +4905,7 @@ class Atomy::Parser
   Rules[:_delim] = rule_info("delim", "(wsp \",\" wsp | (sp \"\\n\" sp)+ &{ current_column >= c })")
   Rules[:_expression] = rule_info("expression", "level3")
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }")
-  Rules[:_level1] = rule_info("level1", "(true | false | self | nil | number | quote | quasi_quote | unquote | string | macro_quote | particle | constant | variable | block | grouped | list | unary)")
+  Rules[:_level1] = rule_info("level1", "(true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | macro_quote | particle | constant | variable | block | grouped | list | unary)")
   Rules[:_level2] = rule_info("level2", "(send | level1)")
   Rules[:_level3] = rule_info("level3", "(macro | for_macro | op_assoc_prec | binary_send | level2)")
   Rules[:_true] = rule_info("true", "line:line \"true\" !identifier { Atomy::AST::Primitive.new(line, :true) }")
@@ -4883,6 +4920,7 @@ class Atomy::Parser
   Rules[:_op_assoc_prec] = rule_info("op_assoc_prec", "line:line \"operator\" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy::Macro.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, assoc, prec, os)                     }")
   Rules[:_quote] = rule_info("quote", "line:line \"'\" level1:e { Atomy::AST::Quote.new(line, e) }")
   Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level1:e { Atomy::AST::QuasiQuote.new(line, e) }")
+  Rules[:_splice] = rule_info("splice", "line:line \"~*\" level1:e { Atomy::AST::Splice.new(line, e) }")
   Rules[:_unquote] = rule_info("unquote", "line:line \"~\" level1:e { Atomy::AST::Unquote.new(line, e) }")
   Rules[:_escape] = rule_info("escape", "(number_escapes | escapes)")
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
