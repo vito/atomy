@@ -2588,90 +2588,182 @@ class Atomy::Parser
     return _tmp
   end
 
-  # block = line:line args?:as ":" !operator wsp expressions?:es (wsp ";")? { Atomy::AST::Block.new(line, Array(es), Array(as)) }
+  # block = (line:line args?:as ":" !operator wsp expressions?:es (wsp ";")? { Atomy::AST::Block.new(line, Array(es), Array(as)) } | line:line (args:as wsp { as })?:as "{" wsp expressions?:es wsp "}" { Atomy::AST::Block.new(line, Array(es), Array(as)) })
   def _block
 
     _save = self.pos
+    while true # choice
+
+    _save1 = self.pos
     while true # sequence
     _tmp = apply(:_line)
     line = @result
     unless _tmp
-      self.pos = _save
+      self.pos = _save1
       break
     end
-    _save1 = self.pos
+    _save2 = self.pos
     _tmp = apply(:_args)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
-      self.pos = _save1
+      self.pos = _save2
     end
     as = @result
     unless _tmp
-      self.pos = _save
+      self.pos = _save1
       break
     end
     _tmp = match_string(":")
     unless _tmp
-      self.pos = _save
+      self.pos = _save1
       break
     end
-    _save2 = self.pos
+    _save3 = self.pos
     _tmp = apply(:_operator)
     _tmp = _tmp ? nil : true
-    self.pos = _save2
+    self.pos = _save3
     unless _tmp
-      self.pos = _save
+      self.pos = _save1
       break
     end
     _tmp = apply(:_wsp)
     unless _tmp
-      self.pos = _save
+      self.pos = _save1
       break
     end
-    _save3 = self.pos
+    _save4 = self.pos
     _tmp = apply(:_expressions)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
-      self.pos = _save3
+      self.pos = _save4
     end
     es = @result
     unless _tmp
-      self.pos = _save
+      self.pos = _save1
       break
     end
-    _save4 = self.pos
-
     _save5 = self.pos
+
+    _save6 = self.pos
     while true # sequence
     _tmp = apply(:_wsp)
     unless _tmp
-      self.pos = _save5
+      self.pos = _save6
       break
     end
     _tmp = match_string(";")
     unless _tmp
-      self.pos = _save5
+      self.pos = _save6
     end
     break
     end # end sequence
 
     unless _tmp
       _tmp = true
-      self.pos = _save4
+      self.pos = _save5
     end
     unless _tmp
-      self.pos = _save
+      self.pos = _save1
       break
     end
     @result = begin;  Atomy::AST::Block.new(line, Array(es), Array(as)) ; end
     _tmp = true
     unless _tmp
-      self.pos = _save
+      self.pos = _save1
     end
     break
     end # end sequence
+
+    break if _tmp
+    self.pos = _save
+
+    _save7 = self.pos
+    while true # sequence
+    _tmp = apply(:_line)
+    line = @result
+    unless _tmp
+      self.pos = _save7
+      break
+    end
+    _save8 = self.pos
+
+    _save9 = self.pos
+    while true # sequence
+    _tmp = apply(:_args)
+    as = @result
+    unless _tmp
+      self.pos = _save9
+      break
+    end
+    _tmp = apply(:_wsp)
+    unless _tmp
+      self.pos = _save9
+      break
+    end
+    @result = begin;  as ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save9
+    end
+    break
+    end # end sequence
+
+    @result = nil unless _tmp
+    unless _tmp
+      _tmp = true
+      self.pos = _save8
+    end
+    as = @result
+    unless _tmp
+      self.pos = _save7
+      break
+    end
+    _tmp = match_string("{")
+    unless _tmp
+      self.pos = _save7
+      break
+    end
+    _tmp = apply(:_wsp)
+    unless _tmp
+      self.pos = _save7
+      break
+    end
+    _save10 = self.pos
+    _tmp = apply(:_expressions)
+    @result = nil unless _tmp
+    unless _tmp
+      _tmp = true
+      self.pos = _save10
+    end
+    es = @result
+    unless _tmp
+      self.pos = _save7
+      break
+    end
+    _tmp = apply(:_wsp)
+    unless _tmp
+      self.pos = _save7
+      break
+    end
+    _tmp = match_string("}")
+    unless _tmp
+      self.pos = _save7
+      break
+    end
+    @result = begin;  Atomy::AST::Block.new(line, Array(es), Array(as)) ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save7
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
+    break
+    end # end choice
 
     set_failed_rule :_block unless _tmp
     return _tmp
@@ -4932,7 +5024,7 @@ class Atomy::Parser
   Rules[:_variable] = rule_info("variable", "line:line identifier:n !\":\" { Atomy::AST::Variable.new(line, n) }")
   Rules[:_unary] = rule_info("unary", "line:line !\":\" op_letter:o level1:e { Atomy::AST::Unary.new(line, e, o) }")
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
-  Rules[:_block] = rule_info("block", "line:line args?:as \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), Array(as)) }")
+  Rules[:_block] = rule_info("block", "(line:line args?:as \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), Array(as)) } | line:line (args:as wsp { as })?:as \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), Array(as)) })")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
   Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) identifier:n args?:as (sp block)?:b { Atomy::AST::Send.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) identifier:n args?:as (sp block)?:b { Atomy::AST::Send.new(line, r, Array(as), n, b) } | line:line level1:r cont(pos) args:as !\":\" (sp block)?:b { Atomy::AST::Send.new(line, r, Array(as), \"call\", b) } | line:line identifier:n args?:as sp block:b { Atomy::AST::Send.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         Array(as),                         n,                         b,                         true                       )                     } | line:line identifier:n args:as (sp block)?:b { Atomy::AST::Send.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         n,                         b,                         true                       )                     })")
   Rules[:_send] = rule_info("send", "sends(current_position)")

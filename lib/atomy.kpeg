@@ -230,6 +230,8 @@
 
           block = line:line args?:as ":" !operator wsp expressions?:es (wsp ";")?
                     { Atomy::AST::Block.new(line, Array(es), Array(as)) }
+                | line:line (args:as wsp { as })?:as "{" wsp expressions?:es wsp "}"
+                    { Atomy::AST::Block.new(line, Array(es), Array(as)) }
 
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomy::AST::List.new(line, Array(es)) }
