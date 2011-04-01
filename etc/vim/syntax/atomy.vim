@@ -7,10 +7,21 @@ endif
 
 " Delimiters
 syn match   atomyDelimiter          "(\|,\|\[\|\]"
-syn match   atomyBlock              ":\|;"
+syn match   atomyBlock              ":\|;\|{\|}"
+
+" Identifiers & Operators
+syn match   atomyIdentifier         "[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*"
+syn match   atomyOperator           ":\?[<>~!@#\$%\^&\*\-=\+./\?\\|]\+"
+
+" Method Definition
+syn match   atomyMethod             "[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*" contained
+syn match   atomyOpMethod           ":\?[<>~!@#\$%\^&\*\-=\+./\?\\|]\+" contained
+syn match   atomyDefinition         "[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*[[:space:]]*:="me=e-2 contains=atomyMethod,atomyGrouped,atomyOperator
+syn match   atomyDefinition         "[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*(.*:="me=e-2 contains=atomyMethod,atomyGrouped,atomyOperator
+syn match   atomyDefinition         "[[:space:]]\+:\?[<>~!@#\$%\^&\*\-=\+./\?\\|]\+[[:space:]]\+.*:="me=e-2 contains=atomyOpMethod,atomyGrouped,atomyOperator
 
 " Grouped
-syn region  atomyGrouped            start="(" end=")" contains=TOP
+syn region  atomyGrouped            start="(" end=")" contains=TOP,atomyDefinition
 
 " Strings
 syn match   atomySpecialChar        contained "\\\([0-9]\+\|o[0-7]\+\|x[0-9a-fA-F]\+\|[\"\\'&\\abfnrtv]\|^[A-Z^_\[\\\]]\)"
@@ -23,20 +34,18 @@ syn match   atomyNumber             "\<[0-9]\+\>\|\<0[xX][0-9a-fA-F]\+\>\|\<0[oO
 syn match   atomyFloat              "\<[0-9]\+\.[0-9]\+\([eE][-+]\=[0-9]\+\)\=\>"
 
 " Symbols &c.
-syn match   atomyOperator           ":\?[<>~!@#\$%\^&\*\-=\+./\?\\|]\+"
 syn match   atomyUnquote            "\~\([a-z_][a-zA-Z:~!@#$%^&*\-_=+./\\|<>\?]*\)\?"
 syn region  atomyUnquote            matchgroup=Special start="\~(" end=")" contains=TOP
 syn match   atomySplice             "\~\*\([a-z_][a-zA-Z:~!@#$%^&*\-_=+./\\|<>\?]*\)\?"
 syn region  atomySplice             matchgroup=Special start="\~\*(" end=")" contains=TOP
 syn match   atomyQuasiQuote         "`"
-syn region  atomyQuasiQuote         matchgroup=PreProc start="`(" end=")" contains=TOP
+syn region  atomyQuasiQuote         matchgroup=Special start="`(" end=")" contains=TOP
 syn match   atomyQuote              "'"
 syn region  atomyQuote              matchgroup=Special start="'(" end=")" contains=TOP
 syn match   atomyParticle           "#\([a-z_][a-zA-Z:~!@#$%^&*\-_=+./\\|<>\?]*\)\?"
 
 " Identifiers, Constants & Variables
 syn match   atomyConstant           "[A-Z][a-zA-Z0-9_]*"
-syn match   atomyIdentifier         "[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*"
 syn match   atomyClassVariable      "@@[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]\+"
 syn match   atomyInstanceVariable   "@[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*"
 syn match   atomyGlobalVariable     "$[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*"
@@ -48,7 +57,7 @@ syn match   atomyConditional        "\<\(if\|then\|else\)\>"
 syn match   atomySpecial            "\<\(self\|macro\|for-macro\|operator\)\>"
 
 " Comments
-syn match   atomyLineComment        "---*\s\?\([^-!#$%&\*\+./<=>\?@\\^|~].*\)\?$"
+syn match   atomyLineComment        "--.*$"
 syn region  atomyBlockComment       start="{-"  end="-}" contains=atomyBlockComment
 
 " Regexp fun, ported from the Ruby syntax
@@ -119,6 +128,9 @@ if version >= 508 || !exists("did_atomy_syntax_inits")
   HiLink atomyQuote               Special
   HiLink atomyUnquote             Special
   HiLink atomySplice              Special
+
+  HiLink atomyMethod              Function
+  HiLink atomyOpMethod            Function
 
   delcommand HiLink
 endif
