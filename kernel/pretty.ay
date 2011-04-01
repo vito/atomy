@@ -28,7 +28,8 @@ Empty width := 0
 Text height := 1
 Beside height := [@left height, @right height] max
 Above height :=
-  if(@overlap? && @below kind-of?(Nest) && @below depth > @above width)
+  if(@overlap? && @below kind-of?(Nest)
+      && @below depth > @above width)
     then: @above height + @below height
     else: 1 + @above height + @below height
 Nest height := @body height
@@ -93,7 +94,8 @@ Above render := do:
   a = @above render
   b = @below render
 
-  if(@overlap? && @below kind-of?(Nest) && @below depth > @above width)
+  if(@overlap? && @below kind-of?(Nest) &&
+      @below depth > @above width)
     then:
       b slice!(0, a size)
       a + b
