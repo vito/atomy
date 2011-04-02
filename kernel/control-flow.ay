@@ -22,6 +22,18 @@ macro (begin(&x) rescue(&y))
 macro (begin(&x) rescue(&y) else(&z))
   Atomy::AST::Catch new(line, x body, `(~y call($exception)), z body)
 
+macro ((x: Block) rescue(&y))
+  Atomy::AST::Catch new(line, x body, `(~y call($exception)))
+
+macro ((x: Block) rescue(&y) else(&z))
+  Atomy::AST::Catch new(line, x body, `(~y call($exception)), z body)
+
+macro (x rescue(&y))
+  Atomy::AST::Catch new(line, `(~x call), `(~y call($exception)))
+
+macro (x rescue(&y) else(&z))
+  Atomy::AST::Catch new(line, `(~x call), `(~y call($exception)), z body)
+
 macro ((x: Block) ensuring(&y))
   Atomy::AST::Ensure new(line, x body, y body)
 
