@@ -22,6 +22,9 @@ macro (begin(&x) rescue(&y))
 macro (begin(&x) rescue(&y) else(&z))
   Atomy::AST::Catch new(line, x body, `(~y call($exception)), z body)
 
+macro ((x: Block) ensuring(&y))
+  Atomy::AST::Ensure new(line, x body, y body)
+
 macro (x ensuring(&y))
   Atomy::AST::Ensure new(line, `(~x call), y body)
 
