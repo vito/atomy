@@ -208,9 +208,9 @@ module(Atomy::AST):
       #nil -> text("nil")
       x -> x pretty
 
-  QuasiQuote pretty := doc: text("`") <> @expression pretty
+  QuasiQuote pretty := doc: text("`") <> parens(@expression pretty)
 
-  Quote pretty := doc: text("'") <> @expression pretty
+  Quote pretty := doc: text("'") <> parens(@expression pretty)
 
   ScopedConstant pretty := doc:
     @parent pretty <> text("::") <> text(name to-s)
@@ -232,9 +232,9 @@ module(Atomy::AST):
       else:
         @receiver pretty <+> text(@method-name) <> args <+> block
 
-  Splice pretty := doc: text("~*") <> @expression pretty
+  Splice pretty := doc: text("~*") <> parens(@expression pretty)
 
-  Unquote pretty := doc: text("~") <> @expression pretty
+  Unquote pretty := doc: text("~") <> parens(@expression pretty)
 
   Variable pretty := doc: text(@name)
 
