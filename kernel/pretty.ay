@@ -237,3 +237,13 @@ module(Atomy::AST):
   Unquote pretty := doc: text("~") <> @expression pretty
 
   Variable pretty := doc: text(@name)
+
+  InlinedBody pretty := doc:
+    parens(hsep(comma punctuate(@expressions collect(&#pretty))))
+
+  Or pretty := `(~@a || ~@b) pretty
+
+  And pretty := `(~@a && ~@b) pretty
+
+  Ensure pretty := doc:
+    @body pretty <+> text("ensuring:") <+> @ensure pretty
