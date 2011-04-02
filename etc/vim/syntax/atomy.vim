@@ -13,6 +13,12 @@ syn match   atomyBlock              ":\|;\|{\|}"
 syn match   atomyIdentifier         "[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*"
 syn match   atomyOperator           ":\?[<>~!@#\$%\^&\*\-=\+./\?\\|]\+"
 
+" Special Constants
+syn match   atomyNil                "\<\(nil\)\>"
+syn match   atomyBoolean            "\<\(true\|false\)\>"
+syn match   atomyConditional        "\<\(if\|then\|else\)\>"
+syn match   atomySpecial            "\<\(self\|macro\|for-macro\|operator\)\>"
+
 " Method Definition
 syn match   atomyMethod             "[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*" contained
 syn match   atomyOpMethod           ":\?[<>~!@#\$%\^&\*\-=\+./\?\\|]\+" contained
@@ -49,12 +55,6 @@ syn match   atomyConstant           "[A-Z][a-zA-Z0-9_]*"
 syn match   atomyClassVariable      "@@[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]\+"
 syn match   atomyInstanceVariable   "@[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*"
 syn match   atomyGlobalVariable     "$[a-z_][a-zA-Z0-9~!@#$%^&*\-=+./\\|<>\?]*"
-
-" Special Constants
-syn match   atomyNil                "\<\(nil\)\>"
-syn match   atomyBoolean            "\<\(true\|false\)\>"
-syn match   atomyConditional        "\<\(if\|then\|else\)\>"
-syn match   atomySpecial            "\<\(self\|macro\|for-macro\|operator\)\>"
 
 " Comments
 syn match   atomyLineComment        "--.*$"
