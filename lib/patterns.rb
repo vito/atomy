@@ -246,7 +246,7 @@ module Atomy::Patterns
 
   class Atomy::AST::QuasiQuote
     def to_pattern
-      QuasiQuote.new(@expression)
+      QuasiQuote.new(self)
     end
   end
 end

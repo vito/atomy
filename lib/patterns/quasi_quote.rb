@@ -1,24 +1,28 @@
 module Atomy::Patterns
   class QuasiQuote < Pattern
-    attr_reader :expression
+    attr_reader :quoted
 
     def initialize(x)
-      @expression = x
+      @quoted = x
     end
 
     def construct(g)
       get(g)
-      @expression.construct(g, nil)
+      @quoted.construct(g, nil)
       g.send :new, 1
     end
 
     def ==(b)
       b.kind_of?(QuasiQuote) and \
-      @expression == b.expression
+      @quoted == b.expression
+    end
+
+    def expression
+      @quoted.expression
     end
 
     def target(g)
-      names = @expression.class.name.split("::")
+      names = expression.class.name.split("::")
       g.push_const names.slice!(0).to_sym
       names.each do |n|
         g.find_const n.to_sym
@@ -47,79 +51,59 @@ module Atomy::Patterns
       g.set_stack_local them
       g.pop
 
-      where = []
-      depth = 1
+      where = nil
 
-      pre = proc { |n, c|
-        where << c if c
-        if n.kind_of?(Atomy::AST::QuasiQuote) ||
-            n.kind_of?(Atomy::AST::Unquote)
-          true
-        else
-          n.get(g)
+      pre = proc { |e, c, d|
+        where << c if c && where
+
+        where = [] if !where and c == :expression
+
+        if !(e.unquote? && d == 1) && where && c != :unquoted
+          e.get(g)
           g.push_stack_local them
           context(g, where)
           g.kind_of
           g.gif mismatch
-          false
+
+          e.details.each do |a|
+            val = e.send(a)
+            if val.kind_of?(Array)
+              val.each do |v|
+                g.push_literal v
+              end
+              g.make_array val.size
+            else
+              g.push_literal val
+            end
+            g.push_stack_local them
+            context(g, where)
+            g.send a, 0
+            g.send :==, 1
+            g.gif mismatch
+          end
+
+          if e.bottom?
+            e.construct(g)
+            g.push_stack_local them
+            context(g, where)
+            g.send :==, 1
+            g.gif mismatch
+          end
         end
+
+        true
       }
 
       post = proc { where.pop }
 
-      action = proc { |e|
-        if e.kind_of?(Atomy::AST::Unquote)
-          depth -= 1
-          if depth == 0
-            g.push_stack_local them
-            context(g, where)
-            e.expression.to_pattern.matches?(g)
-            g.gif mismatch
-            depth += 1
-            next e
-          end
-
-          where << :expression
-          e.expression.recursively(pre, post, &action)
-          depth += 1
-        end
-
-        if e.kind_of?(Atomy::AST::QuasiQuote)
-          depth += 1
-          where << :expression
-          e.expression.recursively(pre, post, &action)
-          depth -= 1
-        end
-
-        e.details.each do |a|
-          val = e.send(a)
-          if val.kind_of?(Array)
-            val.each do |v|
-              g.push_literal v
-            end
-            g.make_array val.size
-          else
-            g.push_literal val
-          end
-          g.push_stack_local them
-          context(g, where)
-          g.send a, 0
-          g.send :==, 1
-          g.gif mismatch
-        end
-
-        next unless e.bottom?
-
-        e.construct(g)
+      @quoted.through_quotes(pre, post) do |e|
+        ctx = where.last == :unquoted ? where[0..-2] : where
         g.push_stack_local them
-        context(g, where)
-        g.send :==, 1
+        context(g, ctx)
+        e.to_pattern.matches?(g)
         g.gif mismatch
-
         e
-      }
-
-      @expression.recursively(pre, post, &action)
+      end
 
       g.push_true
       g.goto done
@@ -135,77 +119,33 @@ module Atomy::Patterns
       g.set_stack_local them
       g.pop
 
-      where = []
-      depth = 1
+      where = nil
 
       pre = proc { |n, c|
-        where << c if c
-        n.kind_of?(Atomy::AST::QuasiQuote) ||
-          n.kind_of?(Atomy::AST::Unquote)
+        where << c if c && where
+
+        where = [] if !where and c == :expression
+
+        true
       }
 
       post = proc { where.pop }
 
-      action = proc { |e|
-        if e.kind_of?(Atomy::AST::Unquote)
-          depth -= 1
-          if depth == 0
-            g.push_stack_local them
-            context(g, where)
-            e.expression.to_pattern.deconstruct(g)
-            depth += 1
-            next e
-          end
-          where << :expression
-          e.expression.recursively(pre, post, &action)
-          depth += 1
-        end
-
-        if e.kind_of?(Atomy::AST::QuasiQuote)
-          depth += 1
-          where << :expression
-          e.expression.recursively(pre, post, &action)
-          depth -= 1
-        end
-
+      @quoted.through_quotes(pre, post) do |e|
+        ctx = where.last == :unquoted ? where[0..-2] : where
+        g.push_stack_local them
+        context(g, ctx)
+        e.to_pattern.deconstruct(g)
         e
-      }
-
-      @expression.recursively(pre, post, &action)
+      end
     end
 
     def local_names
       names = []
 
-      depth = 1
-
-      pre = proc { |n, c|
-        n.kind_of?(Atomy::AST::QuasiQuote) ||
-          n.kind_of?(Atomy::AST::Unquote)
-      }
-
-      action = proc { |e|
-        if e.kind_of?(Atomy::AST::Unquote)
-          depth -= 1
-          if depth == 0
-            names += e.expression.to_pattern.local_names
-            depth += 1
-            next e
-          end
-          e.expression.recursively(pre, &action)
-          depth += 1
-        end
-
-        if e.kind_of?(Atomy::AST::QuasiQuote)
-          depth += 1
-          e.expression.recursively(pre, &action)
-          depth -= 1
-        end
-
-        e
-      }
-
-      @expression.recursively(pre, &action)
+      @quoted.through_quotes(proc { true }) do |e|
+        names += e.to_pattern.local_names
+      end
 
       names
     end
@@ -213,35 +153,9 @@ module Atomy::Patterns
     def bindings
       bindings = 0
 
-      depth = 1
-
-      pre = proc { |n, c|
-        n.kind_of?(Atomy::AST::QuasiQuote) ||
-          n.kind_of?(Atomy::AST::Unquote)
-      }
-
-      action = proc { |e|
-        if e.kind_of?(Atomy::AST::Unquote)
-          depth -= 1
-          if depth == 0
-            bindings += e.expression.to_pattern.bindings
-            depth += 1
-            next e
-          end
-          e.expression.recursively(pre, &action)
-          depth += 1
-        end
-
-        if e.kind_of?(Atomy::AST::QuasiQuote)
-          depth += 1
-          e.expression.recursively(pre, &action)
-          depth -= 1
-        end
-
-        e
-      }
-
-      @expression.recursively(pre, &action)
+      @quoted.through_quotes(proc { true }) do |e|
+        bindings += e.to_pattern.bindings
+      end
 
       bindings
     end

@@ -32,6 +32,10 @@ module Atomy
         # it'll only happen outside of a quasiquote.
         g.push_literal @expression
       end
+
+      def unquote?
+        true
+      end
     end
   end
 end

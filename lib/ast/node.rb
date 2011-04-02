@@ -252,62 +252,57 @@ EOF
         raise Rubinius::CompileError, "no #construct for #{self}"
       end
 
-      # TODO: this might not be correct; compare to Patterns::QuasiQuote
-      def through_quotes(stop_ = nil, &f)
-        stop = proc { |x|
-          (stop_ && stop_.call(x)) || \
-            x.kind_of?(AST::Quote) || \
+      def through_quotes(pre_ = nil, post_ = nil, &f)
+        depth = 0
+
+        pre = proc { |x, c|
+          (pre_ && pre_.call(*([x, c, depth][0, pre_.arity])) && depth == 0) || \
             x.kind_of?(AST::QuasiQuote) || \
-            x.kind_of?(AST::Unquote)
+            x.unquote?
         }
 
-        depth = 0
-        search = nil
-        scan = proc do |x|
-          case x
-          when Atomy::AST::Quote
-            Atomy::AST::Quote.new(
-              x.line,
-              x.expression.recursively(stop, &search)
-            )
-          when Atomy::AST::QuasiQuote
-            depth += 1
-            Atomy::AST::QuasiQuote.new(
-              x.line,
-              x.expression.recursively(stop, &search)
-            )
-          else
-            f.call(x)
-          end
-        end
+        rpre = proc { |x, c|
+          pre_ && pre_.call(*([x, c, 0][0, pre_.arity]))
+        }
 
-        search = proc do |x|
-          case x
-          when Atomy::AST::QuasiQuote
-            depth += 1
-            Atomy::AST::QuasiQuote.new(
-              x.line,
-              x.expression.recursively(stop, &search)
-            )
-          when Atomy::AST::Unquote
+        post = proc { post_ && post_.call }
+
+        action = proc { |e, c|
+          if e.unquote?
             depth -= 1
             if depth == 0
-              Atomy::AST::Unquote.new(
-                x.line,
-                x.expression.recursively(stop, &scan)
-              )
-            else
-              Atomy::AST::Unquote.new(
-                x.line,
-                x.expression.recursively(stop, &search)
+              depth += 1
+              u = e.expression.recursively(rpre, post_, :unquoted, &f)
+              next e.class.new(
+                e.line,
+                u
               )
             end
-          else
-            x
-          end
-        end
 
-        recursively(stop, &scan)
+            u = e.expression.recursively(pre, post, :expression, &action)
+            depth += 1
+            e.class.new(
+              e.line,
+              u
+            )
+          elsif e.kind_of?(Atomy::AST::QuasiQuote)
+            depth += 1
+            q = e.expression.recursively(pre, post, :expression, &action)
+            depth -= 1
+            Atomy::AST::QuasiQuote.new(
+              e.line,
+              q
+            )
+          else
+            if depth == 0
+              f.call(e)
+            else
+              e
+            end
+          end
+        }
+
+        recursively(pre, post, &action)
       end
 
       def unquote(d)
@@ -333,6 +328,10 @@ EOF
 
       def method_name
         nil
+      end
+
+      def unquote?
+        false
       end
     end
 

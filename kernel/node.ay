@@ -60,7 +60,7 @@ module(Atomy::Patterns):
         else: Atomy::Patterns::Unary new(@receiver, @method-name)
 
     QuasiQuote to-pattern :=
-      Atomy::Patterns::QuasiQuote new(@expression)
+      Atomy::Patterns::QuasiQuote new(self)
 
     String to-pattern :=
       Atomy::Patterns::Match new(@value)
