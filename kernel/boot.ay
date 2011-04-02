@@ -5,6 +5,6 @@ macro (import(name)) `(require-atomy(~name))
 
 "operators define data comparison control-flow
 hashes patterns precision node block errors therie
-mixins pretty concurrency" split each (k):
+mixins pretty concurrency dynamic" split each (k):
   puts("loading " + k)
   import(File expand-path("../", _FILE) + "/" + k)

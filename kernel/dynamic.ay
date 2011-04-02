@@ -1,0 +1,30 @@
+Atomy::DYNAMIC_ROOTS = #[]
+
+for-macro class(<< self):
+  dynvar(x) :=
+    `(Thread current at(#~x) || Atomy::DYNAMIC_ROOTS at(#~x))
+
+  set-dynvar(n, v) :=
+    `(Thread current at(#~n) put(~v))
+
+macro (dynamic(n, root))
+  `(do:
+      macro (^'~n) '~(dynvar(n))
+      Atomy::DYNAMIC_ROOTS at(#~n) put(~root))
+
+macro (let(*bindings, &body)) do:
+  tmps = names(bindings size)
+  save = []
+  set = []
+  restore = []
+
+  bindings zip(tmps) ([`(~n = ~v), tmp]):
+    save << `(~tmp = ~(dynvar(n)))
+    set << set-dynvar(n, v)
+    restore << set-dynvar(n, tmp)
+
+  `(do:
+      ~*save
+      { ~*set
+        ~*(body contents)
+      } ensuring: ~*restore)
