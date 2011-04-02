@@ -230,10 +230,6 @@ module Atomy
       d = n.dup
       x = d
       while x.kind_of?(Atomy::AST::Send)
-        if n.block
-          next
-        end
-
         as = []
         x.arguments.each do |a|
           if a.kind_of?(Atomy::AST::Unary) && a.operator == "&"
@@ -251,7 +247,7 @@ module Atomy
 
         x.arguments = as
 
-        if x.receiver.kind_of?(Atomy::AST::Send)
+        if x.receiver.kind_of?(Atomy::AST::Send) && !x.receiver.block
           y = x.receiver.dup
           x.receiver = y
           x = y
