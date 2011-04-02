@@ -14,7 +14,7 @@ theorize(&as) := do:
   $stats = Therie::Stats new
 
   as call
-  puts
+  "\n" write
 
   $stats join:
     [ "total of", failed + passed, "tests"
@@ -25,7 +25,7 @@ theorize(&as) := do:
       "failed)"
     ] join(" ") display
 
-    puts
+    "\n" write
 
 o should(&check) :=
   unless(o join(&check)):
@@ -36,32 +36,32 @@ x should-be(y) :=
     raise("expected " + y pretty render + ", got " + x pretty render)
 
 x should-raise(y) :=
-  begin:
-    x call
-   rescue (e):
-     unless(e kind-of?(y)):
-       raise("expected " + y to-s + ", got: " + e to-s)
-   else:
-     raise("#should-raise - no exception raised")
+  x rescue (e):
+      unless(e kind-of?(y)):
+        raise("expected exception " + y to-s + ", got: " + e to-s)
+    else:
+      raise("#should-raise - no exception raised")
 
 describe(x, &body) := do:
-  puts(Therie indentation + "- " + x to-s)
+  (Therie indentation + "- " + x to-s) writeln
   Therie::NESTING_LEVEL += 1
   body call
   Therie::NESTING_LEVEL -= 1
 
 it(description, &tests) :=
-  begin:
-    tests call
-    puts((Therie indentation + "✓ " + description) ansi-colored(#green))
-   rescue (e):
-     $stats failed += 1
-     puts((Therie indentation + "✗ " + description) ansi-colored(#red))
-     puts((Therie indentation + "  ` " + e class name + ": " + e message) ansi-colored(#yellow))
-     e backtrace first(5) each (l):
-      puts(Therie indentation + "    " + l ansi-colored(#cyan))
-   else:
-     $stats passed += 1
+  { tests call
+    (Therie indentation + "✓ " + description)
+      ansi-colored(#green) writeln
+  } rescue (e):
+      $stats failed += 1
+      (Therie indentation + "✗ " + description)
+        ansi-colored(#red) writeln
+      (Therie indentation + "  ` " + e class name + ": " + e message)
+        ansi-colored(#yellow) writeln
+      e backtrace first(5) each (l):
+        (Therie indentation + "    " + l ansi-colored(#cyan)) writeln
+    else:
+      $stats passed += 1
 
 (s: String) ansi-colored(color) := do:
   codes =
