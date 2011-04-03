@@ -94,6 +94,10 @@ module Atomy::Patterns
 
       __send__ :===, v
     end
+
+    def to_node
+      Atomy::AST::Pattern.new(0, self)
+    end
   end
 
   # include all pattern classes
