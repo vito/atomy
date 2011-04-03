@@ -1,3 +1,5 @@
+theories = ARGV at(1) || "*"
+
 theorize:
-  Dir glob("test/suite/*.ay") each (t):
+  Dir glob("test/suite/" + theories + ".ay") each (t):
     import(t)
