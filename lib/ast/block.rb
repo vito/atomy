@@ -19,6 +19,8 @@ module Atomy
         InlinedBody.new @line, @contents
       end
 
+      alias :caller :body
+
       def bytecode(g)
         pos(g)
 

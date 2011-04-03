@@ -333,6 +333,15 @@ EOF
       def unquote?
         false
       end
+
+      def caller
+        Atomy::AST::Send.new(
+          @line,
+          self,
+          [],
+          "call"
+        )
+      end
     end
 
     class Node < Rubinius::AST::Node
