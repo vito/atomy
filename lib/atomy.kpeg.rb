@@ -2270,7 +2270,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # constant = (line:line constant_name:m ("::" constant_name)*:s args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomy::AST::Send.new(                         line,                         names.empty? ?                             Atomy::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line ("::" constant_name)+:s args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomy::AST::Send.new(                         line,                         names.empty? ?                             Atomy::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })
+  # constant = (line:line constant_name:m ("::" constant_name)*:s args?:as (sp block)?:b {                     names = [m] + Array(s)                     if as || b                       msg = names.pop                       Atomy::AST::Send.new(                         line,                         names.empty? ?                             Atomy::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         b,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line ("::" constant_name)+:s args?:as (sp block)?:b {                     names = Array(s)                     if as || b                       msg = names.pop                       Atomy::AST::Send.new(                         line,                         names.empty? ?                             Atomy::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         b,                         true                       )                     else                       const_chain(line, names, true)                     end                 })
   def _constant
 
     _save = self.pos
@@ -2329,9 +2329,35 @@ class Atomy::Parser
       self.pos = _save1
       break
     end
+    _save5 = self.pos
+
+    _save6 = self.pos
+    while true # sequence
+    _tmp = apply(:_sp)
+    unless _tmp
+      self.pos = _save6
+      break
+    end
+    _tmp = apply(:_block)
+    unless _tmp
+      self.pos = _save6
+    end
+    break
+    end # end sequence
+
+    @result = nil unless _tmp
+    unless _tmp
+      _tmp = true
+      self.pos = _save5
+    end
+    b = @result
+    unless _tmp
+      self.pos = _save1
+      break
+    end
     @result = begin; 
                     names = [m] + Array(s)
-                    if as
+                    if as || b
                       msg = names.pop
                       Atomy::AST::Send.new(
                         line,
@@ -2340,7 +2366,7 @@ class Atomy::Parser
                             const_chain(line, names),
                         Array(as),
                         msg,
-                        nil,
+                        b,
                         true
                       )
                     else
@@ -2357,27 +2383,27 @@ class Atomy::Parser
     break if _tmp
     self.pos = _save
 
-    _save5 = self.pos
+    _save7 = self.pos
     while true # sequence
     _tmp = apply(:_line)
     line = @result
     unless _tmp
-      self.pos = _save5
+      self.pos = _save7
       break
     end
-    _save6 = self.pos
+    _save8 = self.pos
     _ary = []
 
-    _save7 = self.pos
+    _save9 = self.pos
     while true # sequence
     _tmp = match_string("::")
     unless _tmp
-      self.pos = _save7
+      self.pos = _save9
       break
     end
     _tmp = apply(:_constant_name)
     unless _tmp
-      self.pos = _save7
+      self.pos = _save9
     end
     break
     end # end sequence
@@ -2386,16 +2412,16 @@ class Atomy::Parser
       _ary << @result
       while true
     
-    _save8 = self.pos
+    _save10 = self.pos
     while true # sequence
     _tmp = match_string("::")
     unless _tmp
-      self.pos = _save8
+      self.pos = _save10
       break
     end
     _tmp = apply(:_constant_name)
     unless _tmp
-      self.pos = _save8
+      self.pos = _save10
     end
     break
     end # end sequence
@@ -2406,28 +2432,54 @@ class Atomy::Parser
       _tmp = true
       @result = _ary
     else
-      self.pos = _save6
+      self.pos = _save8
     end
     s = @result
     unless _tmp
-      self.pos = _save5
+      self.pos = _save7
       break
     end
-    _save9 = self.pos
+    _save11 = self.pos
     _tmp = apply(:_args)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
-      self.pos = _save9
+      self.pos = _save11
     end
     as = @result
     unless _tmp
-      self.pos = _save5
+      self.pos = _save7
+      break
+    end
+    _save12 = self.pos
+
+    _save13 = self.pos
+    while true # sequence
+    _tmp = apply(:_sp)
+    unless _tmp
+      self.pos = _save13
+      break
+    end
+    _tmp = apply(:_block)
+    unless _tmp
+      self.pos = _save13
+    end
+    break
+    end # end sequence
+
+    @result = nil unless _tmp
+    unless _tmp
+      _tmp = true
+      self.pos = _save12
+    end
+    b = @result
+    unless _tmp
+      self.pos = _save7
       break
     end
     @result = begin; 
                     names = Array(s)
-                    if as
+                    if as || b
                       msg = names.pop
                       Atomy::AST::Send.new(
                         line,
@@ -2436,7 +2488,7 @@ class Atomy::Parser
                             const_chain(line, names, true),
                         Array(as),
                         msg,
-                        nil,
+                        b,
                         true
                       )
                     else
@@ -2445,7 +2497,7 @@ class Atomy::Parser
                 ; end
     _tmp = true
     unless _tmp
-      self.pos = _save5
+      self.pos = _save7
     end
     break
     end # end sequence
@@ -5020,7 +5072,7 @@ class Atomy::Parser
   Rules[:_macro_quote] = rule_info("macro_quote", "line:line identifier:n quoted:c (< [a-z] > { text })*:fs { Atomy::AST::MacroQuote.new(line, n, c, fs) }")
   Rules[:_particle] = rule_info("particle", "line:line \"#\" (identifier | operator !level1):n { Atomy::AST::Particle.new(line, n) }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
-  Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s args?:as {                     names = [m] + Array(s)                     if as                       msg = names.pop                       Atomy::AST::Send.new(                         line,                         names.empty? ?                             Atomy::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line (\"::\" constant_name)+:s args?:as {                     names = Array(s)                     if as                       msg = names.pop                       Atomy::AST::Send.new(                         line,                         names.empty? ?                             Atomy::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         nil,                         true                       )                     else                       const_chain(line, names, true)                     end                 })")
+  Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s args?:as (sp block)?:b {                     names = [m] + Array(s)                     if as || b                       msg = names.pop                       Atomy::AST::Send.new(                         line,                         names.empty? ?                             Atomy::AST::Primitive.new(line, :self) :                             const_chain(line, names),                         Array(as),                         msg,                         b,                         true                       )                     else                       const_chain(line, names)                     end                   } | line:line (\"::\" constant_name)+:s args?:as (sp block)?:b {                     names = Array(s)                     if as || b                       msg = names.pop                       Atomy::AST::Send.new(                         line,                         names.empty? ?                             Atomy::AST::Primitive.new(line, :self) :                             const_chain(line, names, true),                         Array(as),                         msg,                         b,                         true                       )                     else                       const_chain(line, names, true)                     end                 })")
   Rules[:_variable] = rule_info("variable", "line:line identifier:n !\":\" { Atomy::AST::Variable.new(line, n) }")
   Rules[:_unary] = rule_info("unary", "line:line !\":\" op_letter:o level1:e { Atomy::AST::Unary.new(line, e, o) }")
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")

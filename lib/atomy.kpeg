@@ -183,9 +183,9 @@
                     { Atomy::AST::Particle.new(line, n) }
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
-       constant = line:line constant_name:m ("::" constant_name)*:s args?:as {
+       constant = line:line constant_name:m ("::" constant_name)*:s args?:as (sp block)?:b {
                     names = [m] + Array(s)
-                    if as
+                    if as || b
                       msg = names.pop
                       Atomy::AST::Send.new(
                         line,
@@ -194,16 +194,16 @@
                             const_chain(line, names),
                         Array(as),
                         msg,
-                        nil,
+                        b,
                         true
                       )
                     else
                       const_chain(line, names)
                     end
                   }
-                | line:line ("::" constant_name)+:s args?:as {
+                | line:line ("::" constant_name)+:s args?:as (sp block)?:b {
                     names = Array(s)
-                    if as
+                    if as || b
                       msg = names.pop
                       Atomy::AST::Send.new(
                         line,
@@ -212,7 +212,7 @@
                             const_chain(line, names, true),
                         Array(as),
                         msg,
-                        nil,
+                        b,
                         true
                       )
                     else
