@@ -16,29 +16,14 @@ macro (until(cond, &body))
 macro (return(y))
   Atomy::AST::Return new(line, y)
 
-macro (begin(&x) rescue(&y))
-  Atomy::AST::Catch new(line, x body, `(~y call($exception)))
-
-macro (begin(&x) rescue(&y) else(&z))
-  Atomy::AST::Catch new(line, x body, `(~y call($exception)), z body)
-
-macro ((x: Block) rescue(&y))
-  Atomy::AST::Catch new(line, x body, `(~y call($exception)))
-
-macro ((x: Block) rescue(&y) else(&z))
-  Atomy::AST::Catch new(line, x body, `(~y call($exception)), z body)
-
 macro (x rescue(&y))
-  Atomy::AST::Catch new(line, `(~x call), `(~y call($exception)))
+  Atomy::AST::Catch new(line, x caller, y contents)
 
 macro (x rescue(&y) else(&z))
-  Atomy::AST::Catch new(line, `(~x call), `(~y call($exception)), z body)
-
-macro ((x: Block) ensuring(&y))
-  Atomy::AST::Ensure new(line, x body, y body)
+  Atomy::AST::Catch new(line, x caller, y contents, z body)
 
 macro (x ensuring(&y))
-  Atomy::AST::Ensure new(line, `(~x call), y body)
+  Atomy::AST::Ensure new(line, x caller, y body)
 
 macro (when(c, &b))
   Atomy::AST::When new(line, c, b body)

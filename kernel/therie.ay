@@ -36,10 +36,11 @@ x should-be(y) :=
     raise("expected " + y pretty render + ", got " + x pretty render)
 
 x should-raise(y) :=
-  x rescue (e):
+  x rescue {
+    e ->
       unless(e kind-of?(y)):
         raise("expected exception " + y to-s + ", got: " + e to-s)
-    else:
+  } else:
       raise("#should-raise - no exception raised")
 
 describe(x, &body) := do:
@@ -52,7 +53,8 @@ it(description, &tests) :=
   { tests call
     (Therie indentation + "✓ " + description)
       ansi-colored(#green) writeln
-  } rescue (e):
+  } rescue {
+    e -> do:
       $stats failed += 1
       (Therie indentation + "✗ " + description)
         ansi-colored(#red) writeln
@@ -60,7 +62,7 @@ it(description, &tests) :=
         ansi-colored(#yellow) writeln
       e backtrace first(5) each (l):
         (Therie indentation + "    " + l ansi-colored(#cyan)) writeln
-    else:
+  } else:
       $stats passed += 1
 
 (s: String) ansi-colored(color) := do:

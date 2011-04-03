@@ -1,12 +1,8 @@
 module Atomy
   module AST
     class Catch < Node
-      children :body, :rescue?, :else?
+      children :body, [:handlers], :else?
       generate
-
-      def condition
-        Rubinius::AST::RescueCondition.new(@line, nil, @rescue, nil)
-      end
 
       # via Rubinius::AST::Rescue
       def bytecode(g)
@@ -146,7 +142,13 @@ module Atomy
           # it.
           g.push_current_exception
 
-          condition.bytecode(g, reraise, done, outer_exc_state)
+          @handlers.each_with_index do |p, i|
+            last = i + 1 == @handlers.size
+            n = last ? nil : g.new_label
+            handler_bytecode(g, p.lhs.to_pattern, p.rhs, reraise, done, outer_exc_state, n)
+            n.set! unless last
+          end
+
           reraise.set!
 
           # Restore the exception state we saved and the reraise. The act
@@ -173,6 +175,72 @@ module Atomy
           g.restore_exception_state
         end
         g.pop_modifiers
+      end
+
+      def handler_bytecode(g, pattern, expression, reraise, done, outer_exc_state, next_handler = nil)
+        body = g.new_label
+
+        g.dup
+        pattern.matches?(g)
+        g.git body
+
+        if next_handler
+          g.goto next_handler
+        else
+          g.goto reraise
+        end
+
+        body.set!
+
+        pattern.deconstruct(g)
+
+        current_break = g.break
+        g.break = g.new_label
+
+        current_next = g.next
+        g.next = g.new_label
+
+        g.state.push_rescue(outer_exc_state)
+        expression.bytecode(g)
+        g.state.pop_rescue
+
+        g.clear_exception
+        g.goto done
+
+        if g.break.used?
+          g.break.set!
+          g.clear_exception
+
+          # Reset the outer exception
+          g.push_stack_local outer_exc_state
+          g.restore_exception_state
+
+          if current_break
+            g.goto current_break
+          else
+            g.raise_break
+          end
+        end
+
+        g.break = current_break
+
+        if g.next.used?
+          g.next.set!
+
+          g.clear_exception
+
+          # Reset the outer exception
+          g.push_stack_local outer_exc_state
+          g.restore_exception_state
+
+          if current_next
+            g.goto current_next
+          else
+            g.ret
+          end
+        end
+
+        g.next = current_next
       end
     end
   end
