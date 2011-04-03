@@ -22,17 +22,6 @@ macro (data(root, &children)) do:
           else:
             cls
 
-      Atomy::AST::Send -> do:
-        name =
-          Atomy::AST::Constant new(0, e method-name)
-
-        `(class(~name < ~root):
-            attr-accessor(~*(
-              e arguments collect (a):
-                `#~(a receiver)))
-
-            initialize(~*(e arguments)) := #ok)
-
       Atomy::AST::Constant ->
         `(class(~e < ~root):)
 
