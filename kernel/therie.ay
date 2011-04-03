@@ -1,3 +1,5 @@
+dynamic(therie-nesting-level, 0)
+
 module(Therie):
   class(Stats):
     attr-accessor(#passed, #failed)
@@ -6,9 +8,8 @@ module(Therie):
       @passed = 0
       @failed = 0
 
-  NESTING_LEVEL = 0
-
-  : self ; indentation := " " * (NESTING_LEVEL * 2)
+  { self } indentation :=
+    " " * (^therie-nesting-level * 2)
 
 theorize(&as) := do:
   $stats = Therie::Stats new
@@ -45,9 +46,8 @@ x should-raise(y) :=
 
 describe(x, &body) := do:
   (Therie indentation + "- " + x to-s) writeln
-  Therie::NESTING_LEVEL += 1
-  body call
-  Therie::NESTING_LEVEL -= 1
+  let(therie-nesting-level = ^therie-nesting-level + 1):
+    body call
 
 it(description, &tests) :=
   { tests call
