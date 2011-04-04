@@ -111,6 +111,7 @@
                 | unquote
                 | string
                 | macro_quote
+                | headless
                 | particle
                 | constant
                 | variable
@@ -118,8 +119,7 @@
                 | grouped
                 | list
                 | unary
-         level2 = macro_quote
-                | send
+         level2 = send
                 | level1
          level3 = macro
                 | for_macro
@@ -243,7 +243,9 @@
                     { Atomy::AST::Send.new(line, r, Array(as), n, b) }
                 | line:line level1:r cont(pos) args:as !":" (sp block)?:b
                     { Atomy::AST::Send.new(line, r, Array(as), "call", b) }
-                | line:line identifier:n args?:as sp block:b
+           send = sends(current_position)
+
+       headless = line:line identifier:n args?:as sp block:b
                     { Atomy::AST::Send.new(
                         line,
                         Atomy::AST::Primitive.new(line, :self),
@@ -263,7 +265,6 @@
                         true
                       )
                     }
-           send = sends(current_position)
 
   binary_c(pos) = (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { bs.flatten }
     binary_send = level2:l binary_c(current_position):c
