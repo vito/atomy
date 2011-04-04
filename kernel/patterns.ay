@@ -3,6 +3,8 @@ module(Atomy::Patterns):
     Strict(@body)
     RuntimeClass(@body, @name)
     Predicate(@pattern, @test)
+    With(@expression, @pattern)
+    And(@a, @b)
 
   class(Strict):
     construct(g) := do:
@@ -74,6 +76,79 @@ module(Atomy::Patterns):
       g push-false
 
       done set!
+
+  class(With):
+    construct(g) := do:
+      get(g)
+      @expression construct(g)
+      @pattern construct(g)
+      g send(#new, 2)
+
+    (== b) :=
+      b kind-of?(With) &&
+        @expression == b expression &&
+        @pattern == b pattern
+
+    target(g) := Any new target(g)
+
+    matches?(g) := do:
+      `{ ~@expression } bytecode(g)
+      g send(#block, 0)
+      g swap
+      g send(#call-on-instance, 1)
+      @pattern matches?(g)
+
+    deconstruct(g, locals = #[]) := do:
+      `{ ~@expression } bytecode(g)
+      g send(#block, 0)
+      g swap
+      g send(#call-on-instance, 1)
+      @pattern deconstruct(g, locals)
+
+    local-names := @pattern local-names
+
+    bindings := @pattern bindings
+
+  class(And):
+    construct(g) := do:
+      get(g)
+      @a construct(g)
+      @b construct(g)
+      g send(#new, 2)
+
+    (== b) :=
+      b kind-of?(And) &&
+        @a == b a &&
+        @b == b b
+
+    target(g) :=
+      @a target(g)
+
+    matches?(g) := do:
+      mismatch = g new-label
+      done = g new-label
+
+      g dup
+      @a matches?(g)
+      g gif(mismatch)
+
+      @b matches?(g)
+      g dup
+      g git(done)
+
+      mismatch set!
+      g pop
+      g push-false
+
+      done set!
+
+    deconstruct(g, locals = #[]) := do:
+      g dup
+      @a deconstruct(g, locals)
+      @b deconstruct(g, locals)
+
+    local-names := [@a local-names + @b local-names] uniq
+
 
 -- base patterns
 module(Atomy::AST):
