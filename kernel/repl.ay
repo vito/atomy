@@ -1,0 +1,89 @@
+require("readline")
+
+data(Condition):
+  Input(@line)
+  Special(@command)
+  Evaluated(@result)
+
+basic-repl(bnd = TOPLEVEL_BINDING) :=
+  loop:
+    prompt =
+      with-restarts(use-prompt -> (p) { p }):
+        signal(#prompt)
+        ">> "
+
+    in =
+      { Readline readline(prompt)
+      } rescue:
+        Interrupt -> do { signal(#quit), "" }
+
+    in match:
+      nil -> signal(#quit)
+
+      "" -> #ok
+
+      String ? at(0) == 58 ->
+        signal(Special new(in slice(1 .. -1)))
+
+      source -> do:
+        signal(Input new(source))
+
+        try = {
+          with-restarts(
+            retry -> { try () }
+            abort -> #ok
+          ):
+            res = Atomy::Compiler evaluate(source, bnd)
+            signal(Evaluated new(res))
+        }
+
+        try ()
+
+    signal(#loop)
+
+class(ReplDebugger):
+  class(<< self):
+    run(e) := do:
+      DefaultDebugger show-error-banner(e)
+
+      linear = DefaultDebugger show-options-for(e)
+
+      { basic-repl } bind:
+        #prompt -> restart(#use-prompt, "[!]> ")
+
+        Special(n ? (=~ r"\d+")) -> do:
+          [context, _, x] = linear at(n to-i)
+          raise(RestartException new(context, x, []))
+
+repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
+  when(history):
+    when(File exists?(history)):
+      File open(history, "r") (f):
+        f readlines each (l):
+          Readline::HISTORY << l strip
+
+  SANE_HISTORY = []
+
+  { let(debugger = ReplDebugger):
+      frame = 0
+
+      { basic-repl(bnd) } bind:
+        #prompt ->
+          restart(#use-prompt, "[" + frame to-s + "]> ")
+
+        #loop ->
+          (frame += 1)
+
+        #quit -> exit(0)
+
+        Input(str) -> (SANE_HISTORY << str)
+
+        Special("h") ->
+          ":h\thelp" writeln
+
+        Evaluated(r) ->
+          (" => " + r pretty render) writeln
+  } ensuring:
+    when(history):
+      File open(history, "a") (f):
+        f puts(*SANE_HISTORY)
