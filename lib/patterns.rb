@@ -38,15 +38,25 @@ module Atomy::Patterns
       raise Rubinius::CompileError, "no #construct for #{self}"
     end
 
-    # try pattern-matching, erroring on failure
-    # effect on the stack: top value removed
-    def match(g, set = false)
-      error = g.new_label
-      done = g.new_label
-
+    def assign(g, expr, set = false)
       locals = {}
       local_names.each do |n|
         locals[n] = Atomy.assign_local(g, n, set)
+      end
+
+      expr.bytecode(g)
+      g.dup
+      match(g, set, locals)
+    end
+
+    # try pattern-matching, erroring on failure
+    # effect on the stack: top value removed
+    def match(g, set = false, locals = {})
+      error = g.new_label
+      done = g.new_label
+
+      local_names.each do |n|
+        locals[n] ||= Atomy.assign_local(g, n, set)
       end
 
       g.dup

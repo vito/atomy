@@ -12,9 +12,7 @@ module Atomy
           return
         end
 
-        @rhs.bytecode(g)
-        g.dup
-        @lhs.to_pattern.match(g)
+        @lhs.to_pattern.assign(g, @rhs)
       end
     end
   end
