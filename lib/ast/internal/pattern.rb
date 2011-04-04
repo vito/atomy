@@ -3,7 +3,7 @@ module Atomy::AST
     attributes :pattern
     generate
 
-    def construct(g)
+    def construct(g, d = nil)
       get(g)
       g.push_int(@line)
       @pattern.construct(g)
