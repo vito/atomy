@@ -40,3 +40,6 @@ module(Atomy::AST):
 
   `*~x to-pattern :=
     Atomy::Patterns::Splat new(x to-pattern)
+
+  (x: `(Particle at)) to-pattern :=
+    Atomy::Patterns::List new(x arguments collect (x): x to-pattern)
