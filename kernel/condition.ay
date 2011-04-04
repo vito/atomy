@@ -57,6 +57,7 @@ class(DefaultDebugger):
       when(linear empty?):
         exit(1)
 
+      "\n" write
       "restarts:" writeln
       linear each-with-index ([_, n, _], i):
         ("  :" + i to-s + " -> " + n to-s) writeln
