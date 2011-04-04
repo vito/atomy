@@ -117,3 +117,6 @@ class(Particle < Array):
         self at(idx) put(a)
 
     first send(*drop(1))
+
+class(Symbol):
+  call(*args) := to-proc (*args)
