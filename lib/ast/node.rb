@@ -342,6 +342,10 @@ EOF
           "call"
         )
       end
+
+      def expand
+        Atomy::Macro.expand(self)
+      end
     end
 
     class Node < Rubinius::AST::Node
