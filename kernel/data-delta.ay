@@ -112,7 +112,9 @@ macro (#(x: BinarySend))
 
 Array rest := drop(1)
 
-Array call(*args) := do:
+Array call(*args) := to-proc (*args)
+
+Array to-proc := (*args):
   args each (a):
     idx = find-index (x): x equal?(_undefined)
     when(idx):

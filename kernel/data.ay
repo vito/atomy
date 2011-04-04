@@ -49,13 +49,16 @@ macro (x for(e) in(c) if(t)) names (tmp):
 
 class(Object):
   dynamic-method(#at) (g):
-    g total-args = 1
-    g required-args = 1
+    g total-args = 0
+    g required-args = 0
     g local-count = 1
+    g splat-index = 0
 
     g push-self
     g push-local(0)
-    g send("[]" to-sym, 1)
+    g cast-array
+    g push-block
+    g send-with-splat("[]" to-sym, 0)
     g ret
 
 class(Atomy::AST::Undefined < Atomy::AST::Node):
