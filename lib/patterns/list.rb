@@ -29,6 +29,13 @@ module Atomy::Patterns
       mismatch = g.new_label
 
       g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.gif mismatch
+
+      g.dup
       g.send :size, 0
       g.push @patterns.size
       g.send :==, 1
