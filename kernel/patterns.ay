@@ -53,10 +53,7 @@ module(Atomy::Patterns):
         @pattern == b pattern &&
         @test == b test
 
-    target(g) :=
-      if(@pattern)
-        then: Any new target(g)
-        else: @pattern target(g)
+    target(g) := @pattern target(g)
 
     matches?(g) := do:
       mismatch = g new-label
@@ -66,7 +63,7 @@ module(Atomy::Patterns):
       @pattern matches?(g)
       g gif(mismatch)
 
-      `: ~@test ; bytecode(g)
+      `{ ~@test } bytecode(g)
       g send(#block, 0)
       g swap
       g send(#call-on-instance, 1)

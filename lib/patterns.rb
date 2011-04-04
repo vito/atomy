@@ -80,7 +80,7 @@ module Atomy::Patterns
 
     # number of bindings
     def bindings
-      0
+      locals
     end
 
     # test if a pattern matches a value
