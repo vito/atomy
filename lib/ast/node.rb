@@ -394,3 +394,9 @@ class Array
     Atomy::AST::List.new -1, collect(&:to_node)
   end
 end
+
+class NilClass
+  def to_node
+    Atomy::AST::Primitive.new -1, :nil
+  end
+end
