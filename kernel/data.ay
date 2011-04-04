@@ -57,3 +57,12 @@ class(Object):
     g push-local(0)
     g send("[]" to-sym, 1)
     g ret
+
+class(Atomy::AST::Undefined < Atomy::AST::Node):
+  generate
+
+  bytecode(g) := do:
+    pos(g)
+    g push-undef
+
+  to-pattern := Atomy::Patterns::Any new

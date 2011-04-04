@@ -80,3 +80,42 @@ for-macro quoter(#r) (c, fs):
   `(Regexp new(~c, ~flags))
 
 for-macro quoter(#raw) (c): c
+
+for-macro
+  class(<< self):
+    wildcard('_) := '_undefined
+    wildcard(x) := x
+
+macro (_undefined)
+  Atomy::AST::Undefined new(line)
+
+macro (#(x: Send)) do:
+  args =
+    if(x block)
+      then: x block contents collect (c): wildcard(c)
+      else: []
+
+  `([ ~(if(x private)
+          then: '_undefined
+          else: wildcard(x receiver))
+      ~(Atomy::AST::Particle new(0, x method-name))
+      ~*(args)
+    ])
+
+macro (#(x: BinarySend))
+  `([ ~(if(x private)
+          then: '_undefined
+          else: wildcard(x lhs))
+      ~(Atomy::AST::Particle new(0, x operator))
+      ~(wildcard(x rhs))
+    ])
+
+Array rest := drop(1)
+
+Array call(*args) := do:
+  args each (a):
+    idx = find-index (x): x equal?(_undefined)
+    when(idx):
+      self at(idx) put(a)
+
+  first send(*rest)
