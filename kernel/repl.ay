@@ -1,10 +1,5 @@
 require("readline")
 
-data(Condition):
-  Input(@line)
-  Special(@command)
-  Evaluated(@result)
-
 basic-repl(bnd = TOPLEVEL_BINDING) :=
   loop:
     prompt =
@@ -23,10 +18,10 @@ basic-repl(bnd = TOPLEVEL_BINDING) :=
       "" -> #ok
 
       String ? at(0) == 58 ->
-        signal(Special new(in slice(1 .. -1)))
+        signal(#(special: in slice(1 .. -1)))
 
       source -> do:
-        signal(Input new(source))
+        signal(#(input: source))
 
         try = {
           with-restarts(
@@ -34,7 +29,7 @@ basic-repl(bnd = TOPLEVEL_BINDING) :=
             abort -> #ok
           ):
             res = Atomy::Compiler evaluate(source, bnd)
-            signal(Evaluated new(res))
+            signal(#(evaluated: res))
         }
 
         try ()
@@ -51,7 +46,7 @@ class(ReplDebugger):
       { basic-repl } bind:
         #prompt -> restart(#use-prompt, "[!]> ")
 
-        Special(n ? (=~ r"\d+")) -> do:
+        #(special: n ? (=~ r"\d+")) -> do:
           [context, _, x] = linear at(n to-i)
           raise(RestartException new(context, x, []))
 
@@ -75,12 +70,12 @@ repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
 
         #quit -> exit(0)
 
-        Input(str) -> (SANE_HISTORY << str)
+        #(input: str) -> (SANE_HISTORY << str)
 
-        Special("h") ->
+        #(special: "h") ->
           ":h\thelp" writeln
 
-        Evaluated(r) ->
+        #(evaluated: r) ->
           (" => " + r pretty render) writeln
   } ensuring:
     when(history):
