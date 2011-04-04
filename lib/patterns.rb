@@ -107,6 +107,12 @@ module Atomy::Patterns
     require path + "/#{File.basename f}"
   end
 
+  class Atomy::AST::Node
+    def to_pattern
+      raise "unknown pattern: #{inspect}"
+    end
+  end
+
   class Atomy::AST::Variable
     def to_pattern
       if @name == "_"

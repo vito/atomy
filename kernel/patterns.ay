@@ -77,3 +77,59 @@ module(Atomy::Patterns):
       g push-false
 
       done set!
+
+-- base patterns
+module(Atomy::AST):
+  Variable to-pattern :=
+    Atomy::Patterns::Named new(
+      @name
+      Atomy::Patterns::Any new
+    )
+
+  Primitive to-pattern :=
+    Atomy::Patterns::Match new(@value)
+
+  List to-pattern :=
+    Atomy::Patterns::List new(
+      @elements collect (e): e to-pattern
+    )
+
+  Constant to-pattern :=
+    Atomy::Patterns::Constant new(self)
+
+  ScopedConstant to-pattern :=
+    Atomy::Patterns::Constant new(self)
+
+  ToplevelConstant to-pattern :=
+    Atomy::Patterns::Constant new(self)
+
+  Quote to-pattern :=
+    Atomy::Patterns::Quote new(@expression)
+
+  Block to-pattern := Atomy::Patterns::Metaclass new(self)
+
+  Particle to-pattern :=
+    Atomy::Patterns::Particle new(@name to-sym)
+
+  Send to-pattern :=
+    if(@block)
+      then:
+        Atomy::Patterns::Named new(
+          @method-name
+          @block contents at(0) to-pattern
+        )
+      else:
+        -- TODO: Unary -> Attribute
+        Atomy::Patterns::Unary new(
+          @receiver
+          @method-name
+        )
+
+  QuasiQuote to-pattern :=
+    Atomy::Patterns::QuasiQuote new(self)
+
+  String to-pattern :=
+    Atomy::Patterns::Match new(@value)
+
+  Node to-pattern :=
+    raise("unknown pattern: " + self inspect)

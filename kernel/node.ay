@@ -1,69 +1,42 @@
-module(Atomy::Patterns):
-  module(Atomy::AST):
-    '_ to-pattern := Any new
+module(Atomy::AST):
+  '_ to-pattern :=
+    Atomy::Patterns::Any new
 
-    Variable to-pattern :=
-      Named new(@name, Any new)
+  `(~h . ~t) to-pattern :=
+    Atomy::Patterns::HeadTail new(h to-pattern, t to-pattern)
 
-    Primitive to-pattern :=
-      Atomy::Patterns::Match new(@value)
+  `(~p = ~d) to-pattern :=
+    Atomy::Patterns::Default new(p to-pattern, d)
 
-    List to-pattern :=
-      Atomy::Patterns::List new(@elements collect (e): e to-pattern)
+  `(== ~v) to-pattern :=
+    Atomy::Patterns::Strict new(v)
 
-    Constant to-pattern :=
-      Atomy::Patterns::Constant new(self)
+  `(? ~t) to-pattern :=
+    Atomy::Patterns::Predicate new(Any new, t)
 
-    ScopedConstant to-pattern :=
-      Atomy::Patterns::Constant new(self)
+  `(~p ? ~t) to-pattern :=
+    Atomy::Patterns::Predicate new(p to-pattern, t)
 
-    ToplevelConstant to-pattern :=
-      Atomy::Patterns::Constant new(self)
+  `(~a & ~b) to-pattern :=
+    Atomy::Patterns::And new(a to-pattern, b to-pattern)
 
-    `(~h . ~t) to-pattern :=
-      HeadTail new(h to-pattern, t to-pattern)
+  `(with(~attr, ~p)) to-pattern :=
+    Atomy::Patterns::With new(attr, p to-pattern)
 
-    `(~p = ~d) to-pattern :=
-      Default new(p to-pattern, d)
+  `@@~n to-pattern :=
+    Atomy::Patterns::NamedClass new(n name)
 
-    `(== ~v) to-pattern := Strict new(v)
+  `$~n to-pattern :=
+    Atomy::Patterns::NamedGlobal new(n name)
 
-    `(? ~t) to-pattern := Predicate new(Any new, t)
+  `@~n to-pattern :=
+    Atomy::Patterns::NamedInstance new(n name)
 
-    `(~p ? ~t) to-pattern := Predicate new(p to-pattern, t)
+  `%~x to-pattern :=
+    Atomy::Patterns::RuntimeClass new(x, nil)
 
-    Quote to-pattern :=
-      Atomy::Patterns::Quote new(@expression)
+  `&~x to-pattern :=
+    Atomy::Patterns::BlockPass new(x to-pattern)
 
-    Block to-pattern := Atomy::Patterns::Metaclass new(self)
-
-    `@@~n to-pattern := NamedClass new(n name)
-
-    `$~n to-pattern := NamedGlobal new(n name)
-
-    `@~n to-pattern := NamedInstance new(n name)
-
-    `%~x to-pattern := RuntimeClass new(x, nil)
-
-    `&~x to-pattern :=
-      Atomy::Patterns::BlockPass new(x to-pattern)
-
-    `*~x to-pattern :=
-      Atomy::Patterns::Splat new(x to-pattern)
-
-    Particle to-pattern :=
-      Atomy::Patterns::Particle new(@name to-sym)
-
-    Send to-pattern :=
-      if(@block)
-        then: Named new(@method-name, @block contents at(0) to-pattern)
-        else: Atomy::Patterns::Unary new(@receiver, @method-name)
-
-    QuasiQuote to-pattern :=
-      Atomy::Patterns::QuasiQuote new(self)
-
-    String to-pattern :=
-      Atomy::Patterns::Match new(@value)
-
-    Node to-pattern :=
-      raise("unknown pattern: " + self inspect)
+  `*~x to-pattern :=
+    Atomy::Patterns::Splat new(x to-pattern)
