@@ -150,6 +150,23 @@ doc(&body) := with(Pretty, &body)
 Array pretty :=
   doc: brackets(Atomy::AST comma-delim(self))
 
+Particle pretty := doc:
+  wildcard = (c):
+    if(c equal?(_undefined))
+      then: '_
+      else: c
+
+  msg+args =
+    text(message to-s) <>
+      parens(Atomy::AST comma-delim(arguments collect(&#(wildcard (_)))))
+
+  partial =
+    if(receiver equal?(_undefined))
+      then: msg+args
+      else: parens(receiver pretty <+> msg+args)
+
+  text("#") <> partial
+
 module(Atomy::AST):
   : self ; comma-delim(es) := doc:
     hsep(comma punctuate(es map (e): e pretty))
