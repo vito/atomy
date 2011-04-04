@@ -77,6 +77,13 @@ module(Atomy::Patterns):
 
       done set!
 
+    deconstruct(g, locals = #[]) :=
+      @pattern deconstruct(g, locals)
+
+    local-names := @pattern local-names
+
+    bindings := @pattern bindings
+
   class(With):
     construct(g) := do:
       get(g)
