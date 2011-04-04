@@ -111,12 +111,20 @@ class(Particle < Array):
   call(*args) := to-proc (*args)
 
   to-proc := (*args):
-    args each (a):
-      idx = find-index (x): x equal?(_undefined)
-      when(idx):
-        self at(idx) put(a)
+    x = dup
 
-    first send(*drop(1))
+    args each (a):
+      idx = x find-index (a):
+        a equal?(_undefined)
+
+      when(idx):
+        x at(idx) put(a)
+
+    x first send(*(x drop(1)))
+
+  receiver := at(0)
+  message := at(1)
+  arguments := drop(2)
 
 class(Symbol):
   call(*args) := to-proc (*args)
