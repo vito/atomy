@@ -75,11 +75,9 @@ for-macro
 
 
 -- register handlers for executing some action
-macro (x bind(&y)) names (context):
-  handlers = y contents collect (`(~p -> ~e)):
-    `[~(p to-pattern), ~(to-block(e))]
-
-  `(let(handlers = ^handlers + [~*(handlers reverse)]):
+macro (x bind(&y)) names (a):
+  callback = `((~a): ~a match: ~*(y contents))
+  `(let(handlers = ^handlers + [~callback]):
       ~(x caller))
 
 -- register restarts available to handlers for the duration
@@ -100,9 +98,8 @@ macro (with-restarts(*restarts, &body)) names (context):
 
 -- send a signal through the handlers, nearest-first
 signal(c) := do:
-  ^handlers reverse-each ([pat, callback]):
-    when(pat === c):
-      callback (c)
+  ^handlers reverse-each (callback):
+    callback (c)
 
   #ok
 
