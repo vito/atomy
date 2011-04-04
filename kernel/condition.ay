@@ -1,0 +1,136 @@
+dynamic(handlers, [])
+dynamic(restarts, [])
+
+-- Exceptions used by condition system
+data(RuntimeError):
+  NoRestartError(@name)
+
+data(Exception):
+  RestartException(@context, @receiver, @args)
+
+NoRestartError initialize(@name) :=
+  super("unknown restart: " + @name)
+
+RestartException initialize(@context, @receiver, @args) :=
+  super("you should never see or `rescue' this")
+
+
+-- Base condition hierarchy
+data(Object):
+  Condition:
+    Error:
+      SimpleError(@value)
+
+    Warning:
+      SimpleWarning(@value)
+
+SimpleError message := "ERROR: " + @value to-s
+SimpleWarning message := "WARNING: " + @value to-s
+
+
+-- Default debugger; show the error message and let them
+-- pick from the available restarts.
+class(DefaultDebugger):
+  class(<< self):
+    define(run(e)):
+      show-error-banner(e)
+
+      linear = show-options-for(e)
+
+      "!> " write
+      [context, _, x] = linear at(gets to-i)
+      raise(RestartException new(context, x, []))
+
+    define(show-error-banner(e)):
+      ("-" * 78) writeln
+      e message each-line (l):
+        ("*** " + l) write
+
+      "\n" write
+
+    define(show-options-for(e)):
+      linear = []
+      ^restarts reverse-each ([rs, context]):
+        rs each-pair (n, x):
+          linear << [context, n, x]
+
+      when(linear empty?):
+        exit(1)
+
+      "restarts:" writeln
+      linear each-with-index ([_, n, _], i):
+        ("  :" + i to-s + " -> " + n to-s) writeln
+
+
+-- the current debugging handler; should be an object
+-- that will respond to #run with the error passed.
+dynamic(debugger, DefaultDebugger)
+
+
+-- helpers
+for-macro
+  class(<< self):
+    to-block(b: Atomy::AST::Block) := b
+    to-block(x) := `{ ~x }
+
+
+-- register handlers for executing some action
+macro (x bind(&y)) names (context):
+  handlers = y contents collect (`(~p -> ~e)):
+    `[~(p to-pattern), ~(to-block(e))]
+
+  `(let(handlers = ^handlers + [~*(handlers reverse)]):
+      ~(x caller))
+
+-- register restarts available to handlers for the duration
+-- of some action's executation
+macro (with-restarts(*restarts, &body)) names (context):
+  rs = restarts collect (`(~n -> ~e)):
+    `(#~n -> ~(to-block(e)))
+
+  `({ ~context = Object new
+
+      { let(restarts = ^restarts + [[#[~*rs], ~context]]):
+          ~(body caller)
+      } rescue:
+          (e: RestartException ? @context equal?(~context)) ->
+            e receiver call(*(e args))
+    }) body
+
+
+-- send a signal through the handlers, nearest-first
+signal(c) := do:
+  ^handlers reverse-each ([pat, callback]):
+    when(pat === c):
+      callback (c)
+
+  #ok
+
+-- send a signal, and start the debugger if none handle it
+error(v) := error(SimpleError new(v))
+error(e: Error) := do:
+  signal(e)
+
+  with-output-to(^error-port):
+    ^debugger run(e)
+
+-- send a signal, and write the message to the error port
+warning(v) := warning(SimpleWarning new(v))
+warning(w: Warning) :=
+  with-restarts(muffle-warning -> #ok):
+    signal(w)
+
+    with-output-to(^error-port):
+      w message writeln
+
+  #ok
+
+
+-- call a restart with the given args
+restart(name, *args) := do:
+  ^restarts reverse-each ([rs, context]):
+    rs at(name) match:
+      (x: Proc) ->
+        raise(RestartException new(context, x, args))
+
+  raise(NoRestartError new(name))
