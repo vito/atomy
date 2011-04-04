@@ -56,11 +56,10 @@ class(ReplDebugger):
           raise(RestartException new(context, x, []))
 
 repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
-  when(history):
-    when(File exists?(history)):
-      File open(history, "r") (f):
-        f readlines each (l):
-          Readline::HISTORY << l strip
+  when(history && File exists?(history)):
+    File open(history, "r") (f):
+      f readlines each (l):
+        Readline::HISTORY << l strip
 
   SANE_HISTORY = []
 
