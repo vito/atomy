@@ -1249,11 +1249,14 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level2 = (send | level1)
+  # level2 = (macro_quote | send | level1)
   def _level2
 
     _save = self.pos
     while true # choice
+    _tmp = apply(:_macro_quote)
+    break if _tmp
+    self.pos = _save
     _tmp = apply(:_send)
     break if _tmp
     self.pos = _save
@@ -5050,7 +5053,7 @@ class Atomy::Parser
   Rules[:_expression] = rule_info("expression", "level3")
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }")
   Rules[:_level1] = rule_info("level1", "(true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | macro_quote | particle | constant | variable | block | grouped | list | unary)")
-  Rules[:_level2] = rule_info("level2", "(send | level1)")
+  Rules[:_level2] = rule_info("level2", "(macro_quote | send | level1)")
   Rules[:_level3] = rule_info("level3", "(macro | for_macro | op_assoc_prec | binary_send | level2)")
   Rules[:_true] = rule_info("true", "line:line \"true\" !identifier { Atomy::AST::Primitive.new(line, :true) }")
   Rules[:_false] = rule_info("false", "line:line \"false\" !identifier { Atomy::AST::Primitive.new(line, :false) }")

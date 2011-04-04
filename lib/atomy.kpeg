@@ -118,7 +118,8 @@
                 | grouped
                 | list
                 | unary
-         level2 = send
+         level2 = macro_quote
+                | send
                 | level1
          level3 = macro
                 | for_macro
