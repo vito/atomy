@@ -5,22 +5,49 @@ macro (data(root, &children)) do:
         name =
           Atomy::AST::Constant new(0, e method-name)
 
-        cls =
-          `(class(~name < ~root):
-              attr-accessor(~*(
-                e arguments collect (a):
-                  `#~(a receiver)))
+        pat = name
 
-              initialize(~*(e arguments)) := #ok)
+        tmps = names(e arguments size) collect (t):
+          Atomy::AST::Unquote new(0, t)
+
+        e arguments zip(tmps) ([a, t]):
+          pat =! `(~pat & with(~a, ~t))
+
+        pat = pat expand
+
+        cons = Atomy::AST::Send new(
+          0
+          'self
+          tmps
+          name identifier
+          nil
+          true
+        )
+
+        pat-def =
+          `(~(Atomy::AST::QuasiQuote new(0, cons)) to-pattern :=
+              ~(Atomy::AST::QuasiQuote new(0, pat)) to-pattern)
+
+        define =
+          `({ class(~name < ~root):
+                attr-accessor(~*(
+                  e arguments collect (a):
+                    `#~(a receiver)))
+
+                initialize(~*(e arguments)) := #ok
+
+              ~pat-def
+            }) body
 
         if(e block)
           then:
-            `({ ~cls
+            `({ ~define
+
                 data(~name):
                   ~*(e block contents)
               }) body
           else:
-            cls
+            define
 
       Atomy::AST::Constant ->
         `(class(~e < ~root):)
