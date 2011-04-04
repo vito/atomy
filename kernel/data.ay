@@ -39,24 +39,6 @@ macro (x at(y) put(z))
     "[]="
   )
 
-for-macro quoter(#w) (c): c split
-
-for-macro quoter(#r) (c, fs):
-  flags = 0
-
-  when(fs include?("m")):
-    flags |= Regexp::MULTILINE
-
-  when(fs include?("i")):
-    flags |= Regexp::IGNORECASE
-
-  when(fs include?("x")):
-    flags |= Regexp::EXTENDED
-
-  `(Regexp new(~c, ~flags))
-
-for-macro quoter(#raw) (c): c
-
 macro (x for(e) in(c)) `(~c collect (~e): ~x)
 
 macro (x for(e) in(c) if(t)) names (tmp):
