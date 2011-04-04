@@ -147,6 +147,9 @@ doc(&body) := with(Pretty, &body)
 
 (o: Object) pretty := Doc text(inspect)
 
+Array pretty :=
+  doc: brackets(Atomy::AST comma-delim(self))
+
 module(Atomy::AST):
   : self ; comma-delim(es) := doc:
     hsep(comma punctuate(es map (e): e pretty))
@@ -215,10 +218,6 @@ module(Atomy::AST):
   ScopedConstant pretty := doc:
     @parent pretty <> text("::") <> text(name to-s)
 
-  String pretty := @value pretty
-
-  ToplevelConstant pretty := doc: text("::") <> text(name to-s)
-
   Send pretty := doc:
     block = if(@block) then: @block pretty; else: empty
 
@@ -233,6 +232,12 @@ module(Atomy::AST):
         @receiver pretty <+> text(@method-name) <> args <+> block
 
   Splice pretty := doc: text("~*") <> parens(@expression pretty)
+
+  String pretty := @value pretty
+
+  ToplevelConstant pretty := doc: text("::") <> text(name to-s)
+
+  Unary pretty := doc: text(@operator) <> parens(@receiver pretty)
 
   Unquote pretty := doc: text("~") <> parens(@expression pretty)
 
