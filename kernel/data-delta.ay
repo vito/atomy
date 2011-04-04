@@ -89,18 +89,13 @@ for-macro
 macro (_undefined)
   Atomy::AST::Undefined new(line)
 
-macro (#(x: Send)) do:
-  args =
-    if(x block)
-      then: x block contents collect (c): wildcard(c)
-      else: []
-
+macro (#(x: Send))
   `(Particle at(
       ~(if(x private)
           then: '_undefined
           else: wildcard(x receiver))
       ~(Atomy::AST::Particle new(0, x method-name))
-      ~*(args)
+      ~*(x arguments collect (c): wildcard(c))
     ))
 
 macro (#(x: BinarySend))
