@@ -2,7 +2,8 @@ module Atomy
   module AST
     class Send < Node
       children :receiver, [:arguments], :block?
-      attributes :method_name, [:private, false]
+      attributes :method_name
+      slots [:private, "false"]
       generate
 
       def register_macro(body)

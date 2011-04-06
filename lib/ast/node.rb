@@ -27,14 +27,24 @@ module Atomy
         }
       end
 
+      def reset_slots
+        @@slots = {
+          :required => [],
+          :many => [],
+          :optional => []
+        }
+      end
+
       def inherited(sub)
         reset_children
         reset_attributes
+        reset_slots
       end
 
       def self.extended(sub)
         sub.reset_children
         sub.reset_attributes
+        sub.reset_slots
       end
 
       def spec(into, specs)
@@ -55,6 +65,10 @@ module Atomy
 
       def attributes(*specs)
         spec(@@attributes, specs)
+      end
+
+      def slots(*specs)
+        spec(@@slots, specs)
       end
 
       def children(*specs)
@@ -89,12 +103,19 @@ END
         all = []
         args = ""
         (@@children[:required] + @@children[:many] +
-         @@attributes[:required] + @@attributes[:many]).each do |x|
+         @@attributes[:required] + @@attributes[:many] +
+         @@slots[:required] + @@slots[:many]).each do |x|
           all << x.to_s
           args << ", #{x}_"
         end
 
         (@@children[:optional] + @@attributes[:optional]).each do |x, d|
+          all << x.to_s
+          args << ", #{x}_ = #{d}"
+        end
+
+        non_slots = all.dup
+        @@slots[:optional].each do |x, d|
           all << x.to_s
           args << ", #{x}_ = #{d}"
         end
@@ -131,11 +152,23 @@ EOF
                 "@#{a}.each { |n| g.push_literal n }; g.make_array(@#{a}.size)"
               }.join("; ")}
 
+            #{@@slots[:required].collect { |a|
+                "g.push_literal(@#{a})"
+              }.join("; ")}
+
+            #{@@slots[:many].collect { |a|
+                "@#{a}.each { |n| g.push_literal n }; g.make_array(@#{a}.size)"
+              }.join("; ")}
+
             #{@@children[:optional].collect { |n, _|
                 "if @#{n}; @#{n}.construct(g, d); else; g.push_nil; end"
               }.join("; ")}
 
             #{@@attributes[:optional].collect { |a, _|
+                "g.push_literal(@#{a})"
+              }.join("; ")}
+
+            #{@@slots[:optional].collect { |a, _|
                 "g.push_literal(@#{a})"
               }.join("; ")}
 
@@ -146,7 +179,7 @@ EOF
         class_eval <<EOF
           def ==(b)
             b.kind_of?(#{self.name}) \\
-            #{all.collect { |a| " and @#{a} == b.#{a}" }.join}
+            #{non_slots.collect { |a| " and @#{a} == b.#{a}" }.join}
           end
 EOF
 
@@ -174,6 +207,15 @@ EOF
             ", @#{a}"
           }.join
 
+        req_ss =
+          (@@slots[:required] + @@slots[:many]).collect { |a|
+            ", @#{a}"
+          }.join
+
+        opt_ss = @@slots[:optional].collect { |a, _|
+            ", @#{a}"
+          }.join
+
         class_eval <<EOF
           def recursively(pre = nil, post = nil, context = nil, &f)
             if pre and pre.arity == 2
@@ -197,7 +239,7 @@ EOF
             end
 
             recursed = #{self.name}.new(
-              @line#{req_cs + many_cs + req_as + opt_cs + opt_as}
+              @line#{req_cs + many_cs + req_as + req_ss + opt_cs + opt_as + opt_ss}
             )
 
             if f.arity == 2
@@ -225,6 +267,16 @@ EOF
         class_eval <<EOF
           def details
             #{attrs.inspect}
+          end
+EOF
+
+        slots =
+          @@slots[:required] + @@slots[:many] +
+            @@slots[:optional].collect(&:first)
+
+        class_eval <<EOF
+          def slots
+            #{slots.inspect}
           end
 EOF
       end
