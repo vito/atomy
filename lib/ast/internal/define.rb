@@ -94,7 +94,8 @@ module Atomy
 
         if defn
           g.push_false
-          g.push_literal :dynamic
+          g.push_scope
+          g.send :active_path, 0
           g.push_int @line
           g.send :build_method, 5
           g.push_scope
