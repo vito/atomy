@@ -30,7 +30,7 @@ macro (x match(&b))
   `(do: ~(Atomy::AST::Match new(line, x, b)))
 
 macro (class(`(<< ~obj), &body))
-  Atomy::AST::Metaclass new(obj line, obj, body block-body)
+  Atomy::AST::SingletonClass new(obj line, obj, body block-body)
 
 macro (class(`(~name < ~sup), &body))
   Atomy::AST::Class new(name line, name, body block-body, sup)

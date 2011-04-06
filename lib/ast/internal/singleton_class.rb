@@ -1,6 +1,6 @@
 module Atomy
   module AST
-    class Metaclass < Node
+    class SingletonClass < Node
       children :receiver, :body
       generate
 

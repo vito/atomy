@@ -95,7 +95,7 @@ module Atomy::Patterns
 
     # test if a pattern matches a value
     def ===(v)
-      metaclass.dynamic_method(:===) do |g|
+      singleton_class.dynamic_method(:===) do |g|
         g.total_args = g.required_args = g.local_count = 1
         g.push_local(0)
         matches?(g)
@@ -198,7 +198,7 @@ module Atomy::Patterns
 
   class Atomy::AST::Block
     def to_pattern
-      Metaclass.new(self)
+      SingletonClass.new(self)
     end
   end
 

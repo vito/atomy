@@ -185,7 +185,8 @@ module(Atomy::AST):
   Quote to-pattern :=
     Atomy::Patterns::Quote new(@expression)
 
-  Block to-pattern := Atomy::Patterns::Metaclass new(self)
+  Block to-pattern :=
+    Atomy::Patterns::SingletonClass new(self)
 
   Particle to-pattern :=
     Atomy::Patterns::Particle new(@name to-sym)

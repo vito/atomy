@@ -1,12 +1,12 @@
 module(Atomy::Patterns):
   -- pattern precision hierarchy, from least precise to most
-  -- TODO: Strict, Predicate, Metaclass, RuntimeClass
+  -- TODO: Strict, Predicate, SingletonClass, RuntimeClass
   PRECISION =
     [ [ Any, BlockPass, Splat, Unary,
         NamedClass, NamedGlobal, NamedInstance
       ]
 
-      [Constant, Metaclass]
+      [Constant, SingletonClass]
 
       [HeadTail]
 
@@ -112,7 +112,7 @@ module(Atomy::Patterns):
   (a: Match) =~ (b: Match) :=
     a value == b value
 
-  (a: Metaclass) =~ (b: Metaclass) :=
+  (a: SingletonClass) =~ (b: SingletonClass) :=
     a body == b body
 
   NamedClass =~ NamedClass := true

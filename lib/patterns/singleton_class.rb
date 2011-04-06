@@ -1,5 +1,5 @@
 module Atomy::Patterns
-  class Metaclass < Pattern
+  class SingletonClass < Pattern
     attr_reader :body
 
     def initialize(body)
@@ -13,14 +13,14 @@ module Atomy::Patterns
     end
 
     def ==(b)
-      b.kind_of?(Metaclass) and \
+      b.kind_of?(SingletonClass) and \
       @body == b.body
     end
 
     def target(g)
       @body.bytecode(g)
       g.send :call, 0
-      g.send :metaclass, 0
+      g.send :singleton_class, 0
     end
 
     def matches?(g)

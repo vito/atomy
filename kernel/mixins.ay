@@ -29,7 +29,7 @@ module(Atomy::Mixins):
 
 -- based on Blockenspiel and Mixology
 obj unmix(mod: Module) := do:
-  last-super = obj metaclass
+  last-super = obj singleton-class
   this-super = last-super direct-superclass
 
   while(this-super) ():

@@ -75,7 +75,7 @@ module Atomy
         methods[name] = [method]
       end
 
-      Atomy.add_method(CURRENT_ENV.metaclass, name, methods[name], nil, :public, true)
+      Atomy.add_method(CURRENT_ENV.singleton_class, name, methods[name], nil, :public, true)
     end
 
     def self.expand?(node)

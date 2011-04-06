@@ -39,7 +39,7 @@ module Atomy
     min_reqs = nil
     reqs = 0
     defs = 0
-    g.local_names = branches.collect do |pats, meth|
+    g.local_names = branches.collect do |pats, _|
       segs = segments(pats[1])
       min_reqs ||= segs[0].size
       min_reqs = [min_reqs, segs[0].size].min
