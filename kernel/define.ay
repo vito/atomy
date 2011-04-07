@@ -5,6 +5,7 @@ macro(x =! y):
   Atomy::AST::Set new(x line, x, y)
 
 macro(x := y):
+  Atomy::Namespace register(x namespace-symbol to-sym)
   Atomy::AST::Define new(x line, x, y)
 
 macro(define(x, &y)):

@@ -11,6 +11,7 @@ end
 
 module Atomy
   OPERATORS = {}
+  STATE = {}
 
   module Macro
     def self.set_op_info(ops, assoc, prec)
@@ -64,8 +65,10 @@ module Atomy
     CURRENT_ENV = Environment.new
 
     def self.register(name, args, body)
+      ns = Atomy::Namespace.get
+      name = ns.name.to_s + "/" + name if ns
       name = (intern name).to_sym
-      body = expand(body).resolve # TODO: verify this
+      body = expand(body).resolve
 
       methods = CURRENT_ENV.macros
       method = [[Patterns::Any.new, args], body]
@@ -123,59 +126,73 @@ module Atomy
     end
 
     # take a node and return its expansion
-    def self.expand(root)
-      root.through_quotes(proc { |x| expand? x }) do |node|
-        name = node.method_name
-        unless node.kind_of?(AST::MacroQuote) ||
-                name && CURRENT_ENV.respond_to?(intern name)
-          next no_macro(node)
-        end
+    def self.expand(node)
+      name = node.method_name
+      meth = name && intern(name).to_sym
 
-        CURRENT_ENV.line ||= node.line
+      return node unless name
 
-        begin
-          case node
-          when AST::BinarySend
-            expand_res CURRENT_ENV.send(
-              (intern name).to_sym,
-              nil,
-              node.lhs,
-              node.rhs
-            )
-          when AST::Send
-            expand_res CURRENT_ENV.send(
-              (intern name).to_sym,
-              node.block,
-              node.receiver,
-              *node.arguments
-            )
-          when AST::Unary
-            expand_res CURRENT_ENV.send(
-              (intern name).to_sym,
-              nil,
-              node.receiver
-            )
-          when AST::Variable
-            expand_res CURRENT_ENV.send(
-              (intern name).to_sym
-            )
-          when AST::MacroQuote
-            expand_res CURRENT_ENV.quote(
-              node.name,
-              node.contents,
-              node.flags
-            )
-          else
-            # just stopping
-            no_macro(node)
-          end
-        rescue MethodFail, ArgumentError => e
-          # expand normally if the macro doesn't seem to be a match
-          raise unless e.instance_variable_get("@method_name") == intern(name).to_sym
-          no_macro(node)
-        ensure
-          CURRENT_ENV.line = nil
+      methods = []
+      if name && ns = Atomy::Namespace.get
+        ([ns.name] + ns.using).each do |n|
+          methods << intern(n.to_s + "/" + name).to_sym
         end
+      end
+
+      methods << intern(name).to_sym
+
+      expanded = nil
+      methods.each do |meth|
+        next unless CURRENT_ENV.respond_to?(meth)
+
+        expanded = expand_node(node, meth)
+        break if expanded
+      end
+
+      #p [expanded ? :success! : :failure, name]
+
+      expanded || node
+    end
+
+    def self.expand_node(node, meth)
+      CURRENT_ENV.line ||= node.line
+
+      begin
+        case node
+        when AST::BinarySend
+          expand_res CURRENT_ENV.send(
+            meth,
+            nil,
+            node.lhs,
+            node.rhs
+          )
+        when AST::Send
+          expand_res CURRENT_ENV.send(
+            meth,
+            node.block,
+            node.receiver,
+            *node.arguments
+          )
+        when AST::Unary
+          expand_res CURRENT_ENV.send(
+            meth,
+            nil,
+            node.receiver
+          )
+        when AST::Variable
+          expand_res CURRENT_ENV.send(
+            meth
+          )
+        else
+          # just stopping
+          nil
+        end
+      rescue MethodFail, ArgumentError => e
+        # expand normally if the macro doesn't seem to be a match
+        raise unless e.instance_variable_get("@method_name") == meth
+        nil
+      ensure
+        CURRENT_ENV.line = nil
       end
     end
 

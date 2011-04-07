@@ -44,7 +44,7 @@ module Atomy::Patterns
         locals[n] = Atomy.assign_local(g, n, set)
       end
 
-      expr.bytecode(g)
+      expr.compile(g)
       g.dup
       match(g, set, locals)
     end

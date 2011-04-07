@@ -15,7 +15,7 @@ module Atomy
             g.push :nil
           else
             # Only an else, run it.
-            @else.bytecode(g)
+            @else.compile(g)
           end
         else
           outer_retry = g.retry
@@ -59,7 +59,7 @@ module Atomy
             g.redo = g.new_label
           end
 
-          @body.bytecode(g)
+          @body.compile(g)
           g.pop_unwind
           g.goto els
 
@@ -166,7 +166,7 @@ module Atomy
           els.set!
           if @else
             g.pop
-            @else.bytecode(g)
+            @else.compile(g)
           end
 
           done.set!
@@ -201,7 +201,7 @@ module Atomy
         g.next = g.new_label
 
         g.state.push_rescue(outer_exc_state)
-        expression.bytecode(g)
+        expression.compile(g)
         g.state.pop_rescue
 
         g.clear_exception

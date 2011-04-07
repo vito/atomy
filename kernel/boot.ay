@@ -1,4 +1,6 @@
-macro(namespace(n)): `(Atomy::Namespace ensure(#~n))
+macro(namespace(n: Variable)):
+  Atomy::Namespace ensure(n name to-sym)
+  `(Atomy::Namespace ensure(#~n))
 
 macro(_LINE): line
 macro(_FILE): Atomy::AST::File new(line)

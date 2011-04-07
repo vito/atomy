@@ -1,12 +1,12 @@
-no-namespace:
-  module(Atomy::Patterns):
-    data(Pattern):
-      Strict(@body)
-      RuntimeClass(@body, @name)
-      Predicate(@pattern, @test)
-      With(@expression, @pattern)
-      And(@a, @b)
+module(Atomy::Patterns):
+  data(Pattern):
+    Strict(@body)
+    RuntimeClass(@body, @name)
+    Predicate(@pattern, @test)
+    With(@expression, @pattern)
+    And(@a, @b)
 
+  no-namespace:
     class(Strict):
       construct(g) := do:
         get(g)
@@ -17,17 +17,17 @@ no-namespace:
         b kind-of?(Strict) && @body == b body
 
       target(g) :=
-        @body bytecode(g)
+        @body compile(g)
 
       matches?(g) := do:
-        @body bytecode(g)
+        @body compile(g)
         g send(#==, 1)
 
     class(RuntimeClass):
       construct(g) := do:
         get(g)
         @body construct(g)
-        @body bytecode(g)
+        @body compile(g)
         g send(#name, 0)
         g send(#new, 2)
 
@@ -37,7 +37,7 @@ no-namespace:
           @name == b name
 
       target(g) :=
-        @body bytecode(g)
+        @body compile(g)
 
       matches?(g) := do:
         Atomy const-from-string(g, @name)
@@ -78,7 +78,7 @@ no-namespace:
 
         done set!
 
-      deconstruct(g, locals = #[]) :=
+      deconstruct(g, locals = Hash new) :=
         @pattern deconstruct(g, locals)
 
       local-names := @pattern local-names
@@ -106,7 +106,7 @@ no-namespace:
         g send(#call-on-instance, 1)
         @pattern matches?(g)
 
-      deconstruct(g, locals = #[]) := do:
+      deconstruct(g, locals = Hash new) := do:
         `{ ~@expression } bytecode(g)
         g send(#block, 0)
         g swap
@@ -150,7 +150,7 @@ no-namespace:
 
         done set!
 
-      deconstruct(g, locals = #[]) := do:
+      deconstruct(g, locals = Hash new) := do:
         g dup
         @a deconstruct(g, locals)
         @b deconstruct(g, locals)
@@ -158,8 +158,9 @@ no-namespace:
       local-names := [@a local-names + @b local-names] uniq
 
 
-  -- base patterns
-  module(Atomy::AST):
+-- base patterns
+module(Atomy::AST):
+  no-namespace:
     Variable to-pattern :=
       Atomy::Patterns::Named new(
         @name

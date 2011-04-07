@@ -8,10 +8,10 @@ module Atomy
         done = g.new_label
         nope = g.new_label
 
-        @condition.bytecode(g)
+        @condition.compile(g)
         g.gif nope
 
-        @then.bytecode(g)
+        @then.compile(g)
         g.goto done
 
         nope.set!

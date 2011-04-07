@@ -24,39 +24,47 @@ module Atomy
         end
       end
 
+      def compile(g)
+        expand.bytecode(g)
+      end
+
       def bytecode(g)
         pos(g)
 
-        @receiver.bytecode(g)
+        @receiver.compile(g)
+
         block = @block
-        if @arguments.last.kind_of? BlockPass
-          block = @arguments.pop
-        end
-
         splat = nil
-        if (splats = @arguments.select { |n| n.kind_of?(Splat) }).size > 0
-          splat = splats[0]
-          @arguments.reject! { |n| n.kind_of?(Splat) }
-        end
 
+        args = 0
         @arguments.each do |a|
-          a.bytecode(g)
+          e = a.expand
+          if e.kind_of?(BlockPass)
+            block = e
+            break
+          elsif e.kind_of?(Splat)
+            splat = e
+            break
+          end
+
+          e.bytecode(g)
+          args += 1
         end
 
         if splat
-          splat.bytecode(g)
+          splat.compile(g)
           g.cast_array
           if block
-            block.bytecode(g)
+            block.compile(g)
           else
             g.push_nil
           end
-          g.send_with_splat message_name.to_sym, @arguments.size, @private
+          g.send_with_splat message_name.to_sym, args, @private
         elsif block
-          block.bytecode(g)
-          g.send_with_block message_name.to_sym, @arguments.size, @private
+          block.compile(g)
+          g.send_with_block message_name.to_sym, args, @private
         else
-          g.call_custom(message_name.to_sym, @arguments.size)
+          g.call_custom message_name.to_sym, args
         end
       end
     end

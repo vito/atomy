@@ -6,7 +6,7 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-        @value.bytecode(g)
+        @value.compile(g)
         g.cast_array unless @value.kind_of?(List)
       end
     end

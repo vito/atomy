@@ -47,7 +47,7 @@ module Atomy
         blk.redo = blk.new_label
         blk.redo.set!
 
-        block_body.bytecode(blk)
+        block_body.compile(blk)
 
         blk.pop_modifiers
         blk.state.pop_block
@@ -134,7 +134,7 @@ module Atomy
 
         @expressions.each_with_index do |node,idx|
           g.pop unless idx == 0
-          node.expand.bytecode(g)
+          node.compile(g)
         end
 
         g.pop_state
@@ -212,7 +212,7 @@ module Atomy
 
         @expressions.each_with_index do |node,idx|
           g.pop unless idx == 0
-          node.expand.bytecode(g)
+          node.compile(g)
         end
       end
     end

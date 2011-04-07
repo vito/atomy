@@ -18,7 +18,7 @@ module Atomy::Patterns
     end
 
     def target(g)
-      @body.bytecode(g)
+      @body.compile(g)
       g.send :call, 0
       g.send :singleton_class, 0
     end

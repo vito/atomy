@@ -26,10 +26,14 @@ module Atomy
         end
       end
 
+      def compile(g)
+        expand.bytecode(g)
+      end
+
       def bytecode(g)
         pos(g)
-        @lhs.bytecode(g)
-        @rhs.bytecode(g)
+        @lhs.compile(g)
+        @rhs.compile(g)
         g.call_custom message_name.to_sym, 1
       end
     end

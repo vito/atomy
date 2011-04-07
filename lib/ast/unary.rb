@@ -14,9 +14,13 @@ module Atomy
         )
       end
 
+      def compile(g)
+        expand.bytecode(g)
+      end
+
       def bytecode(g)
         pos(g)
-        @receiver.bytecode(g)
+        @receiver.compile(g)
         g.send(method_name.to_sym, 0)
       end
 

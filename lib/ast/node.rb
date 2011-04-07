@@ -424,6 +424,10 @@ EOF
           x
         end
       end
+
+      def compile(g)
+        bytecode(g)
+      end
     end
 
     class Node < Rubinius::AST::Node
@@ -443,7 +447,7 @@ EOF
       end
 
       def bytecode(g)
-        @nodes.each { |n| n.expand.bytecode(g) }
+        @nodes.each { |n| n.compile(g) }
       end
 
       def collect

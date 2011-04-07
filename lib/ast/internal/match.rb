@@ -9,12 +9,12 @@ module Atomy
 
         done = g.new_label
 
-        @target.bytecode(g)
+        @target.compile(g)
 
         @body.contents.each do |e|
           skip = g.new_label
 
-          pat = e.lhs.to_pattern
+          pat = e.lhs.expand.to_pattern
           exp = e.rhs
 
           g.dup
@@ -22,7 +22,7 @@ module Atomy
           g.gif skip
 
           pat.deconstruct(g)
-          exp.bytecode(g)
+          exp.compile(g)
           g.goto done
 
           skip.set!

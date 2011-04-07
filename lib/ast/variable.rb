@@ -13,6 +13,10 @@ module Atomy
         )
       end
 
+      def compile(g)
+        expand.bytecode(g)
+      end
+
       def bytecode(g)
         pos(g)
 

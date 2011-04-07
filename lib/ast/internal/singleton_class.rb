@@ -10,7 +10,7 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-        @receiver.bytecode(g)
+        @receiver.compile(g)
         sclass_body.bytecode(g)
       end
     end

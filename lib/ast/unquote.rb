@@ -8,14 +8,14 @@ module Atomy
         pos(g)
         # TODO: fail if depth == 0
         if d == 1
-          @expression.bytecode(g)
+          @expression.compile(g)
           g.send :to_node, 0
         elsif @expression.kind_of?(Splice) && d == 2
           @expression.get(g)
           g.push_int @line
           g.push_cpath_top
           g.find_const :Atomy
-          @expression.expression.bytecode(g)
+          @expression.expression.compile(g)
           g.send :unquote_splice, 1
           g.send :new, 2
         else

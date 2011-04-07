@@ -8,12 +8,12 @@ module(Atomy::AST):
       done = g new-label
       no = g new-label
 
-      @a bytecode(g)
+      @a compile(g)
       g dup
       g gif(done)
 
       g pop
-      @b bytecode(g)
+      @b compile(g)
 
       done set!
 
@@ -25,12 +25,12 @@ module(Atomy::AST):
       pos(g)
       done = g new-label
 
-      @a bytecode(g)
+      @a compile(g)
       g dup
       g git(done)
 
       g pop
-      @b bytecode(g)
+      @b compile(g)
 
       done set!
 
@@ -43,7 +43,7 @@ module(Atomy::AST):
       done = g new-label
       yes = g new-label
 
-      @expression bytecode(g)
+      @expression compile(g)
       g git(yes)
 
       g push-true

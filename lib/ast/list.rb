@@ -8,7 +8,7 @@ module Atomy
         pos(g)
 
         @elements.each do |e|
-          e.bytecode(g)
+          e.compile(g)
         end
 
         g.make_array @elements.size

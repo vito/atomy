@@ -16,7 +16,7 @@ module Atomy
       def assign(g, v)
         g.push_scope
         g.push_literal name
-        v.bytecode(g)
+        v.compile(g)
         g.send :const_set, 2
       end
     end
@@ -38,7 +38,7 @@ module Atomy
       def assign(g, v)
         g.push_cpath_top
         g.push_literal name
-        v.bytecode(g)
+        v.compile(g)
         g.send :const_set, 2
       end
     end
@@ -54,14 +54,14 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-        @parent.bytecode(g)
+        @parent.compile(g)
         g.find_const name
       end
 
       def assign(g, v)
-        @parent.bytecode(g)
+        @parent.compile(g)
         g.push_literal name
-        v.bytecode(g)
+        v.compile(g)
         g.send :const_set, 2
       end
     end

@@ -6,7 +6,7 @@ module Atomy
 
       def bytecode(g, force = false)
         if @value
-          @value.bytecode(g)
+          @value.compile(g)
         else
           g.push_nil
         end

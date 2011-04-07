@@ -30,7 +30,7 @@ module Atomy::Patterns
     end
 
     def deconstruct(g, locals = {})
-      @receiver.bytecode(g)
+      @receiver.compile(g)
       g.swap
       g.send((@name + "=").to_sym, 1)
       g.pop

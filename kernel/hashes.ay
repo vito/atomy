@@ -29,7 +29,7 @@ no-namespace:
 
       @keys each-with-index (n, i):
         g dup
-        n bytecode(g)
-        @values at(i) bytecode(g)
+        n compile(g)
+        @values at(i) compile(g)
         g send("[]=" to-sym, 2)
         g pop

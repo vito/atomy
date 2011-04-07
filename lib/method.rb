@@ -126,7 +126,7 @@ module Atomy
           g.passed_arg num
           g.git passed
 
-          d.default.bytecode(g)
+          d.default.compile(g)
           g.set_local num
           g.goto decons
 
@@ -143,7 +143,7 @@ module Atomy
         block.deconstruct(g)
       end
 
-      meth.bytecode(g)
+      meth.compile(g)
       g.goto done
 
       argmis.set!

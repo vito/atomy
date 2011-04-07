@@ -1,6 +1,6 @@
 macro(if(x) then(&y) else(&z)):
   Atomy::AST::IfThenElse new(line, x, y body, z body)
-  
+
 macro(otherwise): 'true
 
 macro(condition(&bs)):
@@ -58,22 +58,30 @@ module(Atomy::AST):
       pos(g)
 
       block = @block
-      when(@arguments last kind-of?(BlockPass)):
-        block =! @arguments pop
+      splat = nil
 
-      splat = @arguments select (n): n kind-of?(Splat); at(0)
-      when(splat):
-        @arguments reject! (n): n kind-of?(Splat)
-
+      args = 0
       @arguments each (a):
-        a bytecode(g)
+        e = a expand
+        e match:
+          BlockPass -> do:
+            block =! e
+            -- break
+
+          Splat -> do:
+            splat =! e
+            -- break
+
+          _ -> do:
+            e bytecode(g)
+            args += 1
 
       when(splat):
-        splat bytecode(g)
+        splat compile(g)
         g case-array
 
       if(block)
-        then: block bytecode(g)
+        then: block compile(g)
         else: g push-nil
 
-      g send-super(nil, @arguments size, splat)
+      g send-super(nil, args, splat)

@@ -176,6 +176,7 @@
     macro_quote = line:line identifier:n quoted:c (< [a-z] > { text })*:fs
                     { Atomy::AST::MacroQuote.new(line, n, c, fs) }
 
+       # TODO: level1 isn't broad enough; #foo(1, 2) fails
        particle = line:line "#" (identifier | operator):n !level1
                     { Atomy::AST::Particle.new(line, n) }
 
