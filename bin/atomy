@@ -31,6 +31,44 @@ if ARGV[0]
   exit(0)
 end
 
-Atomy::Namespace.ensure(:user).use(:atomy)
+if respond_to?(:"atomy/repl", true)
+  Atomy::Namespace.ensure(:user).use(:atomy)
 
-send(:"atomy/repl", File.expand_path("~/.atomy_history"))
+  send(:"atomy/repl", File.expand_path("~/.atomy_history"))
+else
+  HISTORY_FILE = File.expand_path("~/.atomy_history")
+
+  if File.exists?(HISTORY_FILE)
+    File.open(HISTORY_FILE, "r") do |f|
+      f.readlines.each do |l|
+        Readline::HISTORY << l.strip
+      end
+    end
+  end
+
+  begin
+    SANE_HISTORY = []
+    while str = Readline.readline("> ")
+      next if str.empty?
+
+      SANE_HISTORY << str
+
+      begin
+        res = Atomy::Compiler.evaluate str, bnd
+        if res.respond_to?(:pretty)
+          puts "=> #{res.pretty.render}"
+        else
+          puts "=> #{res.inspect}"
+        end
+      rescue StandardError => e
+        puts "ERROR!"
+        puts "#{e}:\n  #{e.message}"
+        puts e.backtrace
+      end
+    end
+  ensure
+    File.open(HISTORY_FILE, "a") do |f|
+      f.puts(*SANE_HISTORY)
+    end
+  end
+end
