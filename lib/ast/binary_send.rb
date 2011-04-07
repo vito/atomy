@@ -2,7 +2,8 @@ module Atomy
   module AST
     class BinarySend < Node
       children :lhs, :rhs
-      attributes :operator, [:private, "false"]
+      attributes :operator
+      slots [:private, "false"], :namespace?
       generate
 
       alias :method_name :operator
@@ -17,11 +18,19 @@ module Atomy
         )
       end
 
+      def message_name
+        if @namespace && !@namespace.empty?
+          @namespace + "/" + @operator
+        else
+          @operator
+        end
+      end
+
       def bytecode(g)
         pos(g)
         @lhs.bytecode(g)
         @rhs.bytecode(g)
-        g.send @operator.to_sym, 1, @private
+        g.call_custom message_name.to_sym, 1
       end
     end
   end
