@@ -78,7 +78,6 @@ def Rubinius.bind_call(recv, nmeth, *args)
   if ns
     ([ns.name] + ns.using).reverse_each do |u|
       n = (u.to_s + "/" + meth.to_s).to_sym
-      #p [:early, n, recv.class, recv.respond_to?(n)]
       res = Rubinius::CallUnit.test(
         Rubinius::CallUnit.test_respond_to(n),
         Rubinius::CallUnit.send_as(n),
