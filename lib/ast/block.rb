@@ -134,7 +134,7 @@ module Atomy
 
         @expressions.each_with_index do |node,idx|
           g.pop unless idx == 0
-          node.bytecode(g)
+          node.expand.bytecode(g)
         end
 
         g.pop_state
@@ -212,7 +212,7 @@ module Atomy
 
         @expressions.each_with_index do |node,idx|
           g.pop unless idx == 0
-          node.bytecode(g)
+          node.expand.bytecode(g)
         end
       end
     end
