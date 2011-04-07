@@ -8,6 +8,7 @@ require 'readline'
 require base + "/macros"
 require base + "/method"
 require base + "/util"
+require base + "/namespace"
 require base + "/compiler/compiler"
 require base + "/compiler/stages"
 require base + "/parser"
@@ -30,4 +31,6 @@ if ARGV[0]
   exit(0)
 end
 
-repl(File.expand_path("~/.atomy_history"))
+Atomy::Namespace.ensure(:user).use(:atomy)
+
+send(:"atomy/repl", File.expand_path("~/.atomy_history"))

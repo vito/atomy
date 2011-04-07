@@ -1,45 +1,46 @@
-module(Atomy::AST):
-  '_ to-pattern :=
-    Atomy::Patterns::Any new
+no-namespace:
+  module(Atomy::AST):
+    '_ to-pattern :=
+      Atomy::Patterns::Any new
 
-  `(~h . ~t) to-pattern :=
-    Atomy::Patterns::HeadTail new(h to-pattern, t to-pattern)
+    `(~h . ~t) to-pattern :=
+      Atomy::Patterns::HeadTail new(h to-pattern, t to-pattern)
 
-  `(~p = ~d) to-pattern :=
-    Atomy::Patterns::Default new(p to-pattern, d)
+    `(~p = ~d) to-pattern :=
+      Atomy::Patterns::Default new(p to-pattern, d)
 
-  `(== ~v) to-pattern :=
-    Atomy::Patterns::Strict new(v)
+    `(== ~v) to-pattern :=
+      Atomy::Patterns::Strict new(v)
 
-  `(? ~t) to-pattern :=
-    Atomy::Patterns::Predicate new(Any new, t)
+    `(? ~t) to-pattern :=
+      Atomy::Patterns::Predicate new(Any new, t)
 
-  `(~p ? ~t) to-pattern :=
-    Atomy::Patterns::Predicate new(p to-pattern, t)
+    `(~p ? ~t) to-pattern :=
+      Atomy::Patterns::Predicate new(p to-pattern, t)
 
-  `(~a & ~b) to-pattern :=
-    Atomy::Patterns::And new(a to-pattern, b to-pattern)
+    `(~a & ~b) to-pattern :=
+      Atomy::Patterns::And new(a to-pattern, b to-pattern)
 
-  `(with(~attr, ~p)) to-pattern :=
-    Atomy::Patterns::With new(attr, p to-pattern)
+    `(with(~attr, ~p)) to-pattern :=
+      Atomy::Patterns::With new(attr, p to-pattern)
 
-  `@@~n to-pattern :=
-    Atomy::Patterns::NamedClass new(n name)
+    `@@~n to-pattern :=
+      Atomy::Patterns::NamedClass new(n name)
 
-  `$~n to-pattern :=
-    Atomy::Patterns::NamedGlobal new(n name)
+    `$~n to-pattern :=
+      Atomy::Patterns::NamedGlobal new(n name)
 
-  `@~n to-pattern :=
-    Atomy::Patterns::NamedInstance new(n name)
+    `@~n to-pattern :=
+      Atomy::Patterns::NamedInstance new(n name)
 
-  `%~x to-pattern :=
-    Atomy::Patterns::RuntimeClass new(x, nil)
+    `%~x to-pattern :=
+      Atomy::Patterns::RuntimeClass new(x, nil)
 
-  `&~x to-pattern :=
-    Atomy::Patterns::BlockPass new(x to-pattern)
+    `&~x to-pattern :=
+      Atomy::Patterns::BlockPass new(x to-pattern)
 
-  `*~x to-pattern :=
-    Atomy::Patterns::Splat new(x to-pattern)
+    `*~x to-pattern :=
+      Atomy::Patterns::Splat new(x to-pattern)
 
-  (x: `(Particle at)) to-pattern :=
-    Atomy::Patterns::List new(x arguments collect (x): x to-pattern)
+    (x: `(Particle at)) to-pattern :=
+      Atomy::Patterns::List new(x arguments collect (x): x to-pattern)

@@ -60,12 +60,3 @@ class(Object):
     g push-block
     g send-with-splat("[]" to-sym, 0)
     g ret
-
-class(Atomy::AST::Undefined < Atomy::AST::Node):
-  generate
-
-  bytecode(g) := do:
-    pos(g)
-    g push-undef
-
-  to-pattern := Atomy::Patterns::Any new

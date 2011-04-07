@@ -1,215 +1,216 @@
-module(Atomy::Patterns):
-  data(Pattern):
-    Strict(@body)
-    RuntimeClass(@body, @name)
-    Predicate(@pattern, @test)
-    With(@expression, @pattern)
-    And(@a, @b)
+no-namespace:
+  module(Atomy::Patterns):
+    data(Pattern):
+      Strict(@body)
+      RuntimeClass(@body, @name)
+      Predicate(@pattern, @test)
+      With(@expression, @pattern)
+      And(@a, @b)
 
-  class(Strict):
-    construct(g) := do:
-      get(g)
-      @body construct(g)
-      g send(#new, 1)
+    class(Strict):
+      construct(g) := do:
+        get(g)
+        @body construct(g)
+        g send(#new, 1)
 
-    (== b) :=
-      b kind-of?(Strict) && @body == b body
+      (== b) :=
+        b kind-of?(Strict) && @body == b body
 
-    target(g) :=
-      @body bytecode(g)
+      target(g) :=
+        @body bytecode(g)
 
-    matches?(g) := do:
-      @body bytecode(g)
-      g send(#==, 1)
+      matches?(g) := do:
+        @body bytecode(g)
+        g send(#==, 1)
 
-  class(RuntimeClass):
-    construct(g) := do:
-      get(g)
-      @body construct(g)
-      @body bytecode(g)
-      g send(#name, 0)
-      g send(#new, 2)
+    class(RuntimeClass):
+      construct(g) := do:
+        get(g)
+        @body construct(g)
+        @body bytecode(g)
+        g send(#name, 0)
+        g send(#new, 2)
 
-    (== b) :=
-      b kind-of?(RuntimeClass) &&
-        @body == b body &&
-        @name == b name
+      (== b) :=
+        b kind-of?(RuntimeClass) &&
+          @body == b body &&
+          @name == b name
 
-    target(g) :=
-      @body bytecode(g)
+      target(g) :=
+        @body bytecode(g)
 
-    matches?(g) := do:
-      Atomy const-from-string(g, @name)
-      g swap
-      g kind-of
+      matches?(g) := do:
+        Atomy const-from-string(g, @name)
+        g swap
+        g kind-of
 
-  class(Predicate):
-    construct(g) := do:
-      get(g)
-      @pattern construct(g)
-      @test construct(g)
-      g send(#new, 2)
+    class(Predicate):
+      construct(g) := do:
+        get(g)
+        @pattern construct(g)
+        @test construct(g)
+        g send(#new, 2)
 
-    (== b) :=
-      b kind-of?(Predicate) &&
-        @pattern == b pattern &&
-        @test == b test
+      (== b) :=
+        b kind-of?(Predicate) &&
+          @pattern == b pattern &&
+          @test == b test
 
-    target(g) := @pattern target(g)
+      target(g) := @pattern target(g)
 
-    matches?(g) := do:
-      mismatch = g new-label
-      done = g new-label
+      matches?(g) := do:
+        mismatch = g new-label
+        done = g new-label
 
-      g dup
-      @pattern matches?(g)
-      g gif(mismatch)
+        g dup
+        @pattern matches?(g)
+        g gif(mismatch)
 
-      `{ ~@test } bytecode(g)
-      g send(#block, 0)
-      g swap
-      g send(#call-on-instance, 1)
-      g goto(done)
+        `{ ~@test } bytecode(g)
+        g send(#block, 0)
+        g swap
+        g send(#call-on-instance, 1)
+        g goto(done)
 
-      mismatch set!
-      g pop
-      g push-false
+        mismatch set!
+        g pop
+        g push-false
 
-      done set!
+        done set!
 
-    deconstruct(g, locals = #[]) :=
-      @pattern deconstruct(g, locals)
+      deconstruct(g, locals = #[]) :=
+        @pattern deconstruct(g, locals)
 
-    local-names := @pattern local-names
+      local-names := @pattern local-names
 
-    bindings := @pattern bindings
+      bindings := @pattern bindings
 
-  class(With):
-    construct(g) := do:
-      get(g)
-      @expression construct(g)
-      @pattern construct(g)
-      g send(#new, 2)
+    class(With):
+      construct(g) := do:
+        get(g)
+        @expression construct(g)
+        @pattern construct(g)
+        g send(#new, 2)
 
-    (== b) :=
-      b kind-of?(With) &&
-        @expression == b expression &&
-        @pattern == b pattern
+      (== b) :=
+        b kind-of?(With) &&
+          @expression == b expression &&
+          @pattern == b pattern
 
-    target(g) := Any new target(g)
+      target(g) := Any new target(g)
 
-    matches?(g) := do:
-      `{ ~@expression } bytecode(g)
-      g send(#block, 0)
-      g swap
-      g send(#call-on-instance, 1)
-      @pattern matches?(g)
+      matches?(g) := do:
+        `{ ~@expression } bytecode(g)
+        g send(#block, 0)
+        g swap
+        g send(#call-on-instance, 1)
+        @pattern matches?(g)
 
-    deconstruct(g, locals = #[]) := do:
-      `{ ~@expression } bytecode(g)
-      g send(#block, 0)
-      g swap
-      g send(#call-on-instance, 1)
-      @pattern deconstruct(g, locals)
+      deconstruct(g, locals = #[]) := do:
+        `{ ~@expression } bytecode(g)
+        g send(#block, 0)
+        g swap
+        g send(#call-on-instance, 1)
+        @pattern deconstruct(g, locals)
 
-    local-names := @pattern local-names
+      local-names := @pattern local-names
 
-    bindings := @pattern bindings
+      bindings := @pattern bindings
 
-  class(And):
-    construct(g) := do:
-      get(g)
-      @a construct(g)
-      @b construct(g)
-      g send(#new, 2)
+    class(And):
+      construct(g) := do:
+        get(g)
+        @a construct(g)
+        @b construct(g)
+        g send(#new, 2)
 
-    (== b) :=
-      b kind-of?(And) &&
-        @a == b a &&
-        @b == b b
+      (== b) :=
+        b kind-of?(And) &&
+          @a == b a &&
+          @b == b b
 
-    target(g) :=
-      @a target(g)
+      target(g) :=
+        @a target(g)
 
-    matches?(g) := do:
-      mismatch = g new-label
-      done = g new-label
+      matches?(g) := do:
+        mismatch = g new-label
+        done = g new-label
 
-      g dup
-      @a matches?(g)
-      g gif(mismatch)
+        g dup
+        @a matches?(g)
+        g gif(mismatch)
 
-      @b matches?(g)
-      g dup
-      g git(done)
+        @b matches?(g)
+        g dup
+        g git(done)
 
-      mismatch set!
-      g pop
-      g push-false
+        mismatch set!
+        g pop
+        g push-false
 
-      done set!
+        done set!
 
-    deconstruct(g, locals = #[]) := do:
-      g dup
-      @a deconstruct(g, locals)
-      @b deconstruct(g, locals)
+      deconstruct(g, locals = #[]) := do:
+        g dup
+        @a deconstruct(g, locals)
+        @b deconstruct(g, locals)
 
-    local-names := [@a local-names + @b local-names] uniq
+      local-names := [@a local-names + @b local-names] uniq
 
 
--- base patterns
-module(Atomy::AST):
-  Variable to-pattern :=
-    Atomy::Patterns::Named new(
-      @name
-      Atomy::Patterns::Any new
-    )
+  -- base patterns
+  module(Atomy::AST):
+    Variable to-pattern :=
+      Atomy::Patterns::Named new(
+        @name
+        Atomy::Patterns::Any new
+      )
 
-  Primitive to-pattern :=
-    Atomy::Patterns::Match new(@value)
+    Primitive to-pattern :=
+      Atomy::Patterns::Match new(@value)
 
-  List to-pattern :=
-    Atomy::Patterns::List new(
-      @elements collect (e): e to-pattern
-    )
+    List to-pattern :=
+      Atomy::Patterns::List new(
+        @elements collect (e): e to-pattern
+      )
 
-  Constant to-pattern :=
-    Atomy::Patterns::Constant new(self)
+    Constant to-pattern :=
+      Atomy::Patterns::Constant new(self)
 
-  ScopedConstant to-pattern :=
-    Atomy::Patterns::Constant new(self)
+    ScopedConstant to-pattern :=
+      Atomy::Patterns::Constant new(self)
 
-  ToplevelConstant to-pattern :=
-    Atomy::Patterns::Constant new(self)
+    ToplevelConstant to-pattern :=
+      Atomy::Patterns::Constant new(self)
 
-  Quote to-pattern :=
-    Atomy::Patterns::Quote new(@expression)
+    Quote to-pattern :=
+      Atomy::Patterns::Quote new(@expression)
 
-  Block to-pattern :=
-    Atomy::Patterns::SingletonClass new(self)
+    Block to-pattern :=
+      Atomy::Patterns::SingletonClass new(self)
 
-  Particle to-pattern :=
-    Atomy::Patterns::Particle new(@name to-sym)
+    Particle to-pattern :=
+      Atomy::Patterns::Particle new(@name to-sym)
 
-  Send to-pattern :=
-    if(@block)
-      then:
-        Atomy::Patterns::Named new(
-          @method-name
-          @block contents at(0) to-pattern
-        )
-      else:
-        -- TODO: Unary -> Attribute
-        Atomy::Patterns::Unary new(
-          @receiver
-          @method-name
-        )
+    Send to-pattern :=
+      if(@block)
+        then:
+          Atomy::Patterns::Named new(
+            @method-name
+            @block contents at(0) to-pattern
+          )
+        else:
+          -- TODO: Unary -> Attribute
+          Atomy::Patterns::Unary new(
+            @receiver
+            @method-name
+          )
 
-  QuasiQuote to-pattern :=
-    Atomy::Patterns::QuasiQuote new(self)
+    QuasiQuote to-pattern :=
+      Atomy::Patterns::QuasiQuote new(self)
 
-  String to-pattern :=
-    Atomy::Patterns::Match new(@value)
+    String to-pattern :=
+      Atomy::Patterns::Match new(@value)
 
-  Node to-pattern :=
-    raise("unknown pattern: " + self inspect)
+    Node to-pattern :=
+      raise("unknown pattern: " + self inspect)

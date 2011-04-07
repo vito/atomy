@@ -39,14 +39,52 @@ module Atomy
         end
       end
 
+      def ns_method_name(g)
+        if method_name == "initialize"
+          g.push_literal :initialize
+          return
+        end
+
+        no_ns = g.new_label
+        done = g.new_label
+
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :Namespace
+        g.send :get, 0
+        g.dup
+        g.gif no_ns
+
+        g.send :name, 0
+        g.send :to_s, 0
+        g.push_literal "/"
+        g.push_literal method_name
+        g.string_build 3
+        g.goto done
+
+        no_ns.set!
+        g.pop
+        g.push_literal method_name
+
+        done.set!
+      end
+
       def bytecode(g)
         pos(g)
+
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :Namespace
+        g.push_literal method_name.to_sym
+        g.send :register, 1
+        g.pop
 
         defn = receiver.kind_of?(Patterns::Match) && receiver.value == :self
 
         if defn
           g.push_rubinius
-          g.push_literal method_name.to_sym
+          ns_method_name(g)
+          g.send :to_sym, 0
           g.dup
           g.push_cpath_top
           g.find_const :Atomy
@@ -55,7 +93,8 @@ module Atomy
           g.push_cpath_top
           g.find_const :Atomy
           receiver.target(g)
-          g.push_literal method_name.to_sym
+          ns_method_name(g)
+          g.send :to_sym, 0
         end
 
         create = g.new_label
@@ -67,10 +106,15 @@ module Atomy
         g.make_array arguments.size
         g.make_array 2
         @body.construct(g, nil)
+        g.send :resolve, 0
         g.make_array 2
 
         receiver.target(g)
-        g.push_literal "@__atomy_#{method_name}__".to_sym
+        g.push_literal "@__atomy_"
+        ns_method_name(g)
+        g.push_literal "__"
+        g.string_build 3
+        g.send :to_sym, 0
         g.send :instance_variable_get, 1
         g.dup
         g.gif create
@@ -86,7 +130,11 @@ module Atomy
         g.make_array 1
         receiver.target(g)
         g.swap
-        g.push_literal "@__atomy_#{method_name}__".to_sym
+        g.push_literal "@__atomy_"
+        ns_method_name(g)
+        g.push_literal "__"
+        g.string_build 3
+        g.send :to_sym, 0
         g.swap
         g.send :instance_variable_set, 2
 

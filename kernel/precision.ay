@@ -1,151 +1,152 @@
-module(Atomy::Patterns):
-  -- pattern precision hierarchy, from least precise to most
-  -- TODO: Strict, Predicate, SingletonClass, RuntimeClass
-  PRECISION =
-    [ [ Any, BlockPass, Splat, Unary,
-        NamedClass, NamedGlobal, NamedInstance
+no-namespace:
+  module(Atomy::Patterns):
+    -- pattern precision hierarchy, from least precise to most
+    -- TODO: Strict, Predicate, SingletonClass, RuntimeClass
+    PRECISION =
+      [ [ Any, BlockPass, Splat, Unary,
+          NamedClass, NamedGlobal, NamedInstance
+        ]
+
+        [Constant, SingletonClass]
+
+        [HeadTail]
+
+        [List, QuasiQuote, Particle]
+
+        [Match, Quote]
       ]
 
-      [Constant, SingletonClass]
-
-      [HeadTail]
-
-      [List, QuasiQuote, Particle]
-
-      [Match, Quote]
-    ]
-
-  PRECISION each-with-index (ps, i):
-    ps each (a):
-      ps each (b):
-        -- if they're the same class, they'll probably
-        -- want to handle their own comparison.
-        -- (otherwise, the Pattern <=> Pattern does this.)
-        unless(a == b):
-          %(a) <=> %(b) := 0
-
-      PRECISION drop(i + 1) each (ps):
+    PRECISION each-with-index (ps, i):
+      ps each (a):
         ps each (b):
-          %(a) <=> %(b) := -1
+          -- if they're the same class, they'll probably
+          -- want to handle their own comparison.
+          -- (otherwise, the Pattern <=> Pattern does this.)
+          unless(a == b):
+            %(a) <=> %(b) := 0
 
-      PRECISION take(i) each (ps):
-        ps each (b):
-          %(a) <=> %(b) := 1
+        PRECISION drop(i + 1) each (ps):
+          ps each (b):
+            %(a) <=> %(b) := -1
 
-  (a: BlockPass) <=> (b: BlockPass) :=
-    a pattern <=> b pattern
+        PRECISION take(i) each (ps):
+          ps each (b):
+            %(a) <=> %(b) := 1
 
-  -- if one constant is a subclass of another, it is
-  -- higher precision.
-  (a: Constant) <=> (b: Constant) :=
-    condition:
-      (a ancestors nil? || b ancestors nil?) ->
-        0
+    (a: BlockPass) <=> (b: BlockPass) :=
+      a pattern <=> b pattern
 
-      (a ancestors first == b ancestors first) ->
-        0
+    -- if one constant is a subclass of another, it is
+    -- higher precision.
+    (a: Constant) <=> (b: Constant) :=
+      condition:
+        (a ancestors nil? || b ancestors nil?) ->
+          0
 
-      b ancestors include?(a ancestors first) ->
-        -1
+        (a ancestors first == b ancestors first) ->
+          0
 
-      a ancestors include?(b ancestors first) ->
-        1
+        b ancestors include?(a ancestors first) ->
+          -1
 
-      otherwise ->
-        0
+        a ancestors include?(b ancestors first) ->
+          1
 
-  (a: HeadTail) <=> (b: HeadTail) :=
-    Atomy::Patterns
-      compare([a head, a tail], [b head, b tail])
+        otherwise ->
+          0
 
-  (a: List) <=> (b: List) :=
-    Atomy::Patterns
-      compare(a patterns, b patterns)
+    (a: HeadTail) <=> (b: HeadTail) :=
+      Atomy::Patterns
+        compare([a head, a tail], [b head, b tail])
 
-  (a: Splat) <=> (b: Splat) :=
-    a pattern <=> b pattern
+    (a: List) <=> (b: List) :=
+      Atomy::Patterns
+        compare(a patterns, b patterns)
 
-  (a: Default) <=> (b: Default) :=
-    a pattern <=> b pattern
-  (d: Default) <=> (p: Pattern) := d pattern <=> p
-  (p: Pattern) <=> (d: Default) := p <=> d pattern
+    (a: Splat) <=> (b: Splat) :=
+      a pattern <=> b pattern
 
-  (a: Named) <=> (b: Named) :=
-    a pattern <=> b pattern
-  (n: Named) <=> (p: Pattern) :=
-    n pattern <=> p
-  (p: Pattern) <=> (n: Named) :=
-    p <=> n pattern
+    (a: Default) <=> (b: Default) :=
+      a pattern <=> b pattern
+    (d: Default) <=> (p: Pattern) := d pattern <=> p
+    (p: Pattern) <=> (d: Default) := p <=> d pattern
 
-  Pattern <=> Pattern := 0
+    (a: Named) <=> (b: Named) :=
+      a pattern <=> b pattern
+    (n: Named) <=> (p: Pattern) :=
+      n pattern <=> p
+    (p: Pattern) <=> (n: Named) :=
+      p <=> n pattern
 
-
-  -- equivalence ignores named patterns
-  (a: Named) =~ (b: Named) :=
-    a pattern =~ b pattern
-  Named =~ (p: Pattern) := pattern =~ p
-  Pattern =~ (n: Named) := (=~ n pattern)
-
-  Any =~ Any := true
-
-  (a: BlockPass) =~ (b: BlockPass) :=
-    a pattern =~ b pattern
-
-  (a: Constant) =~ (b: Constant) :=
-    a constant =~ b constant
-
-  (a: Default) =~ (b: Default) :=
-    a pattern =~ b pattern
-  Default =~ (p: Pattern) := pattern =~ p
-  Pattern =~ (n: Default) := (=~ n pattern)
-
-  (a: HeadTail) =~ (b: HeadTail) :=
-    a head =~ b head && a tail =~ b tail
-
-  (a: List) =~ (b: List) :=
-    a patterns zip(b patterns) all? (a, b):
-      when(a nil? || b nil?):
-        return(false)
-
-      a =~ b
-
-  (a: Match) =~ (b: Match) :=
-    a value == b value
-
-  (a: SingletonClass) =~ (b: SingletonClass) :=
-    a body == b body
-
-  NamedClass =~ NamedClass := true
-
-  NamedGlobal =~ NamedGlobal := true
-
-  NamedInstance =~ NamedInstance := true
-
-  (a: Particle) =~ (b: Particle) :=
-    a value == b value
-
-  (a: QuasiQuote) =~ (b: QuasiQuote) :=
-    -- TODO: go through quotes.
-    a expression == b expression
-
-  (a: Quote) =~ (b: Quote) :=
-    a expression == b expression
-
-  (a: Splat) =~ (b: Splat) :=
-    a pattern =~ b pattern
-
-  (a: Unary) =~ (b: Unary) :=
-    a receiver == b receiver && a name == b name
-
-  Pattern =~ Pattern := false
+    Pattern <=> Pattern := 0
 
 
-  -- helper for comparing aggregate patterns like lists
-  : self ; compare(xs, ys) := do:
-    total = 0
+    -- equivalence ignores named patterns
+    (a: Named) =~ (b: Named) :=
+      a pattern =~ b pattern
+    Named =~ (p: Pattern) := pattern =~ p
+    Pattern =~ (n: Named) := (=~ n pattern)
 
-    xs zip(ys) ([x, y]):
-      unless(x nil? || y nil?):
-        total += x <=> y
+    Any =~ Any := true
 
-    total <=> 0
+    (a: BlockPass) =~ (b: BlockPass) :=
+      a pattern =~ b pattern
+    (a: Constant) =~ (b: Constant) :=
+      a constant =~ b constant
+
+
+    (a: Default) =~ (b: Default) :=
+      a pattern =~ b pattern
+    Default =~ (p: Pattern) := pattern =~ p
+    Pattern =~ (n: Default) := (=~ n pattern)
+
+    (a: HeadTail) =~ (b: HeadTail) :=
+      a head =~ b head && a tail =~ b tail
+
+    (a: List) =~ (b: List) :=
+      a patterns zip(b patterns) all? (a, b):
+        when(a nil? || b nil?):
+          return(false)
+
+        a =~ b
+
+    (a: Match) =~ (b: Match) :=
+      a value == b value
+
+    (a: SingletonClass) =~ (b: SingletonClass) :=
+      a body == b body
+
+    NamedClass =~ NamedClass := true
+
+    NamedGlobal =~ NamedGlobal := true
+
+    NamedInstance =~ NamedInstance := true
+
+    (a: Particle) =~ (b: Particle) :=
+      a value == b value
+
+    (a: QuasiQuote) =~ (b: QuasiQuote) :=
+      -- TODO: go through quotes.
+      a expression == b expression
+
+    (a: Quote) =~ (b: Quote) :=
+      a expression == b expression
+
+    (a: Splat) =~ (b: Splat) :=
+      a pattern =~ b pattern
+
+    (a: Unary) =~ (b: Unary) :=
+      a receiver == b receiver && a name == b name
+
+    Pattern =~ Pattern := false
+
+
+    -- helper for comparing aggregate patterns like lists
+    : self ; compare(xs, ys) := do:
+      total = 0
+
+      xs zip(ys) ([x, y]):
+        unless(x nil? || y nil?):
+          total += x <=> y
+
+      total <=> 0

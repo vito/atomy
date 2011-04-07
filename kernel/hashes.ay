@@ -16,19 +16,20 @@ macro (#(l: List)) do:
 
   Atomy::AST::Hash new(line, keys, values)
 
-class(Atomy::AST::Hash < Atomy::AST::Node):
-  children([#keys], [#values])
-  generate
+no-namespace:
+  class(Atomy::AST::Hash < Atomy::AST::Node):
+    children([#keys], [#values])
+    generate
 
-  bytecode(g) := do:
-    g push-cpath-top
-    g find-const(#Hash)
-    g push-int(@keys size)
-    g send(#new-from-literal, 1)
+    bytecode(g) := do:
+      g push-cpath-top
+      g find-const(#Hash)
+      g push-int(@keys size)
+      g send(#new-from-literal, 1)
 
-    @keys each-with-index (n, i):
-      g dup
-      n bytecode(g)
-      @values at(i) bytecode(g)
-      g send("[]=" to-sym, 2)
-      g pop
+      @keys each-with-index (n, i):
+        g dup
+        n bytecode(g)
+        @values at(i) bytecode(g)
+        g send("[]=" to-sym, 2)
+        g pop

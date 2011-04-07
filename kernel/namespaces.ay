@@ -1,0 +1,33 @@
+macro (in-namespace(n, &b))
+  `(let(namespace = namespace(~n)):
+      ~(b body))
+
+macro (no-namespace(&b))
+  `(let(namespace = nil):
+      ~(b body))
+
+namespace(atomy)
+
+--x print := x writeln
+
+--in-namespace(foo):
+  --0 fib := 1
+  --1 fib := 1
+  --(n: Fixnum) fib := (n - 2) fib + (n - 1) fib
+
+  --10 times:
+    --a = Time now
+    --p(20 fib, Time now - a)
+
+  --test = (x):
+    --x fib atomy/print
+
+  --test (24)
+
+  --String fib := "forty-two!"
+
+  --test ("hello")
+
+--p(20 foo/fib)
+
+--"hello!" print

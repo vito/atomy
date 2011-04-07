@@ -65,7 +65,7 @@ module Atomy
 
     def self.register(name, args, body)
       name = (intern name).to_sym
-      body = expand(body) # TODO: verify this
+      body = expand(body).resolve # TODO: verify this
 
       methods = CURRENT_ENV.macros
       method = [[Patterns::Any.new, args], body]

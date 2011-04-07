@@ -3,7 +3,7 @@ module Atomy
     class Send < Node
       children :receiver, [:arguments], :block?
       attributes :method_name
-      slots [:private, "false"]
+      slots [:private, "false"], :namespace?
       generate
 
       def register_macro(body)
@@ -47,8 +47,10 @@ module Atomy
         elsif block
           block.bytecode(g)
           g.send_with_block @method_name.to_sym, @arguments.size, @private
+        elsif @namespace
+          g.call_custom((@namespace + "/" + @method_name).to_sym, @arguments.size)
         else
-          g.send @method_name.to_sym, @arguments.size, @private
+          g.call_custom(@method_name.to_sym, @arguments.size)
         end
       end
     end

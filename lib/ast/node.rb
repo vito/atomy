@@ -382,6 +382,10 @@ EOF
         nil
       end
 
+      def namespace_symbol
+        method_name.to_sym
+      end
+
       def unquote?
         false
       end
@@ -397,6 +401,24 @@ EOF
 
       def expand
         Atomy::Macro.expand(self)
+      end
+
+      def resolve
+        ns = Atomy::Namespace.get
+        recursively do |x|
+          case x
+          when Atomy::AST::Send, Atomy::AST::Variable
+            if !x.namespace
+              if ns && n = ns.resolve(x.namespace_symbol)
+                x.namespace = n.to_s
+              else
+                x.namespace = ""
+              end
+            end
+          end
+
+          x
+        end
       end
     end
 
