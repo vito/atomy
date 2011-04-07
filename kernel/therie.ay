@@ -17,7 +17,7 @@ theorize(&as) := do:
   as call
   "\n" write
 
-  $stats join:
+  $stats atomy/onto:
     [ "total of", failed + passed, "tests"
       "(" + passed to-s ansi-colored(#green), "passed,"
       if(failed == 0)
@@ -29,7 +29,7 @@ theorize(&as) := do:
     "\n" write
 
 o should(&check) :=
-  unless(o join(&check)):
+  unless(o onto(&check)):
     raise("assertion failed for " + o inspect)
 
 x should-be(y) :=
