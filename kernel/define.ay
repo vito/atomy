@@ -12,6 +12,22 @@ macro (define(x, &y))
 
 macro (do(&b)) b body
 
+macro (evaluate-when('run, 'compile, &x)) do:
+  x body evaluate
+  x body
+
+macro (evaluate-when('compile, 'run, &x)) do:
+  x body evaluate
+  x body
+
+macro (evaluate-when('compile, &x)) do:
+  x body evaluate
+  'nil
+
+macro (for-macro(&b)) do:
+  b body evaluate(Atomy::Macro::CURRENT_ENV)
+  `(~b block call-on-instance(Atomy::Macro::CURRENT_ENV))
+
 macro (x **= y) `(~x =! (~x ** ~y))
 macro (x *= y) `(~x =! (~x * ~y))
 macro (x <<= y) `(~x =! (~x << ~y))

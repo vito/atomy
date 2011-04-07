@@ -63,9 +63,13 @@ macro (data(root, &children)) do:
   `{ class(~root):;, ~*cs } body
 
 
-for-macro quoter(#w) (c): c split
+macro (macro-quoter(n, &x))
+  `(evaluate-when(compile, run):
+      Atomy::Macro::CURRENT_ENV quoter(#~n, &~x))
 
-for-macro quoter(#r) (c, fs):
+macro-quoter(w) (c): c split
+
+macro-quoter(r) (c, fs):
   flags = 0
 
   when(fs include?("m")):
@@ -79,7 +83,8 @@ for-macro quoter(#r) (c, fs):
 
   `(Regexp new(~c, ~flags))
 
-for-macro quoter(#raw) (c): c
+macro-quoter(raw) (c): c
+
 
 macro (_undefined)
   Atomy::AST::Undefined new(line)

@@ -403,6 +403,10 @@ EOF
         Atomy::Macro.expand(self)
       end
 
+      def evaluate(onto = nil)
+        Atomy::Compiler.evaluate_node(self, onto, binding)
+      end
+
       def resolve
         ns = Atomy::Namespace.get
         recursively do |x|
@@ -439,7 +443,7 @@ EOF
       end
 
       def bytecode(g)
-        @nodes.each { |n| n.bytecode(g) }
+        @nodes.each { |n| n.expand.bytecode(g) }
       end
 
       def collect

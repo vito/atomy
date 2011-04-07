@@ -5,6 +5,9 @@ module Atomy
       generate
 
       def bytecode(g)
+        # register macro during compilation too.
+        @pattern.register_macro @body
+
         pos(g)
         @pattern.construct(g)
         @body.construct(g)

@@ -181,9 +181,7 @@ module Atomy
 
     # helper method for #expand
     def self.expand_res(node)
-      Atomy::Compiler::Pragmas.do_pragmas(
-        expand(node.to_node)
-      )
+      expand(node.to_node)
     end
 
     # @!x

@@ -1,4 +1,4 @@
-for-macro
+for-macro:
   class(<< self):
     wildcard('_) := '_undefined
     wildcard(x) := x

@@ -1270,15 +1270,12 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level3 = (macro | for_macro | op_assoc_prec | binary_send | level2)
+  # level3 = (macro | op_assoc_prec | binary_send | level2)
   def _level3
 
     _save = self.pos
     while true # choice
     _tmp = apply(:_macro)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_for_macro)
     break if _tmp
     self.pos = _save
     _tmp = apply(:_op_assoc_prec)
@@ -1660,45 +1657,6 @@ class Atomy::Parser
     end # end sequence
 
     set_failed_rule :_macro unless _tmp
-    return _tmp
-  end
-
-  # for_macro = line:line "for-macro" wsp expression:b { Atomy::AST::ForMacro.new(line, b) }
-  def _for_macro
-
-    _save = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("for-macro")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_expression)
-    b = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::ForMacro.new(line, b) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    set_failed_rule :_for_macro unless _tmp
     return _tmp
   end
 
@@ -5057,14 +5015,13 @@ class Atomy::Parser
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }")
   Rules[:_level1] = rule_info("level1", "(true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | macro_quote | headless | particle | constant | variable | block | grouped | list | unary)")
   Rules[:_level2] = rule_info("level2", "(send | level1)")
-  Rules[:_level3] = rule_info("level3", "(macro | for_macro | op_assoc_prec | binary_send | level2)")
+  Rules[:_level3] = rule_info("level3", "(macro | op_assoc_prec | binary_send | level2)")
   Rules[:_true] = rule_info("true", "line:line \"true\" !identifier { Atomy::AST::Primitive.new(line, :true) }")
   Rules[:_false] = rule_info("false", "line:line \"false\" !identifier { Atomy::AST::Primitive.new(line, :false) }")
   Rules[:_self] = rule_info("self", "line:line \"self\" !identifier { Atomy::AST::Primitive.new(line, :self) }")
   Rules[:_nil] = rule_info("nil", "line:line \"nil\" !identifier { Atomy::AST::Primitive.new(line, :nil) }")
   Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Primitive.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
   Rules[:_macro] = rule_info("macro", "line:line \"macro\" wsp \"(\" wsp expression:p wsp \")\" wsp expression:b { b; Atomy::AST::Macro.new(line, p, b) }")
-  Rules[:_for_macro] = rule_info("for_macro", "line:line \"for-macro\" wsp expression:b { Atomy::AST::ForMacro.new(line, b) }")
   Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
   Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
   Rules[:_op_assoc_prec] = rule_info("op_assoc_prec", "line:line \"operator\" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy::Macro.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, assoc, prec, os)                     }")

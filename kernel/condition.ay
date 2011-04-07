@@ -69,7 +69,7 @@ dynamic(debugger, DefaultDebugger)
 
 
 -- helpers
-for-macro
+for-macro:
   class(<< self):
     to-block(b: Atomy::AST::Block) := b
     to-block(x) := `{ ~x }

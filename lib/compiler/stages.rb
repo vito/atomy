@@ -25,83 +25,9 @@ module Atomy
       end
     end
 
-    class MacroExpander < Rubinius::Compiler::Stage
-      stage :atomy_expand
-      next_stage Generator
-
-      def initialize(compiler, last)
-        super
-        compiler.expander = self
-      end
-
-      def input(root, file = "(eval)", line = 1)
-        @input = root
-        @file = file
-        @line = line
-      end
-
-      def print
-        @print = true
-      end
-
-      def run
-        @output = @input.dup
-        @output.body = @input.body.collect do |n|
-          Atomy::Macro.expand(n)
-        end
-        run_next
-      end
-    end
-
-    class Pragmas < Rubinius::Compiler::Stage
-      stage :atomy_pragmas
-      next_stage MacroExpander
-
-      def initialize(compiler, last)
-        super
-        compiler.pragmas = self
-      end
-
-      def input(root)
-        @input = root
-      end
-
-      def source(file, line = 1)
-        @file = file
-        @line = line
-      end
-
-      def print
-        @print = true
-      end
-
-      def self.do_pragmas(n)
-        n.through_quotes do |x|
-          case x
-          when Atomy::AST::Macro
-            x.pattern.register_macro x.body
-          when Atomy::AST::ForMacro
-            Atomy::Compiler.evaluate_node x.body, Atomy::Macro::CURRENT_ENV
-          end
-
-          x
-        end
-      end
-
-      def run
-        @output = @input.dup
-
-        @output.body = @input.body.collect do |n|
-          Pragmas.do_pragmas(n)
-        end
-
-        run_next
-      end
-    end
-
     class Parser < Rubinius::Compiler::Stage
       stage :atomy_parser
-      next_stage Pragmas
+      next_stage Generator
 
       def initialize(compiler, last)
         super
@@ -131,7 +57,7 @@ module Atomy
 
     class FileParser < Parser
       stage :atomy_file
-      next_stage Pragmas
+      next_stage Generator
 
       def input(file, line = 1)
         @file = file
@@ -145,7 +71,7 @@ module Atomy
 
     class StringParser < Parser
       stage :atomy_string
-      next_stage Pragmas
+      next_stage Generator
 
       def parse
         Atomy::Parser.parse_string(@input)

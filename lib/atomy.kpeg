@@ -122,7 +122,6 @@
          level2 = send
                 | level1
          level3 = macro
-                | for_macro
                 | op_assoc_prec
                 | binary_send
                 | level2
@@ -151,9 +150,6 @@
 
           macro = line:line "macro" wsp "(" wsp expression:p wsp ")" wsp expression:b
                     { b; Atomy::AST::Macro.new(line, p, b) }
-
-      for_macro = line:line "for-macro" wsp expression:b
-                    { Atomy::AST::ForMacro.new(line, b) }
 
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
         op_prec = sig_wsp < /[0-9]+/ > { text.to_i }

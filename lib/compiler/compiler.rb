@@ -1,6 +1,6 @@
 module Atomy
   class Compiler < Rubinius::Compiler
-    attr_accessor :expander, :pragmas
+    attr_accessor :expander
 
     def self.compiled_name(file)
       if file.suffix? ".ay"
@@ -20,8 +20,6 @@ module Atomy
       writer = compiler.writer
       writer.name = output ? output : compiled_name(file)
 
-      compiler.pragmas.source file, line
-
       compiler.run
     end
 
@@ -34,8 +32,6 @@ module Atomy
 
       printer = compiler.packager.print
       printer.bytecode = debug
-
-      compiler.pragmas.source file
 
       compiler.run
     end
@@ -52,8 +48,6 @@ module Atomy
         printer.bytecode = debug
       end
 
-      compiler.pragmas.source file, line
-
       compiler.run
     end
 
@@ -69,15 +63,13 @@ module Atomy
         printer.bytecode = debug
       end
 
-      compiler.pragmas.source file, line
-
       compiler.generator.variable_scope = scope
 
       compiler.run
     end
 
     def self.compile_node(node, scope = nil, file = "(eval)", line = 1, debug = false)
-      compiler = new :atomy_pragmas, :compiled_method
+      compiler = new :atomy_bytecode, :compiled_method
 
       eval = Rubinius::AST::EvalExpression.new(AST::Tree.new([node]))
       eval.file = file
@@ -87,9 +79,7 @@ module Atomy
         printer.bytecode = debug
       end
 
-      compiler.pragmas.source file, line
-      compiler.pragmas.input eval
-
+      compiler.generator.input eval
       compiler.generator.variable_scope = scope
 
       compiler.run
