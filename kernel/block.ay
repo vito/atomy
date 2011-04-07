@@ -1,3 +1,1 @@
-Block = Rubinius::BlockEnvironment
-
-x join(&b) := b block call-on-instance(x)
+x onto(&b) := b block call-on-instance(x)
