@@ -1590,7 +1590,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # macro = line:line "macro" wsp "(" wsp expression:p wsp ")" wsp expression:b { b; Atomy::AST::Macro.new(line, p, b) }
+  # macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b { b; Atomy::AST::Macro.new(line, p, b.body) }
   def _macro
 
     _save = self.pos
@@ -1602,11 +1602,6 @@ class Atomy::Parser
       break
     end
     _tmp = match_string("macro")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_wsp)
     unless _tmp
       self.pos = _save
       break
@@ -1642,13 +1637,13 @@ class Atomy::Parser
       self.pos = _save
       break
     end
-    _tmp = apply(:_expression)
+    _tmp = apply(:_block)
     b = @result
     unless _tmp
       self.pos = _save
       break
     end
-    @result = begin;  b; Atomy::AST::Macro.new(line, p, b) ; end
+    @result = begin;  b; Atomy::AST::Macro.new(line, p, b.body) ; end
     _tmp = true
     unless _tmp
       self.pos = _save
@@ -5021,7 +5016,7 @@ class Atomy::Parser
   Rules[:_self] = rule_info("self", "line:line \"self\" !identifier { Atomy::AST::Primitive.new(line, :self) }")
   Rules[:_nil] = rule_info("nil", "line:line \"nil\" !identifier { Atomy::AST::Primitive.new(line, :nil) }")
   Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Primitive.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
-  Rules[:_macro] = rule_info("macro", "line:line \"macro\" wsp \"(\" wsp expression:p wsp \")\" wsp expression:b { b; Atomy::AST::Macro.new(line, p, b) }")
+  Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { b; Atomy::AST::Macro.new(line, p, b.body) }")
   Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
   Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
   Rules[:_op_assoc_prec] = rule_info("op_assoc_prec", "line:line \"operator\" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy::Macro.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, assoc, prec, os)                     }")

@@ -1,39 +1,39 @@
-macro (if(x) then(&y) else(&z))
+macro(if(x) then(&y) else(&z)):
   Atomy::AST::IfThenElse new(line, x, y body, z body)
   
-macro (otherwise) 'true
+macro(otherwise): 'true
 
-macro (condition(&bs))
+macro(condition(&bs)):
   bs contents reverse inject('nil) (acc, `(~x -> ~y)):
     `(if(~x) then: ~y; else: ~acc)
 
-macro (while(cond, &body))
+macro(while(cond, &body)):
   Atomy::AST::While new(line, cond, body body)
 
-macro (until(cond, &body))
+macro(until(cond, &body)):
   Atomy::AST::While new(line, `!~cond, body body)
 
-macro (return(y))
+macro(return(y)):
   Atomy::AST::Return new(line, y)
 
-macro (x rescue(&y))
+macro(x rescue(&y)):
   Atomy::AST::Catch new(line, x caller, y contents)
 
-macro (x rescue(&y) else(&z))
+macro(x rescue(&y) else(&z)):
   Atomy::AST::Catch new(line, x caller, y contents, z body)
 
-macro (x ensuring(&y))
+macro(x ensuring(&y)):
   Atomy::AST::Ensure new(line, x caller, y body)
 
-macro (when(c, &b))
+macro(when(c, &b)):
   Atomy::AST::When new(line, c, b body)
 
-macro (unless(c, &b))
+macro(unless(c, &b)):
   Atomy::AST::When new(line, `!~c, b body)
 
-macro (super) Atomy::AST::ZSuper new(line)
+macro(super): Atomy::AST::ZSuper new(line)
 
-macro (super(*args, &blk)) Atomy::AST::Super new(line, args, blk)
+macro(super(*args, &blk)): Atomy::AST::Super new(line, args, blk)
 
 module(Atomy::AST):
   class(ZSuper < Node):

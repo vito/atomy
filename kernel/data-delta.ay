@@ -1,4 +1,4 @@
-macro (data(root, &children)) do:
+macro(data(root, &children)):
   cs = children contents map (e):
     e match:
       Atomy::AST::Send -> do:
@@ -63,7 +63,7 @@ macro (data(root, &children)) do:
   `{ class(~root):;, ~*cs } body
 
 
-macro (macro-quoter(n, &x))
+macro(macro-quoter(n, &x)):
   `(evaluate-when(compile, run):
       Atomy::Macro::CURRENT_ENV quoter(#~n, &~x))
 
@@ -86,7 +86,7 @@ macro-quoter(r) (c, fs):
 macro-quoter(raw) (c): c
 
 
-macro (_undefined)
+macro(_undefined):
   Atomy::AST::Undefined new(line)
 
 no-namespace:

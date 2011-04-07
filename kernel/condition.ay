@@ -76,25 +76,27 @@ for-macro:
 
 
 -- register handlers for executing some action
-macro (x bind(&y)) names (a):
-  callback = `((~a): ~a match: ~*(y contents))
-  `(let(handlers = ^handlers + [~callback]):
-      ~(x caller))
+macro(x bind(&y)):
+  names (a):
+    callback = `((~a): ~a match: ~*(y contents))
+    `(let(handlers = ^handlers + [~callback]):
+        ~(x caller))
 
 -- register restarts available to handlers for the duration
 -- of some action's executation
-macro (with-restarts(*restarts, &body)) names (context):
-  rs = restarts collect (`(~n -> ~e)):
-    `(#~n -> ~(to-block(e)))
+macro(with-restarts(*restarts, &body)):
+  names (context):
+    rs = restarts collect (`(~n -> ~e)):
+      `(#~n -> ~(to-block(e)))
 
-  `({ ~context = Object new
+    `({ ~context = Object new
 
-      { let(restarts = ^restarts + [[#[~*rs], ~context]]):
-          ~(body caller)
-      } rescue:
-          (e: RestartException ? @context equal?(~context)) ->
-            e receiver call(*(e args))
-    }) body
+        { let(restarts = ^restarts + [[#[~*rs], ~context]]):
+            ~(body caller)
+        } rescue:
+            (e: RestartException ? @context equal?(~context)) ->
+              e receiver call(*(e args))
+      }) body
 
 
 -- send a signal through the handlers, nearest-first

@@ -54,8 +54,8 @@ module(Atomy::AST):
 
       done set!
 
-macro (a && b) Atomy::AST::And new(line, a, b)
-macro (a || b) Atomy::AST::Or new(line, a, b)
-macro (!a) Atomy::AST::Negate new(line, a)
-macro (a != b) `!(~a == ~b)
-macro (a !~ b) `!(~a =~ ~b)
+macro(a && b): Atomy::AST::And new(line, a, b)
+macro(a || b): Atomy::AST::Or new(line, a, b)
+macro(!a): Atomy::AST::Negate new(line, a)
+macro(a != b): `!(~a == ~b)
+macro(a !~ b): `!(~a =~ ~b)

@@ -3,7 +3,7 @@ for-macro:
     wildcard('_) := '_undefined
     wildcard(x) := x
 
-macro (#(x: Send))
+macro(#(x: Send)):
   `(Particle at(
       ~(if(x private)
           then: '_undefined
@@ -12,7 +12,7 @@ macro (#(x: Send))
       ~*(x arguments collect (c): wildcard(c))
     ))
 
-macro (#(x: BinarySend))
+macro(#(x: BinarySend)):
   `(Particle at(
       ~(if(x private)
           then: '_undefined

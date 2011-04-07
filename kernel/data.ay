@@ -1,37 +1,37 @@
-macro (&x)
+macro(&x):
   Atomy::AST::BlockPass new(x line, x)
 
-macro (*x)
+macro(*x):
   Atomy::AST::Splat new(x line, x)
 
-macro (@(x: Variable))
+macro(@(x: Variable)):
   Atomy::AST::InstanceVariable new(x line, x name)
 
-macro (@@(x: Variable))
+macro(@@(x: Variable)):
   Atomy::AST::ClassVariable new(x line, x name)
 
-macro ($'exception)
+macro($'exception):
   Atomy::AST::GlobalVariable new(line, "!")
 
-macro ($'path)
+macro($'path):
   Atomy::AST::GlobalVariable new(line, ":")
 
-macro ($(x: Constant))
+macro($(x: Constant)):
   Atomy::AST::GlobalVariable new(x line, x identifier)
 
-macro ($(x: Variable))
+macro($(x: Variable)):
   Atomy::AST::GlobalVariable new(x line, x name)
 
-macro (#(x: Constant))
+macro(#(x: Constant)):
   Atomy::AST::Particle new(x line, x identifier)
 
-macro (#(x: Variable))
+macro(#(x: Variable)):
   Atomy::AST::Particle new(x line, x name)
 
-macro (a .. b) `(Range new(~a, ~b))
-macro (a ... b) `(Range new(~a, ~b, true))
+macro(a .. b): `(Range new(~a, ~b))
+macro(a ... b): `(Range new(~a, ~b, true))
 
-macro (x at(y) put(z))
+macro(x at(y) put(z)):
   Atomy::AST::Send new(
     line
     x
@@ -39,13 +39,14 @@ macro (x at(y) put(z))
     "[]="
   )
 
-macro (x for(e) in(c)) `(~c collect (~e): ~x)
+macro(x for(e) in(c)): `(~c collect (~e): ~x)
 
-macro (x for(e) in(c) if(t)) names (tmp):
-  `([] tap (~tmp):
-      ~c each (~e):
-        when(~t):
-          ~tmp << ~x)
+macro(x for(e) in(c) if(t)):
+  names (tmp):
+    `([] tap (~tmp):
+        ~c each (~e):
+          when(~t):
+            ~tmp << ~x)
 
 class(Object):
   dynamic-method(#at) (g):

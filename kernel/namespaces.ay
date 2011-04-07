@@ -1,8 +1,8 @@
-macro (in-namespace(n, &b))
+macro(in-namespace(n, &b)):
   `(let(namespace = namespace(~n)):
       ~(b body))
 
-macro (no-namespace(&b))
+macro(no-namespace(&b)):
   `(let(namespace = nil):
       ~(b body))
 

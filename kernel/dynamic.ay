@@ -11,12 +11,12 @@ for-macro:
     set-dynvar(n, v) :=
       `(Thread current at(#~key(n)) put(~v))
 
-macro (dynamic(n, root))
+macro(dynamic(n, root)):
   `(Atomy::DYNAMIC_ROOTS at(#~n) put(~root))
 
-macro (^x) dynvar(x)
+macro(^x): dynvar(x)
 
-macro (let(*bindings, &body)) do:
+macro(let(*bindings, &body)):
   tmps = names(bindings size)
   save = []
   set = []
