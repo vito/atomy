@@ -403,6 +403,10 @@ EOF
     class Node < Rubinius::AST::Node
       include NodeLike
       extend SentientNode
+
+      def bytecode(g)
+        raise "no #bytecode for #{self.class.name}"
+      end
     end
 
     class Tree
