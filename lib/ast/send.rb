@@ -16,6 +16,14 @@ module Atomy
         )
       end
 
+      def message_name
+        if @namespace && !@namespace.empty?
+          @namespace + "/" + @method_name
+        else
+          @method_name
+        end
+      end
+
       def bytecode(g)
         pos(g)
 
@@ -43,14 +51,12 @@ module Atomy
           else
             g.push_nil
           end
-          g.send_with_splat @method_name.to_sym, @arguments.size, @private
+          g.send_with_splat message_name.to_sym, @arguments.size, @private
         elsif block
           block.bytecode(g)
-          g.send_with_block @method_name.to_sym, @arguments.size, @private
-        elsif @namespace
-          g.call_custom((@namespace + "/" + @method_name).to_sym, @arguments.size)
+          g.send_with_block message_name.to_sym, @arguments.size, @private
         else
-          g.call_custom(@method_name.to_sym, @arguments.size)
+          g.call_custom(message_name.to_sym, @arguments.size)
         end
       end
     end
