@@ -20,6 +20,8 @@ module Atomy
       writer = compiler.writer
       writer.name = output ? output : compiled_name(file)
 
+      compiler.pragmas.source file, line
+
       compiler.run
     end
 
@@ -32,6 +34,8 @@ module Atomy
 
       printer = compiler.packager.print
       printer.bytecode = debug
+
+      compiler.pragmas.source file
 
       compiler.run
     end
@@ -48,6 +52,8 @@ module Atomy
         printer.bytecode = debug
       end
 
+      compiler.pragmas.source file, line
+
       compiler.run
     end
 
@@ -62,6 +68,8 @@ module Atomy
         printer = compiler.packager.print
         printer.bytecode = debug
       end
+
+      compiler.pragmas.source file, line
 
       compiler.generator.variable_scope = scope
 
@@ -79,6 +87,7 @@ module Atomy
         printer.bytecode = debug
       end
 
+      compiler.pragmas.source file, line
       compiler.pragmas.input eval
 
       compiler.generator.variable_scope = scope

@@ -62,8 +62,11 @@ module Atomy
         compiler.pragmas = self
       end
 
-      def input(root, file = "(eval)", line = 1)
+      def input(root)
         @input = root
+      end
+
+      def source(file, line = 1)
         @file = file
         @line = line
       end
