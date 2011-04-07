@@ -1,17 +1,17 @@
-describe("concurrency"):
-  describe("spawn"):
-    it("creates an actor that executes a block"):
+atomy/describe("concurrency"):
+  atomy/describe("spawn"):
+    atomy/it("creates an actor that executes a block"):
       a = 0
-      spawn: a =! 1
+      atomy/spawn: a =! 1
       sleep(0.1)
       a should-be(1)
 
 
-  describe("<-"):
-    it("sends a message to an actor"):
+  atomy/describe("<-"):
+    atomy/it("sends a message to an actor"):
       main = me
-      p = spawn:
-        receive: n -> main <- #ok;
+      p = atomy/spawn:
+        receive: n -> main << #ok;
           after(
             1 -> main <- #timeout-inner
           )

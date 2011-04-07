@@ -1,37 +1,37 @@
-describe("quasiquotation"):
-  it("constructs an expression"):
+atomy/describe("quasiquotation"):
+  atomy/it("constructs an expression"):
     `1 should-be('1)
     `(1 + 1) should-be('(1 + 1))
 
-  it("expands through unquotes"):
+  atomy/it("expands through unquotes"):
     macro (q-foo-0) '42
     `(1 + ~q-foo-0) should-be('(1 + 42))
 
-  it("expands through splice unquotes"):
+  atomy/it("expands through splice unquotes"):
     macro (q-foo-1) '['2, '3]
     `[1, ~*q-foo-1] should-be('[1, 2, 3])
 
-  describe("unquotes"):
-    it("brings an expression into a quasiquotation"):
+  atomy/describe("unquotes"):
+    atomy/it("brings an expression into a quasiquotation"):
       `(1 + ~'3) should-be('(1 + 3))
 
       a = '2
       `(1 + ~a) should-be('(1 + 2))
 
-    it("unquotes through nested quasiquotation"):
+    atomy/it("unquotes through nested quasiquotation"):
       a = '3
       `(1 + `(2 * ~~'4)) should-be('(1 + `(2 * ~4)))
       `(1 + `(2 * ~~a)) should-be('(1 + `(2 * ~3)))
       ``(1 + `(2 * ~~~'4)) should-be('`(1 + `(2 * ~~4)))
       ``(1 + `(2 * ~~~a)) should-be('`(1 + `(2 * ~~3)))
 
-  describe("splice-quotes"):
-    it("unquotes a list of expressions, merging into a 'many' part"):
+  atomy/describe("splice-quotes"):
+    atomy/it("unquotes a list of expressions, merging into a 'many' part"):
       a = ['3, '4]
       `[1, 2, ~*['3, '4]] should-be('[1, 2, 3, 4])
       `[1, 2, ~*a] should-be('[1, 2, 3, 4])
 
-    it("splices through nested quasiquotation"):
+    atomy/it("splices through nested quasiquotation"):
       a = ['3, '4]
       ``[1, 2, ~~*['3, '4]] should-be('`[1, 2, ~*['3, '4]])
       ``[1, 2, ~~*a] should-be('`[1, 2, ~*['3, '4]])

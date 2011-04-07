@@ -1,25 +1,25 @@
-describe("blocks"):
-  describe(#call):
-    it("evaluates with the block's context available"):
+atomy/describe("blocks"):
+  atomy/describe(#call):
+    atomy/it("evaluates with the block's context available"):
       a = 1
       : a + 1 ; call should-be(2)
 
-    it("introduces a new locals environment"):
+    atomy/it("introduces a new locals environment"):
       a = 1
       : a = 2, a ; call should-be(2)
       a should-be(1)
 
-    it("does not leak argument bindings into the block's context"):
+    atomy/it("does not leak argument bindings into the block's context"):
       (a): a + 1, call(1)
       : a ; should-raise(NoMethodError)
 
-    it("is lexically scoped"):
+    atomy/it("is lexically scoped"):
       a = 1
       foo(b, a) := b call
       foo(:a;, 2) should-be(1)
 
-  describe("arguments"):
-    it("errors if too few given"):
+  atomy/describe("arguments"):
+    atomy/it("errors if too few given"):
       : 1 ; call should-be(1)
       (a): a; call(2) should-be(2)
       (a, b): a + b; call(1, 2) should-be(3)
@@ -27,48 +27,48 @@ describe("blocks"):
       : (a): a; call ; should-raise(ArgumentError)
       : (a, b): a; call(1) ; should-raise(ArgumentError)
 
-    it("ignores arguments that aren't used"):
+    atomy/it("ignores arguments that aren't used"):
       : 1 ; call(2) should-be(1)
       : 1 ; call(2, 3) should-be(1)
 
-    describe("block"):
-      it("binds a block argument"):
+    atomy/describe("block"):
+      atomy/it("binds a block argument"):
         (&x): x call; call: 1 ; should-be(1)
 
-      it("binds as nil if no block given"):
+      atomy/it("binds as nil if no block given"):
         (&x): x; call should-be(nil)
 
-      it("works with arguments before it"):
+      atomy/it("works with arguments before it"):
         (a, &x): x call(a); call(2) (a): a + 1; should-be(3)
 
-      it("fails with arguments after it"):
+      atomy/it("fails with arguments after it"):
         : (&x, a): x call(a); call(2) (a): a + 1;
         ; should-raise(ArgumentError)
 
-    describe("splat"):
-      it("consumes the rest of the arguments"):
+    atomy/describe("splat"):
+      atomy/it("consumes the rest of the arguments"):
         foo = (*xs): xs
         foo call should-be([])
         foo call(1) should-be([1])
         foo call(1, 2) should-be([1, 2])
 
-      it("starts after required args"):
+      atomy/it("starts after required args"):
         foo = (a, *bs): [a, bs]
         --{ foo call } should-raise(ArgumentError)
         foo call(1) should-be([1, []])
         foo call(1, 2) should-be([1, [2]])
         foo call(1, 2, 3) should-be([1, [2, 3]])
 
-      it("appears before a block arg"):
+      atomy/it("appears before a block arg"):
         foo = (a, *bs, &c): [a, bs, c]
         x = :;
         --{ foo call } should-raise(ArgumentError)
         res = foo call(1, &x)
         res at(0) should-be(1)
         res at(1) should-be([])
-        res at(2) should: kind-of?(Proc)
+        res at(2) atomy/should: kind-of?(Proc)
 
         res = foo call(1, 2, 3, &x)
         res at(0) should-be(1)
         res at(1) should-be([2, 3])
-        res at(2) should: kind-of?(Proc)
+        res at(2) atomy/should: kind-of?(Proc)
