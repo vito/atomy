@@ -91,9 +91,9 @@ no-namespace:
 
     (a: BlockPass) =~ (b: BlockPass) :=
       a pattern =~ b pattern
+
     (a: Constant) =~ (b: Constant) :=
       a constant =~ b constant
-
 
     (a: Default) =~ (b: Default) :=
       a pattern =~ b pattern
