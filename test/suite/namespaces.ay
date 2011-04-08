@@ -1,0 +1,143 @@
+atomy/describe("namespaces"):
+  atomy/describe(#no-namespace):
+    atomy/it("executes a block without any namespace"):
+      no-namespace { ^namespace } should-be(nil)
+
+  atomy/describe(#in-namespace):
+    atomy/it("creates a new namespace if it does not exist"):
+      in-namespace(foo):
+        ^namespace register(#fizz)
+
+    atomy/it("switches to an existing namespace"):
+      in-namespace(foo):
+        ^namespace atomy/should: contains?(#fizz)
+
+  atomy/describe(#use):
+    atomy/it("modifies the current namespace to use another"):
+      in-namespace(foo):
+        use(atomy)
+        ^namespace using should-be([#atomy])
+
+    atomy/it("accepts multiple arguments"):
+      in-namespace(x):
+        foo := 1
+
+      in-namespace(y):
+        use(x, atomy)
+        foo should-be(1)
+
+    atomy/it("ignores duplicates"):
+      in-namespace(foo):
+        use(atomy)
+        ^namespace using should-be([#atomy])
+
+  atomy/describe(#symbols):
+    atomy/it("registers the given names in the current namespace"):
+      in-namespace(foo):
+        symbols(foo, bar)
+        ^namespace atomy/should:
+          contains?(#fizz) &&
+            contains?(#foo) &&
+              contains?(#bar)
+
+  atomy/describe("macro namespacing"):
+    atomy/it("should register macros only in the current namespace"):
+      var = 0
+
+      in-namespace(foo-0):
+        use(atomy)
+        macro(var): '1
+        var should-be(1)
+
+      in-namespace(bar-0):
+        use(atomy)
+        macro(var): '2
+        var should-be(2)
+      
+      var should-be(0)
+
+    atomy/it("should resolve a macro's body in its namespace"):
+      n-foo-0 := 0
+
+      in-namespace(foo-1):
+        use(atomy)
+        n-foo-1 := 1
+        macro(m-foo-1): '(n-foo-1())
+
+      in-namespace(bar-1):
+        use(foo-1, atomy)
+        'm-foo-1 expand namespace should-be("foo_1")
+        m-foo-1 should-be(1)
+
+  atomy/describe("definition namespacing"):
+    atomy/it("should register methods only in the current namespace"):
+      var := 0
+
+      in-namespace(foo):
+        use(atomy)
+        var := 1
+        var should-be(1)
+
+      in-namespace(bar):
+        use(atomy)
+        var := 2
+        var should-be(2)
+      
+      var should-be(0)
+
+    atomy/it("should resolve a method's body in its namespace"):
+      n-foo-2 := 0
+
+      in-namespace(foo-2):
+        n-foo-2 := 1
+        n-foo-3 := n-foo-2
+
+      in-namespace(bar-2):
+        use(atomy)
+        n-foo-2 should-be(0)
+        foo-2/n-foo-3 should-be(1)
+
+  atomy/describe(#export):
+    atomy/it("executes the body with definitions going to the bottom namespace"):
+      in-namespace(bar-3):
+        n-foo-4 := 0
+
+        export:
+          n-foo-5 := n-foo-4
+
+        n-foo-4 atomy/should-be(0)
+
+      ^namespace atomy/should: !contains?(#n-foo-5)
+      'n-foo-5 resolve namespace should-be("_")
+      n-foo-5 should-be(0)
+
+    atomy/it("resolves the method bodies in the current namespace"):
+      n-foo-5 atomy/should-be(0)
+      n-foo-4 := 1
+      n-foo-5 atomy/should-be(0)
+
+  atomy/describe(#export-to):
+    atomy/it("executes the body with definitions going to a given namespace"):
+      in-namespace(bar-4):
+        foo := 0
+
+        export-to(foo-4):
+          bar := foo
+          foo atomy/should-be(0)
+
+        foo atomy/should-be(0)
+
+      in-namespace(foo-4):
+        bar atomy/should-be(0)
+        foo := 1
+        bar atomy/should-be(0)
+
+    atomy/it("resolves the method bodies in the current namespace"):
+      in-namespace(foo-4):
+        bar atomy/should-be(0)
+        foo := 1
+        bar atomy/should-be(0)
+
+  atomy/it("allows calling methods in other namespaces"):
+    no-namespace:
+      1 atomy/should-be(1)
