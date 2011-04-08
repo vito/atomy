@@ -73,3 +73,33 @@ atomy/describe("macros"):
       Atomy::Macro::CURRENT_ENV
         instance-variable-get("@abc")
         should-be(10)
+
+  atomy/describe("pattern-matching"):
+    atomy/it("expands through assignment patterns"):
+      macro(m-foo-14): '42
+      (m-foo-14 = 42) should-be(42)
+      { m-foo-14 = 41 } should-raise(PatternMismatch)
+
+    atomy/it("expands through mutation patterns"):
+      macro(m-foo-14): '42
+      (m-foo-14 =! 42) should-be(42)
+      { m-foo-14 =! 41 } should-raise(PatternMismatch)
+
+    atomy/it("expands through block argument patterns"):
+      macro(m-foo-15): '42
+      (m-foo-15) { #ok } (42) should-be(#ok)
+      { (m-foo-15) { #ok } (41) } should-raise(PatternMismatch)
+
+    atomy/it("expands through #match patterns"):
+      macro(m-foo-16): '42
+      42 match { m-foo-16 -> #ok, _ -> #not-ok } should-be(#ok)
+      41 match { m-foo-16 -> #ok, _ -> #not-ok } should-be(#not-ok)
+
+    atomy/it("expands through method definition patterns"):
+      macro(m-foo-17): '42
+
+      foo-17(m-foo-17) := #is-42
+      foo-17(_) := #not-42
+
+      foo-17(42) should-be(#is-42)
+      foo-17(41) should-be(#not-42)
