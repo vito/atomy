@@ -1,5 +1,7 @@
 require("thread")
 
+symbols(with, reset-method-cache, unmix)
+
 module(Atomy::Mixins):
   MixedIn = Hash new
   Sync = Mutex new

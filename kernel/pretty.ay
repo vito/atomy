@@ -147,6 +147,8 @@ doc(&body) := with(Pretty, &body)
 
 (o: Object) pretty := Doc text(inspect)
 
+symbols(comma-delim)
+
 Array pretty :=
   doc: brackets(Atomy::AST comma-delim(self))
 
