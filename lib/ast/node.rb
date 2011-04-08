@@ -486,3 +486,9 @@ class NilClass
     Atomy::AST::Primitive.new -1, :nil
   end
 end
+
+class Symbol
+  def to_node
+    Atomy::AST::Particle.new -1, self
+  end
+end
