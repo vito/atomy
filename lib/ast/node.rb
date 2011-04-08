@@ -428,6 +428,10 @@ EOF
       def compile(g)
         bytecode(g)
       end
+
+      def to_pattern
+        expand.pattern
+      end
     end
 
     class Node < Rubinius::AST::Node

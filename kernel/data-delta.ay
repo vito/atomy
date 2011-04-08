@@ -25,8 +25,8 @@ macro(data(root, &children)):
         )
 
         pat-def =
-          `(~(Atomy::AST::QuasiQuote new(0, cons)) to-pattern :=
-              ~(Atomy::AST::QuasiQuote new(0, pat)) to-pattern)
+          `(~(Atomy::AST::QuasiQuote new(0, cons)) pattern :=
+              ~(Atomy::AST::QuasiQuote new(0, pat)) pattern)
 
         define =
           `({ class(~name < ~root):
@@ -97,4 +97,4 @@ export:
       pos(g)
       g push-undef
 
-    to-pattern := Atomy::Patterns::Any new
+    pattern := Atomy::Patterns::Any new

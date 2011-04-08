@@ -161,39 +161,39 @@ module(Atomy::Patterns):
 -- base patterns
 module(Atomy::AST):
   export:
-    Variable to-pattern :=
+    Variable pattern :=
       Atomy::Patterns::Named new(
         @name
         Atomy::Patterns::Any new
       )
 
-    Primitive to-pattern :=
+    Primitive pattern :=
       Atomy::Patterns::Match new(@value)
 
-    List to-pattern :=
+    List pattern :=
       Atomy::Patterns::List new(
         @elements collect (e): e to-pattern
       )
 
-    Constant to-pattern :=
+    Constant pattern :=
       Atomy::Patterns::Constant new(self)
 
-    ScopedConstant to-pattern :=
+    ScopedConstant pattern :=
       Atomy::Patterns::Constant new(self)
 
-    ToplevelConstant to-pattern :=
+    ToplevelConstant pattern :=
       Atomy::Patterns::Constant new(self)
 
-    Quote to-pattern :=
+    Quote pattern :=
       Atomy::Patterns::Quote new(@expression)
 
-    Block to-pattern :=
+    Block pattern :=
       Atomy::Patterns::SingletonClass new(self)
 
-    Particle to-pattern :=
+    Particle pattern :=
       Atomy::Patterns::Particle new(@name to-sym)
 
-    Send to-pattern :=
+    Send pattern :=
       if(@block)
         then:
           Atomy::Patterns::Named new(
@@ -207,11 +207,11 @@ module(Atomy::AST):
             @method-name
           )
 
-    QuasiQuote to-pattern :=
+    QuasiQuote pattern :=
       Atomy::Patterns::QuasiQuote new(self)
 
-    String to-pattern :=
+    String pattern :=
       Atomy::Patterns::Match new(@value)
 
-    Node to-pattern :=
+    Node pattern :=
       raise("unknown pattern: " + self inspect)

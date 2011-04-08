@@ -118,13 +118,13 @@ module Atomy::Patterns
   end
 
   class Atomy::AST::Node
-    def to_pattern
+    def pattern
       raise "unknown pattern: #{inspect}"
     end
   end
 
   class Atomy::AST::Variable
-    def to_pattern
+    def pattern
       if @name == "_"
         Any.new
       else
@@ -134,37 +134,37 @@ module Atomy::Patterns
   end
 
   class Atomy::AST::Primitive
-    def to_pattern
+    def pattern
       Match.new(@value)
     end
   end
 
   class Atomy::AST::List
-    def to_pattern
+    def pattern
       List.new(@elements.collect(&:to_pattern))
     end
   end
 
   class Atomy::AST::Constant
-    def to_pattern
+    def pattern
       Constant.new(self)
     end
   end
 
   class Atomy::AST::ScopedConstant
-    def to_pattern
+    def pattern
       Constant.new(self)
     end
   end
 
   class Atomy::AST::ToplevelConstant
-    def to_pattern
+    def pattern
       Constant.new(self)
     end
   end
 
   class Atomy::AST::BinarySend
-    def to_pattern
+    def pattern
       case @operator
       when "."
         HeadTail.new(@lhs.to_pattern, @rhs.to_pattern)
@@ -179,49 +179,49 @@ module Atomy::Patterns
   end
 
   class Atomy::AST::Assign
-    def to_pattern
+    def pattern
       Default.new(@lhs.to_pattern, @rhs)
     end
   end
 
   class Atomy::AST::BlockPass
-    def to_pattern
+    def pattern
       BlockPass.new(@body.to_pattern)
     end
   end
 
   class Atomy::AST::Quote
-    def to_pattern
+    def pattern
       Quote.new(@expression)
     end
   end
 
   class Atomy::AST::Block
-    def to_pattern
+    def pattern
       SingletonClass.new(self)
     end
   end
 
   class Atomy::AST::GlobalVariable
-    def to_pattern
+    def pattern
       NamedGlobal.new(@identifier)
     end
   end
 
   class Atomy::AST::InstanceVariable
-    def to_pattern
+    def pattern
       NamedInstance.new(@identifier)
     end
   end
 
   class Atomy::AST::ClassVariable
-    def to_pattern
+    def pattern
       NamedClass.new(@identifier)
     end
   end
 
   class Atomy::AST::Unary
-    def to_pattern
+    def pattern
       case @operator
       when "$"
         NamedGlobal.new(@receiver.name)
@@ -243,19 +243,19 @@ module Atomy::Patterns
   end
 
   class Atomy::AST::Splat
-    def to_pattern
+    def pattern
       Splat.new(@value.to_pattern)
     end
   end
 
   class Atomy::AST::Particle
-    def to_pattern
+    def pattern
       Particle.new(@name.to_sym) # TODO: other forms
     end
   end
 
   class Atomy::AST::Send
-    def to_pattern
+    def pattern
       if @block
         Named.new(@method_name, @block.contents[0].to_pattern)
       else
@@ -265,7 +265,7 @@ module Atomy::Patterns
   end
 
   class Atomy::AST::QuasiQuote
-    def to_pattern
+    def pattern
       QuasiQuote.new(self)
     end
   end
