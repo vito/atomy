@@ -90,7 +90,8 @@ module Atomy
         g.find_const :Atomy
         g.find_const :Namespace
         g.push_literal @pattern.namespace_symbol
-        g.send :register, 1
+        g.push_literal @namespace
+        g.send :register, 2
         g.pop
 
         defn = receiver.kind_of?(Patterns::Match) && receiver.value == :self

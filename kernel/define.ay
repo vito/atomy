@@ -6,12 +6,12 @@ macro(x =! y):
 
 macro(x := y):
   where = Thread current at(#atomy-define-in)
-  Atomy::Namespace register(x namespace-symbol)
+  Atomy::Namespace register(x namespace-symbol, where)
   Atomy::AST::Define new(x line, x, y resolve, where)
 
 macro(define(x, &y)):
   where = Thread current at(#atomy-define-in)
-  Atomy::Namespace register(x namespace-symbol)
+  Atomy::Namespace register(x namespace-symbol, where)
   Atomy::AST::Define new(x line, x, y block-body resolve, where)
 
 macro(do(&b)): b body

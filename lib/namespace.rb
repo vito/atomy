@@ -47,8 +47,8 @@ module Atomy
       Thread.current[:atomy_namespace] = x
     end
 
-    def self.register(sym)
-      ns = get
+    def self.register(sym, name = nil)
+      ns = get(name && name.to_sym)
       return unless ns
       ns.register(sym)
     end
