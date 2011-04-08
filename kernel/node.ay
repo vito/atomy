@@ -1,4 +1,4 @@
-no-namespace:
+export:
   module(Atomy::AST):
     '_ to-pattern :=
       Atomy::Patterns::Any new

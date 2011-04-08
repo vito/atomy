@@ -16,7 +16,7 @@ macro(#(l: List)):
 
   Atomy::AST::Hash new(line, keys, values)
 
-no-namespace:
+export:
   class(Atomy::AST::Hash < Atomy::AST::Node):
     children([#keys], [#values])
     generate

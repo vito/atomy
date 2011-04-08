@@ -1,4 +1,4 @@
-no-namespace:
+export:
   MethodFail message :=
     ("method '" + @method-name to-s + "' did not understand " +
     "its arguments (non-exhaustive patterns)")

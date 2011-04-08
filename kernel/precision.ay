@@ -1,4 +1,4 @@
-no-namespace:
+export:
   module(Atomy::Patterns):
     -- pattern precision hierarchy, from least precise to most
     -- TODO: Strict, Predicate, SingletonClass, RuntimeClass

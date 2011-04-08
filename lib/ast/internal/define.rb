@@ -2,6 +2,7 @@ module Atomy
   module AST
     class Define < Node
       children :pattern, :body
+      slots :namespace?
       generate
 
       def arguments
@@ -46,6 +47,15 @@ module Atomy
       def ns_method_name(g)
         if method_name == "initialize"
           g.push_literal :initialize
+          return
+        end
+
+        if @namespace
+          if @namespace == "_"
+            g.push_literal method_name.to_sym
+          else
+            g.push_literal((@namespace + "/" + method_name).to_sym)
+          end
           return
         end
 

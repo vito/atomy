@@ -416,7 +416,7 @@ EOF
               if ns && n = ns.resolve(x.namespace_symbol)
                 x.namespace = n.to_s
               else
-                x.namespace = ""
+                x.namespace = "_"
               end
             end
           end

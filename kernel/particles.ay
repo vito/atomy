@@ -21,7 +21,7 @@ macro(#(x: BinarySend)):
       ~(wildcard(x rhs))
     ))
 
-no-namespace:
+export:
   class(Particle < Array):
     call(*args) := to-proc (*args)
 

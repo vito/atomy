@@ -5,12 +5,14 @@ macro(x =! y):
   Atomy::AST::Set new(x line, x, y)
 
 macro(x := y):
+  where = Thread current at(#atomy-define-in)
+  where = Thread current at(#atomy-define-in)
   Atomy::Namespace register(x namespace-symbol)
-  Atomy::AST::Define new(x line, x, y resolve)
+  Atomy::AST::Define new(x line, x, y resolve, where)
 
 macro(define(x, &y)):
   Atomy::Namespace register(x namespace-symbol)
-  Atomy::AST::Define new(x line, x, y block-body resolve)
+  Atomy::AST::Define new(x line, x, y block-body resolve, where)
 
 macro(do(&b)): b body
 

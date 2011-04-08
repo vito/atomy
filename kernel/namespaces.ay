@@ -1,33 +1,51 @@
-macro(in-namespace(n, &b)):
+macro(let-when(when, *bindings, &b)):
+  tmps = names(bindings size)
+  save = []
+  set = []
+  restore = []
+
+  bindings zip(tmps) ([`(~n = ~v), tmp]):
+    save << `(Atomy::STATE at(#~tmp) put(^~n))
+    set << set-dynvar(n, v)
+    restore << set-dynvar(n, `(Atomy::STATE delete(#~tmp)))
+
   names (res):
-    `(let(namespace = Atomy::Namespace ensure(#~n)):
-        evaluate-when(compile):
-          Atomy::STATE at(#st) put(Atomy::Namespace get)
-          Atomy::Namespace ensure(#~n)
+    `(let(~*bindings):
+        evaluate-when(~when):
+          ~*save
+          ~*set
 
         ~res = ~(b body)
 
-        evaluate-when(compile):
-          Atomy::Namespace set(Atomy::STATE fetch(#st))
+        evaluate-when(~when):
+          ~restore
 
         ~res)
+
+macro(in-namespace(n, &b)):
+  `(let-when(compile, namespace = Atomy::Namespace ensure(#~n)):
+      ~(b body))
 
 macro(no-namespace(&b)):
-  names (res):
-    `(let(namespace = nil):
-        evaluate-when(compile):
-          Atomy::STATE at(#st) put(Atomy::Namespace get)
-          Atomy::Namespace set(nil)
+  `(let-when(compile, namespace = nil):
+      ~(b body))
 
-        ~res = ~(b body)
+macro(export(&b)):
+  `(let-when(compile, define-in = "_"):
+      ~(b body))
 
-        evaluate-when(compile):
-          Atomy::Namespace set(Atomy::STATE fetch(#st))
-
-        ~res)
+macro(export-to(n, &b)):
+  `(let-when(compile, define-in = ~(n name)):
+      ~(b body))
 
 macro(use(*ns)):
-  `{ ~*(ns collect (n): `(Atomy::Namespace get use(#~n)))
-   } body
+  `(evaluate-when(compile, run):
+      ~*(ns collect (n):
+          `(Atomy::Namespace get use(#~n))))
+
+macro(symbols(*ns)):
+  `(evaluate-when(compile, run):
+      ~*(ns collect (n):
+          `(Atomy::Namespace register(#~n))))
 
 namespace(atomy)

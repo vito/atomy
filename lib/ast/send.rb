@@ -17,7 +17,7 @@ module Atomy
       end
 
       def message_name
-        if @namespace && !@namespace.empty?
+        if @namespace && @namespace != "_"
           @namespace + "/" + @method_name
         else
           @method_name
