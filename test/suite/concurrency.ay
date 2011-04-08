@@ -1,3 +1,5 @@
+test(concurrency)
+
 atomy/describe("concurrency"):
   atomy/describe("spawn"):
     atomy/it("creates an actor that executes a block"):

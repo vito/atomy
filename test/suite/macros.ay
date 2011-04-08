@@ -1,3 +1,5 @@
+test(macros)
+
 atomy/describe("macros"):
   atomy/describe("unique name generation"):
     atomy/it("creates names via #names"):

@@ -1,3 +1,5 @@
+test(conditions)
+
 atomy/describe("condition"):
   atomy/describe(#signal):
     atomy/it("triggers matching handlers"):

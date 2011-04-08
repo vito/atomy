@@ -1,3 +1,5 @@
+test(scope)
+
 atomy/describe("assignment"):
   atomy/describe("="):
     atomy/it("introduces a new local"):

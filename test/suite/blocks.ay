@@ -1,3 +1,5 @@
+test(blocks)
+
 atomy/describe("blocks"):
   atomy/describe(#call):
     atomy/it("evaluates with the block's context available"):

@@ -1,3 +1,5 @@
+test(patterns)
+
 atomy/describe("pattern-matching"):
   atomy/describe("expressions"):
     atomy/describe("quote"):

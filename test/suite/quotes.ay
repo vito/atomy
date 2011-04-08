@@ -1,3 +1,5 @@
+test(quotes)
+
 atomy/describe("quasiquotation"):
   atomy/it("constructs an expression"):
     `1 should-be('1)

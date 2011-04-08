@@ -1,3 +1,5 @@
+test(namespaces)
+
 atomy/describe("namespaces"):
   atomy/describe(#no-namespace):
     atomy/it("executes a block without any namespace"):
@@ -93,7 +95,7 @@ atomy/describe("namespaces"):
         n-foo-3 := n-foo-2
 
       in-namespace(bar-2):
-        use(atomy)
+        use(atomy, tests/namespaces)
         n-foo-2 should-be(0)
         foo-2/n-foo-3 should-be(1)
 

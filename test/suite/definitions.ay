@@ -1,3 +1,5 @@
+test(definitions)
+
 atomy/describe("definitions"):
   atomy/describe("arguments"):
     atomy/describe("splats"):
@@ -18,12 +20,12 @@ atomy/describe("definitions"):
         baz(a, *bs, &c) := [a, bs, c]
         x = :;
         : baz ; should-raise(ArgumentError)
-        res = atomy/baz(1, &x)
+        res = tests/definitions/baz(1, &x)
         res at(0) should-be(1)
         res at(1) should-be([])
         res at(2) atomy/should: kind-of?(Proc)
 
-        res = atomy/baz(1, 2, 3, &x)
+        res = tests/definitions/baz(1, 2, 3, &x)
         res at(0) should-be(1)
         res at(1) should-be([2, 3])
         res at(2) atomy/should: kind-of?(Proc)
