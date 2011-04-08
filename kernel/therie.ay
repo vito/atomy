@@ -15,7 +15,7 @@ theorize(&as) := do:
   $stats = Therie::Stats new
 
   as call
-  "\n" write
+  "\n" display
 
   $stats atomy/onto:
     [ "total of", failed + passed, "tests"
@@ -26,7 +26,7 @@ theorize(&as) := do:
       "failed)"
     ] join(" ") display
 
-    "\n" write
+    "\n" display
 
 o should(&check) :=
   unless(o onto(&check)):
@@ -45,23 +45,23 @@ x should-raise(y) :=
       raise("#should-raise - no exception raised")
 
 describe(x, &body) := do:
-  (Therie indentation + "- " + x to-s) writeln
+  (Therie indentation + "- " + x to-s) print
   let(therie-nesting-level = ^therie-nesting-level + 1):
     body call
 
 it(description, &tests) :=
   { tests call
     (Therie indentation + "✓ " + description)
-      ansi-colored(#green) writeln
+      ansi-colored(#green) print
   } rescue {
     e -> do:
       $stats failed += 1
       (Therie indentation + "✗ " + description)
-        ansi-colored(#red) writeln
+        ansi-colored(#red) print
       (Therie indentation + "  ` " + e class name + ": " + e message)
-        ansi-colored(#yellow) writeln
+        ansi-colored(#yellow) print
       e backtrace first(5) each (l):
-        (Therie indentation + "    " + l ansi-colored(#cyan)) writeln
+        (Therie indentation + "    " + l ansi-colored(#cyan)) print
   } else:
       $stats passed += 1
 

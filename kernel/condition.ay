@@ -37,16 +37,16 @@ class(DefaultDebugger):
 
       linear = show-options-for(e)
 
-      "!> " write
+      "!> " display
       [context, _, x] = linear at(gets to-i)
       raise(RestartException new(context, x, []))
 
     define(show-error-banner(e)):
-      ("-" * 78) writeln
+      ("-" * 78) print
       e message each-line (l):
-        ("*** " + l) write
+        ("*** " + l) display
 
-      "\n" write
+      "\n" display
 
     define(show-options-for(e)):
       linear = []
@@ -57,10 +57,10 @@ class(DefaultDebugger):
       when(linear empty?):
         exit(1)
 
-      "\n" write
-      "restarts:" writeln
+      "\n" display
+      "restarts:" print
       linear each-with-index ([_, n, _], i):
-        ("  :" + i to-s + " -> " + n to-s) writeln
+        ("  :" + i to-s + " -> " + n to-s) print
 
 
 -- the current debugging handler; should be an object
@@ -121,7 +121,7 @@ warning(w: Warning) :=
     signal(w)
 
     with-output-to(^error-port):
-      w message writeln
+      w message print
 
   #ok
 

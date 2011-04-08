@@ -2,10 +2,9 @@ dynamic(output-port, $stdout)
 dynamic(input-port, $stdin)
 dynamic(error-port, $stderr)
 
-x writeln := x tap: ^output-port puts(x to-s)
-x write := x tap: ^output-port print(x to-s)
-
-x output := x tap: ^output-port puts(x pretty render)
+x print := x tap: ^output-port puts(x to-s)
+x display := x tap: ^output-port send(#print, x to-s)
+x write := x tap: ^output-port puts(x pretty render)
 
 with-output-to((x: String), mode = "w", &y) :=
   let(output-port = File open(x, mode)):

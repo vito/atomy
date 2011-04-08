@@ -73,10 +73,10 @@ repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
         #input(str) -> (SANE_HISTORY << str)
 
         #special("h") ->
-          ":h\thelp" writeln
+          ":h\thelp" print
 
         #evaluated(r) ->
-          (" => " + r pretty render) writeln
+          (" => " + r pretty render) print
   } ensuring:
     when(history):
       File open(history, "a") (f):
