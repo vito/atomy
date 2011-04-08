@@ -17,6 +17,14 @@ module Atomy
         expand.bytecode(g)
       end
 
+      def message_name
+        if @namespace && @namespace != "_"
+          @namespace + "/" + @name
+        else
+          @name
+        end
+      end
+
       def bytecode(g)
         pos(g)
 
@@ -25,11 +33,7 @@ module Atomy
           var.get_bytecode(g)
         else
           g.push_self
-          if @namespace
-            g.call_custom((@namespace + "/" + @name).to_sym, 0)
-          else
-            g.call_custom @name.to_sym, 0
-          end
+          g.call_custom message_name.to_sym, 0
         end
       end
 

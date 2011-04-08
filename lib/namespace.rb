@@ -2,12 +2,12 @@ module Atomy
   NAMESPACES = {}
 
   class Namespace
-    attr_reader :name, :using
+    attr_reader :name, :using, :symbols
 
     def initialize(name, using = [])
       @name = name
-      @symbols = []
       @using = using
+      @symbols = []
     end
 
     def register(sym)
