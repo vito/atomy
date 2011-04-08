@@ -89,7 +89,7 @@ macro-quoter(raw) (c): c
 macro(_undefined):
   Atomy::AST::Undefined new(line)
 
-no-namespace:
+export:
   class(Atomy::AST::Undefined < Atomy::AST::Node):
     generate
 
