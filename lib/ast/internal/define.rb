@@ -76,6 +76,13 @@ module Atomy
       def bytecode(g)
         pos(g)
 
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :Namespace
+        g.push_literal @pattern.namespace_symbol
+        g.send :register, 1
+        g.pop
+
         defn = receiver.kind_of?(Patterns::Match) && receiver.value == :self
 
         if defn
@@ -103,7 +110,6 @@ module Atomy
         g.make_array arguments.size
         g.make_array 2
         @body.construct(g, nil)
-        g.send :resolve, 0
         g.make_array 2
 
         receiver.target(g)
@@ -151,13 +157,6 @@ module Atomy
           g.push_scope
           g.send :add_method, 4
         end
-
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.find_const :Namespace
-        g.push_literal method_name.to_sym
-        g.send :register, 1
-        g.pop
       end
 
       def local_count

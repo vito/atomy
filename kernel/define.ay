@@ -5,11 +5,12 @@ macro(x =! y):
   Atomy::AST::Set new(x line, x, y)
 
 macro(x := y):
-  Atomy::Namespace register(x namespace-symbol to-sym)
-  Atomy::AST::Define new(x line, x, y)
+  Atomy::Namespace register(x namespace-symbol)
+  Atomy::AST::Define new(x line, x, y resolve)
 
 macro(define(x, &y)):
-  Atomy::AST::Define new(x line, x, y block-body)
+  Atomy::Namespace register(x namespace-symbol)
+  Atomy::AST::Define new(x line, x, y block-body resolve)
 
 macro(do(&b)): b body
 
