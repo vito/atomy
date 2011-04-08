@@ -28,6 +28,9 @@ macro(#(x: Constant)):
 macro(#(x: Variable)):
   Atomy::AST::Particle new(x line, x name)
 
+macro(#(x: String)):
+  Atomy::AST::Particle new(x line, x value)
+
 macro(a .. b): `(Range new(~a, ~b))
 macro(a ... b): `(Range new(~a, ~b, true))
 
