@@ -10,7 +10,7 @@ module Atomy
 
         pos(g)
         @pattern.construct(g)
-        @body.construct(g)
+        @body.resolve.construct(g)
         g.send :register_macro, 1
       end
     end
