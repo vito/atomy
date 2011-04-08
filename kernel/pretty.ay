@@ -227,8 +227,6 @@ module(Atomy::AST):
 
   Define pretty := doc: @lhs pretty <+> text(":=") <+> @body pretty
 
-  ForMacro pretty := doc: text("for-macro") <+> @body pretty
-
   GlobalVariable pretty := doc: text(name to-s)
 
   InstanceVariable pretty := doc: text(name to-s)
