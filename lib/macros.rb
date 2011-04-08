@@ -95,36 +95,6 @@ module Atomy
       "atomy_macro::" + name
     end
 
-    def self.no_macro(node)
-      case node
-      when AST::BinarySend
-        AST::BinarySend.new(
-          node.line,
-          expand(node.lhs),
-          expand(node.rhs),
-          node.operator,
-          node.private
-        )
-      when AST::Send
-        AST::Send.new(
-          node.line,
-          expand(node.receiver),
-          node.arguments.collect { |a| expand(a) },
-          node.method_name,
-          node.block ? expand(node.block) : node.block,
-          node.private
-        )
-      when AST::Unary
-        AST::Unary.new(
-          node.line,
-          expand(node.receiver),
-          node.operator
-        )
-      else
-        node
-      end
-    end
-
     # take a node and return its expansion
     def self.expand(node)
       name = node.method_name
@@ -148,8 +118,6 @@ module Atomy
         expanded = expand_node(node, meth)
         break if expanded
       end
-
-      #p [expanded ? :success! : :failure, name]
 
       expanded || node
     end

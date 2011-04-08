@@ -5,6 +5,8 @@ module Atomy
       generate
 
       def arguments
+        return @arguments if @arguments
+
         case pattern
         when BinarySend
           args = [pattern.rhs]
@@ -14,10 +16,12 @@ module Atomy
           args = pattern.arguments
         end
 
-        args.collect(&:to_pattern)
+        @arguments = args.collect(&:to_pattern)
       end
 
       def receiver
+        return @receiver if @receiver
+
         case pattern
         when BinarySend
           recv = pattern.lhs
@@ -27,7 +31,7 @@ module Atomy
           recv = pattern.receiver
         end
 
-        recv.to_pattern
+        @receiver = recv.to_pattern
       end
 
       def method_name
