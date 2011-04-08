@@ -180,6 +180,13 @@ Particle pretty := doc:
 
   text("#") <> partial
 
+Symbol pretty := do:
+  s = to-s
+  if(s =~ r{^[\<\>~!@#\$%\^&*\-=\+\\\|:.\/\?]+$} ||
+        s =~ r{^[a-z_]([[:alnum:]\<\>~!@#\$%\^&*\-=\+\\\|.\/\?])*$})
+    then: Doc text("#" + s)
+    else: Doc text("#") <> s pretty
+
 module(Atomy::AST):
   : self ; comma-delim(es) := doc:
     hsep(comma punctuate(es map (e): e pretty))
