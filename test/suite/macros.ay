@@ -103,3 +103,17 @@ atomy/describe("macros"):
 
       foo-17(42) should-be(#is-42)
       foo-17(41) should-be(#not-42)
+
+    atomy/describe("varying argument lengths"):
+      atomy/it("tries higher required argument counts first"):
+        macro(m-foo-18(_)): '1
+        macro(m-foo-18(_, _)): '2
+
+        m-foo-18(1) should-be(1)
+        m-foo-18(1, 2) should-be(2)
+
+        macro(m-foo-19(_, _)): '2
+        macro(m-foo-19(_)): '1
+
+        m-foo-19(1) should-be(1)
+        m-foo-19(1, 2) should-be(2)

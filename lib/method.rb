@@ -75,7 +75,7 @@ module Atomy
       argmis = g.new_label
 
       if reqs.size > min_reqs
-        g.passed_arg(reqs.size - 1)
+        g.passed_arg((reqs.size + block_offset) - 1)
         g.gif skip
       end
 

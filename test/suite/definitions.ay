@@ -3,7 +3,9 @@ atomy/describe("definitions"):
     atomy/describe("splats"):
       atomy/it("consumes the rest of the arguments"):
         fizz(*args) := args
-        fizz()
+        fizz() should-be([])
+        fizz(1) should-be([1])
+        fizz(1, 2) should-be([1, 2])
 
       atomy/it("starts after required args"):
         bar(a, *bs) := [a, bs]
@@ -57,3 +59,17 @@ atomy/describe("definitions"):
         d6 should-be([1, []])
         d6(2) should-be([2, []])
         d6(2, 3) should-be([2, [3]])
+
+    atomy/describe("varying argument lengths"):
+      atomy/it("tries higher required argument counts first"):
+        d7(_) := 1
+        d7(_, _) := 2
+
+        d7(1) should-be(1)
+        d7(1, 2) should-be(2)
+
+        d8(_, _) := 2
+        d8(_) := 1
+
+        d8(1) should-be(1)
+        d8(1, 2) should-be(2)
