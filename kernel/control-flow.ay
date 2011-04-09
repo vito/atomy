@@ -11,7 +11,7 @@ macro(while(cond, &body)):
   Atomy::AST::While new(line, cond, body body)
 
 macro(until(cond, &body)):
-  Atomy::AST::While new(line, `!~cond, body body)
+  Atomy::AST::Until new(line, cond, body body)
 
 macro(return(y)):
   Atomy::AST::Return new(line, y)
