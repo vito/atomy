@@ -404,7 +404,7 @@ EOF
       end
 
       def evaluate(onto = nil)
-        Atomy::Compiler.evaluate_node(self, onto, binding)
+        Atomy::Compiler.evaluate_node(self, onto, TOPLEVEL_BINDING)
       end
 
       def resolve
