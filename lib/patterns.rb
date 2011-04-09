@@ -170,8 +170,6 @@ module Atomy::Patterns
         HeadTail.new(@lhs.to_pattern, @rhs.to_pattern)
       when "="
         Default.new(@lhs.to_pattern, @rhs)
-      when "=="
-        Strict.new(@rhs)
       when "?"
         Predicate.new(@private ? Any.new : @lhs.to_pattern, @rhs)
       end

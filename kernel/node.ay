@@ -9,9 +9,6 @@ export:
     `(~p = ~d) pattern :=
       Atomy::Patterns::Default new(p to-pattern, d)
 
-    `(== ~v) pattern :=
-      Atomy::Patterns::Strict new(v)
-
     `(? ~t) pattern :=
       Atomy::Patterns::Predicate new(Any new, t)
 

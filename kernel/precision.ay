@@ -1,7 +1,7 @@
 export:
   module(Atomy::Patterns):
     -- pattern precision hierarchy, from least precise to most
-    -- TODO: Strict, Predicate, SingletonClass, RuntimeClass
+    -- TODO: Predicate, SingletonClass, RuntimeClass
     PRECISION =
       [ [ Any, BlockPass, Splat, Unary,
           NamedClass, NamedGlobal, NamedInstance

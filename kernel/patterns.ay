@@ -1,28 +1,11 @@
 module(Atomy::Patterns):
   data(Pattern):
-    Strict(@body)
     RuntimeClass(@body, @name)
     Predicate(@pattern, @test)
     With(@expression, @pattern)
     And(@a, @b)
 
   export:
-    class(Strict):
-      construct(g) := do:
-        get(g)
-        @body construct(g)
-        g send(#new, 1)
-
-      (== b) :=
-        b kind-of?(Strict) && @body == b body
-
-      target(g) :=
-        @body compile(g)
-
-      matches?(g) := do:
-        @body compile(g)
-        g send(#==, 1)
-
     class(RuntimeClass):
       construct(g) := do:
         get(g)
