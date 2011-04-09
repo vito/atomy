@@ -31,9 +31,11 @@ macro(when(c, &b)):
 macro(unless(c, &b)):
   Atomy::AST::When new(line, `!~c, b body)
 
-macro(super): Atomy::AST::ZSuper new(line)
+macro(super):
+  Atomy::AST::ZSuper new(line)
 
-macro(super(*args, &blk)): Atomy::AST::Super new(line, args, blk)
+macro(super(*args, &blk)):
+  Atomy::AST::Super new(line, args, blk)
 
 module(Atomy::AST):
   class(ZSuper < Node):
