@@ -18,6 +18,9 @@ export:
     `(~a & ~b) pattern :=
       Atomy::Patterns::And new(a to-pattern, b to-pattern)
 
+    `(~a | ~b) pattern :=
+      Atomy::Patterns::Or new(a to-pattern, b to-pattern)
+
     `(with(~attr, ~p)) pattern :=
       Atomy::Patterns::With new(attr, p to-pattern)
 

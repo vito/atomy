@@ -4,6 +4,7 @@ module(Atomy::Patterns):
     Predicate(@pattern, @test)
     With(@expression, @pattern)
     And(@a, @b)
+    Or(@a, @b)
 
   export:
     class(RuntimeClass):
@@ -137,6 +138,60 @@ module(Atomy::Patterns):
         g dup
         @a deconstruct(g, locals)
         @b deconstruct(g, locals)
+
+      local-names := [@a local-names + @b local-names] uniq
+
+    class(Or):
+      construct(g) := do:
+        get(g)
+        @a construct(g)
+        @b construct(g)
+        g send(#new, 2)
+
+      (== b) :=
+        b kind-of?(Or) &&
+          @a == b a &&
+          @b == b b
+
+      target(g) :=
+        @a target(g)
+
+      matches?(g) := do:
+        matched = g new-label
+        done = g new-label
+
+        g dup
+        @a matches?(g)
+        g git(matched)
+
+        @b matches?(g)
+        g dup
+        g gif(done)
+
+        matched set!
+        g pop
+        g push-true
+
+        done set!
+
+      deconstruct(g, locals = #[]) := do:
+        b = g new-label
+        done = g new-label
+
+        g dup
+        g dup
+        @a matches?(g)
+        g gif(b)
+
+        @a deconstruct(g, locals)
+        g pop
+        g goto(done)
+
+        b set!
+        g pop
+        @b deconstruct(g, locals)
+
+        done set!
 
       local-names := [@a local-names + @b local-names] uniq
 
