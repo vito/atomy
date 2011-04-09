@@ -72,7 +72,7 @@ atomy/describe("macros"):
     atomy/it("can use for-macro in their expansion"):
       macro(x m-foo-13): `(for-macro: @abc = ~x)
       10 m-foo-13
-      Atomy::Macro::CURRENT_ENV
+      Atomy::Macro::Environment
         instance-variable-get("@abc")
         should-be(10)
 

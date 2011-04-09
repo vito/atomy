@@ -10,7 +10,7 @@ module Atomy
       end
 
       def compile(g)
-        Atomy::Macro::CURRENT_ENV.quote(
+        Atomy::Macro::Environment.quote(
           @name,
           @contents,
           @flags

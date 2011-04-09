@@ -29,8 +29,8 @@ macro(evaluate-when('compile, &x)):
   'nil
 
 macro(for-macro(&b)):
-  b body evaluate(Atomy::Macro::CURRENT_ENV)
-  `(~b block call-on-instance(Atomy::Macro::CURRENT_ENV))
+  b body evaluate(Atomy::Macro::Environment)
+  `(~b block call-on-instance(Atomy::Macro::Environment))
 
 macro(x **= y): `(~x =! (~x ** ~y))
 macro(x *= y): `(~x =! (~x * ~y))

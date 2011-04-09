@@ -24,52 +24,61 @@ module Atomy
 
     class Environment
       @@salt = 0
+      @@macros = {}
+      @@quoters = {}
+      @@line = 0
 
-      attr_accessor :macros, :quoters, :line
+      class << self
+        attr_accessor :quoters
 
-      def initialize
-        @macros = {}
-        @quoters = {}
-        @line = 0
-      end
-
-      def quoter(name, &blk)
-        @quoters[name] = blk
-      end
-
-      def quote(name, contents, flags)
-        if a = @quoters[name.to_sym]
-          a.call(contents, flags)
-        else
-          raise "unknown quoter #{name.inspect}"
-        end
-      end
-
-      def names(num = 0, &block)
-        num = block.arity if block
-
-        as = []
-        num.times do
-          as << Atomy::AST::Variable.new(0, "s:" + @@salt.to_s)
-          @@salt += 1
+        def macros
+          @@macros
         end
 
-        if block
-          block.call(*as)
-        else
-          as
+        def line
+          @@line
+        end
+
+        def line=(x)
+          @@line = x
+        end
+
+        def quoter(name, &blk)
+          @@quoters[name] = blk
+        end
+
+        def quote(name, contents, flags)
+          if a = @@quoters[name.to_sym]
+            a.call(contents, flags)
+          else
+            raise "unknown quoter #{name.inspect}"
+          end
+        end
+
+        def names(num = 0, &block)
+          num = block.arity if block
+
+          as = []
+          num.times do
+            as << Atomy::AST::Variable.new(0, "s:" + @@salt.to_s)
+            @@salt += 1
+          end
+
+          if block
+            block.call(*as)
+          else
+            as
+          end
         end
       end
     end
-
-    CURRENT_ENV = Environment.new
 
     def self.register(name, args, body)
       ns = Atomy::Namespace.get
       name = ns.name.to_s + "/" + name if ns
       name = (intern name).to_sym
 
-      methods = CURRENT_ENV.macros
+      methods = Environment.macros
       method = [[Patterns::Any.new, args], body.resolve]
       if ms = methods[name]
         Atomy.insert_method(method, ms)
@@ -77,7 +86,7 @@ module Atomy
         methods[name] = [method]
       end
 
-      Atomy.add_method(CURRENT_ENV.singleton_class, name, methods[name], nil, :public, true)
+      Atomy.add_method(Environment.singleton_class, name, methods[name], nil, :public, true)
     end
 
     def self.expand?(node)
@@ -112,7 +121,7 @@ module Atomy
 
       expanded = nil
       methods.each do |meth|
-        next unless CURRENT_ENV.respond_to?(meth)
+        next unless Environment.respond_to?(meth)
 
         expanded = expand_node(node, meth)
         break if expanded
@@ -122,32 +131,32 @@ module Atomy
     end
 
     def self.expand_node(node, meth)
-      CURRENT_ENV.line ||= node.line
+      Environment.line ||= node.line
 
       begin
         case node
         when AST::BinarySend
-          expand_res CURRENT_ENV.send(
+          expand_res Environment.send(
             meth,
             nil,
             node.lhs,
             node.rhs
           )
         when AST::Send
-          expand_res CURRENT_ENV.send(
+          expand_res Environment.send(
             meth,
             node.block,
             node.receiver,
             *node.arguments
           )
         when AST::Unary
-          expand_res CURRENT_ENV.send(
+          expand_res Environment.send(
             meth,
             nil,
             node.receiver
           )
         when AST::Variable
-          expand_res CURRENT_ENV.send(
+          expand_res Environment.send(
             meth
           )
         else
@@ -159,7 +168,7 @@ module Atomy
         raise unless e.instance_variable_get("@method_name") == meth
         nil
       ensure
-        CURRENT_ENV.line = nil
+        Environment.line = nil
       end
     end
 
