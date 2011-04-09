@@ -3,7 +3,7 @@ require("readline")
 basic-repl(bnd = TOPLEVEL_BINDING) :=
   loop:
     prompt =
-      with-restarts(use-prompt -> (p) { p }):
+      with-restarts(use-prompt(p) -> p):
         signal(#prompt)
         ">> "
 
@@ -24,10 +24,7 @@ basic-repl(bnd = TOPLEVEL_BINDING) :=
         signal(#input(source))
 
         try = {
-          with-restarts(
-            retry -> try ()
-            abort -> #ok
-          ):
+          with-restarts(retry -> try (), abort -> #ok):
             res = Atomy::Compiler evaluate(source, bnd)
             signal(#evaluated(res))
         }
