@@ -145,7 +145,7 @@ module Atomy
         when AST::Send
           if node.arguments.last.kind_of?(AST::Unary) && \
               node.arguments.last.operator == "&"
-            block = node.arguments.pop.receiver
+            block = AST::BlockPass.new(node.line, node.arguments.pop.receiver)
           else
             block = node.block
           end
