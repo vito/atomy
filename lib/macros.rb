@@ -143,9 +143,16 @@ module Atomy
             node.rhs
           )
         when AST::Send
+          if node.arguments.last.kind_of?(AST::Unary) && \
+              node.arguments.last.operator == "&"
+            block = node.arguments.pop.receiver
+          else
+            block = node.block
+          end
+
           expand_res Environment.send(
             meth,
-            node.block,
+            block,
             node.receiver,
             *node.arguments
           )
