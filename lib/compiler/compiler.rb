@@ -110,8 +110,6 @@ module Atomy
         be.proc_environment = bnd.proc_environment
       end
 
-      be.from_eval!
-
       if instance
         be.call_on_instance instance
       else
