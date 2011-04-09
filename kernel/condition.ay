@@ -68,13 +68,6 @@ class(DefaultDebugger):
 dynamic(debugger, DefaultDebugger)
 
 
--- helpers
-for-macro:
-  class(<< self):
-    to-block(b: Atomy::AST::Block) := b
-    to-block(x) := `{ ~x }
-
-
 -- register handlers for executing some action
 macro(x bind(&y)):
   names (a):
@@ -87,7 +80,13 @@ macro(x bind(&y)):
 macro(with-restarts(*restarts, &body)):
   names (context):
     rs = restarts collect (`(~n -> ~e)):
-      `(#~n -> ~(to-block(e)))
+      n match:
+        Atomy::AST::Variable ->
+          `(#~n -> { ~e })
+
+        Atomy::AST::Send -> do:
+          name = Atomy::AST::Variable new(0, n method-name)
+          `(#~name -> (~*(n arguments)) { ~e })
 
     `({ ~context = Object new
 

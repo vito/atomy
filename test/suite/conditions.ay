@@ -37,7 +37,7 @@ atomy/describe("condition"):
       } should-raise(NoRestartError)
 
     atomy/it("can send arguments to the restart"):
-      { with-restarts(ok -> (x) { x + 1 }):
+      { with-restarts(ok(x) -> x + 1):
           signal(#foo)
           0
       } bind: #foo -> restart(#ok, 41);
@@ -47,8 +47,8 @@ atomy/describe("condition"):
       a = []
       r = {
         r2 =
-          with-restarts(use-value -> (v) { a << 2, v }):
-            with-restarts(use-square-of-value -> (v) { a << 3, v * v }):
+          with-restarts(use-value(v) -> do { a << 2, v }):
+            with-restarts(use-square-of-value(v) -> do { a << 3, v * v }):
               signal(#foo)
               raise("inner: should be unreachable")
 
@@ -68,9 +68,9 @@ atomy/describe("condition"):
 
     atomy/it("calls the nearest restart if more than one have the same name"):
       res =
-        { with-restarts(a -> (r) { r }):
+        { with-restarts(a(r) -> r):
             x =
-              with-restarts(a -> (r) { r }):
+              with-restarts(a(r) -> r):
                 signal(#foo)
 
             [x, 2]

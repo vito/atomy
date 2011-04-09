@@ -25,7 +25,7 @@ basic-repl(bnd = TOPLEVEL_BINDING) :=
 
         try = {
           with-restarts(
-            retry -> { try () }
+            retry -> try ()
             abort -> #ok
           ):
             res = Atomy::Compiler evaluate(source, bnd)
