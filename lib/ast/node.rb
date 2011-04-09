@@ -413,15 +413,19 @@ EOF
           case x
           when Atomy::AST::Send, Atomy::AST::Variable, Atomy::AST::BinarySend
             if !x.namespace
+              y = x.dup
               if ns && n = ns.resolve(x.namespace_symbol)
-                x.namespace = n.to_s
+                y.namespace = n.to_s
               else
-                x.namespace = "_"
+                y.namespace = "_"
               end
+              y
+            else
+              x
             end
+          else
+            x
           end
-
-          x
         end
       end
 

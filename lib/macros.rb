@@ -68,10 +68,9 @@ module Atomy
       ns = Atomy::Namespace.get
       name = ns.name.to_s + "/" + name if ns
       name = (intern name).to_sym
-      body = expand(body).resolve
 
       methods = CURRENT_ENV.macros
-      method = [[Patterns::Any.new, args], body]
+      method = [[Patterns::Any.new, args], body.resolve]
       if ms = methods[name]
         Atomy.insert_method(method, ms)
       else
