@@ -3,7 +3,7 @@ theories = ARGV at(1) || "*"
 in-namespace(atomy/tests):
   macro(test(name)):
     `({ namespace(~(Atomy::AST::Variable new(0, "tests/" + name name)))
-        use(atomy, atomy/tests)
+        use(atomy/tests)
       }) body
 
   atomy/theorize:

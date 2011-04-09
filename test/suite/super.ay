@@ -69,7 +69,7 @@ atomy/describe("super"):
     SuperB new tests/super/test-4: 1; should-be([#super, 2])
 
   atomy/it("passes a &block to the superclass method"):
-    a = 1 --{ 1 }
+    a = { 1 }
     SuperB new tests/super/test-3(&a) should-be([#super, 1])
     SuperB new tests/super/test-4(&a) should-be([#super, 2])
 

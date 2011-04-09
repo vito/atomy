@@ -17,21 +17,21 @@ atomy/describe("namespaces"):
   atomy/describe(#use):
     atomy/it("modifies the current namespace to use another"):
       in-namespace(foo):
-        use(atomy)
-        ^namespace using should-be([#atomy])
+        use(foo)
+        ^namespace using atomy/should: include?(#foo)
 
     atomy/it("accepts multiple arguments"):
       in-namespace(x):
         foo := 1
 
       in-namespace(y):
-        use(x, atomy)
+        use(x)
         foo should-be(1)
 
     atomy/it("ignores duplicates"):
       in-namespace(foo):
-        use(atomy)
-        ^namespace using should-be([#atomy])
+        use(foo)
+        ^namespace using count(#foo) should-be(1)
 
   atomy/describe(#symbols):
     atomy/it("registers the given names in the current namespace"):
@@ -47,12 +47,10 @@ atomy/describe("namespaces"):
       var = 0
 
       in-namespace(foo-0):
-        use(atomy)
         macro(var): '1
         var should-be(1)
 
       in-namespace(bar-0):
-        use(atomy)
         macro(var): '2
         var should-be(2)
       
@@ -62,7 +60,6 @@ atomy/describe("namespaces"):
       n-foo-0 := 0
 
       in-namespace(foo-1):
-        use(atomy)
         n-foo-1 := 1
         macro(m-foo-1): '(n-foo-1())
 
@@ -76,12 +73,10 @@ atomy/describe("namespaces"):
       var := 0
 
       in-namespace(foo):
-        use(atomy)
         var := 1
         var should-be(1)
 
       in-namespace(bar):
-        use(atomy)
         var := 2
         var should-be(2)
       
@@ -95,7 +90,7 @@ atomy/describe("namespaces"):
         n-foo-3 := n-foo-2
 
       in-namespace(bar-2):
-        use(atomy, tests/namespaces)
+        use(tests/namespaces)
         n-foo-2 should-be(0)
         foo-2/n-foo-3 should-be(1)
 

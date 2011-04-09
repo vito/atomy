@@ -32,10 +32,12 @@ if ARGV[0]
 end
 
 if respond_to?(:"atomy/repl", true)
-  Atomy::Namespace.ensure(:user).use(:atomy)
+  Atomy::Namespace.ensure(:user)
 
   send(:"atomy/repl", File.expand_path("~/.atomy_history"))
 else
+  $stderr.puts("main REPL startup failed! here's a basic one:")
+
   HISTORY_FILE = File.expand_path("~/.atomy_history")
 
   if File.exists?(HISTORY_FILE)

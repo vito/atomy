@@ -5,6 +5,8 @@ module Atomy
     attr_reader :name, :using, :symbols
 
     def initialize(name, using = [])
+      using = [:atomy] + using unless name == :atomy
+
       @name = name
       @using = using
       @symbols = []
@@ -32,10 +34,10 @@ module Atomy
       nil
     end
 
-    def self.ensure(name)
+    def self.ensure(name, using = [])
       Thread.current[:atomy_namespace] =
         NAMESPACES[name] ||=
-          new(name)
+          new(name, using)
     end
 
     def self.get(name = nil)
