@@ -124,10 +124,9 @@ module Atomy
         g.make_array 2
 
         receiver.target(g)
-        g.push_literal "@__atomy_"
+        g.push_literal "@atomy::"
         ns_method_name(g)
-        g.push_literal "__"
-        g.string_build 3
+        g.string_build 2
         g.send :to_sym, 0
         g.send :instance_variable_get, 1
         g.dup
@@ -144,10 +143,9 @@ module Atomy
         g.make_array 1
         receiver.target(g)
         g.swap
-        g.push_literal "@__atomy_"
+        g.push_literal "@atomy::"
         ns_method_name(g)
-        g.push_literal "__"
-        g.string_build 3
+        g.string_build 2
         g.send :to_sym, 0
         g.swap
         g.send :instance_variable_set, 2
