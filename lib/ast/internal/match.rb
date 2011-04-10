@@ -29,9 +29,7 @@ module Atomy
       def bytecode(g, done)
         pos(g)
 
-        g.state.scope.nest_scope self
-
-        g.push_state self
+        setup(g)
 
         skip = g.new_label
 
@@ -48,7 +46,7 @@ module Atomy
 
         skip.set!
 
-        g.pop_state
+        reset(g)
       end
     end
   end

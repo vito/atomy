@@ -60,6 +60,7 @@ module Atomy
         blk.local_names = local_names
 
         g.create_block blk
+
         g.push_cpath_top
         g.find_const :Proc
         g.swap
@@ -123,12 +124,24 @@ module Atomy
         @expressions.empty?
       end
 
+      def setup(g)
+        g.state.scope.nest_scope self
+
+        blk = g.state.block?
+
+        g.push_state self
+
+        g.state.push_block if blk
+      end
+
+      def reset(g)
+        g.pop_state
+      end
+
       def bytecode(g)
         pos(g)
 
-        g.state.scope.nest_scope self
-
-        g.push_state self
+        setup(g)
 
         g.push_nil if empty?
 
@@ -137,7 +150,7 @@ module Atomy
           node.compile(g)
         end
 
-        g.pop_state
+        reset(g)
       end
     end
 
