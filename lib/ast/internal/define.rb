@@ -121,6 +121,7 @@ module Atomy
         g.make_array arguments.size
         g.make_array 2
         @body.construct(g, nil)
+        g.send :resolve, 0
         g.make_array 2
 
         receiver.target(g)
