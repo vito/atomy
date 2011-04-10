@@ -201,6 +201,10 @@ module Atomy
   def self.add_method(target, name, branches, static_scope, visibility = :public, is_macro = false)
     cm = build_method(name, branches, is_macro)
 
+    unless static_scope
+      static_scope = Rubinius::StaticScope.new(Object)
+    end
+    
     cm.scope = static_scope
 
     Rubinius.add_method name, cm, target, visibility
