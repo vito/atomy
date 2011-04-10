@@ -27,23 +27,23 @@ macro(data(root, &children)):
               ~(Atomy::AST::QuasiQuote new(0, pat)) pattern)
 
         define =
-          `({ class(~name < ~root):
+          `(do:
+              class(~name < ~root):
                 attr-accessor(~*(
                   e arguments collect (a):
                     `#~(a receiver)))
 
                 initialize(~*(e arguments)) := #ok
 
-              ~pat-def
-            }) body
+              ~pat-def)
 
         if(e block)
           then:
-            `({ ~define
+            `(do:
+                ~define
 
                 data(~name):
-                  ~*(e block contents)
-              }) body
+                  ~*(e block contents))
           else:
             define
 
@@ -58,7 +58,7 @@ macro(data(root, &children)):
 
       _ -> raise("unknown module name: " + e to-s)
 
-  `{ class(~root):;, ~*cs } body
+  `(do: class(~root):;, ~*cs)
 
 
 macro(macro-quoter(n, &x)):
