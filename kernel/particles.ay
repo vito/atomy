@@ -47,3 +47,5 @@ export:
 
 class(Symbol):
   call(*args) := to-proc (*args)
+
+  arity := 1
