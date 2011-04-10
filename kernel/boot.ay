@@ -8,7 +8,7 @@ macro(_FILE): Atomy::AST::File new(line)
 macro(import(name)): `(require-atomy(~name))
 
 "operators define data comparison control-flow dynamic namespaces
-data-delta particles hashes patterns precision node block errors therie
-pretty concurrency io condition repl" split each (k):
+data-delta particles hashes patterns precision node block errors
+pretty concurrency io condition therie repl" split each (k):
   puts("loading " + k)
   import(File expand-path("../", _FILE) + "/" + k)
