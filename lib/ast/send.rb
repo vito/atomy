@@ -54,7 +54,6 @@ module Atomy
         # TODO: private method stuff
         if splat
           splat.compile(g)
-          g.cast_array
           if block
             block.compile(g)
           else
