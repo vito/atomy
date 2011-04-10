@@ -1,7 +1,7 @@
 export:
   module(Atomy::Patterns):
     -- pattern precision hierarchy, from least precise to most
-    -- TODO: Predicate, SingletonClass, RuntimeClass
+    -- TODO: Predicate, RuntimeClass
     PRECISION =
       [ [ Any, BlockPass, Splat, Unary,
           NamedClass, NamedGlobal, NamedInstance
@@ -18,20 +18,15 @@ export:
 
     PRECISION each-with-index (ps, i):
       ps each (a):
-        ps each (b):
-          -- if they're the same class, they'll probably
-          -- want to handle their own comparison.
-          -- (otherwise, the Pattern <=> Pattern does this.)
-          unless(a == b):
-            %(a) <=> %(b) := 0
+        a define-method(#precision):
+          i
 
-        PRECISION drop(i + 1) each (ps):
-          ps each (b):
-            %(a) <=> %(b) := -1
+    Pattern precision := 0
 
-        PRECISION take(i) each (ps):
-          ps each (b):
-            %(a) <=> %(b) := 1
+    Named precision := @pattern precision
+
+    (a: Pattern) <=> (b: Pattern) :=
+      a precision <=> b precision
 
     (a: BlockPass) <=> (b: BlockPass) :=
       a pattern <=> b pattern
@@ -77,8 +72,6 @@ export:
       n pattern <=> p
     (p: Pattern) <=> (n: Named) :=
       p <=> n pattern
-
-    Pattern <=> Pattern := 0
 
 
     -- equivalence ignores named patterns
