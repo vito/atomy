@@ -1,18 +1,18 @@
 test(conditions)
 
-atomy/describe("condition"):
-  atomy/describe(#signal):
-    atomy/it("triggers matching handlers"):
+describe("condition"):
+  describe(#signal):
+    it("triggers matching handlers"):
       x = 0
       { signal(#foo) } bind: #foo -> (x =! 1)
       x should-be(1)
 
-    atomy/it("does not trigger non-matching handlers"):
+    it("does not trigger non-matching handlers"):
       x = 0
       { signal(#foo) } bind: #bar -> (x =! 1)
       x should-be(0)
 
-    atomy/it("goes through all handlers, nearest-first"):
+    it("goes through all handlers, nearest-first"):
       x = []
       { { signal(#foo) } bind:
           #foo -> x << 1
@@ -21,29 +21,29 @@ atomy/describe("condition"):
 
       x should-be([1, 2])
 
-  atomy/describe(#restart):
-    atomy/it("calls a named restart"):
+  describe(#restart):
+    it("calls a named restart"):
       { with-restarts(ok -> 1):
           signal(#foo)
           0
       } bind: #foo -> restart(#ok);
           should-be(1)
 
-    atomy/it("fails for an unknown restart name"):
+    it("fails for an unknown restart name"):
       { { with-restarts(ok -> 1):
             signal(#foo)
             0
         } bind: #foo -> restart(#not-ok)
       } should-raise(NoRestartError)
 
-    atomy/it("can send arguments to the restart"):
+    it("can send arguments to the restart"):
       { with-restarts(ok(x) -> x + 1):
           signal(#foo)
           0
       } bind: #foo -> restart(#ok, 41);
           should-be(42)
 
-    atomy/it("may be nested"):
+    it("may be nested"):
       a = []
       r = {
         r2 =
@@ -66,7 +66,7 @@ atomy/describe("condition"):
       a should-be([1, 2, 4])
       r should-be(5)
 
-    atomy/it("calls the nearest restart if more than one have the same name"):
+    it("calls the nearest restart if more than one have the same name"):
       res =
         { with-restarts(a(r) -> r):
             x =

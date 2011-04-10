@@ -1,39 +1,39 @@
 test(scope)
 
-atomy/describe("assignment"):
-  atomy/describe("="):
-    atomy/it("introduces a new local"):
+describe("assignment"):
+  describe("="):
+    it("introduces a new local"):
       a = 0
       a should-be(0)
       do: a = 1, a should-be(1)
       a should-be(0)
 
-  atomy/describe("=!"):
-    atomy/it("overwrites an existing local"):
+  describe("=!"):
+    it("overwrites an existing local"):
       a = 0
       a should-be(0)
       do: a =! 1, a should-be(1)
       a should-be(1)
 
-    atomy/it("introduces a new local if undefined"):
+    it("introduces a new local if undefined"):
       do: a =! 1, a should-be(1)
       : a ; should-raise(NoMethodError)
 
-  atomy/describe("match"):
-    atomy/it("shadows local variables"):
+  describe("match"):
+    it("shadows local variables"):
       a = 0
       a should-be(0)
       1 match: a -> a should-be(1)
       a should-be(0)
 
-  atomy/describe("do"):
-    atomy/it("shadows local variables"):
+  describe("do"):
+    it("shadows local variables"):
       a = 0
       a should-be(0)
       do: a = 1, a should-be(1)
       a should-be(0)
 
-    atomy/it("shadows through nested `do's"):
+    it("shadows through nested `do's"):
       a = 0
       a should-be(0)
       do:
@@ -44,6 +44,6 @@ atomy/describe("assignment"):
         a should-be(1)
       a should-be(0)
 
-    atomy/it("never introduces new variables"):
+    it("never introduces new variables"):
       do: a = 1, a should-be(1)
       : a : should-raise(NoMethodError)

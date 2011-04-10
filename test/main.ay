@@ -6,6 +6,6 @@ in-namespace(atomy/tests):
         use(atomy/tests)
       }) body
 
-  atomy/theorize:
+  theorize:
     Dir glob("test/suite/" + theories + ".ay") each (t):
       import(t)

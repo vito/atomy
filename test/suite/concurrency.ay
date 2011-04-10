@@ -1,16 +1,16 @@
 test(concurrency)
 
-atomy/describe("concurrency"):
-  atomy/describe("spawn"):
-    atomy/it("creates an actor that executes a block"):
+describe("concurrency"):
+  describe("spawn"):
+    it("creates an actor that executes a block"):
       a = 0
       atomy/spawn: a =! 1
       sleep(0.1)
       a should-be(1)
 
 
-  atomy/describe("<-"):
-    atomy/it("sends a message to an actor"):
+  describe("<-"):
+    it("sends a message to an actor"):
       main = me
       p = atomy/spawn:
         receive: n -> main << #ok;

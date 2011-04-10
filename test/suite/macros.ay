@@ -1,39 +1,39 @@
 test(macros)
 
-atomy/describe("macros"):
-  atomy/describe("unique name generation"):
-    atomy/it("creates names via #names"):
+describe("macros"):
+  describe("unique name generation"):
+    it("creates names via #names"):
       macro(x m-foo-1): names (x): `'~x
       var-1 = 1 m-foo-1
       var-2 = 2 m-foo-1
       var-1 should-be(var-1)
-      var-1 atomy/should: != var-2
+      var-1 should: != var-2
 
-    atomy/it("decorates through block patterns"):
+    it("decorates through block patterns"):
       macro(x m-foo-2): names (x): `'(~x): 1
       var-1 = 1 m-foo-2
       var-1 should-be(var-1)
-      1 m-foo-2 atomy/should: != 2 m-foo-2
+      1 m-foo-2 should: != 2 m-foo-2
 
-    atomy/it("decorates through definition patterns"):
+    it("decorates through definition patterns"):
       macro(x m-foo-3): names (x): `'(foo(~x) := 1)
       var-1 = 1 m-foo-3
       var-1 should-be(var-1)
-      1 m-foo-3 atomy/should: != 2 m-foo-3
+      1 m-foo-3 should: != 2 m-foo-3
 
-  atomy/describe("line information"):
-    atomy/it("is provided during macroexpansion via #line"):
+  describe("line information"):
+    it("is provided during macroexpansion via #line"):
       macro(a m-foo-4): line
       1 m-foo-4 should-be(_LINE)
       2 m-foo-4 should-be(_LINE)
 
-    atomy/it("retains the original line through multiple expansions"):
+    it("retains the original line through multiple expansions"):
       macro(a m-foo-5): line
       macro(a m-foo-6): `(~a m-foo-5)
       1 m-foo-6 should-be(_LINE)
 
-  atomy/describe("macro definition"):
-    atomy/it("can pattern-match node types via constants"):
+  describe("macro definition"):
+    it("can pattern-match node types via constants"):
       macro(Block m-foo-7): '1
       macro(Variable m-foo-7): '2
       macro(Primitive m-foo-7): '3
@@ -42,11 +42,11 @@ atomy/describe("macros"):
       x m-foo-7 should-be(2)
       1 m-foo-7 should-be(3)
 
-    atomy/it("can destructurually pattern-match expressions"):
+    it("can destructurually pattern-match expressions"):
       macro(`(~x + 1) m-foo-8): `[~x, 1]
       (2 + 1) m-foo-8 should-be([2, 1])
 
-    atomy/it("matches destructuring before constants"):
+    it("matches destructuring before constants"):
       macro(`(~x + 1) m-foo-9): `1
       macro(BinarySend m-foo-9): `2
 
@@ -56,48 +56,48 @@ atomy/describe("macros"):
       (2 + 1) m-foo-9 should-be(1)
       (2 + 1) m-foo-10 should-be(1)
 
-    atomy/it("can define macros in their expansion"):
+    it("can define macros in their expansion"):
       macro(x m-foo-11): `(macro(~x): '42)
       ('1 m-foo-110) m-foo-11
       1 m-foo-110 should-be(42)
       : 2 m-foo-110 ; should-raise(NoMethodError)
 
-    atomy/it("can define macros that define macros in their expansion in their expansion"):
+    it("can define macros that define macros in their expansion in their expansion"):
       macro(`[~x, ~y] m-foo-12): `(macro(~x): '(macro(~y): '42))
       ['1 m-foo-120, '1 m-foo-121] m-foo-12
       1 m-foo-120
       1 m-foo-121 should-be(42)
       : 2 m-foo-121 ; should-raise(NoMethodError)
 
-    atomy/it("can use for-macro in their expansion"):
+    it("can use for-macro in their expansion"):
       macro(x m-foo-13): `(for-macro: @abc = ~x)
       10 m-foo-13
       Atomy::Macro::Environment
         instance-variable-get("@abc")
         should-be(10)
 
-  atomy/describe("pattern-matching"):
-    atomy/it("expands through assignment patterns"):
+  describe("pattern-matching"):
+    it("expands through assignment patterns"):
       macro(m-foo-14): '42
       (m-foo-14 = 42) should-be(42)
       { m-foo-14 = 41 } should-raise(PatternMismatch)
 
-    atomy/it("expands through mutation patterns"):
+    it("expands through mutation patterns"):
       macro(m-foo-14): '42
       (m-foo-14 =! 42) should-be(42)
       { m-foo-14 =! 41 } should-raise(PatternMismatch)
 
-    atomy/it("expands through block argument patterns"):
+    it("expands through block argument patterns"):
       macro(m-foo-15): '42
       (m-foo-15) { #ok } (42) should-be(#ok)
       { (m-foo-15) { #ok } (41) } should-raise(PatternMismatch)
 
-    atomy/it("expands through #match patterns"):
+    it("expands through #match patterns"):
       macro(m-foo-16): '42
       42 match { m-foo-16 -> #ok, _ -> #not-ok } should-be(#ok)
       41 match { m-foo-16 -> #ok, _ -> #not-ok } should-be(#not-ok)
 
-    atomy/it("expands through method definition patterns"):
+    it("expands through method definition patterns"):
       macro(m-foo-17): '42
 
       foo-17(m-foo-17) := #is-42
@@ -106,8 +106,8 @@ atomy/describe("macros"):
       foo-17(42) should-be(#is-42)
       foo-17(41) should-be(#not-42)
 
-    atomy/describe("varying argument lengths"):
-      atomy/it("tries higher required argument counts first"):
+    describe("varying argument lengths"):
+      it("tries higher required argument counts first"):
         macro(m-foo-18(_)): '1
         macro(m-foo-18(_, _)): '2
 

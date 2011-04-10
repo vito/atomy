@@ -51,6 +51,7 @@ module Atomy
           args += 1
         end
 
+        # TODO: private method stuff
         if splat
           splat.compile(g)
           g.cast_array
@@ -59,10 +60,10 @@ module Atomy
           else
             g.push_nil
           end
-          g.send_with_splat message_name.to_sym, args, @private
+          g.call_custom_with_splat message_name.to_sym, args
         elsif block
           block.compile(g)
-          g.send_with_block message_name.to_sym, args, @private
+          g.call_custom_with_block message_name.to_sym, args
         else
           g.call_custom message_name.to_sym, args
         end

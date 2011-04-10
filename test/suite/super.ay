@@ -16,25 +16,25 @@ class(ZSuperB < ZSuperA):
   test-5(x = 0, &y) := super
   test-6(x) := do: super
 
-atomy/describe("zsuper"):
-  atomy/it("resends the message to the superclass"):
+describe("zsuper"):
+  it("resends the message to the superclass"):
     ZSuperB new test-1 should-be(#super)
 
-  atomy/it("passes the same arguments to the superclass method"):
+  it("passes the same arguments to the superclass method"):
     ZSuperB new test-2(1) should-be([#super, 1])
 
-  atomy/it("passes the block to the superclass method"):
-    ZSuperB new tests/super/test-3: 1; should-be([#super, 1])
+  it("passes the block to the superclass method"):
+    ZSuperB new test-3: 1; should-be([#super, 1])
 
-  atomy/it("sends with the subclass method's defaults"):
+  it("sends with the subclass method's defaults"):
     ZSuperB new test-4(2) should-be([#super, 2])
     ZSuperB new test-4 should-be([#super, 0])
 
-  atomy/it("handles both defaults and blocks"):
-    ZSuperB new tests/super/test-5(3): 2; should-be([#super, 3, 2])
-    ZSuperB new tests/super/test-5: 2; should-be([#super, 0, 2])
+  it("handles both defaults and blocks"):
+    ZSuperB new test-5(3): 2; should-be([#super, 3, 2])
+    ZSuperB new test-5: 2; should-be([#super, 0, 2])
 
-  atomy/it("works from inside of a block"):
+  it("works from inside of a block"):
     ZSuperB new test-6(1) should-be([#super, 1])
 
 class(SuperA):
@@ -57,32 +57,32 @@ class(SuperB < SuperA):
   test-7(x = 0, &y) := super(x + 1, &y)
   test-8(x) := do: super(1)
 
-atomy/describe("super"):
-  atomy/it("resends the message to the superclass"):
+describe("super"):
+  it("resends the message to the superclass"):
     SuperB new test-1 should-be(#super)
 
-  atomy/it("passes the same arguments to the superclass method"):
+  it("passes the same arguments to the superclass method"):
     SuperB new test-2(1) should-be([#super, 2])
 
-  atomy/it("passes the block to the superclass method"):
-    SuperB new tests/super/test-3: 1; should-be([#super, 1])
-    SuperB new tests/super/test-4: 1; should-be([#super, 2])
+  it("passes the block to the superclass method"):
+    SuperB new test-3: 1; should-be([#super, 1])
+    SuperB new test-4: 1; should-be([#super, 2])
 
-  atomy/it("passes a &block to the superclass method"):
+  it("passes a &block to the superclass method"):
     a = { 1 }
-    SuperB new tests/super/test-3(&a) should-be([#super, 1])
-    SuperB new tests/super/test-4(&a) should-be([#super, 2])
+    SuperB new test-3(&a) should-be([#super, 1])
+    SuperB new test-4(&a) should-be([#super, 2])
 
-  atomy/it("sends with the subclass method's defaults"):
+  it("sends with the subclass method's defaults"):
     SuperB new test-5(2) should-be([#super, 3])
     SuperB new test-5 should-be([#super, 1])
 
-  atomy/it("assumes superclass's defaults"):
+  it("assumes superclass's defaults"):
     SuperB new test-6 should-be([#super, 1])
 
-  atomy/it("handles both defaults and blocks"):
-    SuperB new tests/super/test-7(3): 2; should-be([#super, 4, 2])
-    SuperB new tests/super/test-7: 2; should-be([#super, 1, 2])
+  it("handles both defaults and blocks"):
+    SuperB new test-7(3): 2; should-be([#super, 4, 2])
+    SuperB new test-7: 2; should-be([#super, 1, 2])
 
-  atomy/it("works from inside of a block"):
+  it("works from inside of a block"):
     SuperB new test-8(0) should-be([#super, 1])

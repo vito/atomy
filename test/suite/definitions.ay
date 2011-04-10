@@ -1,69 +1,72 @@
 test(definitions)
 
-atomy/describe("definitions"):
-  atomy/describe("arguments"):
-    atomy/describe("splats"):
-      atomy/it("consumes the rest of the arguments"):
+describe("definitions"):
+  describe("arguments"):
+    describe("splats"):
+      it("consumes the rest of the arguments"):
         fizz(*args) := args
         fizz() should-be([])
         fizz(1) should-be([1])
         fizz(1, 2) should-be([1, 2])
 
-      atomy/it("starts after required args"):
+        xs = [1, 2]
+        fizz(*xs) should-be([1, 2])
+
+      it("starts after required args"):
         bar(a, *bs) := [a, bs]
         : bar ; should-raise(ArgumentError)
         bar(1) should-be([1, []])
         bar(1, 2) should-be([1, [2]])
         bar(1, 2, 3) should-be([1, [2, 3]])
 
-      atomy/it("appears before a block arg"):
+      it("appears before a block arg"):
         baz(a, *bs, &c) := [a, bs, c]
         x = :;
         : baz ; should-raise(ArgumentError)
-        res = tests/definitions/baz(1, &x)
+        res = baz(1, &x)
         res at(0) should-be(1)
         res at(1) should-be([])
-        res at(2) atomy/should: kind-of?(Proc)
+        res at(2) should: kind-of?(Proc)
 
-        res = tests/definitions/baz(1, 2, 3, &x)
+        res = baz(1, 2, 3, &x)
         res at(0) should-be(1)
         res at(1) should-be([2, 3])
-        res at(2) atomy/should: kind-of?(Proc)
+        res at(2) should: kind-of?(Proc)
 
-    atomy/describe("default"):
-      atomy/it("doesn't have to be passed"):
+    describe("default"):
+      it("doesn't have to be passed"):
         d0(b = 1) := b
         d0 should-be(1)
 
-      atomy/it("may appear after required args"):
+      it("may appear after required args"):
         d1(a, b = 1) := [a, b]
         d1(0) should-be([0, 1])
 
-      atomy/it("evaluates an expression as its default"):
+      it("evaluates an expression as its default"):
         d2(a, b = 1 + 1) := [a, b]
         d2(0) should-be([0, 2])
 
-      atomy/it("evaluates its default with other args in scope"):
+      it("evaluates its default with other args in scope"):
         d3(a, b = a + 1) := [a, b]
         d3(0) should-be([0, 1])
 
-      atomy/it("is overrided by an argument"):
+      it("is overrided by an argument"):
         d4(a, b = 3) := [a, b]
         d4(0, 1) should-be([0, 1])
 
-      atomy/it("may appear before a block arg"):
+      it("may appear before a block arg"):
         d5(a = 1, &b) := [a, b]
         d5 should-be([1, nil])
         d5(2) should-be([2, nil])
 
-      atomy/it("may appear before a splat arg"):
+      it("may appear before a splat arg"):
         d6(a = 1, *b) := [a, b]
         d6 should-be([1, []])
         d6(2) should-be([2, []])
         d6(2, 3) should-be([2, [3]])
 
-    atomy/describe("varying argument lengths"):
-      atomy/it("tries higher required argument counts first"):
+    describe("varying argument lengths"):
+      it("tries higher required argument counts first"):
         d7(_) := 1
         d7(_, _) := 2
 
