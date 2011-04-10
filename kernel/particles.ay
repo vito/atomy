@@ -36,6 +36,9 @@ export:
 
       x first send(*(x drop(1)))
 
+    arity :=
+      select(&#equal?(_undefined)) inject(&#+)
+
     receiver := at(0)
 
     message := at(1)
