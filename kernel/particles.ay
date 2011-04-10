@@ -37,7 +37,7 @@ export:
       x first send(*(x drop(1)))
 
     arity :=
-      select(&#equal?(_undefined)) inject(&#+)
+      select(&#equal?(_undefined)) size
 
     receiver := at(0)
 
