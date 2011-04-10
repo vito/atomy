@@ -65,10 +65,11 @@ end
 
 def Rubinius.bind_call(recv, nmeth, *args, &blk)
   # TODO: foo/bar/baz should be foo/bar, baz
+  # TODO: allow_private stuff
   ns_name, meth_name = nmeth.to_s.split("/")
   ns_name, meth_name = meth_name, ns_name unless meth_name
 
-  if ns_name && ns_name == "_"
+  if ns_name == "_"
     ns = nil
   else 
     ns = Atomy::Namespace.get(!ns_name ? nil : ns_name.to_sym)
