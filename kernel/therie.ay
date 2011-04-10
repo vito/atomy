@@ -17,7 +17,7 @@ theorize(&as) := do:
   as call
   "\n" display
 
-  $stats atomy/onto:
+  $stats onto:
     [ "total of", failed + passed, "tests"
       "(" + passed to-s ansi-colored(#green), "passed,"
       if(failed == 0)
