@@ -4,7 +4,7 @@ class MethodFail < ArgumentError
   end
 
   def message
-    "method #{@method_name} did not understand " +
+    "method #{@method_name.to_s} did not understand " +
       "its arguments (non-exhaustive patterns)"
   end
 end

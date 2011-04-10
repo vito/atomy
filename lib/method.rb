@@ -181,7 +181,8 @@ module Atomy
 
     mismatch.set!
     g.push_self
-    g.push_const :MethodFail
+    g.push_cpath_top
+    g.find_const :MethodFail
     g.push_literal name
     g.send :new, 1
     g.allow_private
