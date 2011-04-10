@@ -32,15 +32,6 @@ SimpleWarning message := "WARNING: " + @value to-s
 -- pick from the available restarts.
 class(DefaultDebugger):
   class(<< self):
-    define(run(e)):
-      show-error-banner(e)
-
-      linear = show-options-for(e)
-
-      "!> " display
-      [context, _, x] = linear at(gets to-i)
-      raise(RestartException new(context, x, []))
-
     define(show-error-banner(e)):
       ("-" * 78) print
       e message each-line (l):
@@ -61,6 +52,15 @@ class(DefaultDebugger):
       "restarts:" print
       linear each-with-index ([_, n, _], i):
         ("  :" + i to-s + " -> " + n to-s) print
+
+    define(run(e)):
+      show-error-banner(e)
+
+      linear = show-options-for(e)
+
+      "!> " display
+      [context, _, x] = linear at(gets to-i)
+      raise(RestartException new(context, x, []))
 
 
 -- the current debugging handler; should be an object
