@@ -1,7 +1,6 @@
 for-macro:
-  class(<< self):
-    wildcard('_) := '_undefined
-    wildcard(x) := x
+  wildcard('_) := '_undefined
+  wildcard(x) := x
 
 macro(#(x: Send)):
   `(Particle at(

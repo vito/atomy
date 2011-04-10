@@ -70,11 +70,9 @@ describe("macros"):
       : 2 m-foo-121 ; should-raise(NoMethodError)
 
     it("can use for-macro in their expansion"):
-      macro(x m-foo-13): `(for-macro: @abc = ~x)
+      macro(x m-foo-13): `(for-macro: abc := ~x)
       10 m-foo-13
-      Atomy::Macro::Environment
-        instance-variable-get("@abc")
-        should-be(10)
+      Atomy::Macro::Environment abc should-be(10)
 
   describe("pattern-matching"):
     it("expands through assignment patterns"):

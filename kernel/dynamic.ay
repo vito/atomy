@@ -1,15 +1,14 @@
 Atomy::DYNAMIC_ROOTS = Hash new
 
 for-macro:
-  class(<< self):
-    key(n) :=
-      Atomy::AST::Variable new(n line, "atomy_" + n name)
+  key(n) :=
+    Atomy::AST::Variable new(n line, "atomy_" + n name)
 
-    dynvar(x) :=
-      `(Thread current at(#~key(x)) || Atomy::DYNAMIC_ROOTS at(#~x))
+  dynvar(x) :=
+    `(Thread current at(#~key(x)) || Atomy::DYNAMIC_ROOTS at(#~x))
 
-    set-dynvar(n, v) :=
-      `(Thread current at(#~key(n)) put(~v))
+  set-dynvar(n, v) :=
+    `(Thread current at(#~key(n)) put(~v))
 
 macro(dynamic(n, root)):
   `(Atomy::DYNAMIC_ROOTS at(#~n) put(~root))
