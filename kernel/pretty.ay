@@ -143,7 +143,8 @@ module(Pretty):
 
 Doc extend(Pretty)
 
-doc(&body) := with(Pretty, &body)
+macro(doc(&body)):
+  `(Doc onto(&~body))
 
 (o: Object) pretty := Doc text(inspect)
 
@@ -279,7 +280,7 @@ module(Atomy::AST):
   Variable pretty := doc: text(@name)
 
   InlinedBody pretty := doc:
-    parens(hsep(comma punctuate(@expressions collect(&#pretty))))
+    parens(hsep(comma punctuate(@expressions collect (e): e pretty)))
 
   Or pretty := `(~@a || ~@b) pretty
 

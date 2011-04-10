@@ -1,1 +1,28 @@
-x onto(&b) := b block call-on-instance(x)
+macro(x onto(&b)):
+  names (ctx):
+    shadowed? = false
+
+    blk = b through-quotes (n):
+      n match:
+        `@~(v: Atomy::AST::Variable) -> do:
+          shadowed? =! true
+          `(~ctx instance-variable-get(#~("@" + v name)))
+
+        'self -> do:
+          shadowed? =! true
+          ctx
+
+        Atomy::AST::Send ? @private ->
+          n dup tap (p):
+            p receiver = 'self
+
+        Atomy::AST::BinarySend ? @private ->
+          n dup tap (p):
+            p lhs = 'self
+
+        _ ->
+          n
+
+    if(shadowed?)
+      then: `{ ~ctx = self, ~blk block call-on-instance(~x) } body
+      else: `(~b block call-on-instance(~x))
