@@ -15,7 +15,7 @@ export:
       [Match, Quote]
     ] each-with-index (ps, i):
         ps each (a):
-          a define-method(#precision):
+          a send(#define-method, #precision):
             i
 
     Pattern precision := 0

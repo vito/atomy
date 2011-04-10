@@ -51,7 +51,6 @@ module Atomy
           args += 1
         end
 
-        # TODO: private method stuff
         if splat
           splat.compile(g)
           if block
@@ -59,10 +58,20 @@ module Atomy
           else
             g.push_nil
           end
-          g.call_custom_with_splat message_name.to_sym, args
+          if @namespace == "_"
+            g.send_with_splat @method_name.to_sym, args, @private
+          else
+            g.call_custom_with_splat message_name.to_sym, args
+          end
         elsif block
           block.compile(g)
-          g.call_custom_with_block message_name.to_sym, args
+          if @namespace == "_"
+            g.send_with_block @method_name.to_sym, args, @private
+          else
+            g.call_custom_with_block message_name.to_sym, args
+          end
+        elsif @namespace == "_"
+          g.send @method_name.to_sym, args, @private
         else
           g.call_custom message_name.to_sym, args
         end
