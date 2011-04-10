@@ -42,5 +42,5 @@ export:
 
     arguments := drop(2)
 
-  class(Symbol):
-    call(*args) := to-proc (*args)
+class(Symbol):
+  call(*args) := to-proc (*args)
