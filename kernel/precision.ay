@@ -2,24 +2,21 @@ export:
   module(Atomy::Patterns):
     -- pattern precision hierarchy, from least precise to most
     -- TODO: Predicate, RuntimeClass
-    PRECISION =
-      [ [ Any, BlockPass, Splat, Unary,
-          NamedClass, NamedGlobal, NamedInstance
-        ]
-
-        [Constant, SingletonClass]
-
-        [HeadTail]
-
-        [List, QuasiQuote, Particle]
-
-        [Match, Quote]
+    [ [ Any, BlockPass, Splat, Unary,
+        NamedClass, NamedGlobal, NamedInstance
       ]
 
-    PRECISION each-with-index (ps, i):
-      ps each (a):
-        a define-method(#precision):
-          i
+      [Constant, SingletonClass]
+
+      [HeadTail]
+
+      [List, QuasiQuote, Particle]
+
+      [Match, Quote]
+    ] each-with-index (ps, i):
+        ps each (a):
+          a define-method(#precision):
+            i
 
     Pattern precision := 0
 
