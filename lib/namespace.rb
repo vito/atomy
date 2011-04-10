@@ -36,12 +36,12 @@ module Atomy
 
     def self.ensure(name, using = [])
       Thread.current[:atomy_namespace] =
-        NAMESPACES[name] ||=
+        NAMESPACES[name.to_sym] ||=
           new(name, using)
     end
 
     def self.get(name = nil)
-      return NAMESPACES[name] if name
+      return NAMESPACES[name.to_sym] if name
       Thread.current[:atomy_namespace]
     end
 
@@ -50,7 +50,7 @@ module Atomy
     end
 
     def self.register(sym, name = nil)
-      ns = get(name && name.to_sym)
+      ns = get(name)
       return unless ns
       ns.register(sym)
     end

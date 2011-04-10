@@ -25,8 +25,12 @@ describe("namespaces"):
         foo := 1
 
       in-namespace(y):
-        use(x)
+        bar := 1
+
+      in-namespace(z):
+        use(x, y)
         foo should-be(1)
+        bar should-be(1)
 
     it("ignores duplicates"):
       in-namespace(foo):
@@ -64,23 +68,23 @@ describe("namespaces"):
         macro(m-foo-1): '(n-foo-1())
 
       in-namespace(bar-1):
-        use(foo-1, atomy)
+        use(foo-1)
         'm-foo-1 expand namespace should-be("foo_1")
         m-foo-1 should-be(1)
 
   describe("definition namespacing"):
     it("should register methods only in the current namespace"):
-      var := 0
+      n-foo-1 := 0
 
       in-namespace(foo):
-        var := 1
-        var should-be(1)
+        n-foo-1 := 1
+        n-foo-1 should-be(1)
 
       in-namespace(bar):
-        var := 2
-        var should-be(2)
+        n-foo-1 := 2
+        n-foo-1 should-be(2)
       
-      var should-be(0)
+      n-foo-1 should-be(0)
 
     it("should resolve a method's body in its namespace"):
       n-foo-2 := 0
@@ -113,27 +117,78 @@ describe("namespaces"):
       n-foo-4 := 1
       n-foo-5 should-be(0)
 
+    it("registers macros in the bottom namespace"):
+      var-1 = 0
+
+      in-namespace(foo-4):
+        export:
+          macro(var-1): '1
+      
+      var-1 should-be(1)
+
+    it("resolves a macro's body in its namespace"):
+      n-foo-6 := 0
+
+      in-namespace(foo-5):
+        n-foo-7 := 1
+        export:
+          macro(m-foo-2): '(n-foo-7())
+
+      'm-foo-2 expand namespace should-be("foo_5")
+      m-foo-2 should-be(1)
+
   describe(#export-to):
     it("executes the body with definitions going to a given namespace"):
-      in-namespace(bar-4):
+      in-namespace(bar-6):
         foo := 0
 
-        export-to(foo-4):
+        export-to(foo-6):
           bar := foo
           foo should-be(0)
 
         foo should-be(0)
 
-      in-namespace(foo-4):
+      in-namespace(foo-6):
         bar should-be(0)
         foo := 1
         bar should-be(0)
 
     it("resolves the method bodies in the current namespace"):
-      in-namespace(foo-4):
+      in-namespace(foo-6):
         bar should-be(0)
         foo := 1
         bar should-be(0)
+
+    it("registers macros in the given namespace"):
+      var-2 = 0
+
+      in-namespace(foo-7):
+        macro(var-2): '1
+        var-2 should-be(1)
+
+      in-namespace(bar-7):
+        export-to(foo-7):
+          macro(var-2): '2
+
+        var-2 should-be(0)
+      
+      in-namespace(foo-7):
+        var-2 should-be(2)
+
+      var-2 should-be(0)
+
+    it("resolves a macro's body in its namespace"):
+      n-foo-8 := 0
+
+      in-namespace(foo-8):
+        n-foo-9 := 1
+        export-to(bar-8):
+          macro(m-foo-1): '(n-foo-9())
+
+      in-namespace(bar-8):
+        use(foo-8)
+        'm-foo-1 expand namespace should-be("foo_8")
+        m-foo-1 should-be(1)
 
   it("allows calling methods in other namespaces"):
     no-namespace:

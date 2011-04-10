@@ -74,7 +74,7 @@ module Atomy
     end
 
     def self.register(name, args, body)
-      ns = Atomy::Namespace.get
+      ns = Atomy::Namespace.get(Thread.current[:atomy_define_in])
       name = ns.name.to_s + "/" + name if ns
       name = (intern name).to_sym
 
