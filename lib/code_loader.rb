@@ -68,11 +68,16 @@ module Atomy
 
         return require(file) unless file.suffix?(".ay")
 
+        before = Atomy::NAMESPACES.dup
+
         cfn = compile_if_needed(file)
         cl = Rubinius::CodeLoader.new(cfn)
         cm = cl.load_compiled_file(cfn, 0)
         script = cm.create_script(false)
         script.file_path = fn
+
+        Atomy::NAMESPACES.clear.merge!(before)
+
         MAIN.__send__ :__script__
       end
     end
