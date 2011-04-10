@@ -12,26 +12,43 @@ module Atomy
         @target.compile(g)
 
         @body.contents.each do |e|
-          skip = g.new_label
-
-          pat = e.lhs.to_pattern
-          exp = e.rhs
-
-          g.dup
-          pat.matches?(g)
-          g.gif skip
-
-          pat.deconstruct(g)
-          exp.compile(g)
-          g.goto done
-
-          skip.set!
+          MatchBranch.new(e.line, e.lhs, e.rhs).bytecode(g, done)
         end
 
         g.pop
         g.push_nil
 
         done.set!
+      end
+    end
+
+    class MatchBranch < InlinedBody
+      children :pattern, :branch
+      generate
+
+      def bytecode(g, done)
+        pos(g)
+
+        g.state.scope.nest_scope self
+
+        g.push_state self
+
+        skip = g.new_label
+
+        pat = @pattern.to_pattern
+        exp = @branch
+
+        g.dup
+        pat.matches?(g)
+        g.gif skip
+
+        pat.deconstruct(g)
+        exp.compile(g)
+        g.goto done
+
+        skip.set!
+
+        g.pop_state
       end
     end
   end
