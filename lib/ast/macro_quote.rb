@@ -14,7 +14,7 @@ module Atomy
           @name,
           @contents,
           @flags
-        ).compile(g)
+        ).to_node.compile(g)
       end
     end
   end
