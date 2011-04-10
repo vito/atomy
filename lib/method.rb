@@ -202,9 +202,12 @@ module Atomy
     cm = build_method(name, branches, is_macro)
 
     unless static_scope
-      static_scope = Rubinius::StaticScope.new(Object)
+      static_scope = Rubinius::StaticScope.new(
+        self,
+        Rubinius::StaticScope.new(Object)
+      )
     end
-    
+
     cm.scope = static_scope
 
     Rubinius.add_method name, cm, target, visibility
