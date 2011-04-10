@@ -1,9 +1,21 @@
 module Atomy
   def self.segments(args)
-    req = args.reject { |a| a.kind_of?(Patterns::BlockPass) || a.kind_of?(Patterns::Splat) || a.kind_of?(Patterns::Default) }
-    dfs = args.select { |a| a.kind_of?(Patterns::Default) }
-    spl = args.select { |a| a.kind_of?(Patterns::Splat) }[0]
-    blk = args.select { |a| a.kind_of?(Patterns::BlockPass) }[0]
+    req = []
+    dfs = []
+    spl = nil
+    blk = nil
+    args.each do |a|
+      case a
+      when Patterns::BlockPass
+        blk = a
+      when Patterns::Splat
+        spl = a
+      when Patterns::Default
+        dfs << a
+      else
+        req << a
+      end
+    end
     [req, dfs, spl, blk]
   end
 
@@ -35,42 +47,51 @@ module Atomy
 
     block_offset = is_macro ? 1 : 0
 
-    args = 0
+    total = 0
     min_reqs = nil
     reqs = 0
     defs = 0
-    g.local_names = branches.collect do |pats, _|
+    names = []
+
+    resolved = branches.collect do |pats, meth|
       segs = segments(pats[1])
+
       min_reqs ||= segs[0].size
       min_reqs = [min_reqs, segs[0].size].min
       reqs = [reqs, segs[0].size].max
       defs = [defs, segs[1].size].max
-      args = [reqs + defs, args].max
-      pats[0].local_names + pats[1].collect { |p| p.local_names }.flatten
-    end.flatten.uniq
+      total = [reqs + defs, total].max
 
-    args += block_offset
+      names += pats[0].local_names
+      pats[1].each do |p|
+        names += p.local_names
+      end
 
-    args.times do |n|
-      g.local_names.unshift("arg:" + n.to_s)
+      g.splat_index = block_offset + reqs + defs if segs[2]
+
+      [pats[0], segs, meth]
+    end
+
+    names.uniq!
+
+    total += block_offset
+
+    total.times do |n|
+      names.unshift("arg:" + n.to_s)
     end
 
     locals = {}
-    g.local_names.each do |n|
+    names.each do |n|
       locals[n] = g.state.scope.new_local(n).reference
     end
 
-    g.total_args = args
+    g.local_names = names
+    g.total_args = total
     g.required_args = min_reqs
-    g.local_count = args + g.local_names.size
+    g.local_count = total + g.local_names.size
 
     g.push_self
-    branches.each do |pats, meth|
-      recv = pats[0]
-      reqs, defs, splat, block = segments(pats[1])
-
-      g.splat_index = (block_offset + reqs.size + defs.size) if splat
-
+    resolved.each do |recv, (reqs, defs, splat, block), meth|
       skip = g.new_label
       argmis = g.new_label
 
@@ -90,57 +111,52 @@ module Atomy
         recv.deconstruct(g, locals)
       end
 
-      if is_macro && block
-        g.push_local(0)
-        block.pattern.deconstruct(g, locals)
+      if block
+        if is_macro
+          g.push_local(0)
+          block.pattern.deconstruct(g, locals)
+        else
+          g.push_block_arg
+          block.deconstruct(g, locals)
+        end
       end
 
       if splat
-        g.push_local(block_offset + reqs.size + defs.size)
+        g.push_local(g.splat_index)
         splat.pattern.deconstruct(g)
       end
 
-      unless reqs.empty?
-        reqs.each_with_index do |a, i|
-          n = i + block_offset
-          g.push_local(n)
+      reqs.each_with_index do |a, i|
+        g.push_local(i + block_offset)
 
-          if a.bindings > 0
-            g.dup
-            a.matches?(g)
-            g.gif argmis
-            a.deconstruct(g, locals)
-          else
-            a.matches?(g)
-            g.gif skip
-          end
+        if a.bindings > 0
+          g.dup
+          a.matches?(g)
+          g.gif argmis
+          a.deconstruct(g, locals)
+        else
+          a.matches?(g)
+          g.gif skip
         end
       end
 
-      unless defs.empty?
-        defs.each_with_index do |d, i|
-          passed = g.new_label
-          decons = g.new_label
+      defs.each_with_index do |d, i|
+        passed = g.new_label
+        decons = g.new_label
 
-          num = reqs.size + i
-          g.passed_arg num
-          g.git passed
+        num = reqs.size + i
+        g.passed_arg num
+        g.git passed
 
-          d.default.compile(g)
-          g.set_local num
-          g.goto decons
+        d.default.compile(g)
+        g.set_local num
+        g.goto decons
 
-          passed.set!
-          g.push_local num
+        passed.set!
+        g.push_local num
 
-          decons.set!
-          d.deconstruct(g)
-        end
-      end
-
-      if !is_macro && block
-        g.push_block_arg
-        block.deconstruct(g)
+        decons.set!
+        d.deconstruct(g)
       end
 
       meth.compile(g)

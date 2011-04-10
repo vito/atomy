@@ -14,7 +14,7 @@ module Atomy
         @body.contents.each do |e|
           skip = g.new_label
 
-          pat = e.lhs.expand.to_pattern
+          pat = e.lhs.to_pattern
           exp = e.rhs
 
           g.dup

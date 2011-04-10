@@ -364,4 +364,4 @@
                   "'"
                   { c.join }
 
-           root = wsp expressions:es wsp !. { es }
+           root = wsp expressions:es wsp !. { Array(es) }

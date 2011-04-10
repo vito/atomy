@@ -13,8 +13,6 @@ macro(data(root, &children)):
         e arguments zip(tmps) ([a, t]):
           pat =! `(~pat & with(~a, ~t))
 
-        pat = pat expand
-
         cons = Atomy::AST::Send new(
           0
           'self
