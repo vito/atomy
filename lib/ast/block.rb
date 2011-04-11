@@ -128,10 +128,18 @@ module Atomy
         g.state.scope.nest_scope self
 
         blk = g.state.block?
+        ens = g.state.ensure?
+        res = g.state.rescue?
+        lop = g.state.loop?
+        msn = g.state.masgn?
 
         g.push_state self
 
         g.state.push_block if blk
+        g.state.push_ensure if ens
+        g.state.push_rescue(res) if res
+        g.state.push_loop if lop
+        g.state.push_masgn if msn
       end
 
       def reset(g)

@@ -13,7 +13,7 @@ module Atomy
 
         if lcl = g.state.rescue?
           g.push_stack_local lcl
-          g.restore_esception_state
+          g.restore_exception_state
         end
 
         if g.state.block?
