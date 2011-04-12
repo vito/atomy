@@ -101,7 +101,9 @@
     expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)?
                     { [x] + Array(xs) }
 
-         level1 = true
+         level1 = macro_quote
+                | headless
+                | true
                 | false
                 | self
                 | nil
@@ -111,8 +113,6 @@
                 | splice
                 | unquote
                 | string
-                | macro_quote
-                | headless
                 | particle
                 | constant
                 | variable

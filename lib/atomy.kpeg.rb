@@ -1209,11 +1209,17 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level1 = (true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | macro_quote | headless | particle | constant | variable | block | grouped | list | unary)
+  # level1 = (macro_quote | headless | true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | particle | constant | variable | block | grouped | list | unary)
   def _level1
 
     _save = self.pos
     while true # choice
+    _tmp = apply(:_macro_quote)
+    break if _tmp
+    self.pos = _save
+    _tmp = apply(:_headless)
+    break if _tmp
+    self.pos = _save
     _tmp = apply(:_true)
     break if _tmp
     self.pos = _save
@@ -1242,12 +1248,6 @@ class Atomy::Parser
     break if _tmp
     self.pos = _save
     _tmp = apply(:_string)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_macro_quote)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_headless)
     break if _tmp
     self.pos = _save
     _tmp = apply(:_particle)
@@ -4986,7 +4986,7 @@ class Atomy::Parser
   Rules[:_delim] = rule_info("delim", "(wsp \",\" wsp | (sp \"\\n\" sp)+ &{ current_column >= c })")
   Rules[:_expression] = rule_info("expression", "level3")
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }")
-  Rules[:_level1] = rule_info("level1", "(true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | macro_quote | headless | particle | constant | variable | block | grouped | list | unary)")
+  Rules[:_level1] = rule_info("level1", "(macro_quote | headless | true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | particle | constant | variable | block | grouped | list | unary)")
   Rules[:_level2] = rule_info("level2", "(send | level1)")
   Rules[:_level3] = rule_info("level3", "(macro | op_assoc_prec | binary_send | level2)")
   Rules[:_true] = rule_info("true", "line:line \"true\" !ident_letter { Atomy::AST::Primitive.new(line, :true) }")
