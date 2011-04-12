@@ -128,6 +128,7 @@ EOF
           def initialize(line#{args})
             @line = line
             #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
+            created
           end
 EOF
 
@@ -284,6 +285,11 @@ EOF
 
     module NodeLike
       attr_accessor :line
+
+      # called after initialization
+      def created
+        nil
+      end
 
       # yield this node's subnodes to a block recursively, and then itself
       # override this if for nodes with children, ie lists
