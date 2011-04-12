@@ -80,11 +80,25 @@ def Rubinius.bind_call(recv, nmeth, *args, &blk)
   res = Rubinius::CallUnit.send_as(meth)
 
   if ns
-    ([ns.name] + ns.using).reverse_each do |u|
-      n = (u.to_s + "/" + meth.to_s).to_sym
+    nss = [ns]
+    scan = proc do |u|
+      unless un = Atomy::Namespace.get(u) and \
+              !nss.include?(un)
+        next
+      end
+
+      nss << un
+      un.using.each(&scan)
+    end
+
+    ns.using.each(&scan)
+
+    nss.reverse_each do |n|
+      next unless n.contains?(meth)
+      m = (n.name.to_s + "/" + meth.to_s).to_sym
       res = Rubinius::CallUnit.test(
-        Rubinius::CallUnit.test_respond_to(n),
-        Rubinius::CallUnit.send_as(n),
+        Rubinius::CallUnit.test_respond_to(m),
+        Rubinius::CallUnit.send_as(m),
         res
       )
     end
