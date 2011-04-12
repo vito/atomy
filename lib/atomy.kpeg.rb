@@ -2737,7 +2737,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # message_name = (true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | macro_quote | particle | constant | variable | block | list | unary)
+  # message_name = (true | false | self | nil | number | quote | quasi_quote | splice | line:line "~" (grouped | level1):e { Atomy::AST::Unquote.new(line, e) } | string | macro_quote | particle | constant | variable | block | list | unary)
   def _message_name
 
     _save = self.pos
@@ -2766,7 +2766,45 @@ class Atomy::Parser
     _tmp = apply(:_splice)
     break if _tmp
     self.pos = _save
-    _tmp = apply(:_unquote)
+
+    _save1 = self.pos
+    while true # sequence
+    _tmp = apply(:_line)
+    line = @result
+    unless _tmp
+      self.pos = _save1
+      break
+    end
+    _tmp = match_string("~")
+    unless _tmp
+      self.pos = _save1
+      break
+    end
+
+    _save2 = self.pos
+    while true # choice
+    _tmp = apply(:_grouped)
+    break if _tmp
+    self.pos = _save2
+    _tmp = apply(:_level1)
+    break if _tmp
+    self.pos = _save2
+    break
+    end # end choice
+
+    e = @result
+    unless _tmp
+      self.pos = _save1
+      break
+    end
+    @result = begin;  Atomy::AST::Unquote.new(line, e) ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save1
+    end
+    break
+    end # end sequence
+
     break if _tmp
     self.pos = _save
     _tmp = apply(:_string)
@@ -5014,7 +5052,7 @@ class Atomy::Parser
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_block] = rule_info("block", "(line:line args?:as \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), Array(as)) } | line:line (args:as wsp { as })?:as \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), Array(as)) })")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
-  Rules[:_message_name] = rule_info("message_name", "(true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | macro_quote | particle | constant | variable | block | list | unary)")
+  Rules[:_message_name] = rule_info("message_name", "(true | false | self | nil | number | quote | quasi_quote | splice | line:line \"~\" (grouped | level1):e { Atomy::AST::Unquote.new(line, e) } | string | macro_quote | particle | constant | variable | block | list | unary)")
   Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) message_name:n args?:as (sp block)?:b { Atomy::AST::Send.new(line, n, r, Array(as), b) } | line:line level1:r cont(pos) message_name:n args?:as (sp block)?:b { Atomy::AST::Send.new(line, n, r, Array(as), b) } | line:line level1:r cont(pos) args:as !\":\" (sp block)?:b { Atomy::AST::Send.new(line, Atomy::AST::Variable.new(line, \"call\"), r, Array(as), b) })")
   Rules[:_send] = rule_info("send", "sends(current_position)")
   Rules[:_headless] = rule_info("headless", "(line:line message_name:n args?:as sp block:b { Atomy::AST::Send.new(                         line,                         n,                         Atomy::AST::Primitive.new(line, :self),                         Array(as),                         b,                         true                       )                     } | line:line message_name:n args:as (sp block)?:b { Atomy::AST::Send.new(                         line,                         n,                         Atomy::AST::Primitive.new(line, :self),                         as,                         b,                         true                       )                     })")

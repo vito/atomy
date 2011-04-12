@@ -215,7 +215,8 @@
                 | quote
                 | quasi_quote
                 | splice
-                | unquote
+                | line:line "~" (grouped | level1):e
+                    { Atomy::AST::Unquote.new(line, e) }
                 | string
                 | macro_quote
                 | particle
