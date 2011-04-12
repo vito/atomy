@@ -291,7 +291,7 @@ module Atomy
               ),
               "AST"
             ),
-            sub.name
+            sub.identifier
           )
         else
           sub
