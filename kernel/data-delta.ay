@@ -72,6 +72,9 @@ macro-quoter(r) (c, fs):
   when(fs include?("x")):
     flags |= Regexp::EXTENDED
 
+  when(fs include?("u")):
+    flags |= Regexp::KCODE_UTF8
+
   `(Regexp new(~c, ~flags))
 
 macro-quoter(raw) (c): c
