@@ -17,7 +17,7 @@ basic-repl(bnd = TOPLEVEL_BINDING) :=
 
       "" -> #ok
 
-      String ? at(0) == 58 ->
+      String ? (=~ r{^:}) ->
         signal(#special(in slice(1 .. -1)))
 
       source -> do:
