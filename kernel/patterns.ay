@@ -239,10 +239,10 @@ module(Atomy::AST):
             @block contents at(0) to-pattern
           )
         else:
-          -- TODO: Unary -> Attribute
-          Atomy::Patterns::Unary new(
+          Atomy::Patterns::Attribute new(
             @receiver
             @method-name
+            @arguments
           )
 
     QuasiQuote pattern :=

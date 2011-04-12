@@ -257,7 +257,7 @@ module Atomy::Patterns
       if @block
         Named.new(@method_name, @block.contents[0].to_pattern)
       else
-        Unary.new(@receiver, @method_name)
+        Attribute.new(@receiver, @method_name, @arguments)
       end
     end
   end

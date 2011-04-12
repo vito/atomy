@@ -2,7 +2,7 @@ export:
   module(Atomy::Patterns):
     -- pattern precision hierarchy, from least precise to most
     -- TODO: Predicate, RuntimeClass
-    [ [ Any, BlockPass, Splat, Unary,
+    [ [ Any, BlockPass, Splat, Attribute,
         NamedClass, NamedGlobal, NamedInstance
       ]
 
@@ -125,8 +125,10 @@ export:
     (a: Splat) =~ (b: Splat) :=
       a pattern =~ b pattern
 
-    (a: Unary) =~ (b: Unary) :=
-      a receiver == b receiver && a name == b name
+    (a: Attribute) =~ (b: Attribute) :=
+      a receiver == b receiver &&
+        a name == b name &&
+        a arguments == b arguments
 
     Pattern =~ Pattern := false
 
