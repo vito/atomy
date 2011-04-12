@@ -15,9 +15,9 @@ macro(data(root, &children)):
 
         cons = Atomy::AST::Send new(
           0
+          name
           'self
           tmps
-          name identifier
           nil
           true
         )

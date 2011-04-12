@@ -45,6 +45,10 @@ module Atomy
       def namespace_symbol
         name.to_sym
       end
+
+      def as_message(send)
+        send.method_name = @name
+      end
     end
   end
 end

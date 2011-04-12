@@ -1,10 +1,15 @@
 module Atomy
   module AST
     class Send < Node
-      children :receiver, [:arguments], :block?
-      attributes :method_name
+      children :message, :receiver, [:arguments], :block?
       slots [:private, "false"], :namespace?
       generate
+
+      attr_accessor :method_name
+
+      def created
+        @message.as_message(self)
+      end
 
       def register_macro(body)
         Atomy::Macro.register(

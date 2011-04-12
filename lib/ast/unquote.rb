@@ -36,6 +36,10 @@ module Atomy
       def unquote?
         true
       end
+
+      def as_message(send)
+        # nothing
+      end
     end
   end
 end

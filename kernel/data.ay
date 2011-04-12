@@ -37,9 +37,9 @@ macro(a ... b): `(Range new(~a, ~b, true))
 macro(x at(y) put(z)):
   Atomy::AST::Send new(
     line
+    Atomy::AST::Variable new(line, "[]=")
     x
     [y, z]
-    "[]="
   )
 
 macro(x for(e) in(c)): `(~c collect (~e): ~x)

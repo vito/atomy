@@ -399,9 +399,9 @@ EOF
       def caller
         Atomy::AST::Send.new(
           @line,
+          Atomy::AST::Variable.new(@line, "call"),
           self,
-          [],
-          "call"
+          []
         )
       end
 
@@ -441,6 +441,10 @@ EOF
 
       def to_pattern
         expand.pattern
+      end
+
+      def as_message(send)
+        raise "unknown message name: #{self}"
       end
     end
 
