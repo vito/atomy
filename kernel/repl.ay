@@ -17,8 +17,8 @@ basic-repl(bnd = TOPLEVEL_BINDING) :=
 
       "" -> #ok
 
-      String ? (=~ r{^:}) ->
-        signal(#special(in slice(1 .. -1)))
+      String ? (=~ r{^:[[:alnum:]]}) ->
+        signal(#special(in [1 .. -1]))
 
       source -> do:
         signal(#input(source))
