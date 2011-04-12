@@ -34,7 +34,11 @@ module Atomy
         pos(g)
         @lhs.compile(g)
         @rhs.compile(g)
-        g.call_custom message_name.to_sym, 1
+        if @namespace == "_"
+          g.send @operator.to_sym, 1
+        else
+          g.call_custom method_name.to_sym, 1
+        end
       end
     end
   end

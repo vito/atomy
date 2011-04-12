@@ -4,6 +4,7 @@ module Atomy
     class Unary < Node
       children :receiver
       attributes :operator
+      slots :namespace?
       generate
 
       def register_macro(body)
@@ -14,6 +15,14 @@ module Atomy
         )
       end
 
+      def message_name
+        if @namespace && @namespace != "_"
+          @namespace + "/" + @operator
+        else
+          @operator
+        end
+      end
+
       def compile(g)
         expand.bytecode(g)
       end
@@ -21,7 +30,11 @@ module Atomy
       def bytecode(g)
         pos(g)
         @receiver.compile(g)
-        g.send(method_name.to_sym, 0)
+        if @namespace == "_"
+          g.send @operator.to_sym, 0
+        else
+          g.call_custom method_name.to_sym, 0
+        end
       end
 
       def method_name

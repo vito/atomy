@@ -417,7 +417,8 @@ EOF
         ns = Atomy::Namespace.get
         recursively do |x|
           case x
-          when Atomy::AST::Send, Atomy::AST::Variable, Atomy::AST::BinarySend
+          when Atomy::AST::Send, Atomy::AST::Variable,
+               Atomy::AST::BinarySend, Atomy::AST::Unary
             if !x.namespace
               y = x.dup
               if ns && n = ns.resolve(x.namespace_symbol)
