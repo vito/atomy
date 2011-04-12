@@ -42,5 +42,5 @@ export:
     `*~x pattern :=
       Atomy::Patterns::Splat new(x to-pattern)
 
-    (x: `(Particle at)) pattern :=
-      Atomy::Patterns::List new(x arguments collect (x): x to-pattern)
+    (x: `(Particle [])) pattern :=
+      Atomy::Patterns::List new(x arguments collect (a): a to-pattern)

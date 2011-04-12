@@ -5,13 +5,13 @@ for-macro:
     Atomy::AST::Variable new(n line, "atomy_" + n name)
 
   dynvar(x) :=
-    `(Thread current at(#~key(x)) || Atomy::DYNAMIC_ROOTS at(#~x))
+    `(Thread current [#~key(x)] || Atomy::DYNAMIC_ROOTS [#~x])
 
   set-dynvar(n, v) :=
-    `(Thread current at(#~key(n)) put(~v))
+    `(Thread current [#~key(n)] = ~v)
 
 macro(dynamic(n, root)):
-  `(Atomy::DYNAMIC_ROOTS at(#~n) put(~root))
+  `(Atomy::DYNAMIC_ROOTS [#~n] = ~root)
 
 macro(^x): dynvar(x)
 

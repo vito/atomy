@@ -44,7 +44,7 @@ class(ReplDebugger):
         #prompt -> restart(#use-prompt, "[!]> ")
 
         #special(n ? (=~ r"\d+")) -> do:
-          [context, _, x] = linear at(n to-i)
+          [context, _, x] = linear [n to-i]
           raise(RestartException new(context, x, []))
 
 repl(history = nil, bnd = TOPLEVEL_BINDING) := do:

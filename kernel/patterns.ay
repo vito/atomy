@@ -236,7 +236,7 @@ module(Atomy::AST):
         then:
           Atomy::Patterns::Named new(
             @method-name
-            @block contents at(0) to-pattern
+            @block contents [0] to-pattern
           )
         else:
           Atomy::Patterns::Attribute new(

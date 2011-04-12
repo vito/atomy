@@ -34,14 +34,6 @@ macro(#(x: String)):
 macro(a .. b): `(Range new(~a, ~b))
 macro(a ... b): `(Range new(~a, ~b, true))
 
-macro(x at(y) put(z)):
-  Atomy::AST::Send new(
-    line
-    Atomy::AST::Variable new(line, "[]=")
-    x
-    [y, z]
-  )
-
 macro(x for(e) in(c)): `(~c collect (~e): ~x)
 
 macro(x for(e) in(c) if(t)):
@@ -51,16 +43,6 @@ macro(x for(e) in(c) if(t)):
           when(~t):
             ~tmp << ~x)
 
-class(Object):
-  dynamic-method(#at) (g):
-    g total-args = 0
-    g required-args = 0
-    g local-count = 1
-    g splat-index = 0
-
-    g push-self
-    g push-local(0)
-    g cast-array
-    g push-block
-    g send-with-splat("[]" to-sym, 0)
-    g ret
+Atomy::AST::List as-message(send) := do:
+  send arguments = @elements
+  send method-name = "[]"

@@ -59,7 +59,7 @@ class(DefaultDebugger):
       linear = show-options-for(e)
 
       "!> " display
-      [context, _, x] = linear at(gets to-i)
+      [context, _, x] = linear [gets to-i]
       raise(RestartException new(context, x, []))
 
 
@@ -128,7 +128,7 @@ warning(w: Warning) :=
 -- call a restart with the given args
 restart(name, *args) := do:
   ^restarts reverse-each ([rs, context]):
-    rs at(name) match:
+    rs [name] match:
       (x: Proc) ->
         raise(RestartException new(context, x, args))
 

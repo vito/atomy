@@ -3,22 +3,22 @@ for-macro:
   wildcard(x) := x
 
 macro(#(x: Send)):
-  `(Particle at(
+  `(Particle [
       ~(if(x private)
           then: '_undefined
           else: wildcard(x receiver))
       ~(Atomy::AST::Particle new(0, x method-name))
       ~*(x arguments collect (c): wildcard(c))
-    ))
+    ])
 
 macro(#(x: BinarySend)):
-  `(Particle at(
+  `(Particle [
       ~(if(x private)
           then: '_undefined
           else: wildcard(x lhs))
       ~(Atomy::AST::Particle new(0, x operator))
       ~(wildcard(x rhs))
-    ))
+    ])
 
 export:
   class(Particle < Array):
@@ -32,7 +32,7 @@ export:
           a equal?(_undefined)
 
         when(idx):
-          x at(idx) put(a)
+          x [idx] = a
 
       x first send(*(x drop(1)))
 

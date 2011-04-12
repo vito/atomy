@@ -32,6 +32,6 @@ export:
       @keys each-with-index (n, i):
         g dup
         n compile(g)
-        @values at(i) compile(g)
+        @values [i] compile(g)
         g send("[]=" to-sym, 2)
         g pop

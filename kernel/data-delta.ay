@@ -13,14 +13,7 @@ macro(data(root, &children)):
         e arguments zip(tmps) ([a, t]):
           pat =! `(~pat & with(~a, ~t))
 
-        cons = Atomy::AST::Send new(
-          0
-          name
-          'self
-          tmps
-          nil
-          true
-        )
+        cons = `(~(name)(~*tmps))
 
         pat-def =
           `(~(Atomy::AST::QuasiQuote new(0, cons)) pattern :=
@@ -96,7 +89,3 @@ export:
       g push-undef
 
     pattern := Atomy::Patterns::Any new
-
-  Atomy::AST::List as-message(send) := do:
-    send arguments = @elements
-    send method-name = "[]"
