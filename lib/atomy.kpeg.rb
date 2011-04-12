@@ -11,9 +11,6 @@ class Atomy::Parser
       setup_foreign_grammar
     end
 
-    def setup_foreign_grammar
-    end
-
     # This is distinct from setup_parser so that a standalone parser
     # can redefine #initialize and still have access to the proper
     # parser setup code.
@@ -188,8 +185,14 @@ class Atomy::Parser
       end
     end
 
-    def parse
-      _root ? true : false
+    def parse(rule=nil)
+      if !rule
+        _root ? true : false
+      else
+        # This is not shared with code_generator.rb so this can be standalone
+        method = rule.gsub("-","_hyphen_")
+        __send__("_#{method}") ? true : false
+      end
     end
 
     class LeftRecursive
@@ -682,13 +685,13 @@ class Atomy::Parser
     return _tmp
   end
 
-  # ident_start = < /[a-z_]/ > { text }
+  # ident_start = < /[\p{Ll}_]/u > { text }
   def _ident_start
 
     _save = self.pos
     while true # sequence
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[a-z_])/)
+    _tmp = scan(/\A(?-mix:[\p{Ll}_])/u)
     if _tmp
       text = get_text(_text_start)
     end
@@ -708,39 +711,41 @@ class Atomy::Parser
     return _tmp
   end
 
-  # ident_letters = < /([[:alnum:]\<\>~!@#\$%\^&*\-=\+\\\|.\/\?])*/ > { text }
-  def _ident_letters
-
-    _save = self.pos
-    while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:([[:alnum:]\<\>~!@#\$%\^&*\-=\+\\\|.\/\?])*)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    set_failed_rule :_ident_letters unless _tmp
-    return _tmp
-  end
-
-  # ident_letter = < /([[:alnum:]\<\>~!@#\$%\^&*\-=\+\\\|.\/\?])/ > { text }
+  # ident_letter = < (/[\p{L}\d]/u | !":" op_letter) > { text }
   def _ident_letter
 
     _save = self.pos
     while true # sequence
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:([[:alnum:]\<\>~!@#\$%\^&*\-=\+\\\|.\/\?]))/)
+
+    _save1 = self.pos
+    while true # choice
+    _tmp = scan(/\A(?-mix:[\p{L}\d])/u)
+    break if _tmp
+    self.pos = _save1
+
+    _save2 = self.pos
+    while true # sequence
+    _save3 = self.pos
+    _tmp = match_string(":")
+    _tmp = _tmp ? nil : true
+    self.pos = _save3
+    unless _tmp
+      self.pos = _save2
+      break
+    end
+    _tmp = apply(:_op_letter)
+    unless _tmp
+      self.pos = _save2
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save1
+    break
+    end # end choice
+
     if _tmp
       text = get_text(_text_start)
     end
@@ -760,13 +765,13 @@ class Atomy::Parser
     return _tmp
   end
 
-  # op_letter = < /[\<\>~!@#\$%\^&*\-=\+\\\|:.\/\?]/ > { text }
+  # op_letter = < /[\p{S}!@#%&*\-\\:.\/\?]/u > { text }
   def _op_letter
 
     _save = self.pos
     while true # sequence
     _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\<\>~!@#\$%\^&*\-=\+\\\|:.\/\?])/)
+    _tmp = scan(/\A(?-mix:[\p{S}!@#%&*\-\\:.\/\?])/u)
     if _tmp
       text = get_text(_text_start)
     end
@@ -829,7 +834,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # identifier = < ident_start ident_letters > { text.tr("-", "_") }
+  # identifier = < ident_start ident_letter* > { text.tr("-", "_") }
   def _identifier
 
     _save = self.pos
@@ -843,7 +848,11 @@ class Atomy::Parser
       self.pos = _save1
       break
     end
-    _tmp = apply(:_ident_letters)
+    while true
+    _tmp = apply(:_ident_letter)
+    break unless _tmp
+    end
+    _tmp = true
     unless _tmp
       self.pos = _save1
     end
@@ -5011,12 +5020,11 @@ class Atomy::Parser
   Rules[:_sig_wsp] = rule_info("sig_wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)+")
   Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })?)")
   Rules[:_line] = rule_info("line", "{ current_line }")
-  Rules[:_ident_start] = rule_info("ident_start", "< /[a-z_]/ > { text }")
-  Rules[:_ident_letters] = rule_info("ident_letters", "< /([[:alnum:]\\<\\>~!@#\\$%\\^&*\\-=\\+\\\\\\|.\\/\\?])*/ > { text }")
-  Rules[:_ident_letter] = rule_info("ident_letter", "< /([[:alnum:]\\<\\>~!@#\\$%\\^&*\\-=\\+\\\\\\|.\\/\\?])/ > { text }")
-  Rules[:_op_letter] = rule_info("op_letter", "< /[\\<\\>~!@#\\$%\\^&*\\-=\\+\\\\\\|:.\\/\\?]/ > { text }")
+  Rules[:_ident_start] = rule_info("ident_start", "< /[\\p{Ll}_]/u > { text }")
+  Rules[:_ident_letter] = rule_info("ident_letter", "< (/[\\p{L}\\d]/u | !\":\" op_letter) > { text }")
+  Rules[:_op_letter] = rule_info("op_letter", "< /[\\p{S}!@\#%&*\\-\\\\:.\\/\\?]/u > { text }")
   Rules[:_operator] = rule_info("operator", "< op_letter+ > &{ text != \":\" } { text }")
-  Rules[:_identifier] = rule_info("identifier", "< ident_start ident_letters > { text.tr(\"-\", \"_\") }")
+  Rules[:_identifier] = rule_info("identifier", "< ident_start ident_letter* > { text.tr(\"-\", \"_\") }")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
   Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")
   Rules[:_multi_comment] = rule_info("multi_comment", "\"{-\" in_multi")
@@ -5044,7 +5052,7 @@ class Atomy::Parser
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
   Rules[:_string] = rule_info("string", "line:line \"\\\"\" (\"\\\\\" escape | str_seq)*:c \"\\\"\" { Atomy::AST::String.new(line, c.join) }")
   Rules[:_macro_quote] = rule_info("macro_quote", "line:line identifier:n quoted:c (< [a-z] > { text })*:fs { Atomy::AST::MacroQuote.new(line, n, c, fs) }")
-  Rules[:_particle] = rule_info("particle", "line:line \"#\" (identifier | operator):n !level1 { Atomy::AST::Particle.new(line, n) }")
+  Rules[:_particle] = rule_info("particle", "line:line \"\#\" (identifier | operator):n !level1 { Atomy::AST::Particle.new(line, n) }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
   Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s {                     names = [m] + Array(s)                     const_chain(line, names)                   } | line:line (\"::\" constant_name)+:s {                     names = Array(s)                     const_chain(line, names, true)                   })")
   Rules[:_variable] = rule_info("variable", "line:line identifier:n { Atomy::AST::Variable.new(line, n) }")

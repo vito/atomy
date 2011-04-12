@@ -75,15 +75,15 @@
 
            line = { current_line }
 
-    ident_start = < /[a-z_]/ > { text }
-  ident_letters = < /([[:alnum:]\<\>~!@#\$%\^&*\-=\+\\\|.\/\?])*/ > { text }
-   ident_letter = < /([[:alnum:]\<\>~!@#\$%\^&*\-=\+\\\|.\/\?])/ > { text }
+    ident_start = < /[\p{Ll}_]/u > { text }
+   ident_letter = < /[\p{L}\d]/u | !":" op_letter > { text }
 
-      op_letter = < /[\<\>~!@#\$%\^&*\-=\+\\\|:.\/\?]/ > { text }
+      # \p{S} matches ["$", "+", "<", "=", ">", "^", "`", "|", "~"]
+      op_letter = < /[\p{S}!@#%&*\-\\:.\/\?]/u > { text }
 
        operator = < op_letter+ > &{ text != ":" } { text }
 
-     identifier = < ident_start ident_letters > { text.tr("-", "_") }
+     identifier = < ident_start ident_letter* > { text.tr("-", "_") }
 
         grouped = "(" wsp expression:x wsp ")" { x }
 
