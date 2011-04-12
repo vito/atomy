@@ -389,7 +389,7 @@ EOF
       end
 
       def namespace_symbol
-        method_name.to_sym
+        method_name && method_name.to_sym
       end
 
       def unquote?
