@@ -96,3 +96,7 @@ export:
       g push-undef
 
     pattern := Atomy::Patterns::Any new
+
+  Atomy::AST::List as-message(send) := do:
+    send arguments = @elements
+    send method-name = "[]"
