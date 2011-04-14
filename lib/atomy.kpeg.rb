@@ -2852,7 +2852,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # sends = (line:line send:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) } | line:line level1:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) } | line:line level1:r cont(pos) args:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, Atomy::AST::Variable.new(line, "call")) })
+  # sends = (line:line send:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), n) } | line:line level1:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), n) } | line:line level1:r cont(pos) args:as { Atomy::AST::Send.new(line, r, Array(as), Atomy::AST::Variable.new(line, "call")) })
   def _sends(pos)
 
     _save = self.pos
@@ -2895,7 +2895,7 @@ class Atomy::Parser
       self.pos = _save1
       break
     end
-    @result = begin;  Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) ; end
+    @result = begin;  Atomy::AST::Send.new(line, r, Array(as), n) ; end
     _tmp = true
     unless _tmp
       self.pos = _save1
@@ -2943,7 +2943,7 @@ class Atomy::Parser
       self.pos = _save3
       break
     end
-    @result = begin;  Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) ; end
+    @result = begin;  Atomy::AST::Send.new(line, r, Array(as), n) ; end
     _tmp = true
     unless _tmp
       self.pos = _save3
@@ -2979,7 +2979,7 @@ class Atomy::Parser
       self.pos = _save5
       break
     end
-    @result = begin;  Atomy::AST::Send.new(line, r, Array(as), nil, nil, Atomy::AST::Variable.new(line, "call")) ; end
+    @result = begin;  Atomy::AST::Send.new(line, r, Array(as), Atomy::AST::Variable.new(line, "call")) ; end
     _tmp = true
     unless _tmp
       self.pos = _save5
@@ -3003,7 +3003,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # headless = line:line message_name:n args:as { Atomy::AST::Send.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         nil,                         nil,                         n,                         true                       )                     }
+  # headless = line:line message_name:n args:as { Atomy::AST::Send.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         n,                         nil,                         nil,                         true                       )                     }
   def _headless
 
     _save = self.pos
@@ -3030,9 +3030,9 @@ class Atomy::Parser
                         line,
                         Atomy::AST::Primitive.new(line, :self),
                         as,
-                        nil,
-                        nil,
                         n,
+                        nil,
+                        nil,
                         true
                       )
                     ; end
@@ -4891,9 +4891,9 @@ class Atomy::Parser
   Rules[:_block] = rule_info("block", "(line:line args?:as \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), Array(as)) } | line:line (args:as wsp { as })?:as \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), Array(as)) })")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
   Rules[:_message_name] = rule_info("message_name", "(true | false | self | nil | number | quote | quasi_quote | splice | line:line \"~\" (grouped | level1):e { Atomy::AST::Unquote.new(line, e) } | string | macro_quote | particle | constant | variable | block | list | unary)")
-  Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) } | line:line level1:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) } | line:line level1:r cont(pos) args:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, Atomy::AST::Variable.new(line, \"call\")) })")
+  Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), n) } | line:line level1:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), n) } | line:line level1:r cont(pos) args:as { Atomy::AST::Send.new(line, r, Array(as), Atomy::AST::Variable.new(line, \"call\")) })")
   Rules[:_send] = rule_info("send", "sends(current_position)")
-  Rules[:_headless] = rule_info("headless", "line:line message_name:n args:as { Atomy::AST::Send.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         nil,                         nil,                         n,                         true                       )                     }")
+  Rules[:_headless] = rule_info("headless", "line:line message_name:n args:as { Atomy::AST::Send.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         n,                         nil,                         nil,                         true                       )                     }")
   Rules[:_binary_c] = rule_info("binary_c", "(cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { bs.flatten }")
   Rules[:_binary_send] = rule_info("binary_send", "(level2:l binary_c(current_position):c { resolve(nil, l, c).first } | line:line operator:o sig_wsp expression:r { Atomy::AST::BinarySend.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" })")

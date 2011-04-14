@@ -1,24 +1,16 @@
 module Atomy
   module AST
     class Send < Node
-      children :receiver, [:arguments], :block?
+      children :receiver, [:arguments], :message?, :block?
       attributes :method_name?
-      slots :message?, [:private, "false"], :namespace?
+      slots [:private, "false"], :namespace?
       generate
 
       def created
         if @message
           @message.as_message(self)
-          @message = nil
+          @message = nil if @method_name
         end
-      end
-
-      def to_sexp
-        [:send,
-          @method_name,
-          [:receiver, @receiver.to_sexp],
-          [:arguments, @arguments.collect(&:to_sexp)],
-          [:block, @block && @block.to_sexp]]
       end
 
       def register_macro(body)

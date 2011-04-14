@@ -227,11 +227,11 @@
                 | unary
 
      sends(pos) = line:line send:r cont(pos) message_name:n args?:as
-                    { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) }
+                    { Atomy::AST::Send.new(line, r, Array(as), n) }
                 | line:line level1:r cont(pos) message_name:n args?:as
-                    { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) }
+                    { Atomy::AST::Send.new(line, r, Array(as), n) }
                 | line:line level1:r cont(pos) args:as
-                    { Atomy::AST::Send.new(line, r, Array(as), nil, nil, Atomy::AST::Variable.new(line, "call")) }
+                    { Atomy::AST::Send.new(line, r, Array(as), Atomy::AST::Variable.new(line, "call")) }
            send = sends(current_position)
 
        headless = line:line message_name:n args:as
@@ -239,9 +239,9 @@
                         line,
                         Atomy::AST::Primitive.new(line, :self),
                         as,
-                        nil,
-                        nil,
                         n,
+                        nil,
+                        nil,
                         true
                       )
                     }

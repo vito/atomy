@@ -416,9 +416,9 @@ EOF
           @line,
           self,
           [],
+          Atomy::AST::Variable.new(@line, "call"),
           nil,
-          nil,
-          Atomy::AST::Variable.new(@line, "call")
+          nil
         )
       end
 
@@ -462,7 +462,7 @@ EOF
       end
 
       def as_message(send)
-        raise "unknown message name: #{self}"
+        raise "unknown message name: #{self.to_sexp.inspect}"
       end
     end
 

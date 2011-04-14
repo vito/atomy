@@ -82,9 +82,9 @@ module Atomy
             send.receiver.line,
             Primitive.new(send.receiver.line, :self),
             [],
-            nil,
-            nil,
             send.receiver,
+            nil,
+            nil,
             true
           )
           as_message(send)
