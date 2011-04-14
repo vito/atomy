@@ -36,9 +36,9 @@ module Atomy
       end
 
       def inherited(sub)
-        reset_children
-        reset_attributes
-        reset_slots
+        sub.reset_children
+        sub.reset_attributes
+        sub.reset_slots
       end
 
       def self.extended(sub)
