@@ -414,9 +414,11 @@ EOF
       def caller
         Atomy::AST::Send.new(
           @line,
-          Atomy::AST::Variable.new(@line, "call"),
           self,
-          []
+          [],
+          nil,
+          nil,
+          Atomy::AST::Variable.new(@line, "call")
         )
       end
 

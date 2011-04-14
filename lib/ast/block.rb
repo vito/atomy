@@ -66,6 +66,34 @@ module Atomy
         g.swap
         g.send :__from_block__, 1
       end
+
+      def as_message(send)
+        return if send.method_name
+        case send.receiver
+        when Send
+          send.arguments = send.receiver.arguments
+          send.private = send.receiver.private
+          send.namespace = send.receiver.namespace
+          send.method_name = send.receiver.method_name
+          send.receiver = send.receiver.receiver
+          send.block = self
+        when Variable, Constant, ScopedConstant, ToplevelConstant
+          send.receiver = Send.new(
+            send.receiver.line,
+            Primitive.new(send.receiver.line, :self),
+            [],
+            nil,
+            nil,
+            send.receiver,
+            true
+          )
+          as_message(send)
+        else
+          unless send.method_name
+            raise "unknown receiver for block: #{send.to_sexp}"
+          end
+        end
+      end
     end
 
     class InlinedBody < Node

@@ -71,7 +71,7 @@
          sig_sp = (" " | "\t" | comment)+
         sig_wsp = (" " | "\t" | "\n" | comment)+
 
-        cont(p) = ("\n" sp)+ &{ continue?(p) } | sig_sp (("\n" sp)+ &{ continue?(p) })?
+        cont(p) = ("\n" sp)+ &{ continue?(p) } | sig_sp (("\n" sp)+ &{ continue?(p) })? | &.
 
            line = { current_line }
 
@@ -226,31 +226,22 @@
                 | list
                 | unary
 
-     sends(pos) = line:line send:r cont(pos) message_name:n args?:as (sp block)?:b
-                    { Atomy::AST::Send.new(line, n, r, Array(as), b) }
-                | line:line level1:r cont(pos) message_name:n args?:as (sp block)?:b
-                    { Atomy::AST::Send.new(line, n, r, Array(as), b) }
-                | line:line level1:r cont(pos) args:as !":" (sp block)?:b
-                    { Atomy::AST::Send.new(line, Atomy::AST::Variable.new(line, "call"), r, Array(as), b) }
+     sends(pos) = line:line send:r cont(pos) message_name:n args?:as
+                    { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) }
+                | line:line level1:r cont(pos) message_name:n args?:as
+                    { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) }
+                | line:line level1:r cont(pos) args:as
+                    { Atomy::AST::Send.new(line, r, Array(as), nil, nil, Atomy::AST::Variable.new(line, "call")) }
            send = sends(current_position)
 
-       headless = line:line message_name:n args?:as sp block:b
+       headless = line:line message_name:n args:as
                     { Atomy::AST::Send.new(
                         line,
-                        n,
-                        Atomy::AST::Primitive.new(line, :self),
-                        Array(as),
-                        b,
-                        true
-                      )
-                    }
-                | line:line message_name:n args:as (sp block)?:b
-                    { Atomy::AST::Send.new(
-                        line,
-                        n,
                         Atomy::AST::Primitive.new(line, :self),
                         as,
-                        b,
+                        nil,
+                        nil,
+                        n,
                         true
                       )
                     }

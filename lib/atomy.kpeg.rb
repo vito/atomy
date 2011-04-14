@@ -532,7 +532,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # cont = (("\n" sp)+ &{ continue?(p) } | sig_sp (("\n" sp)+ &{ continue?(p) })?)
+  # cont = (("\n" sp)+ &{ continue?(p) } | sig_sp (("\n" sp)+ &{ continue?(p) })? | &.)
   def _cont(p)
 
     _save = self.pos
@@ -668,6 +668,11 @@ class Atomy::Parser
     break
     end # end sequence
 
+    break if _tmp
+    self.pos = _save
+    _save13 = self.pos
+    _tmp = get_byte
+    self.pos = _save13
     break if _tmp
     self.pos = _save
     break
@@ -2847,7 +2852,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # sends = (line:line send:r cont(pos) message_name:n args?:as (sp block)?:b { Atomy::AST::Send.new(line, n, r, Array(as), b) } | line:line level1:r cont(pos) message_name:n args?:as (sp block)?:b { Atomy::AST::Send.new(line, n, r, Array(as), b) } | line:line level1:r cont(pos) args:as !":" (sp block)?:b { Atomy::AST::Send.new(line, Atomy::AST::Variable.new(line, "call"), r, Array(as), b) })
+  # sends = (line:line send:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) } | line:line level1:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) } | line:line level1:r cont(pos) args:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, Atomy::AST::Variable.new(line, "call")) })
   def _sends(pos)
 
     _save = self.pos
@@ -2890,36 +2895,58 @@ class Atomy::Parser
       self.pos = _save1
       break
     end
-    _save3 = self.pos
-
-    _save4 = self.pos
-    while true # sequence
-    _tmp = apply(:_sp)
+    @result = begin;  Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) ; end
+    _tmp = true
     unless _tmp
-      self.pos = _save4
-      break
-    end
-    _tmp = apply(:_block)
-    unless _tmp
-      self.pos = _save4
+      self.pos = _save1
     end
     break
     end # end sequence
 
+    break if _tmp
+    self.pos = _save
+
+    _save3 = self.pos
+    while true # sequence
+    _tmp = apply(:_line)
+    line = @result
+    unless _tmp
+      self.pos = _save3
+      break
+    end
+    _tmp = apply(:_level1)
+    r = @result
+    unless _tmp
+      self.pos = _save3
+      break
+    end
+    _tmp = _cont(pos)
+    unless _tmp
+      self.pos = _save3
+      break
+    end
+    _tmp = apply(:_message_name)
+    n = @result
+    unless _tmp
+      self.pos = _save3
+      break
+    end
+    _save4 = self.pos
+    _tmp = apply(:_args)
     @result = nil unless _tmp
     unless _tmp
       _tmp = true
-      self.pos = _save3
+      self.pos = _save4
     end
-    b = @result
+    as = @result
     unless _tmp
-      self.pos = _save1
+      self.pos = _save3
       break
     end
-    @result = begin;  Atomy::AST::Send.new(line, n, r, Array(as), b) ; end
+    @result = begin;  Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) ; end
     _tmp = true
     unless _tmp
-      self.pos = _save1
+      self.pos = _save3
     end
     break
     end # end sequence
@@ -2946,124 +2973,16 @@ class Atomy::Parser
       self.pos = _save5
       break
     end
-    _tmp = apply(:_message_name)
-    n = @result
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    _save6 = self.pos
-    _tmp = apply(:_args)
-    @result = nil unless _tmp
-    unless _tmp
-      _tmp = true
-      self.pos = _save6
-    end
-    as = @result
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    _save7 = self.pos
-
-    _save8 = self.pos
-    while true # sequence
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save8
-      break
-    end
-    _tmp = apply(:_block)
-    unless _tmp
-      self.pos = _save8
-    end
-    break
-    end # end sequence
-
-    @result = nil unless _tmp
-    unless _tmp
-      _tmp = true
-      self.pos = _save7
-    end
-    b = @result
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    @result = begin;  Atomy::AST::Send.new(line, n, r, Array(as), b) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save5
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save9 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save9
-      break
-    end
-    _tmp = apply(:_level1)
-    r = @result
-    unless _tmp
-      self.pos = _save9
-      break
-    end
-    _tmp = _cont(pos)
-    unless _tmp
-      self.pos = _save9
-      break
-    end
     _tmp = apply(:_args)
     as = @result
     unless _tmp
-      self.pos = _save9
+      self.pos = _save5
       break
     end
-    _save10 = self.pos
-    _tmp = match_string(":")
-    _tmp = _tmp ? nil : true
-    self.pos = _save10
-    unless _tmp
-      self.pos = _save9
-      break
-    end
-    _save11 = self.pos
-
-    _save12 = self.pos
-    while true # sequence
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save12
-      break
-    end
-    _tmp = apply(:_block)
-    unless _tmp
-      self.pos = _save12
-    end
-    break
-    end # end sequence
-
-    @result = nil unless _tmp
-    unless _tmp
-      _tmp = true
-      self.pos = _save11
-    end
-    b = @result
-    unless _tmp
-      self.pos = _save9
-      break
-    end
-    @result = begin;  Atomy::AST::Send.new(line, Atomy::AST::Variable.new(line, "call"), r, Array(as), b) ; end
+    @result = begin;  Atomy::AST::Send.new(line, r, Array(as), nil, nil, Atomy::AST::Variable.new(line, "call")) ; end
     _tmp = true
     unless _tmp
-      self.pos = _save9
+      self.pos = _save5
     end
     break
     end # end sequence
@@ -3084,134 +3003,45 @@ class Atomy::Parser
     return _tmp
   end
 
-  # headless = (line:line message_name:n args?:as sp block:b { Atomy::AST::Send.new(                         line,                         n,                         Atomy::AST::Primitive.new(line, :self),                         Array(as),                         b,                         true                       )                     } | line:line message_name:n args:as (sp block)?:b { Atomy::AST::Send.new(                         line,                         n,                         Atomy::AST::Primitive.new(line, :self),                         as,                         b,                         true                       )                     })
+  # headless = line:line message_name:n args:as { Atomy::AST::Send.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         nil,                         nil,                         n,                         true                       )                     }
   def _headless
 
     _save = self.pos
-    while true # choice
-
-    _save1 = self.pos
     while true # sequence
     _tmp = apply(:_line)
     line = @result
     unless _tmp
-      self.pos = _save1
+      self.pos = _save
       break
     end
     _tmp = apply(:_message_name)
     n = @result
     unless _tmp
-      self.pos = _save1
-      break
-    end
-    _save2 = self.pos
-    _tmp = apply(:_args)
-    @result = nil unless _tmp
-    unless _tmp
-      _tmp = true
-      self.pos = _save2
-    end
-    as = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply(:_block)
-    b = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    @result = begin;  Atomy::AST::Send.new(
-                        line,
-                        n,
-                        Atomy::AST::Primitive.new(line, :self),
-                        Array(as),
-                        b,
-                        true
-                      )
-                    ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save3 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply(:_message_name)
-    n = @result
-    unless _tmp
-      self.pos = _save3
+      self.pos = _save
       break
     end
     _tmp = apply(:_args)
     as = @result
     unless _tmp
-      self.pos = _save3
-      break
-    end
-    _save4 = self.pos
-
-    _save5 = self.pos
-    while true # sequence
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    _tmp = apply(:_block)
-    unless _tmp
-      self.pos = _save5
-    end
-    break
-    end # end sequence
-
-    @result = nil unless _tmp
-    unless _tmp
-      _tmp = true
-      self.pos = _save4
-    end
-    b = @result
-    unless _tmp
-      self.pos = _save3
+      self.pos = _save
       break
     end
     @result = begin;  Atomy::AST::Send.new(
                         line,
-                        n,
                         Atomy::AST::Primitive.new(line, :self),
                         as,
-                        b,
+                        nil,
+                        nil,
+                        n,
                         true
                       )
                     ; end
     _tmp = true
     unless _tmp
-      self.pos = _save3
+      self.pos = _save
     end
     break
     end # end sequence
-
-    break if _tmp
-    self.pos = _save
-    break
-    end # end choice
 
     set_failed_rule :_headless unless _tmp
     return _tmp
@@ -5018,7 +4848,7 @@ class Atomy::Parser
   Rules[:_wsp] = rule_info("wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)*")
   Rules[:_sig_sp] = rule_info("sig_sp", "(\" \" | \"\\t\" | comment)+")
   Rules[:_sig_wsp] = rule_info("sig_wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)+")
-  Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })?)")
+  Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })? | &.)")
   Rules[:_line] = rule_info("line", "{ current_line }")
   Rules[:_ident_start] = rule_info("ident_start", "< /[\\p{Ll}_]/u > { text }")
   Rules[:_ident_letter] = rule_info("ident_letter", "< (/[\\p{L}\\d]/u | !\":\" op_letter) > { text }")
@@ -5061,9 +4891,9 @@ class Atomy::Parser
   Rules[:_block] = rule_info("block", "(line:line args?:as \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), Array(as)) } | line:line (args:as wsp { as })?:as \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), Array(as)) })")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
   Rules[:_message_name] = rule_info("message_name", "(true | false | self | nil | number | quote | quasi_quote | splice | line:line \"~\" (grouped | level1):e { Atomy::AST::Unquote.new(line, e) } | string | macro_quote | particle | constant | variable | block | list | unary)")
-  Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) message_name:n args?:as (sp block)?:b { Atomy::AST::Send.new(line, n, r, Array(as), b) } | line:line level1:r cont(pos) message_name:n args?:as (sp block)?:b { Atomy::AST::Send.new(line, n, r, Array(as), b) } | line:line level1:r cont(pos) args:as !\":\" (sp block)?:b { Atomy::AST::Send.new(line, Atomy::AST::Variable.new(line, \"call\"), r, Array(as), b) })")
+  Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) } | line:line level1:r cont(pos) message_name:n args?:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, n) } | line:line level1:r cont(pos) args:as { Atomy::AST::Send.new(line, r, Array(as), nil, nil, Atomy::AST::Variable.new(line, \"call\")) })")
   Rules[:_send] = rule_info("send", "sends(current_position)")
-  Rules[:_headless] = rule_info("headless", "(line:line message_name:n args?:as sp block:b { Atomy::AST::Send.new(                         line,                         n,                         Atomy::AST::Primitive.new(line, :self),                         Array(as),                         b,                         true                       )                     } | line:line message_name:n args:as (sp block)?:b { Atomy::AST::Send.new(                         line,                         n,                         Atomy::AST::Primitive.new(line, :self),                         as,                         b,                         true                       )                     })")
+  Rules[:_headless] = rule_info("headless", "line:line message_name:n args:as { Atomy::AST::Send.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         nil,                         nil,                         n,                         true                       )                     }")
   Rules[:_binary_c] = rule_info("binary_c", "(cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { bs.flatten }")
   Rules[:_binary_send] = rule_info("binary_send", "(level2:l binary_c(current_position):c { resolve(nil, l, c).first } | line:line operator:o sig_wsp expression:r { Atomy::AST::BinarySend.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" })")
