@@ -280,6 +280,21 @@ EOF
             #{slots.inspect}
           end
 EOF
+
+        required = @@children[:required].collect { |c| ", [:\"#{c}\", @#{c}.to_sexp]" }.join
+        many = @@children[:many].collect { |c| ", [:\"#{c}\", @#{c}.collect(&:to_sexp)]" }.join
+        optional = @@children[:optional].collect { |c, _| ", [:\"#{c}\", @#{c} && @#{c}.to_sexp]" }.join
+
+        a_required = @@attributes[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        a_many = @@attributes[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        a_optional = @@attributes[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
+
+        class_eval <<EOF
+          def to_sexp
+            [:"#{self.name.split("::").last.downcase}"#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}]
+          end
+EOF
+
       end
     end
 
