@@ -128,7 +128,6 @@ EOF
           def initialize(line#{args})
             @line = line
             #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
-            created
           end
 EOF
 
@@ -173,7 +172,7 @@ EOF
                 "g.push_literal(@#{a})"
               }.join("; ")}
 
-            g.send :new, #{all.size + 1}
+            g.send :create, #{all.size + 1}
           end
 EOF
 
@@ -301,9 +300,10 @@ EOF
     module NodeLike
       attr_accessor :line
 
-      # called after initialization
-      def created
-        nil
+      def self.included(cls)
+        def cls.create(*as)
+          new(*as)
+        end
       end
 
       # yield this node's subnodes to a block recursively, and then itself
