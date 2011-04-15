@@ -159,25 +159,25 @@ Particle pretty := doc:
       then: '_
       else: c
 
-  operator? = message to-s !~ r"^[a-z_]"
+  operator? = self message to-s !~ r"^[a-z_]"
 
-  args = arguments collect(&#(wildcard [_]))
+  args = self arguments collect(&#(wildcard [_]))
 
   msg+args =
     if(operator?)
       then:
-        text(message to-s) <+> args first pretty
+        text(self message to-s) <+> args first pretty
       else:
-        text(message to-s) <>
+        text(self message to-s) <>
           parens(Atomy::AST comma-delim(args))
 
   partial =
-    if(receiver equal?(_undefined))
+    if(self receiver equal?(_undefined))
       then:
         if(operator?)
           then: parens(msg+args)
           else: msg+args
-      else: parens(receiver pretty <+> msg+args)
+      else: parens(self receiver pretty <+> msg+args)
 
   text("#") <> partial
 
