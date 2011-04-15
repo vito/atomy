@@ -96,16 +96,6 @@ module Atomy
       )
     end
 
-    def self.expand?(node)
-      case node
-      when AST::BinarySend, AST::Send, AST::Unary,
-           AST::MacroQuote, AST::Variable, AST::Macro
-        true
-      else
-        false
-      end
-    end
-
     def self.intern(name)
       "atomy_macro::" + name
     end
@@ -113,7 +103,6 @@ module Atomy
     # take a node and return its expansion
     def self.expand(node)
       name = node.method_name
-      meth = name && intern(name).to_sym
 
       return node unless name
 
