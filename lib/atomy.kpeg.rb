@@ -1223,7 +1223,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level0 = (true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | particle | constant | variable | block | list | unary)
+  # level0 = (true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | constant | variable | block | list | unary)
   def _level0
 
     _save = self.pos
@@ -1256,9 +1256,6 @@ class Atomy::Parser
     break if _tmp
     self.pos = _save
     _tmp = apply(:_string)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_particle)
     break if _tmp
     self.pos = _save
     _tmp = apply(:_constant)
@@ -2113,59 +2110,6 @@ class Atomy::Parser
     end # end sequence
 
     set_failed_rule :_string unless _tmp
-    return _tmp
-  end
-
-  # particle = line:line "#" (identifier | operator):n !level1 { Atomy::AST::Particle.new(line, n) }
-  def _particle
-
-    _save = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("#")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-
-    _save1 = self.pos
-    while true # choice
-    _tmp = apply(:_identifier)
-    break if _tmp
-    self.pos = _save1
-    _tmp = apply(:_operator)
-    break if _tmp
-    self.pos = _save1
-    break
-    end # end choice
-
-    n = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save2 = self.pos
-    _tmp = apply(:_level1)
-    _tmp = _tmp ? nil : true
-    self.pos = _save2
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Particle.new(line, n) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    set_failed_rule :_particle unless _tmp
     return _tmp
   end
 
@@ -4003,7 +3947,7 @@ class Atomy::Parser
   Rules[:_delim] = rule_info("delim", "(wsp \",\" wsp | (sp \"\\n\" sp)+ &{ current_column >= c })")
   Rules[:_expression] = rule_info("expression", "level3")
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }")
-  Rules[:_level0] = rule_info("level0", "(true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | particle | constant | variable | block | list | unary)")
+  Rules[:_level0] = rule_info("level0", "(true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | constant | variable | block | list | unary)")
   Rules[:_level1] = rule_info("level1", "(headless | grouped | level0)")
   Rules[:_level2] = rule_info("level2", "(send | level1)")
   Rules[:_level3] = rule_info("level3", "(macro | op_assoc_prec | binary_send | level2)")
@@ -4023,7 +3967,6 @@ class Atomy::Parser
   Rules[:_escape] = rule_info("escape", "(number_escapes | escapes)")
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
   Rules[:_string] = rule_info("string", "line:line \"\\\"\" (\"\\\\\" escape | str_seq)*:c \"\\\"\" { Atomy::AST::String.new(line, c.join) }")
-  Rules[:_particle] = rule_info("particle", "line:line \"\#\" (identifier | operator):n !level1 { Atomy::AST::Particle.new(line, n) }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
   Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s {                     names = [m] + Array(s)                     const_chain(line, names)                   } | line:line (\"::\" constant_name)+:s {                     names = Array(s)                     const_chain(line, names, true)                   })")
   Rules[:_variable] = rule_info("variable", "line:line identifier:n { Atomy::AST::Variable.new(line, n) }")

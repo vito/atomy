@@ -111,7 +111,6 @@
                 | splice
                 | unquote
                 | string
-                | particle
                 | constant
                 | variable
                 | block
@@ -169,14 +168,9 @@
                     { Atomy::AST::Unquote.new(line, e) }
 
          escape = number_escapes | escapes
-
         str_seq = < /[^\\"]+/ > { text }
          string = line:line "\"" (("\\" escape) | str_seq)*:c "\""
                     { Atomy::AST::String.new(line, c.join) }
-
-       # TODO: level1 isn't broad enough; #foo(1, 2) fails
-       particle = line:line "#" (identifier | operator):n !level1
-                    { Atomy::AST::Particle.new(line, n) }
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
        constant = line:line constant_name:m ("::" constant_name)*:s {
@@ -222,7 +216,8 @@
                       )
                     }
 
-  binary_c(pos) = (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { bs.flatten }
+  binary_c(pos) = (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs
+                    { bs.flatten }
     binary_send = level2:l binary_c(current_position):c
                     { resolve(nil, l, c).first }
                 | line:line operator:o sig_wsp expression:r
@@ -287,5 +282,6 @@
                 | < /\d{1,6}/ > { [text.to_i].pack("U") }
                 | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack("U") }
                 | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack("U") }
+
 
            root = wsp expressions:es wsp !. { Array(es) }

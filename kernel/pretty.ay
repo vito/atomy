@@ -183,8 +183,7 @@ Particle pretty := doc:
 
 Symbol pretty := do:
   s = to-s
-  if(s =~ r"^[\<\>~!@#\$%\^&*\-=\+\\\|:.\/\?]+$" ||
-        s =~ r"^[a-z_]([[:alnum:]\<\>~!@#\$%\^&*\-=\+\\\|.\/\?])*$")
+  if(s =~ r(u)"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-\\:.\/\?])*$")
     then: Doc text("#" + s)
     else: Doc text("#") <> s pretty
 
