@@ -1,7 +1,7 @@
 module Atomy
   module AST
     class String < Node
-      attributes :value
+      attributes :value, :raw?
       generate
 
       def bytecode(g)
@@ -16,14 +16,14 @@ module Atomy
           MacroQuote.new(
             @line,
             send.receiver.method_name,
-            @value,
+            @raw || @value,
             send.receiver.arguments.collect(&:name)
           )
         when Variable
           MacroQuote.new(
             @line,
             send.receiver.name,
-            @value,
+            @raw || @value,
             []
           )
         end

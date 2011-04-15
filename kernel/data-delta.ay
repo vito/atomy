@@ -79,7 +79,6 @@ macro-quoter(r) [c, fs]:
 
 macro-quoter(raw) [c]: c
 
-
 macro(_undefined):
   Atomy::AST::Undefined new(line)
 

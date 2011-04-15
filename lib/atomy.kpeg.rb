@@ -2042,7 +2042,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # string = line:line "\"" ("\\" escape | str_seq)*:c "\"" { Atomy::AST::String.new(line, c.join) }
+  # string = line:line "\"" < ("\\" escape | str_seq)*:c > "\"" { Atomy::AST::String.new(line, c.join, text) }
   def _string
 
     _save = self.pos
@@ -2058,6 +2058,7 @@ class Atomy::Parser
       self.pos = _save
       break
     end
+    _text_start = self.pos
     _ary = []
     while true
 
@@ -2092,6 +2093,9 @@ class Atomy::Parser
     _tmp = true
     @result = _ary
     c = @result
+    if _tmp
+      text = get_text(_text_start)
+    end
     unless _tmp
       self.pos = _save
       break
@@ -2101,7 +2105,7 @@ class Atomy::Parser
       self.pos = _save
       break
     end
-    @result = begin;  Atomy::AST::String.new(line, c.join) ; end
+    @result = begin;  Atomy::AST::String.new(line, c.join, text) ; end
     _tmp = true
     unless _tmp
       self.pos = _save
@@ -3966,7 +3970,7 @@ class Atomy::Parser
   Rules[:_unquote] = rule_info("unquote", "line:line \"~\" level1:e { Atomy::AST::Unquote.new(line, e) }")
   Rules[:_escape] = rule_info("escape", "(number_escapes | escapes)")
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
-  Rules[:_string] = rule_info("string", "line:line \"\\\"\" (\"\\\\\" escape | str_seq)*:c \"\\\"\" { Atomy::AST::String.new(line, c.join) }")
+  Rules[:_string] = rule_info("string", "line:line \"\\\"\" < (\"\\\\\" escape | str_seq)*:c > \"\\\"\" { Atomy::AST::String.new(line, c.join, text) }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
   Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s {                     names = [m] + Array(s)                     const_chain(line, names)                   } | line:line (\"::\" constant_name)+:s {                     names = Array(s)                     const_chain(line, names, true)                   })")
   Rules[:_variable] = rule_info("variable", "line:line identifier:n { Atomy::AST::Variable.new(line, n) }")

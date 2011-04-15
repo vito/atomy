@@ -169,8 +169,8 @@
 
          escape = number_escapes | escapes
         str_seq = < /[^\\"]+/ > { text }
-         string = line:line "\"" (("\\" escape) | str_seq)*:c "\""
-                    { Atomy::AST::String.new(line, c.join) }
+         string = line:line "\"" < (("\\" escape) | str_seq)*:c > "\""
+                    { Atomy::AST::String.new(line, c.join, text) }
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
        constant = line:line constant_name:m ("::" constant_name)*:s {
