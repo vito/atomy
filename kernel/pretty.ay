@@ -159,7 +159,7 @@ Particle pretty := doc:
       then: '_
       else: c
 
-  operator? = message to-s !~ r{^[a-z_]}
+  operator? = message to-s !~ r"^[a-z_]"
 
   args = arguments collect(&#(wildcard [_]))
 
@@ -183,8 +183,8 @@ Particle pretty := doc:
 
 Symbol pretty := do:
   s = to-s
-  if(s =~ r{^[\<\>~!@#\$%\^&*\-=\+\\\|:.\/\?]+$} ||
-        s =~ r{^[a-z_]([[:alnum:]\<\>~!@#\$%\^&*\-=\+\\\|.\/\?])*$})
+  if(s =~ r"^[\<\>~!@#\$%\^&*\-=\+\\\|:.\/\?]+$" ||
+        s =~ r"^[a-z_]([[:alnum:]\<\>~!@#\$%\^&*\-=\+\\\|.\/\?])*$")
     then: Doc text("#" + s)
     else: Doc text("#") <> s pretty
 

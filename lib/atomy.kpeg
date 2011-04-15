@@ -101,9 +101,7 @@
     expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)?
                     { [x] + Array(xs) }
 
-         level1 = macro_quote
-                | headless
-                | true
+         level0 = true
                 | false
                 | self
                 | nil
@@ -117,9 +115,11 @@
                 | constant
                 | variable
                 | block
-                | grouped
                 | list
                 | unary
+         level1 = headless
+                | grouped
+                | level0
          level2 = send
                 | level1
          level3 = macro
@@ -174,9 +174,6 @@
          string = line:line "\"" (("\\" escape) | str_seq)*:c "\""
                     { Atomy::AST::String.new(line, c.join) }
 
-    macro_quote = line:line identifier:n quoted:c (< [a-z] > { text })*:fs
-                    { Atomy::AST::MacroQuote.new(line, n, c, fs) }
-
        # TODO: level1 isn't broad enough; #foo(1, 2) fails
        particle = line:line "#" (identifier | operator):n !level1
                     { Atomy::AST::Particle.new(line, n) }
@@ -207,31 +204,13 @@
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomy::AST::List.new(line, Array(es)) }
 
-   message_name = true
-                | false
-                | self
-                | nil
-                | number
-                | quote
-                | quasi_quote
-                | splice
-                | unquote
-                | string
-                | macro_quote
-                | particle
-                | constant
-                | variable
-                | block
-                | list
-                | unary
-
-     sends(pos) = line:line send:r cont(pos) message_name:n args?:as
+     sends(pos) = line:line send:r cont(pos) level0:n args?:as
                     { Atomy::AST::Send.create(line, r, Array(as), n) }
-                | line:line level1:r cont(pos) message_name:n args?:as
+                | line:line level1:r cont(pos) level0:n args?:as
                     { Atomy::AST::Send.create(line, r, Array(as), n) }
            send = sends(current_position)
 
-       headless = line:line message_name:n args:as
+       headless = line:line level0:n args:as
                     { Atomy::AST::Send.create(
                         line,
                         Atomy::AST::Primitive.new(line, :self),
@@ -302,46 +281,11 @@
                 | "SUB" { "\032" }
                 | "ESC" { "\e" }
                 | "DEL" { "\177" }
+                | < . > { "\\" + text }
 
  number_escapes = /[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack("U") }
                 | < /\d{1,6}/ > { [text.to_i].pack("U") }
                 | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack("U") }
                 | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack("U") }
-
-         quoted = "\""
-                  ( "\\\"" { "\"" }
-                  | < "\\" . > { text }
-                  | < /[^\\"]+/ > { text }
-                  )*:c
-                  "\""
-                  { c.join }
-                | "{"
-                  ( "\\" < "{" | "}" > { text }
-                  | < "\\" . > { text }
-                  | < /[^\\\{\}]+/ > { text }
-                  )*:c
-                  "}"
-                  { c.join }
-                | "["
-                  ( "\\" < "[" | "]" > { text }
-                  | < "\\" . > { text }
-                  | < /[^\\\[\]]+/ > { text }
-                  )*:c
-                  "]"
-                  { c.join }
-                | "`"
-                  ( "\\`" { "`" }
-                  | < "\\" . > { text }
-                  | < /[^\\`]+/ > { text }
-                  )*:c
-                  "`"
-                  { c.join }
-                | "'"
-                  ( "\\'" { "'" }
-                  | < "\\" . > { text }
-                  | < /[^\\']+/ > { text }
-                  )*:c
-                  "'"
-                  { c.join }
 
            root = wsp expressions:es wsp !. { Array(es) }

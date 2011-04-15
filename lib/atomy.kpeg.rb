@@ -1223,17 +1223,11 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level1 = (macro_quote | headless | true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | particle | constant | variable | block | grouped | list | unary)
-  def _level1
+  # level0 = (true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | particle | constant | variable | block | list | unary)
+  def _level0
 
     _save = self.pos
     while true # choice
-    _tmp = apply(:_macro_quote)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_headless)
-    break if _tmp
-    self.pos = _save
     _tmp = apply(:_true)
     break if _tmp
     self.pos = _save
@@ -1276,13 +1270,31 @@ class Atomy::Parser
     _tmp = apply(:_block)
     break if _tmp
     self.pos = _save
-    _tmp = apply(:_grouped)
-    break if _tmp
-    self.pos = _save
     _tmp = apply(:_list)
     break if _tmp
     self.pos = _save
     _tmp = apply(:_unary)
+    break if _tmp
+    self.pos = _save
+    break
+    end # end choice
+
+    set_failed_rule :_level0 unless _tmp
+    return _tmp
+  end
+
+  # level1 = (headless | grouped | level0)
+  def _level1
+
+    _save = self.pos
+    while true # choice
+    _tmp = apply(:_headless)
+    break if _tmp
+    self.pos = _save
+    _tmp = apply(:_grouped)
+    break if _tmp
+    self.pos = _save
+    _tmp = apply(:_level0)
     break if _tmp
     self.pos = _save
     break
@@ -2104,80 +2116,6 @@ class Atomy::Parser
     return _tmp
   end
 
-  # macro_quote = line:line identifier:n quoted:c (< [a-z] > { text })*:fs { Atomy::AST::MacroQuote.new(line, n, c, fs) }
-  def _macro_quote
-
-    _save = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_identifier)
-    n = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_quoted)
-    c = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _ary = []
-    while true
-
-    _save2 = self.pos
-    while true # sequence
-    _text_start = self.pos
-    _save3 = self.pos
-    _tmp = get_byte
-    if _tmp
-      unless _tmp >= 97 and _tmp <= 122
-        self.pos = _save3
-        _tmp = nil
-      end
-    end
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
-
-    _ary << @result if _tmp
-    break unless _tmp
-    end
-    _tmp = true
-    @result = _ary
-    fs = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::MacroQuote.new(line, n, c, fs) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
-    end # end sequence
-
-    set_failed_rule :_macro_quote unless _tmp
-    return _tmp
-  end
-
   # particle = line:line "#" (identifier | operator):n !level1 { Atomy::AST::Particle.new(line, n) }
   def _particle
 
@@ -2706,70 +2644,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # message_name = (true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | macro_quote | particle | constant | variable | block | list | unary)
-  def _message_name
-
-    _save = self.pos
-    while true # choice
-    _tmp = apply(:_true)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_false)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_self)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_nil)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_number)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_quote)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_quasi_quote)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_splice)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_unquote)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_string)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_macro_quote)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_particle)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_constant)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_variable)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_block)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_list)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_unary)
-    break if _tmp
-    self.pos = _save
-    break
-    end # end choice
-
-    set_failed_rule :_message_name unless _tmp
-    return _tmp
-  end
-
-  # sends = (line:line send:r cont(pos) message_name:n args?:as { Atomy::AST::Send.create(line, r, Array(as), n) } | line:line level1:r cont(pos) message_name:n args?:as { Atomy::AST::Send.create(line, r, Array(as), n) })
+  # sends = (line:line send:r cont(pos) level0:n args?:as { Atomy::AST::Send.create(line, r, Array(as), n) } | line:line level1:r cont(pos) level0:n args?:as { Atomy::AST::Send.create(line, r, Array(as), n) })
   def _sends(pos)
 
     _save = self.pos
@@ -2794,7 +2669,7 @@ class Atomy::Parser
       self.pos = _save1
       break
     end
-    _tmp = apply(:_message_name)
+    _tmp = apply(:_level0)
     n = @result
     unless _tmp
       self.pos = _save1
@@ -2842,7 +2717,7 @@ class Atomy::Parser
       self.pos = _save3
       break
     end
-    _tmp = apply(:_message_name)
+    _tmp = apply(:_level0)
     n = @result
     unless _tmp
       self.pos = _save3
@@ -2884,7 +2759,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # headless = line:line message_name:n args:as { Atomy::AST::Send.create(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         n,                         nil,                         nil,                         true                       )                     }
+  # headless = line:line level0:n args:as { Atomy::AST::Send.create(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         n,                         nil,                         nil,                         true                       )                     }
   def _headless
 
     _save = self.pos
@@ -2895,7 +2770,7 @@ class Atomy::Parser
       self.pos = _save
       break
     end
-    _tmp = apply(:_message_name)
+    _tmp = apply(:_level0)
     n = @result
     unless _tmp
       self.pos = _save
@@ -3109,7 +2984,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # escapes = ("n" { "\n" } | "s" { " " } | "r" { "\r" } | "t" { "\t" } | "v" { "\v" } | "f" { "\f" } | "b" { "\b" } | "a" { "\a" } | "e" { "\e" } | "\\" { "\\" } | "\"" { "\"" } | "BS" { "\b" } | "HT" { "\t" } | "LF" { "\n" } | "VT" { "\v" } | "FF" { "\f" } | "CR" { "\r" } | "SO" { "\016" } | "SI" { "\017" } | "EM" { "\031" } | "FS" { "\034" } | "GS" { "\035" } | "RS" { "\036" } | "US" { "\037" } | "SP" { " " } | "NUL" { "\000" } | "SOH" { "\001" } | "STX" { "\002" } | "ETX" { "\003" } | "EOT" { "\004" } | "ENQ" { "\005" } | "ACK" { "\006" } | "BEL" { "\a" } | "DLE" { "\020" } | "DC1" { "\021" } | "DC2" { "\022" } | "DC3" { "\023" } | "DC4" { "\024" } | "NAK" { "\025" } | "SYN" { "\026" } | "ETB" { "\027" } | "CAN" { "\030" } | "SUB" { "\032" } | "ESC" { "\e" } | "DEL" { "\177" })
+  # escapes = ("n" { "\n" } | "s" { " " } | "r" { "\r" } | "t" { "\t" } | "v" { "\v" } | "f" { "\f" } | "b" { "\b" } | "a" { "\a" } | "e" { "\e" } | "\\" { "\\" } | "\"" { "\"" } | "BS" { "\b" } | "HT" { "\t" } | "LF" { "\n" } | "VT" { "\v" } | "FF" { "\f" } | "CR" { "\r" } | "SO" { "\016" } | "SI" { "\017" } | "EM" { "\031" } | "FS" { "\034" } | "GS" { "\035" } | "RS" { "\036" } | "US" { "\037" } | "SP" { " " } | "NUL" { "\000" } | "SOH" { "\001" } | "STX" { "\002" } | "ETX" { "\003" } | "EOT" { "\004" } | "ENQ" { "\005" } | "ACK" { "\006" } | "BEL" { "\a" } | "DLE" { "\020" } | "DC1" { "\021" } | "DC2" { "\022" } | "DC3" { "\023" } | "DC4" { "\024" } | "NAK" { "\025" } | "SYN" { "\026" } | "ETB" { "\027" } | "CAN" { "\030" } | "SUB" { "\032" } | "ESC" { "\e" } | "DEL" { "\177" } | < . > { "\\" + text })
   def _escapes
 
     _save = self.pos
@@ -3924,6 +3799,28 @@ class Atomy::Parser
 
     break if _tmp
     self.pos = _save
+
+    _save46 = self.pos
+    while true # sequence
+    _text_start = self.pos
+    _tmp = get_byte
+    if _tmp
+      text = get_text(_text_start)
+    end
+    unless _tmp
+      self.pos = _save46
+      break
+    end
+    @result = begin;  "\\" + text ; end
+    _tmp = true
+    unless _tmp
+      self.pos = _save46
+    end
+    break
+    end # end sequence
+
+    break if _tmp
+    self.pos = _save
     break
     end # end choice
 
@@ -4046,643 +3943,6 @@ class Atomy::Parser
     return _tmp
   end
 
-  # quoted = ("\"" ("\\\"" { "\"" } | < "\\" . > { text } | < /[^\\"]+/ > { text })*:c "\"" { c.join } | "{" ("\\" < ("{" | "}") > { text } | < "\\" . > { text } | < /[^\\\{\}]+/ > { text })*:c "}" { c.join } | "[" ("\\" < ("[" | "]") > { text } | < "\\" . > { text } | < /[^\\\[\]]+/ > { text })*:c "]" { c.join } | "`" ("\\`" { "`" } | < "\\" . > { text } | < /[^\\`]+/ > { text })*:c "`" { c.join } | "'" ("\\'" { "'" } | < "\\" . > { text } | < /[^\\']+/ > { text })*:c "'" { c.join })
-  def _quoted
-
-    _save = self.pos
-    while true # choice
-
-    _save1 = self.pos
-    while true # sequence
-    _tmp = match_string("\"")
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _ary = []
-    while true
-
-    _save3 = self.pos
-    while true # choice
-
-    _save4 = self.pos
-    while true # sequence
-    _tmp = match_string("\\\"")
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    @result = begin;  "\"" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save4
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save3
-
-    _save5 = self.pos
-    while true # sequence
-    _text_start = self.pos
-
-    _save6 = self.pos
-    while true # sequence
-    _tmp = match_string("\\")
-    unless _tmp
-      self.pos = _save6
-      break
-    end
-    _tmp = get_byte
-    unless _tmp
-      self.pos = _save6
-    end
-    break
-    end # end sequence
-
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save5
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save3
-
-    _save7 = self.pos
-    while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[^\\"]+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save7
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save7
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save3
-    break
-    end # end choice
-
-    _ary << @result if _tmp
-    break unless _tmp
-    end
-    _tmp = true
-    @result = _ary
-    c = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = match_string("\"")
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    @result = begin;  c.join ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save8 = self.pos
-    while true # sequence
-    _tmp = match_string("{")
-    unless _tmp
-      self.pos = _save8
-      break
-    end
-    _ary = []
-    while true
-
-    _save10 = self.pos
-    while true # choice
-
-    _save11 = self.pos
-    while true # sequence
-    _tmp = match_string("\\")
-    unless _tmp
-      self.pos = _save11
-      break
-    end
-    _text_start = self.pos
-
-    _save12 = self.pos
-    while true # choice
-    _tmp = match_string("{")
-    break if _tmp
-    self.pos = _save12
-    _tmp = match_string("}")
-    break if _tmp
-    self.pos = _save12
-    break
-    end # end choice
-
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save11
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save11
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save10
-
-    _save13 = self.pos
-    while true # sequence
-    _text_start = self.pos
-
-    _save14 = self.pos
-    while true # sequence
-    _tmp = match_string("\\")
-    unless _tmp
-      self.pos = _save14
-      break
-    end
-    _tmp = get_byte
-    unless _tmp
-      self.pos = _save14
-    end
-    break
-    end # end sequence
-
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save13
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save13
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save10
-
-    _save15 = self.pos
-    while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[^\\\{\}]+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save15
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save15
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save10
-    break
-    end # end choice
-
-    _ary << @result if _tmp
-    break unless _tmp
-    end
-    _tmp = true
-    @result = _ary
-    c = @result
-    unless _tmp
-      self.pos = _save8
-      break
-    end
-    _tmp = match_string("}")
-    unless _tmp
-      self.pos = _save8
-      break
-    end
-    @result = begin;  c.join ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save8
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save16 = self.pos
-    while true # sequence
-    _tmp = match_string("[")
-    unless _tmp
-      self.pos = _save16
-      break
-    end
-    _ary = []
-    while true
-
-    _save18 = self.pos
-    while true # choice
-
-    _save19 = self.pos
-    while true # sequence
-    _tmp = match_string("\\")
-    unless _tmp
-      self.pos = _save19
-      break
-    end
-    _text_start = self.pos
-
-    _save20 = self.pos
-    while true # choice
-    _tmp = match_string("[")
-    break if _tmp
-    self.pos = _save20
-    _tmp = match_string("]")
-    break if _tmp
-    self.pos = _save20
-    break
-    end # end choice
-
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save19
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save19
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save18
-
-    _save21 = self.pos
-    while true # sequence
-    _text_start = self.pos
-
-    _save22 = self.pos
-    while true # sequence
-    _tmp = match_string("\\")
-    unless _tmp
-      self.pos = _save22
-      break
-    end
-    _tmp = get_byte
-    unless _tmp
-      self.pos = _save22
-    end
-    break
-    end # end sequence
-
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save21
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save21
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save18
-
-    _save23 = self.pos
-    while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[^\\\[\]]+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save23
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save23
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save18
-    break
-    end # end choice
-
-    _ary << @result if _tmp
-    break unless _tmp
-    end
-    _tmp = true
-    @result = _ary
-    c = @result
-    unless _tmp
-      self.pos = _save16
-      break
-    end
-    _tmp = match_string("]")
-    unless _tmp
-      self.pos = _save16
-      break
-    end
-    @result = begin;  c.join ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save16
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save24 = self.pos
-    while true # sequence
-    _tmp = match_string("`")
-    unless _tmp
-      self.pos = _save24
-      break
-    end
-    _ary = []
-    while true
-
-    _save26 = self.pos
-    while true # choice
-
-    _save27 = self.pos
-    while true # sequence
-    _tmp = match_string("\\`")
-    unless _tmp
-      self.pos = _save27
-      break
-    end
-    @result = begin;  "`" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save27
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save26
-
-    _save28 = self.pos
-    while true # sequence
-    _text_start = self.pos
-
-    _save29 = self.pos
-    while true # sequence
-    _tmp = match_string("\\")
-    unless _tmp
-      self.pos = _save29
-      break
-    end
-    _tmp = get_byte
-    unless _tmp
-      self.pos = _save29
-    end
-    break
-    end # end sequence
-
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save28
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save28
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save26
-
-    _save30 = self.pos
-    while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[^\\`]+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save30
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save30
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save26
-    break
-    end # end choice
-
-    _ary << @result if _tmp
-    break unless _tmp
-    end
-    _tmp = true
-    @result = _ary
-    c = @result
-    unless _tmp
-      self.pos = _save24
-      break
-    end
-    _tmp = match_string("`")
-    unless _tmp
-      self.pos = _save24
-      break
-    end
-    @result = begin;  c.join ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save24
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save31 = self.pos
-    while true # sequence
-    _tmp = match_string("'")
-    unless _tmp
-      self.pos = _save31
-      break
-    end
-    _ary = []
-    while true
-
-    _save33 = self.pos
-    while true # choice
-
-    _save34 = self.pos
-    while true # sequence
-    _tmp = match_string("\\'")
-    unless _tmp
-      self.pos = _save34
-      break
-    end
-    @result = begin;  "'" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save34
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save33
-
-    _save35 = self.pos
-    while true # sequence
-    _text_start = self.pos
-
-    _save36 = self.pos
-    while true # sequence
-    _tmp = match_string("\\")
-    unless _tmp
-      self.pos = _save36
-      break
-    end
-    _tmp = get_byte
-    unless _tmp
-      self.pos = _save36
-    end
-    break
-    end # end sequence
-
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save35
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save35
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save33
-
-    _save37 = self.pos
-    while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[^\\']+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save37
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save37
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save33
-    break
-    end # end choice
-
-    _ary << @result if _tmp
-    break unless _tmp
-    end
-    _tmp = true
-    @result = _ary
-    c = @result
-    unless _tmp
-      self.pos = _save31
-      break
-    end
-    _tmp = match_string("'")
-    unless _tmp
-      self.pos = _save31
-      break
-    end
-    @result = begin;  c.join ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save31
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-    break
-    end # end choice
-
-    set_failed_rule :_quoted unless _tmp
-    return _tmp
-  end
-
   # root = wsp expressions:es wsp !. { Array(es) }
   def _root
 
@@ -4743,7 +4003,8 @@ class Atomy::Parser
   Rules[:_delim] = rule_info("delim", "(wsp \",\" wsp | (sp \"\\n\" sp)+ &{ current_column >= c })")
   Rules[:_expression] = rule_info("expression", "level3")
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }")
-  Rules[:_level1] = rule_info("level1", "(macro_quote | headless | true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | particle | constant | variable | block | grouped | list | unary)")
+  Rules[:_level0] = rule_info("level0", "(true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | particle | constant | variable | block | list | unary)")
+  Rules[:_level1] = rule_info("level1", "(headless | grouped | level0)")
   Rules[:_level2] = rule_info("level2", "(send | level1)")
   Rules[:_level3] = rule_info("level3", "(macro | op_assoc_prec | binary_send | level2)")
   Rules[:_true] = rule_info("true", "line:line \"true\" !ident_letter { Atomy::AST::Primitive.new(line, :true) }")
@@ -4762,7 +4023,6 @@ class Atomy::Parser
   Rules[:_escape] = rule_info("escape", "(number_escapes | escapes)")
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
   Rules[:_string] = rule_info("string", "line:line \"\\\"\" (\"\\\\\" escape | str_seq)*:c \"\\\"\" { Atomy::AST::String.new(line, c.join) }")
-  Rules[:_macro_quote] = rule_info("macro_quote", "line:line identifier:n quoted:c (< [a-z] > { text })*:fs { Atomy::AST::MacroQuote.new(line, n, c, fs) }")
   Rules[:_particle] = rule_info("particle", "line:line \"\#\" (identifier | operator):n !level1 { Atomy::AST::Particle.new(line, n) }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
   Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s {                     names = [m] + Array(s)                     const_chain(line, names)                   } | line:line (\"::\" constant_name)+:s {                     names = Array(s)                     const_chain(line, names, true)                   })")
@@ -4771,14 +4031,12 @@ class Atomy::Parser
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_block] = rule_info("block", "(line:line \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), []) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), []) })")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
-  Rules[:_message_name] = rule_info("message_name", "(true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | macro_quote | particle | constant | variable | block | list | unary)")
-  Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) message_name:n args?:as { Atomy::AST::Send.create(line, r, Array(as), n) } | line:line level1:r cont(pos) message_name:n args?:as { Atomy::AST::Send.create(line, r, Array(as), n) })")
+  Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) level0:n args?:as { Atomy::AST::Send.create(line, r, Array(as), n) } | line:line level1:r cont(pos) level0:n args?:as { Atomy::AST::Send.create(line, r, Array(as), n) })")
   Rules[:_send] = rule_info("send", "sends(current_position)")
-  Rules[:_headless] = rule_info("headless", "line:line message_name:n args:as { Atomy::AST::Send.create(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         n,                         nil,                         nil,                         true                       )                     }")
+  Rules[:_headless] = rule_info("headless", "line:line level0:n args:as { Atomy::AST::Send.create(                         line,                         Atomy::AST::Primitive.new(line, :self),                         as,                         n,                         nil,                         nil,                         true                       )                     }")
   Rules[:_binary_c] = rule_info("binary_c", "(cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { bs.flatten }")
   Rules[:_binary_send] = rule_info("binary_send", "(level2:l binary_c(current_position):c { resolve(nil, l, c).first } | line:line operator:o sig_wsp expression:r { Atomy::AST::BinarySend.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")
-  Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" })")
+  Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")
   Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack(\"U\") } | < /\\d{1,6}/ > { [text.to_i].pack(\"U\") } | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack(\"U\") } | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack(\"U\") })")
-  Rules[:_quoted] = rule_info("quoted", "(\"\\\"\" (\"\\\\\\\"\" { \"\\\"\" } | < \"\\\\\" . > { text } | < /[^\\\\\"]+/ > { text })*:c \"\\\"\" { c.join } | \"{\" (\"\\\\\" < (\"{\" | \"}\") > { text } | < \"\\\\\" . > { text } | < /[^\\\\\\{\\}]+/ > { text })*:c \"}\" { c.join } | \"[\" (\"\\\\\" < (\"[\" | \"]\") > { text } | < \"\\\\\" . > { text } | < /[^\\\\\\[\\]]+/ > { text })*:c \"]\" { c.join } | \"`\" (\"\\\\`\" { \"`\" } | < \"\\\\\" . > { text } | < /[^\\\\`]+/ > { text })*:c \"`\" { c.join } | \"'\" (\"\\\\'\" { \"'\" } | < \"\\\\\" . > { text } | < /[^\\\\']+/ > { text })*:c \"'\" { c.join })")
   Rules[:_root] = rule_info("root", "wsp expressions:es wsp !. { Array(es) }")
 end

@@ -17,7 +17,7 @@ basic-repl(bnd = TOPLEVEL_BINDING) :=
 
       "" -> #ok
 
-      String ? (=~ r{^:[[:alnum:]]}) ->
+      String ? (=~ r"^:[[:alnum:]]") ->
         signal(#special(in [1 .. -1]))
 
       source -> do:
