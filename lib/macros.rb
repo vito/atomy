@@ -88,7 +88,8 @@ module Atomy
 
       Atomy.add_method(
         Environment.singleton_class,
-        name, methods[name],
+        name,
+        methods[name],
         nil,
         :public,
         true

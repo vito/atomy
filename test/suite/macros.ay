@@ -3,20 +3,20 @@ test(macros)
 describe("macros"):
   describe("unique name generation"):
     it("creates names via #names"):
-      macro(x m-foo-1): names (x): `'~x
+      macro(x m-foo-1): names [x]: `'~x
       var-1 = 1 m-foo-1
       var-2 = 2 m-foo-1
       var-1 should-be(var-1)
       var-1 should: != var-2
 
     it("decorates through block patterns"):
-      macro(x m-foo-2): names (x): `'(~x): 1
+      macro(x m-foo-2): names [x]: `'([~x]: 1)
       var-1 = 1 m-foo-2
       var-1 should-be(var-1)
       1 m-foo-2 should: != 2 m-foo-2
 
     it("decorates through definition patterns"):
-      macro(x m-foo-3): names (x): `'(foo(~x) := 1)
+      macro(x m-foo-3): names [x]: `'(foo(~x) := 1)
       var-1 = 1 m-foo-3
       var-1 should-be(var-1)
       1 m-foo-3 should: != 2 m-foo-3
@@ -87,8 +87,8 @@ describe("macros"):
 
     it("expands through block argument patterns"):
       macro(m-foo-15): '42
-      (m-foo-15) { #ok } (42) should-be(#ok)
-      { (m-foo-15) { #ok } (41) } should-raise(PatternMismatch)
+      [m-foo-15] { #ok } [42] should-be(#ok)
+      { [m-foo-15] { #ok } [41] } should-raise(PatternMismatch)
 
     it("expands through #match patterns"):
       macro(m-foo-16): '42

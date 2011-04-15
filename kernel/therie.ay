@@ -62,7 +62,7 @@ it(description, &tests) :=
         ansi-colored(#red) print
       (Therie indentation + "  ` " + e class name + ": " + e message)
         ansi-colored(#yellow) print
-      e backtrace first(5) each (l):
+      e backtrace first(5) each [l]:
         (Therie indentation + "    " + l ansi-colored(#cyan)) print
   } else:
       $stats passed += 1
@@ -80,7 +80,7 @@ it(description, &tests) :=
     ] zip(Range new(0, 7) to-a)
 
   hash = Hash new
-  codes each ([p, n]):
+  codes each [[p, n]]:
     hash store(p, n)
 
   "\e[9" + hash fetch(color) to-s + "m" + s + "\e[0m"

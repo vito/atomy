@@ -210,7 +210,7 @@ module(Atomy::AST):
 
     List pattern :=
       Atomy::Patterns::List new(
-        @elements collect (e): e to-pattern
+        @elements collect [e]: e to-pattern
       )
 
     Constant pattern :=

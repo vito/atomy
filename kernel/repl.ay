@@ -24,12 +24,12 @@ basic-repl(bnd = TOPLEVEL_BINDING) :=
         signal(#input(source))
 
         try = {
-          with-restarts(retry -> try (), abort -> #ok):
+          with-restarts(retry -> try [], abort -> #ok):
             res = Atomy::Compiler evaluate(source, bnd)
             signal(#evaluated(res))
         }
 
-        try ()
+        try []
 
     signal(#loop)
 
@@ -49,8 +49,8 @@ class(ReplDebugger):
 
 repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
   when(history && File exists?(history)):
-    File open(history, "r") (f):
-      f readlines each (l):
+    File open(history, "r") [f]:
+      f readlines each [l]:
         Readline::HISTORY << l strip
 
   SANE_HISTORY = []
@@ -76,5 +76,5 @@ repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
           (" => " + r pretty render) print
   } ensuring:
     when(history):
-      File open(history, "a") (f):
+      File open(history, "a") [f]:
         f puts(*SANE_HISTORY)

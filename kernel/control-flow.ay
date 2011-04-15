@@ -4,7 +4,7 @@ macro(if(x) then(&y) else(&z)):
 macro(otherwise): 'true
 
 macro(condition(&bs)):
-  bs contents reverse inject('nil) (acc, `(~x -> ~y)):
+  bs contents reverse inject('nil) [acc, `(~x -> ~y)]:
     `(if(~x) then: ~y; else: ~acc)
 
 macro(while(cond, &body)):
@@ -63,7 +63,7 @@ module(Atomy::AST):
       splat = nil
 
       args = 0
-      @arguments each (a):
+      @arguments each [a]:
         e = a expand
         e match:
           BlockPass -> do:

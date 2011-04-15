@@ -1,8 +1,8 @@
 macro(x onto(&b)):
-  names (ctx):
+  names [ctx]:
     shadowed? = false
 
-    blk = b through-quotes (n):
+    blk = b through-quotes [n]:
       n match:
         `@~(v: Atomy::AST::Variable) -> do:
           shadowed? =! true
@@ -13,11 +13,11 @@ macro(x onto(&b)):
           ctx
 
         Atomy::AST::Send ? @private ->
-          n dup tap (p):
+          n dup tap [p]:
             p receiver = 'self
 
         Atomy::AST::BinarySend ? @private ->
-          n dup tap (p):
+          n dup tap [p]:
             p lhs = 'self
 
         _ ->

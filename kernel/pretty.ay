@@ -104,7 +104,7 @@ Above render := do:
 Nest render := do:
   b = @body render
   x = ""
-  b each-line (l):
+  b each-line [l]:
     x << " " * @depth + l
   x
 
@@ -137,9 +137,9 @@ module(Pretty):
 
   -- combining documents
   empty := Empty new
-  hcat(ds) := ds inject(empty) (a, b): a <> b
-  hsep(ds) := ds inject(empty) (a, b): a <+> b
-  vcat(ds) := ds inject(empty) (a, b): a // b
+  hcat(ds) := ds inject(empty) [a, b]: a <> b
+  hsep(ds) := ds inject(empty) [a, b]: a <+> b
+  vcat(ds) := ds inject(empty) [a, b]: a // b
 
 Doc extend(Pretty)
 
@@ -154,14 +154,14 @@ Array pretty :=
   doc: brackets(Atomy::AST comma-delim(self))
 
 Particle pretty := doc:
-  wildcard = (c):
+  wildcard = [c]:
     if(c equal?(_undefined))
       then: '_
       else: c
 
   operator? = message to-s !~ r{^[a-z_]}
 
-  args = arguments collect(&#(wildcard (_)))
+  args = arguments collect(&#(wildcard [_]))
 
   msg+args =
     if(operator?)
@@ -190,7 +190,7 @@ Symbol pretty := do:
 
 module(Atomy::AST):
   : self ; comma-delim(es) := doc:
-    hsep(comma punctuate(es map (e): e pretty))
+    hsep(comma punctuate(es map [e]: e pretty))
 
   Assign pretty := doc: @lhs pretty <+> text("=") <+> @rhs pretty
 
@@ -280,7 +280,7 @@ module(Atomy::AST):
   Variable pretty := doc: text(@name)
 
   InlinedBody pretty := doc:
-    parens(hsep(comma punctuate(@expressions collect (e): e pretty)))
+    parens(hsep(comma punctuate(@expressions collect [e]: e pretty)))
 
   Or pretty := `(~@a || ~@b) pretty
 

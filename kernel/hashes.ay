@@ -2,7 +2,7 @@ macro(#(l: List)):
   keys = []
   values = []
 
-  l elements each (p):
+  l elements each [p]:
     p match:
       `(~k -> ~v) -> do:
         keys << k
@@ -29,7 +29,7 @@ export:
       g push-int(@keys size)
       g send(#new-from-literal, 1)
 
-      @keys each-with-index (n, i):
+      @keys each-with-index [n, i]:
         g dup
         n compile(g)
         @values [i] compile(g)

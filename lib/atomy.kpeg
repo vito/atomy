@@ -199,10 +199,10 @@
 
            args = "(" wsp expressions?:as wsp ")" { Array(as) }
 
-          block = line:line args?:as ":" !operator wsp expressions?:es (wsp ";")?
-                    { Atomy::AST::Block.new(line, Array(es), Array(as)) }
-                | line:line (args:as wsp { as })?:as "{" wsp expressions?:es wsp "}"
-                    { Atomy::AST::Block.new(line, Array(es), Array(as)) }
+          block = line:line ":" !operator wsp expressions?:es (wsp ";")?
+                    { Atomy::AST::Block.new(line, Array(es), []) }
+                | line:line "{" wsp expressions?:es wsp "}"
+                    { Atomy::AST::Block.new(line, Array(es), []) }
 
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomy::AST::List.new(line, Array(es)) }
@@ -215,8 +215,7 @@
                 | quote
                 | quasi_quote
                 | splice
-                | line:line "~" (grouped | level1):e
-                    { Atomy::AST::Unquote.new(line, e) }
+                | unquote
                 | string
                 | macro_quote
                 | particle
@@ -229,8 +228,6 @@
      sends(pos) = line:line send:r cont(pos) message_name:n args?:as
                     { Atomy::AST::Send.create(line, r, Array(as), n) }
                 | line:line level1:r cont(pos) message_name:n args?:as
-                | line:line level1:r cont(pos) args:as
-                    { Atomy::AST::Send.new(line, r, Array(as), Atomy::AST::Variable.new(line, "call")) }
                     { Atomy::AST::Send.create(line, r, Array(as), n) }
            send = sends(current_position)
 

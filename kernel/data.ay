@@ -34,11 +34,11 @@ macro(#(x: String)):
 macro(a .. b): `(Range new(~a, ~b))
 macro(a ... b): `(Range new(~a, ~b, true))
 
-macro(x for(e) in(c)): `(~c collect (~e): ~x)
+macro(x for(e) in(c)): `(~c collect [~e]: ~x)
 
 macro(x for(e) in(c) if(t)):
-  names (tmp):
-    `([] tap (~tmp):
-        ~c each (~e):
+  names [tmp]:
+    `([] tap [~tmp]:
+        ~c each [~e]:
           when(~t):
             ~tmp << ~x)

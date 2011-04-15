@@ -21,7 +21,7 @@ macro(let(*bindings, &body)):
   set = []
   restore = []
 
-  bindings zip(tmps) ([`(~n = ~v), tmp]):
+  bindings zip(tmps) [[`(~n = ~v), tmp]]:
     save << `(~tmp = ~(dynvar(n)))
     set << set-dynvar(n, v)
     restore << set-dynvar(n, tmp)

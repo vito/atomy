@@ -13,8 +13,8 @@ export:
       [List, QuasiQuote, Particle]
 
       [Match, Quote]
-    ] each-with-index (ps, i):
-        ps each (a):
+    ] each-with-index [ps, i]:
+        ps each [a]:
           a send(#define-method, #precision):
             i
 
@@ -94,7 +94,7 @@ export:
       a head =~ b head && a tail =~ b tail
 
     (a: List) =~ (b: List) :=
-      a patterns zip(b patterns) all? (a, b):
+      a patterns zip(b patterns) all? [a, b]:
         when(a nil? || b nil?):
           return(false)
 
@@ -137,7 +137,7 @@ export:
     : self ; compare(xs, ys) := do:
       total = 0
 
-      xs zip(ys) ([x, y]):
+      xs zip(ys) [[x, y]]:
         unless(x nil? || y nil?):
           total += x <=> y
 

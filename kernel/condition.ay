@@ -34,15 +34,15 @@ class(DefaultDebugger):
   class(<< self):
     define(show-error-banner(e)):
       ("-" * 78) print
-      e message each-line (l):
+      e message each-line [l]:
         ("*** " + l) display
 
       "\n" display
 
     define(show-options-for(e)):
       linear = []
-      ^restarts reverse-each ([rs, context]):
-        rs each-pair (n, x):
+      ^restarts reverse-each [[rs, context]]:
+        rs each-pair [n, x]:
           linear << [context, n, x]
 
       when(linear empty?):
@@ -50,7 +50,7 @@ class(DefaultDebugger):
 
       "\n" display
       "restarts:" print
-      linear each-with-index ([_, n, _], i):
+      linear each-with-index [[_, n, _], i]:
         ("  :" + i to-s + " -> " + n to-s) print
 
     define(run(e)):
@@ -70,23 +70,23 @@ dynamic(debugger, DefaultDebugger)
 
 -- register handlers for executing some action
 macro(x bind(&y)):
-  names (a):
-    callback = `((~a): ~a match: ~*(y contents))
+  names [a]:
+    callback = `([~a]: ~a match: ~*(y contents))
     `(let(handlers = ^handlers + [~callback]):
         ~(x caller))
 
 -- register restarts available to handlers for the duration
 -- of some action's executation
 macro(with-restarts(*restarts, &body)):
-  names (context):
-    rs = restarts collect (`(~n -> ~e)):
+  names [context]:
+    rs = restarts collect [`(~n -> ~e)]:
       n match:
         Atomy::AST::Variable ->
           `(#~n -> { ~e })
 
         Atomy::AST::Send -> do:
           name = Atomy::AST::Variable new(0, n method-name)
-          `(#~name -> (~*(n arguments)) { ~e })
+          `(#~name -> [~*(n arguments)] { ~e })
 
     `(do:
         ~context = Object new
@@ -100,8 +100,8 @@ macro(with-restarts(*restarts, &body)):
 
 -- send a signal through the handlers, nearest-first
 signal(c) := do:
-  ^handlers reverse-each (callback):
-    callback (c)
+  ^handlers reverse-each [callback]:
+    callback [c]
 
   #ok
 
@@ -127,7 +127,7 @@ warning(w: Warning) :=
 
 -- call a restart with the given args
 restart(name, *args) := do:
-  ^restarts reverse-each ([rs, context]):
+  ^restarts reverse-each [[rs, context]]:
     rs [name] match:
       (x: Proc) ->
         raise(RestartException new(context, x, args))

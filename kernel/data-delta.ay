@@ -1,5 +1,5 @@
 macro(data(root, &children)):
-  cs = children contents map (e):
+  cs = children contents map [e]:
     e match:
       Atomy::AST::Send -> do:
         name =
@@ -7,10 +7,10 @@ macro(data(root, &children)):
 
         pat = name
 
-        tmps = names(e arguments size) collect (t):
+        tmps = names(e arguments size) collect [t]:
           Atomy::AST::Unquote new(0, t)
 
-        e arguments zip(tmps) ([a, t]):
+        e arguments zip(tmps) [[a, t]]:
           pat =! `(~pat & with(~a, ~t))
 
         cons = `(~(name)(~*tmps))
@@ -23,7 +23,7 @@ macro(data(root, &children)):
           `(do:
               class(~name < ~root):
                 attr-accessor(~*(
-                  e arguments collect (a):
+                  e arguments collect [a]:
                     `#~(a receiver)))
 
                 initialize(~*(e arguments)) := #ok
@@ -58,9 +58,9 @@ macro(macro-quoter(n, &x)):
   `(evaluate-when(compile, run):
       Atomy::Macro::Environment quoter(#~n, &~x))
 
-macro-quoter(w) (c): c split
+macro-quoter(w) [c]: c split
 
-macro-quoter(r) (c, fs):
+macro-quoter(r) [c, fs]:
   flags = 0
 
   when(fs include?("m")):
@@ -77,7 +77,7 @@ macro-quoter(r) (c, fs):
 
   `(Regexp new(~c, ~flags))
 
-macro-quoter(raw) (c): c
+macro-quoter(raw) [c]: c
 
 
 macro(_undefined):

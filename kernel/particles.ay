@@ -8,7 +8,7 @@ macro(#(x: Send)):
           then: '_undefined
           else: wildcard(x receiver))
       ~(Atomy::AST::Particle new(0, x method-name))
-      ~*(x arguments collect (c): wildcard(c))
+      ~*(x arguments collect [c]: wildcard(c))
     ])
 
 macro(#(x: BinarySend)):
@@ -22,13 +22,13 @@ macro(#(x: BinarySend)):
 
 export:
   class(Particle < Array):
-    call(*args) := to-proc (*args)
+    call(*args) := to-proc [*args]
 
-    to-proc := (*args):
+    to-proc := [*args]:
       x = dup
 
-      args each (a):
-        idx = x find-index (a):
+      args each [a]:
+        idx = x find-index [a]:
           a equal?(_undefined)
 
         when(idx):
@@ -46,6 +46,6 @@ export:
     arguments := drop(2)
 
 class(Symbol):
-  call(*args) := to-proc (*args)
+  call(*args) := to-proc [*args]
 
   arity := 1

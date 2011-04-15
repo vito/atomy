@@ -4,12 +4,12 @@ macro(let-when(when, *bindings, &b)):
   set = []
   restore = []
 
-  bindings zip(tmps) ([`(~n = ~v), tmp]):
+  bindings zip(tmps) [[`(~n = ~v), tmp]]:
     save << `(Atomy::STATE [#~tmp] = ^~n)
     set << set-dynvar(n, v)
     restore << set-dynvar(n, `(Atomy::STATE delete(#~tmp)))
 
-  names (res):
+  names [res]:
     `(let(~*bindings):
         evaluate-when(~when):
           ~*save
@@ -40,12 +40,12 @@ macro(export-to(n, &b)):
 
 macro(use(*ns)):
   `(evaluate-when(compile, run):
-      ~*(ns collect (n):
+      ~*(ns collect [n]:
           `(Atomy::Namespace get use(#~n))))
 
 macro(symbols(*ns)):
   `(evaluate-when(compile, run):
-      ~*(ns collect (n):
+      ~*(ns collect [n]:
           `(Atomy::Namespace register(#~n))))
 
 namespace(atomy)

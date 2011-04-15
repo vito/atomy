@@ -5,20 +5,20 @@ me := Actor current
 Actor <- v := send(v)
 
 macro(receive(&body)):
-  names (e):
-    bs = body contents collect (`(~pat -> ~exp)):
-      `(~e when('~pat to-pattern) (~pat): ~exp)
+  names [e]:
+    bs = body contents collect [`(~pat -> ~exp)]:
+      `(~e when('~pat to-pattern) [~pat]: ~exp)
 
-    `(Actor receive (~e): ~*bs)
+    `(Actor receive [~e]: ~*bs)
 
 macro(receive(&body) after(timeout)):
-  names (e):
-    bs = body contents collect (`(~pat -> ~exp)):
-      `(~e when('~pat to-pattern) (~pat): ~exp)
+  names [e]:
+    bs = body contents collect [`(~pat -> ~exp)]:
+      `(~e when('~pat to-pattern) [~pat]: ~exp)
 
     bs << `(~e after(~(timeout lhs)): ~(timeout rhs))
 
-    `(Actor receive (~e): ~*bs)
+    `(Actor receive [~e]: ~*bs)
 
 spawn(&action) := Actor send(#spawn, &action)
 
