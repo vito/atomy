@@ -47,7 +47,9 @@ module Atomy
       end
 
       def as_message(send)
-        send.method_name = @name
+        send.dup.tap do |s|
+          s.method_name = @name
+        end
       end
     end
   end

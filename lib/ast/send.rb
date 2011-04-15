@@ -6,11 +6,17 @@ module Atomy
       slots [:private, "false"], :namespace?
       generate
 
-      def created
+      def self.create(*args)
+        new(*args).resolve_message
+      end
+
+      def resolve_message
+        res = self
         if @message
-          @message.as_message(self)
+          res = @message.as_message(self)
           @message = nil if @method_name
         end
+        res
       end
 
       def register_macro(body)

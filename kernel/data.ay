@@ -42,7 +42,3 @@ macro(x for(e) in(c) if(t)):
         ~c each (~e):
           when(~t):
             ~tmp << ~x)
-
-Atomy::AST::List as-message(send) := do:
-  send arguments = @elements
-  send method-name = "[]"

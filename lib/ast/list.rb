@@ -4,6 +4,13 @@ module Atomy
       children [:elements]
       generate
 
+      def as_message(send)
+        send.dup.tap do |s|
+          s.arguments = @elements
+          s.method_name = "[]"
+        end
+      end
+
       def bytecode(g)
         pos(g)
 

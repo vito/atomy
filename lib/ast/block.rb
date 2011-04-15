@@ -68,17 +68,20 @@ module Atomy
       end
 
       def as_message(send)
-        return if send.method_name
         case send.receiver
         when Send
-          send.arguments = send.receiver.arguments
-          send.private = send.receiver.private
-          send.namespace = send.receiver.namespace
-          send.method_name = send.receiver.method_name
-          send.receiver = send.receiver.receiver
-          send.block = self
-        when Variable, Constant, ScopedConstant, ToplevelConstant
-          send.receiver = Send.new(
+          if send.receiver.method_name == "[]"
+            dup.tap do |b|
+              b.arguments = send.receiver.arguments
+            end.as_message(send.receiver)
+          else
+            send.receiver.dup.tap do |s|
+              s.block = self
+            end
+          end
+        when Variable, Unquote,
+             Constant, ScopedConstant, ToplevelConstant
+          send.receiver = Send.create(
             send.receiver.line,
             Primitive.new(send.receiver.line, :self),
             [],
@@ -87,10 +90,15 @@ module Atomy
             nil,
             true
           )
+
           as_message(send)
+        when List
+          dup.tap do |b|
+            b.arguments = send.receiver.elements
+          end
         else
           unless send.method_name
-            raise "unknown receiver for block: #{send.to_sexp}"
+            raise "unknown receiver for block: #{send.receiver.inspect}"
           end
         end
       end

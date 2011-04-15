@@ -38,7 +38,7 @@ module Atomy
       end
 
       def as_message(send)
-        # nothing
+        send
       end
     end
   end

@@ -21,7 +21,9 @@ module Atomy
       end
 
       def as_message(send)
-        send.method_name = @identifier
+        send.dup.tap do |s|
+          s.method_name = @identifier
+        end
       end
     end
 
@@ -47,7 +49,9 @@ module Atomy
       end
 
       def as_message(send)
-        send.method_name = @identifier
+        send.dup.tap do |s|
+          s.method_name = @identifier
+        end
       end
     end
 
@@ -74,8 +78,10 @@ module Atomy
       end
 
       def as_message(send)
-        send.method_name = @identifier
-        send.receiver = @parent
+        send.dup.tap do |s|
+          s.method_name = @identifier
+          s.receiver = @parent
+        end
       end
     end
   end

@@ -412,7 +412,7 @@ EOF
       end
 
       def caller
-        Atomy::AST::Send.new(
+        Atomy::AST::Send.create(
           @line,
           self,
           [],
