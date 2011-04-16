@@ -64,10 +64,10 @@ module Atomy
 end
 
 def Rubinius.bind_call(recv, nmeth, *args, &blk)
-  # TODO: foo/bar/baz should be foo/bar, baz
   # TODO: allow_private stuff
-  ns_name, meth_name = nmeth.to_s.split("/")
-  ns_name, meth_name = meth_name, ns_name unless meth_name
+  split = nmeth.to_s.split("/")
+  meth_name = split.pop
+  ns_name = !split.empty? && split.join("/")
 
   if ns_name == "_"
     ns = nil

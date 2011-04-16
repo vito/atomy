@@ -1,0 +1,147 @@
+-- define our document types structurally via the #data macro
+data(Doc):
+  Empty
+  Beside(@left, @right, @space?)
+  Above(@above, @below, @overlap?)
+  Nest(@body, @depth)
+  Text(@value)
+
+
+-- trivial emptiness check
+Empty empty? := true
+Doc empty? := false
+
+
+-- width of a document
+Empty width := 0
+Text width := @value size
+Beside width :=
+  if(@space?)
+    then: 1 + @left width + @right width
+    else: @left width + @right width
+Nest width := (@body width + @depth)
+Above width := [@above width, @below width] max
+
+
+-- height of a document
+Empty width := 0
+Text height := 1
+Beside height := [@left height, @right height] max
+Above height :=
+  if(@overlap? && @below kind-of?(Nest)
+      && @below depth > @above width)
+    then: @above height + @below height
+    else: 1 + @above height + @below height
+Nest height := @body height
+
+
+-- position one document beside another, separated by a space
+-- unless either are empty
+(d: Doc) <+> Empty := d
+Empty    <+> (d: Doc) := d
+(l: Doc) <+> (n: Nest) := (l <+> n body)
+(l: Doc) <+> (a: Above) := do:
+  first = l <+> a above
+  rest = a below nest(l width + 1)
+  Above new(first, rest, a overlap?)
+(l: Doc) <+> (r: Doc) := Beside new(l, r, true)
+
+
+-- position one document beside another unless either are empty
+(d: Doc) <> Empty := d
+Empty    <> (d: Doc) := d
+(l: Doc) <> (n: Nest) := l <> n body
+(l: Doc) <> (a: Above) := do:
+  first = l <> a above
+  rest = a below nest(l width)
+  Above new(first, rest, a overlap?)
+(l: Doc) <> (r: Doc) := Beside new(l, r, false)
+
+
+-- position one document above another, overlapping if possible
+(a: Doc) // (b: Doc) := Above new(a, b, true)
+
+
+-- position one document above another
+(a: Doc) /+/ (b: Doc) := Above new(a, b, false)
+
+
+-- indent the document to a given depth
+Nest nest(i) := Nest new(@body, @depth + i)
+(d: Doc) nest(i) := Nest new(d, i)
+
+
+-- shortcut
+a hang(b, n) := [a, b nest(n)]
+
+
+-- intersperse a delimiter Doc through a list of Docs
+-- x punctuate: [p1, ... pn] is [p1 <> x, p2 <> x, ... pn-1 <> x, pn]
+Doc punctuate([]) := []
+Doc punctuate([d]) := [d]
+(delim: Doc) punctuate(d . ds) :=
+  (delim punctuate(ds)) unshift(d <> delim)
+
+
+-- render a document as a string
+Text render := @value
+Empty render := ""
+Beside render :=
+  if(@space?)
+    then: @left render + " " + @right render
+    else: @left render + @right render
+Above render := do:
+  a = @above render
+  b = @below render
+
+  if(@overlap? && @below kind-of?(Nest) &&
+      @below depth > @above width)
+    then:
+      b slice!(0, a size)
+      a + b
+    else:
+      a + "\n" + b
+Nest render := do:
+  b = @body render
+  x = ""
+  b each-line [l]:
+    x << " " * @depth + l
+  x
+
+
+-- helpers
+module(Pretty):
+  -- text
+  text(s) := Text new(s)
+  value(x) := Text new(x inspect)
+
+  -- shortcuts
+  semi := text(";")
+  comma := text(",")
+  colon := text(":")
+  space := text(" ")
+  equals := text("=")
+  lparen := text("(")
+  rparen := text(")")
+  lbrack := text("[")
+  rbrack := text("]")
+  lbrace := text("{")
+  rbrace := text("}")
+
+  -- wrapping documents
+  parens(d) := lparen <> d <> rparen
+  brackets(d) := lbrack <> d <> rbrack
+  braces(d) := lbrace <> d <> rbrace
+  quotes(d) := text("'") <> d <> text("'")
+  double-quotes(d) := text("\"") <> d <> text("\"")
+
+  -- combining documents
+  empty := Empty new
+  hcat(ds) := ds inject(empty) [a, b]: a <> b
+  hsep(ds) := ds inject(empty) [a, b]: a <+> b
+  vcat(ds) := ds inject(empty) [a, b]: a // b
+
+Doc extend(Pretty)
+
+macro(doc(&body)):
+  `(Doc onto(&~body))
