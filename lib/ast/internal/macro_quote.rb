@@ -6,15 +6,19 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-        g.push_nil
+        g.push_literal :impossible
       end
 
-      def compile(g)
+      def expand
         Atomy::Macro::Environment.quote(
           @name,
           @contents,
           @flags
-        ).to_node.compile(g)
+        ).to_node
+      end
+
+      def compile(g)
+        expand.compile(g)
       end
     end
   end
