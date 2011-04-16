@@ -117,3 +117,32 @@ describe("macros"):
 
         m-foo-19(1) should-be(1)
         m-foo-19(1, 2) should-be(2)
+
+  describe("let-macro"):
+    it("defines a macro for only its body"):
+      m-foo-20 = 0
+
+      let-macro(m-foo-20 = '1):
+        m-foo-20 should-be(1)
+
+      m-foo-20 should-be(0)
+
+    it("can be nested"):
+      m-foo-21 = 0
+
+      let-macro(m-foo-21 = '1):
+        let-macro(m-foo-21 = '2):
+          m-foo-21 should-be(2)
+
+        m-foo-21 should-be(1)
+
+      m-foo-21 should-be(0)
+
+    it("can define multiple macros"):
+      m-foo-22 = 0
+
+      let-macro(m-foo-22 = '1, fizzbuzz = '2):
+        (m-foo-22 + fizzbuzz) should-be(3)
+
+      m-foo-22 should-be(0)
+      { fizzbuzz } should-raise(NoMethodError)
