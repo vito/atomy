@@ -88,14 +88,11 @@ macro(with-restarts(*restarts, &body)):
           name = Atomy::AST::Variable new(0, n method-name)
           `(#~name -> [~*(n arguments)] { ~e })
 
-    `(do:
-        ~context = Object new
-
-        { let(restarts = ^restarts + [[#[~*rs], ~context]]):
-            ~(body caller)
-        } rescue:
-            (e: RestartException ? @context equal?(~context)) ->
-              e receiver call(*(e args)))
+    `({ let(restarts = ^restarts + [[#[~*rs], #~context]]):
+          ~(body caller)
+      } rescue:
+          (e: RestartException(#~context, recv, args)) ->
+            recv call(*args))
 
 
 -- send a signal through the handlers, nearest-first
