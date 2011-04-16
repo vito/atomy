@@ -16,11 +16,16 @@ module Atomy
         @body.compile(g)
 
         @macros.each do |m|
-          next unless meth = Atomy::Macro::Environment.let[m.pattern.method_name]
+          name = defined[m.pattern.method_name]
+
+          Atomy::Macro::Environment.singleton_class.remove_method(name)
+
+          meth = Atomy::Macro::Environment.let[m.pattern.method_name]
+          next unless meth && !meth.empty?
 
           Atomy::Macro::Environment.singleton_class.send(
             :define_method,
-            defined[m.pattern.method_name],
+            name,
             meth.pop
           )
         end
