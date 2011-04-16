@@ -80,8 +80,8 @@ module Atomy
 
     def self.register(name, args, body, let = false)
       ns = Atomy::Namespace.get(Thread.current[:atomy_define_in])
-      meth = ns.name.to_s + "/" + name if ns
-      meth = (intern name).to_sym
+      meth = ns ? ns.name.to_s + "/" + name : name
+      meth = (intern meth).to_sym
 
       if let && Environment.respond_to?(meth)
         Environment.let[name] << Environment.method(meth)
