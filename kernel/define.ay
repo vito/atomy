@@ -62,7 +62,7 @@ macro(for-macro(&b)):
   `(~b block call-on-instance(Atomy::Macro::Environment singleton-class))
 
 macro(let-macro(*ms, &body)):
-  macros = ms collect [`(~p -> ~b)]:
+  macros = ms collect [`(~p = ~b)]:
     Atomy::AST::Macro new(p line, p, b)
 
   Atomy::AST::LetMacro new(line, body caller, macros)

@@ -186,8 +186,8 @@ macro(go(name)):
 
 macro(while(test, &body)):
   names [loop, done]:
-    `(let-macro(break -> 'go(~done),
-                next -> 'go(~loop)):
+    `(let-macro(break = 'go(~done),
+                next = 'go(~loop)):
         labels:
           ~loop:
             unless(~test):
@@ -200,8 +200,8 @@ macro(while(test, &body)):
 
 macro(until(test, &body)):
   names [loop, done]:
-    `(let-macro(break -> 'go(~done),
-                next -> 'go(~loop)):
+    `(let-macro(break = 'go(~done),
+                next = 'go(~loop)):
         labels:
           ~loop:
             when(~test):
@@ -214,8 +214,8 @@ macro(until(test, &body)):
 
 macro(loop(&body)):
   names [loop, done]:
-    `(let-macro(break -> 'go(~done),
-                next -> 'go(~loop)):
+    `(let-macro(break = 'go(~done),
+                next = 'go(~loop)):
         labels:
           ~loop:
             ~(body caller)
