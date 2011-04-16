@@ -39,6 +39,18 @@ macro(yield):
 macro(yield(*args)):
   Atomy::AST::Yield new(line, args)
 
+macro(break):
+  Atomy::AST::Break new(line, 'nil)
+
+macro(break(x)):
+  Atomy::AST::Break new(line, x)
+
+macro(next):
+  Atomy::AST::Next new(line, 'nil)
+
+macro(next(x)):
+  Atomy::AST::Next new(line, x)
+
 module(Atomy::AST):
   class(Labels < Node):
     children([#tags])
@@ -147,6 +159,24 @@ module(Atomy::AST):
           g yield-splat(args)
         else:
           g yield-stack(args)
+
+  class(Break < Node):
+    children(#value)
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+      @value compile(g)
+      g raise-break
+
+  class(Next < Node):
+    children(#value)
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+      @value compile(g)
+      g ret
 
 macro(labels(&body)):
   Atomy::AST::Labels new(line, body contents)
