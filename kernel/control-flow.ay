@@ -1,3 +1,5 @@
+dynamic(labels, Hash new)
+
 macro(if(x) then(&y) else(&z)):
   Atomy::AST::IfThenElse new(line, x, y body, z body)
 
@@ -6,12 +8,6 @@ macro(otherwise): 'true
 macro(condition(&bs)):
   bs contents reverse inject('nil) [acc, `(~x -> ~y)]:
     `(if(~x) then: ~y; else: ~acc)
-
-macro(while(cond, &body)):
-  Atomy::AST::While new(line, cond, body body)
-
-macro(until(cond, &body)):
-  Atomy::AST::Until new(line, cond, body body)
 
 macro(return(y)):
   Atomy::AST::Return new(line, y)
@@ -38,6 +34,35 @@ macro(super(*args, &blk)):
   Atomy::AST::Super new(line, args, blk)
 
 module(Atomy::AST):
+  class(Labels < Node):
+    children([#tags])
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+
+      tags = ::Hash new
+
+      labels =
+        @tags collect [t]:
+          tags [t method-name] = g new-label
+
+      let(labels = tags):
+        labels zip(@tags) each [[l, t]]:
+          l set!
+          t block body bytecode(g)
+          g pop
+
+      g push-nil
+
+  class(GoTo < Node):
+    attributes(#name)
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+      g goto(^labels fetch(@name))
+
   class(ZSuper < Node):
     generate
 
@@ -87,3 +112,40 @@ module(Atomy::AST):
         else: g push-nil
 
       g send-super(nil, args, splat)
+
+macro(labels(&body)):
+  Atomy::AST::Labels new(line, body contents)
+
+macro(go(name)):
+  Atomy::AST::GoTo new(line, name name)
+
+macro(while(test, &body)):
+  names [loop, done]:
+    `(labels:
+        ~loop:
+          unless(~test):
+            go(~done)
+
+          ~(body caller)
+          go(~loop)
+
+        ~done {})
+
+macro(until(test, &body)):
+  names [loop, done]:
+    `(labels:
+        ~loop:
+          when(~test):
+            go(~done)
+
+          ~(body caller)
+          go(~loop)
+
+        ~done {})
+
+macro(loop(&body)):
+  `(labels:
+      loop:
+        ~(body caller)
+        go(loop))
+
