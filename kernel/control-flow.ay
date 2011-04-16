@@ -186,31 +186,40 @@ macro(go(name)):
 
 macro(while(test, &body)):
   names [loop, done]:
-    `(labels:
-        ~loop:
-          unless(~test):
-            go(~done)
+    `(let-macro(break -> 'go(~done),
+                next -> 'go(~loop)):
+        labels:
+          ~loop:
+            unless(~test):
+              go(~done)
 
-          ~(body caller)
-          go(~loop)
+            ~(body caller)
+            go(~loop)
 
-        ~done {})
+          ~done {})
 
 macro(until(test, &body)):
   names [loop, done]:
-    `(labels:
-        ~loop:
-          when(~test):
-            go(~done)
+    `(let-macro(break -> 'go(~done),
+                next -> 'go(~loop)):
+        labels:
+          ~loop:
+            when(~test):
+              go(~done)
 
-          ~(body caller)
-          go(~loop)
+            ~(body caller)
+            go(~loop)
 
-        ~done {})
+          ~done {})
 
 macro(loop(&body)):
-  `(labels:
-      loop:
-        ~(body caller)
-        go(loop))
+  names [loop, done]:
+    `(let-macro(break -> 'go(~done),
+                next -> 'go(~loop)):
+        labels:
+          ~loop:
+            ~(body caller)
+            go(~loop)
+
+          ~done {})
 
