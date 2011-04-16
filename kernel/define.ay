@@ -16,22 +16,6 @@ macro(define(x, &y)):
 
 macro(do(&b)): b body
 
-macro(evaluate-when('run, 'compile, &x)):
-  x body evaluate
-  x body
-
-macro(evaluate-when('compile, 'run, &x)):
-  x body evaluate
-  x body
-
-macro(evaluate-when('compile, &x)):
-  x body evaluate
-  'nil
-
-macro(for-macro(&b)):
-  b body evaluate(Atomy::Macro::Environment singleton-class)
-  `(~b block call-on-instance(Atomy::Macro::Environment singleton-class))
-
 macro(x **= y): `(~x =! (~x ** ~y))
 macro(x *= y): `(~x =! (~x * ~y))
 macro(x <<= y): `(~x =! (~x << ~y))
@@ -60,3 +44,25 @@ macro(class(name, &body)):
 
 macro(module(name, &body)):
   Atomy::AST::Module new(name line, name, body block-body)
+
+macro(evaluate-when('run, 'compile, &x)):
+  x body evaluate
+  x body
+
+macro(evaluate-when('compile, 'run, &x)):
+  x body evaluate
+  x body
+
+macro(evaluate-when('compile, &x)):
+  x body evaluate
+  'nil
+
+macro(for-macro(&b)):
+  b body evaluate(Atomy::Macro::Environment singleton-class)
+  `(~b block call-on-instance(Atomy::Macro::Environment singleton-class))
+
+macro(let-macro(*ms, &body)):
+  macros = ms collect [`(~p -> ~b)]:
+    Atomy::AST::Macro new(p line, p, b)
+
+  Atomy::AST::LetMacro new(line, body caller, macros)

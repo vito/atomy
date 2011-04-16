@@ -5,11 +5,12 @@ module Atomy
       slots :namespace?
       generate
 
-      def register_macro(body)
+      def register_macro(body, let = false)
         Atomy::Macro.register(
           method_name,
           [],
-          body
+          body,
+          let
         )
       end
 

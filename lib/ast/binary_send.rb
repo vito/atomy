@@ -8,13 +8,14 @@ module Atomy
 
       alias :method_name :operator
 
-      def register_macro(body)
+      def register_macro(body, let = false)
         Atomy::Macro.register(
           @operator,
           [@lhs, @rhs].collect do |n|
             Atomy::Macro.macro_pattern n
           end,
-          body
+          body,
+          let
         )
       end
 

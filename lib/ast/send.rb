@@ -19,13 +19,14 @@ module Atomy
         res
       end
 
-      def register_macro(body)
+      def register_macro(body, let = false)
         Atomy::Macro.register(
           @method_name,
           ([@receiver] + @arguments).collect do |n|
             Atomy::Macro.macro_pattern n
           end,
-          body
+          body,
+          let
         )
       end
 

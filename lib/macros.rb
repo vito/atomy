@@ -25,6 +25,7 @@ module Atomy
     class Environment
       @@salt = 0
       @@macros = {}
+      @@let = Hash.new { |h, k| h[k] = [] }
       @@quoters = {}
       @@line = 0
 
@@ -33,6 +34,10 @@ module Atomy
 
         def macros
           @@macros
+        end
+
+        def let
+          @@let
         end
 
         def line
@@ -73,31 +78,37 @@ module Atomy
       end
     end
 
-    def self.register(name, args, body)
+    def self.register(name, args, body, let = false)
       ns = Atomy::Namespace.get(Thread.current[:atomy_define_in])
-      name = ns.name.to_s + "/" + name if ns
-      name = (intern name).to_sym
+      meth = ns.name.to_s + "/" + name if ns
+      meth = (intern name).to_sym
+
+      if let && Environment.respond_to?(meth)
+        Environment.let[name] << Environment.method(meth)
+      end
 
       methods = Environment.macros
       method = [[Patterns::Any.new, args], body.resolve]
-      if ms = methods[name]
+      if ms = methods[meth]
         Atomy.insert_method(method, ms)
       else
-        methods[name] = [method]
+        methods[meth] = [method]
       end
 
       Atomy.add_method(
         Environment.singleton_class,
-        name,
-        methods[name],
+        meth,
+        methods[meth],
         nil,
         :public,
         true
       )
+
+      meth
     end
 
     def self.intern(name)
-      "atomy_macro::" + name
+      "atomy-macro:" + name
     end
 
     # take a node and return its expansion
