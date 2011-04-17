@@ -458,7 +458,7 @@ EOF
       end
 
       def load_bytecode(g)
-        bytecode(g)
+        compile(g)
       end
 
       def to_pattern
@@ -534,12 +534,12 @@ EOF
               g.send :compiled?, 0
               g.git skip
 
-              e.bytecode(g)
+              e.load_bytecode(g)
               g.pop
 
               skip.set!
             else
-              e.bytecode(g)
+              e.load_bytecode(g)
               g.pop
             end
           end
