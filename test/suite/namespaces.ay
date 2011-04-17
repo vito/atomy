@@ -139,7 +139,9 @@ describe("namespaces"):
 
   describe(#export-to):
     it("executes the body with definitions going to a given namespace"):
-      in-namespace(bar-6):
+      in-namespace(foo-6) {}
+
+      in-namespace(bar-7):
         foo := 0
 
         export-to(foo-6):
@@ -162,17 +164,17 @@ describe("namespaces"):
     it("registers macros in the given namespace"):
       var-2 = 0
 
-      in-namespace(foo-7):
+      in-namespace(foo-8):
         macro(var-2): '1
         var-2 should-be(1)
 
-      in-namespace(bar-7):
-        export-to(foo-7):
+      in-namespace(bar-9):
+        export-to(foo-8):
           macro(var-2): '2
 
         var-2 should-be(0)
       
-      in-namespace(foo-7):
+      in-namespace(foo-8):
         var-2 should-be(2)
 
       var-2 should-be(0)
@@ -180,14 +182,16 @@ describe("namespaces"):
     it("resolves a macro's body in its namespace"):
       n-foo-8 := 0
 
-      in-namespace(foo-8):
+      in-namespace(foo-9) {}
+
+      in-namespace(foo-10):
         n-foo-9 := 1
-        export-to(bar-8):
+        export-to(bar-9):
           macro(m-foo-1): '(n-foo-9())
 
-      in-namespace(bar-8):
+      in-namespace(bar-9):
         use(foo-8)
-        'm-foo-1 expand namespace should-be("foo_8")
+        'm-foo-1 expand namespace should-be("foo_10")
         m-foo-1 should-be(1)
 
   it("allows calling methods in other namespaces"):
