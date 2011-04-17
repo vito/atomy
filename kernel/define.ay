@@ -45,6 +45,13 @@ macro(class(name, &body)):
 macro(module(name, &body)):
   Atomy::AST::Module new(name line, name, body block-body)
 
+macro(evaluate-when('compile, 'run, 'load, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  `(when(!(Atomy::CodeLoader compiled?) &&
+          Atomy::CodeLoader reason == #run):
+      ~*(x contents))
+
 macro(evaluate-when('run, 'compile, &x)):
   x body evaluate
   `(when(Atomy::CodeLoader reason == #run) { ~*(x contents) })
