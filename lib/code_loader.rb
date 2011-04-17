@@ -93,8 +93,6 @@ module Atomy
 
         return require(file) unless file.suffix?(".ay")
 
-        before = Atomy::NAMESPACES.dup
-
         CodeLoader.when_load = []
         CodeLoader.reason = r
         CodeLoader.compiled! false
@@ -104,8 +102,6 @@ module Atomy
         cm = cl.load_compiled_file(cfn, 0)
         script = cm.create_script(false)
         script.file_path = fn
-
-        Atomy::NAMESPACES.clear.merge!(before)
 
         MAIN.__send__ :__script__
       end

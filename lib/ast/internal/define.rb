@@ -91,14 +91,6 @@ module Atomy
       def bytecode(g)
         pos(g)
 
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.find_const :Namespace
-        g.push_literal @pattern.namespace_symbol
-        g.push_literal @namespace
-        g.send :register, 2
-        g.pop
-
         defn = receiver.kind_of?(Patterns::Match) && receiver.value == :self
 
         if defn

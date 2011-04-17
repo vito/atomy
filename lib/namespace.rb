@@ -28,16 +28,29 @@ module Atomy
       return @name if contains?(sym)
 
       @using.each do |ns|
-        return ns if Namespace.get(ns).contains?(sym)
+        unless used = Namespace.get(ns)
+          raise "unknown namespace: #{ns.inspect}"
+        end
+
+        return ns if used.contains?(sym)
       end
 
       nil
     end
 
+    def self.define_target
+      Thread.current[:atomy_define_in] ||
+        get && get.name.to_s
+    end
+
     def self.ensure(name, using = [])
       Thread.current[:atomy_namespace] =
-        NAMESPACES[name.to_sym] ||=
-          new(name, using)
+        create(name, using)
+    end
+
+    def self.create(name, using = [])
+      NAMESPACES[name.to_sym] ||=
+        new(name, using)
     end
 
     def self.get(name = nil)

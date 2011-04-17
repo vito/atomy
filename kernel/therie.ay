@@ -2,8 +2,6 @@ namespace(atomy)
 
 dynamic(therie-nesting-level, 0)
 
-symbols(ansi-colored)
-
 module(Therie):
   class(Stats):
     attr-accessor(#passed, #failed)
