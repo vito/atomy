@@ -1,17 +1,15 @@
 namespace(atomy/pretty)
-use(atomy)
-Array all-pretty := self collect [x]: x atomy/pretty
 
 comma-delim(ds) :=
   hsep(comma punctuate(ds))
 
+Array all-pretty := self collect [x]: x atomy/pretty
 
 export-to(atomy):
   (o: Object) pretty := Doc text(inspect)
 
   Array pretty :=
     doc: brackets(comma-delim(self all-pretty))
-    operator? = self message to-s !~ r"^[a-z_]"
 
   Particle pretty := doc:
     wildcard = [c]:
@@ -19,6 +17,7 @@ export-to(atomy):
         then: '_
         else: c
 
+    operator? = self message to-s !~ r"^[a-z_]"
 
     args = self arguments collect(&#(wildcard [_]))
 
@@ -58,7 +57,6 @@ export-to(atomy):
 
     BinarySend pretty := doc:
       parens(@lhs pretty <+> text(@operator) <+> @rhs pretty)
-      args <> colon <+> comma-delim(@contents all-pretty) <> semi
 
     Block pretty := doc:
       args =
@@ -66,6 +64,7 @@ export-to(atomy):
           then: empty
           else: parens(comma-delim(@arguments all-pretty))
 
+      args <> colon <+> comma-delim(@contents all-pretty) <> semi
 
     BlockPass pretty := doc: text("&") <> @body pretty
 
@@ -74,13 +73,13 @@ export-to(atomy):
         if(@superclass kind-of?(Primitive) && @superclass value == #nil)
           then: empty
           else: text("<") <+> @superclass pretty
-      body = lbrace <+> semi-delim(@body) expressions <+> rbrace
 
       name =
         @name match:
           Rubinius::AST::ClassName -> text(@name) name to-s
           _ -> @name pretty
 
+      body = lbrace <+> semi-delim(@body) expressions <+> rbrace
 
       text("class") <> text("(") <> name <+> sub <> text(")") <+> body
 
@@ -150,3 +149,4 @@ export-to(atomy):
 
     Ensure pretty := doc:
       @body pretty <+> text("ensuring:") <+> @ensure pretty
+
