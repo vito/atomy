@@ -1,3 +1,7 @@
+macro(namespace(n: Variable)):
+  Atomy::Namespace ensure(n name to-sym)
+  `(Atomy::Namespace ensure(#~n))
+
 macro(let-when(when, *bindings, &b)):
   tmps = names(bindings size)
   save = []
