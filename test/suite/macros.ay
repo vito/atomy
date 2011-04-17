@@ -146,3 +146,9 @@ describe("macros"):
 
       m-foo-22 should-be(0)
       { fizzbuzz } should-raise(NoMethodError)
+
+    it("lets later macros refer to earlier ones"):
+      let-macro(m-foo-23 = '1,
+                m-foo-24 = '[0, m-foo-23]):
+        m-foo-23 should-be(1)
+        m-foo-24 should-be([0, 1])
