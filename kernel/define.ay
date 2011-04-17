@@ -52,15 +52,19 @@ macro(evaluate-when('compile, 'run, 'load, &x)):
 
 macro(evaluate-when('run, 'compile, &x)):
   x body evaluate
-  `(when(Atomy::CodeLoader reason == #run) { ~*(x contents) })
+  `(when(!(Atomy::CodeLoader compiled?) &&
+           Atomy::CodeLoader reason == #run):
+      ~*(x contents))
 
 macro(evaluate-when('compile, 'run, &x)):
   x body evaluate
-  `(when(Atomy::CodeLoader reason == #run) { ~*(x contents) })
+  `(when(!(Atomy::CodeLoader compiled?) &&
+           Atomy::CodeLoader reason == #run):
+      ~*(x contents))
 
 macro(evaluate-when('compile, 'load, &x)):
   x body evaluate
-  Atomy::CodeLoader when-load << x block-body
+  Atomy::CodeLoader when-load << [x block-body, true]
   'nil
 
 macro(evaluate-when('compile, &x)):
@@ -71,7 +75,7 @@ macro(evaluate-when('run, &x)):
   `(when(Atomy::CodeLoader reason == #run) { ~*(x contents) })
 
 macro(evaluate-when('load, &x)):
-  Atomy::CodeLoader when-load << x block-body
+  Atomy::CodeLoader when-load << [x block-body, false]
   'nil
 
 macro(for-macro(&b)):

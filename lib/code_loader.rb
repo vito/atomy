@@ -17,6 +17,14 @@ module Atomy
         @when_load = x
       end
 
+      def compiled?
+        @compiled ||= false
+      end
+
+      def compiled!(x = false)
+        @compiled = x
+      end
+
       def compiled_name(fn)
         Atomy::Compiler.compiled_name(fn)
       end
@@ -35,6 +43,7 @@ module Atomy
 
         if !File.exists?(compiled) ||
             File.stat(compiled).mtime < File.stat(fn).mtime
+          CodeLoader.compiled! true
           Compiler.compile fn
         end
 
@@ -88,6 +97,7 @@ module Atomy
 
         CodeLoader.when_load = []
         CodeLoader.reason = r
+        CodeLoader.compiled! false
 
         cfn = compile_if_needed(file)
         cl = Rubinius::CodeLoader.new(cfn)

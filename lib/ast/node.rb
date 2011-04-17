@@ -457,6 +457,10 @@ EOF
         bytecode(g)
       end
 
+      def load_bytecode(g)
+        bytecode(g)
+      end
+
       def to_pattern
         expand.pattern
       end
@@ -520,9 +524,24 @@ EOF
           g.goto done
 
           load.set!
-          Atomy::CodeLoader.when_load.each do |e|
-            e.bytecode(g)
-            g.pop
+          Atomy::CodeLoader.when_load.each do |e, c|
+            if c
+              skip = g.new_label
+
+              g.push_cpath_top
+              g.find_const :Atomy
+              g.find_const :CodeLoader
+              g.send :compiled?, 0
+              g.git skip
+
+              e.bytecode(g)
+              g.pop
+
+              skip.set!
+            else
+              e.bytecode(g)
+              g.pop
+            end
           end
           g.goto start
 
