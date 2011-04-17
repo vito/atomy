@@ -490,6 +490,50 @@ EOF
         Tree.new(@nodes.collect { |n| yield n })
       end
     end
+
+    class Script < Rubinius::AST::Container
+      def initialize(body)
+        super body
+        @name = :__script__
+      end
+
+      def bytecode(g)
+        super(g)
+
+        container_bytecode(g) do
+          g.push_state self
+
+          load = g.new_label
+          start = g.new_label
+          done = g.new_label
+
+          g.push_cpath_top
+          g.find_const :Atomy
+          g.find_const :CodeLoader
+          g.send :reason, 0
+          g.push_literal :load
+          g.send :==, 1
+          g.git load
+
+          start.set!
+          @body.bytecode g
+          g.goto done
+
+          load.set!
+          Atomy::CodeLoader.when_load.each do |e|
+            e.bytecode(g)
+            g.pop
+          end
+          g.goto start
+
+          done.set!
+          g.pop
+          g.push :true
+          g.ret
+          g.pop_state
+        end
+      end
+    end
   end
 end
 

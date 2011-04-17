@@ -1,6 +1,22 @@
 module Atomy
   class CodeLoader
     class << self
+      def reason
+        @reason ||= :run
+      end
+
+      def reason=(x)
+        @reason = x
+      end
+
+      def when_load
+        @when_load ||= []
+      end
+
+      def when_load=(x)
+        @when_load = x
+      end
+
       def compiled_name(fn)
         Atomy::Compiler.compiled_name(fn)
       end
@@ -57,7 +73,7 @@ module Atomy
         path[0] == ?/ or path.prefix?("./") or path.prefix?("../")
       end
 
-      def load_file(fn)
+      def load_file(fn, r = :run)
         if qualified_path?(fn)
           file = find_file(fn)
         else
@@ -69,6 +85,9 @@ module Atomy
         return require(file) unless file.suffix?(".ay")
 
         before = Atomy::NAMESPACES.dup
+
+        CodeLoader.when_load = []
+        CodeLoader.reason = r
 
         cfn = compile_if_needed(file)
         cl = Rubinius::CodeLoader.new(cfn)

@@ -57,7 +57,7 @@ macro(data(root, &children)):
 
 
 macro(macro-quoter(n, &x)):
-  `(evaluate-when(compile, run):
+  `(evaluate-when(compile, load):
       Atomy::Macro::Environment quoter(#~n, &~x))
 
 macro-quoter(w) [c]: c split

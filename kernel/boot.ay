@@ -1,7 +1,7 @@
 macro(_LINE): line
 macro(_FILE): Atomy::AST::File new(line)
 
-macro(import(name)): `(require-atomy(~name))
+macro(import(name)): `(require-atomy(~name, "load" to-sym))
 
 "operators define data comparison dynamic control-flow namespaces
 data-delta particles hashes patterns precision node block errors

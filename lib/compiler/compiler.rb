@@ -14,7 +14,7 @@ module Atomy
       compiler = new :atomy_file, :compiled_file
 
       parser = compiler.parser
-      parser.root Rubinius::AST::Script
+      parser.root Atomy::AST::Script
       parser.input file, line
 
       writer = compiler.writer
@@ -27,7 +27,7 @@ module Atomy
       compiler = new :atomy_file, :compiled_method
 
       parser = compiler.parser
-      parser.root Rubinius::AST::Script
+      parser.root Atomy::AST::Script
       parser.input file, 1
 
       printer = compiler.packager.print
