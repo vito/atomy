@@ -10,9 +10,7 @@ macro(x := y):
   Atomy::AST::Define new(x line, x, y, where)
 
 macro(define(x, &y)):
-  where = Thread current send("[]", "atomy_define_in" to-sym)
-  Atomy::Namespace register(x namespace-symbol, where)
-  Atomy::AST::Define new(x line, x, y block-body, where)
+  `(~x := ~(y block-body))
 
 macro(do(&b)): b body
 
