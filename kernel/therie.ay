@@ -1,3 +1,5 @@
+namespace(atomy)
+
 dynamic(therie-nesting-level, 0)
 
 symbols(ansi-colored)

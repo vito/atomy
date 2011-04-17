@@ -1,3 +1,5 @@
+namespace(atomy)
+
 dynamic(handlers, [])
 dynamic(restarts, [])
 

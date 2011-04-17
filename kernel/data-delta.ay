@@ -1,3 +1,5 @@
+namespace(atomy)
+
 macro(data(root, &children)):
   cs = children contents map [e]:
     e match:

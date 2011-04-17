@@ -1,3 +1,5 @@
+namespace(atomy)
+
 require("readline")
 
 basic-repl(bnd = TOPLEVEL_BINDING) :=

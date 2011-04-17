@@ -1,7 +1,6 @@
-export:
-  MethodFail message :=
-    ("method '" + @method-name to-s + "' did not understand " +
-    "its arguments (non-exhaustive patterns)")
+MethodFail message :=
+  ("method '" + @method-name to-s + "' did not understand " +
+  "its arguments (non-exhaustive patterns)")
 
-  PatternMismatch message :=
-    "irrefutable pattern failed for " + @pattern to-s
+PatternMismatch message :=
+  "irrefutable pattern failed for " + @pattern to-s

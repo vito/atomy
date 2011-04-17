@@ -47,5 +47,3 @@ macro(symbols(*ns)):
   `(evaluate-when(compile, run):
       ~*(ns collect [n]:
           `(Atomy::Namespace register(#~n))))
-
-namespace(atomy)

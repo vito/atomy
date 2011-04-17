@@ -1,3 +1,5 @@
+namespace(atomy)
+
 for-macro:
   wildcard('_) := '_undefined
   wildcard(x) := x

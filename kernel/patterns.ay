@@ -1,3 +1,5 @@
+namespace(atomy)
+
 module(Atomy::Patterns):
   data(Pattern):
     RuntimeClass(@body, @name)

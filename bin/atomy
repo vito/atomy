@@ -15,10 +15,13 @@ require base + "/parser"
 require base + "/patterns"
 require base + "/code_loader"
 
-bnd = TOPLEVEL_BINDING
-
 def require_atomy(*as)
-  Atomy::CodeLoader.load_file *as
+  before = Atomy::Namespace.get
+  begin
+    Atomy::CodeLoader.load_file *as
+  ensure
+    Atomy::Namespace.set(before)
+  end
 end
 
 a = Time.now
@@ -26,14 +29,14 @@ puts "loading kernel"
 require_atomy(kernel + "/boot.ay")
 puts Time.now - a
 
+Atomy::Namespace.ensure(:user)
+
 if ARGV[0]
   require_atomy(ARGV[0])
   exit(0)
 end
 
 if respond_to?(:"atomy/repl", true)
-  Atomy::Namespace.ensure(:user)
-
   send(:"atomy/repl", File.expand_path("~/.atomy_history"))
 else
   $stderr.puts("main REPL startup failed! here's a basic one:")
@@ -56,7 +59,7 @@ else
       SANE_HISTORY << str
 
       begin
-        res = Atomy::Compiler.evaluate str, bnd
+        res = Atomy::Compiler.evaluate str, TOPLEVEL_BINDING
         if res.respond_to?(:pretty)
           puts "=> #{res.pretty.render}"
         else

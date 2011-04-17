@@ -1,3 +1,5 @@
+namespace(atomy)
+
 macro(x onto(&b)):
   names [ctx]:
     shadowed? = false
