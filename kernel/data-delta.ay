@@ -87,12 +87,22 @@ macro-quoter(raw) [c]: c
 macro(_undefined):
   Atomy::AST::Undefined new(line)
 
+macro($(x: Primitive)):
+  Atomy::AST::NthRef new(line, x value)
+
 export:
-  class(Atomy::AST::Undefined < Atomy::AST::Node):
-    generate
+  module(Atomy::AST):
+    class(Undefined < Node):
+      generate
 
-    bytecode(g) := do:
-      pos(g)
-      g push-undef
+      bytecode(g) := do:
+        pos(g)
+        g push-undef
 
-    pattern := Atomy::Patterns::Any new
+      pattern := Atomy::Patterns::Any new
+
+    class(NthRef < Rubinius::AST::NthRef):
+      include(NodeLike)
+      extend(SentientNode)
+      attributes(#which)
+      generate
