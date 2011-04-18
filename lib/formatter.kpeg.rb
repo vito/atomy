@@ -314,10 +314,26 @@ class Atomy::Format::Parser
 
     #
 
- require File.expand_path("../atomy.kpeg.rb", __FILE__); include Atomy::Format 
+
+    require File.expand_path("../atomy.kpeg.rb", __FILE__)
+    include Atomy::Format
+
+    def create(x, *as)
+      as << []
+      x.send(:new, 1, *as)
+    end
+
 
   def setup_foreign_grammar
     @_grammar_atomy = Atomy::Parser.new(nil)
+  end
+
+  # line = { current_line }
+  def _line
+    @result = begin;  current_line ; end
+    _tmp = true
+    set_failed_rule :_line unless _tmp
+    return _tmp
   end
 
   # text = (< /[^\\%#{Regexp.quote(e)}]+/ > { text } | "\\" < /[%\(\)\{\}\[\]]/ > { text } | "\\" %atomy.escape:e { e })
@@ -405,7 +421,7 @@ class Atomy::Format::Parser
     return _tmp
   end
 
-  # nested = text(e)+:c { Chunk.new(c.join) }
+  # nested = text(e)+:c { Chunk.new(0, [], c.join) }
   def _nested(e)
 
     _save = self.pos
@@ -430,7 +446,7 @@ class Atomy::Format::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Chunk.new(c.join) ; end
+      @result = begin;  Chunk.new(0, [], c.join) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -490,7 +506,7 @@ class Atomy::Format::Parser
     return _tmp
   end
 
-  # flag = ("#" { Number.new(nil) } | "0" &("." /\d/ | /\d/) { ZeroPad.new } | "." < /\d+/ > { Precision.new(text.to_i) } | < /\d+/ > { Number.new(text.to_i) } | < /[\.\+\*=<>,\?]/ > { Symbol.new(text) })
+  # flag = ("#" { Number.new(0, nil) } | "0" &("." /\d/ | /\d/) { ZeroPad.new(0) } | "." < /\d+/ > { Precision.new(0, text.to_i) } | < /\d+/ > { Number.new(0, text.to_i) } | < /[\.\+\*=<>,\?]/ > { Symbol.new(0, text) })
   def _flag
 
     _save = self.pos
@@ -503,7 +519,7 @@ class Atomy::Format::Parser
           self.pos = _save1
           break
         end
-        @result = begin;  Number.new(nil) ; end
+        @result = begin;  Number.new(0, nil) ; end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -553,7 +569,7 @@ class Atomy::Format::Parser
           self.pos = _save2
           break
         end
-        @result = begin;  ZeroPad.new ; end
+        @result = begin;  ZeroPad.new(0) ; end
         _tmp = true
         unless _tmp
           self.pos = _save2
@@ -580,7 +596,7 @@ class Atomy::Format::Parser
           self.pos = _save6
           break
         end
-        @result = begin;  Precision.new(text.to_i) ; end
+        @result = begin;  Precision.new(0, text.to_i) ; end
         _tmp = true
         unless _tmp
           self.pos = _save6
@@ -602,7 +618,7 @@ class Atomy::Format::Parser
           self.pos = _save7
           break
         end
-        @result = begin;  Number.new(text.to_i) ; end
+        @result = begin;  Number.new(0, text.to_i) ; end
         _tmp = true
         unless _tmp
           self.pos = _save7
@@ -624,7 +640,7 @@ class Atomy::Format::Parser
           self.pos = _save8
           break
         end
-        @result = begin;  Symbol.new(text) ; end
+        @result = begin;  Symbol.new(0, text) ; end
         _tmp = true
         unless _tmp
           self.pos = _save8
@@ -641,7 +657,7 @@ class Atomy::Format::Parser
     return _tmp
   end
 
-  # segment = ("p" "(" sub(")"):s ")" ("(" sub(")"):p ")")? { Pluralize.new(s, p) } | "l" "(" sub(")"):c ")" { Lowercase.new(c) } | "c" "(" sub(")"):c ")" { Capitalize.new(c) } | "u" "(" sub(")"):c ")" { Uppercase.new(c) } | "j" ("(" sub(")"):c ")" { c })+:cs { Justify.new(cs) } | "{" sub("}"):c "}" { Iterate.new(c) } | ("[" sub("]"):c "]" { c })+:bs ("(" sub(")"):d ")" { d })? { Conditional.new(Array(bs), d) } | "_" { Skip.new } | "^" { Break.new } | "%" { Indirection.new } | "s" { String.new } | "d" { Decimal.new } | "x" { Hex.new } | "o" { Octal.new } | "b" { Binary.new } | "r" { Radix.new } | "f" { Float.new } | "e" { Exponent.new } | "g" { General.new } | "c" { Character.new } | "v" { Any.new })
+  # segment = ("p" "(" sub(")"):s ")" ("(" sub(")"):p ")")? { Pluralize.new(0, s, [], p) } | "l" "(" sub(")"):c ")" { create(Lowercase, c) } | "c" "(" sub(")"):c ")" { create(Capitalize, c) } | "u" "(" sub(")"):c ")" { create(Uppercase, c) } | "j" ("(" sub(")"):c ")" { c })+:cs { create(Justify, cs) } | "{" sub("}"):c "}" { create(Iterate, c) } | ("[" sub("]"):c "]" { c })+:bs ("(" sub(")"):d ")" { d })? { Conditional.new(0, Array(bs), [], d) } | "_" { create(Skip) } | "^" { create(Break) } | "%" { create(Indirection) } | "s" { create(String) } | "d" { create(Decimal) } | "x" { create(Hex) } | "o" { create(Octal) } | "b" { create(Binary) } | "r" { create(Radix) } | "f" { create(Float) } | "e" { create(Exponent) } | "g" { create(General) } | "c" { create(Character) } | "v" { create(Any) })
   def _segment
 
     _save = self.pos
@@ -700,7 +716,7 @@ class Atomy::Format::Parser
           self.pos = _save1
           break
         end
-        @result = begin;  Pluralize.new(s, p) ; end
+        @result = begin;  Pluralize.new(0, s, [], p) ; end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -734,7 +750,7 @@ class Atomy::Format::Parser
           self.pos = _save4
           break
         end
-        @result = begin;  Lowercase.new(c) ; end
+        @result = begin;  create(Lowercase, c) ; end
         _tmp = true
         unless _tmp
           self.pos = _save4
@@ -768,7 +784,7 @@ class Atomy::Format::Parser
           self.pos = _save5
           break
         end
-        @result = begin;  Capitalize.new(c) ; end
+        @result = begin;  create(Capitalize, c) ; end
         _tmp = true
         unless _tmp
           self.pos = _save5
@@ -802,7 +818,7 @@ class Atomy::Format::Parser
           self.pos = _save6
           break
         end
-        @result = begin;  Uppercase.new(c) ; end
+        @result = begin;  create(Uppercase, c) ; end
         _tmp = true
         unless _tmp
           self.pos = _save6
@@ -892,7 +908,7 @@ class Atomy::Format::Parser
           self.pos = _save7
           break
         end
-        @result = begin;  Justify.new(cs) ; end
+        @result = begin;  create(Justify, cs) ; end
         _tmp = true
         unless _tmp
           self.pos = _save7
@@ -921,7 +937,7 @@ class Atomy::Format::Parser
           self.pos = _save11
           break
         end
-        @result = begin;  Iterate.new(c) ; end
+        @result = begin;  create(Iterate, c) ; end
         _tmp = true
         unless _tmp
           self.pos = _save11
@@ -1042,7 +1058,7 @@ class Atomy::Format::Parser
           self.pos = _save12
           break
         end
-        @result = begin;  Conditional.new(Array(bs), d) ; end
+        @result = begin;  Conditional.new(0, Array(bs), [], d) ; end
         _tmp = true
         unless _tmp
           self.pos = _save12
@@ -1060,7 +1076,7 @@ class Atomy::Format::Parser
           self.pos = _save18
           break
         end
-        @result = begin;  Skip.new ; end
+        @result = begin;  create(Skip) ; end
         _tmp = true
         unless _tmp
           self.pos = _save18
@@ -1078,7 +1094,7 @@ class Atomy::Format::Parser
           self.pos = _save19
           break
         end
-        @result = begin;  Break.new ; end
+        @result = begin;  create(Break) ; end
         _tmp = true
         unless _tmp
           self.pos = _save19
@@ -1096,7 +1112,7 @@ class Atomy::Format::Parser
           self.pos = _save20
           break
         end
-        @result = begin;  Indirection.new ; end
+        @result = begin;  create(Indirection) ; end
         _tmp = true
         unless _tmp
           self.pos = _save20
@@ -1114,7 +1130,7 @@ class Atomy::Format::Parser
           self.pos = _save21
           break
         end
-        @result = begin;  String.new ; end
+        @result = begin;  create(String) ; end
         _tmp = true
         unless _tmp
           self.pos = _save21
@@ -1132,7 +1148,7 @@ class Atomy::Format::Parser
           self.pos = _save22
           break
         end
-        @result = begin;  Decimal.new ; end
+        @result = begin;  create(Decimal) ; end
         _tmp = true
         unless _tmp
           self.pos = _save22
@@ -1150,7 +1166,7 @@ class Atomy::Format::Parser
           self.pos = _save23
           break
         end
-        @result = begin;  Hex.new ; end
+        @result = begin;  create(Hex) ; end
         _tmp = true
         unless _tmp
           self.pos = _save23
@@ -1168,7 +1184,7 @@ class Atomy::Format::Parser
           self.pos = _save24
           break
         end
-        @result = begin;  Octal.new ; end
+        @result = begin;  create(Octal) ; end
         _tmp = true
         unless _tmp
           self.pos = _save24
@@ -1186,7 +1202,7 @@ class Atomy::Format::Parser
           self.pos = _save25
           break
         end
-        @result = begin;  Binary.new ; end
+        @result = begin;  create(Binary) ; end
         _tmp = true
         unless _tmp
           self.pos = _save25
@@ -1204,7 +1220,7 @@ class Atomy::Format::Parser
           self.pos = _save26
           break
         end
-        @result = begin;  Radix.new ; end
+        @result = begin;  create(Radix) ; end
         _tmp = true
         unless _tmp
           self.pos = _save26
@@ -1222,7 +1238,7 @@ class Atomy::Format::Parser
           self.pos = _save27
           break
         end
-        @result = begin;  Float.new ; end
+        @result = begin;  create(Float) ; end
         _tmp = true
         unless _tmp
           self.pos = _save27
@@ -1240,7 +1256,7 @@ class Atomy::Format::Parser
           self.pos = _save28
           break
         end
-        @result = begin;  Exponent.new ; end
+        @result = begin;  create(Exponent) ; end
         _tmp = true
         unless _tmp
           self.pos = _save28
@@ -1258,7 +1274,7 @@ class Atomy::Format::Parser
           self.pos = _save29
           break
         end
-        @result = begin;  General.new ; end
+        @result = begin;  create(General) ; end
         _tmp = true
         unless _tmp
           self.pos = _save29
@@ -1276,7 +1292,7 @@ class Atomy::Format::Parser
           self.pos = _save30
           break
         end
-        @result = begin;  Character.new ; end
+        @result = begin;  create(Character) ; end
         _tmp = true
         unless _tmp
           self.pos = _save30
@@ -1294,7 +1310,7 @@ class Atomy::Format::Parser
           self.pos = _save31
           break
         end
-        @result = begin;  Any.new ; end
+        @result = begin;  create(Any) ; end
         _tmp = true
         unless _tmp
           self.pos = _save31
@@ -1311,7 +1327,7 @@ class Atomy::Format::Parser
     return _tmp
   end
 
-  # sub = (flagged | nested(e))*:as { Array(as) }
+  # sub = (flagged | nested(e))*:as { Array(as) } { Formatter.new(0, Array(as)) }
   def _sub(e)
 
     _save = self.pos
@@ -1344,6 +1360,12 @@ class Atomy::Format::Parser
       _tmp = true
       unless _tmp
         self.pos = _save
+        break
+      end
+      @result = begin;  Formatter.new(0, Array(as)) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
       end
       break
     end # end sequence
@@ -1352,62 +1374,21 @@ class Atomy::Format::Parser
     return _tmp
   end
 
-  # root = (flagged | chunk)*:as !. { Formatter.new(Array(as)) }
+  # root = sub("")
   def _root
-
-    _save = self.pos
-    while true # sequence
-      _ary = []
-      while true
-
-        _save2 = self.pos
-        while true # choice
-          _tmp = apply(:_flagged)
-          break if _tmp
-          self.pos = _save2
-          _tmp = apply(:_chunk)
-          break if _tmp
-          self.pos = _save2
-          break
-        end # end choice
-
-        _ary << @result if _tmp
-        break unless _tmp
-      end
-      _tmp = true
-      @result = _ary
-      as = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _save3 = self.pos
-      _tmp = get_byte
-      _tmp = _tmp ? nil : true
-      self.pos = _save3
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  Formatter.new(Array(as)) ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
+    _tmp = _sub("")
     set_failed_rule :_root unless _tmp
     return _tmp
   end
 
   Rules = {}
+  Rules[:_line] = rule_info("line", "{ current_line }")
   Rules[:_text] = rule_info("text", "(< /[^\\\\%\#{Regexp.quote(e)}]+/ > { text } | \"\\\\\" < /[%\\(\\)\\{\\}\\[\\]]/ > { text } | \"\\\\\" %atomy.escape:e { e })")
-  Rules[:_nested] = rule_info("nested", "text(e)+:c { Chunk.new(c.join) }")
+  Rules[:_nested] = rule_info("nested", "text(e)+:c { Chunk.new(0, [], c.join) }")
   Rules[:_chunk] = rule_info("chunk", "nested(\"\")")
   Rules[:_flagged] = rule_info("flagged", "\"%\" flag*:fs segment:s { s.flags = fs; s }")
-  Rules[:_flag] = rule_info("flag", "(\"\#\" { Number.new(nil) } | \"0\" &(\".\" /\\d/ | /\\d/) { ZeroPad.new } | \".\" < /\\d+/ > { Precision.new(text.to_i) } | < /\\d+/ > { Number.new(text.to_i) } | < /[\\.\\+\\*=<>,\\?]/ > { Symbol.new(text) })")
-  Rules[:_segment] = rule_info("segment", "(\"p\" \"(\" sub(\")\"):s \")\" (\"(\" sub(\")\"):p \")\")? { Pluralize.new(s, p) } | \"l\" \"(\" sub(\")\"):c \")\" { Lowercase.new(c) } | \"c\" \"(\" sub(\")\"):c \")\" { Capitalize.new(c) } | \"u\" \"(\" sub(\")\"):c \")\" { Uppercase.new(c) } | \"j\" (\"(\" sub(\")\"):c \")\" { c })+:cs { Justify.new(cs) } | \"{\" sub(\"}\"):c \"}\" { Iterate.new(c) } | (\"[\" sub(\"]\"):c \"]\" { c })+:bs (\"(\" sub(\")\"):d \")\" { d })? { Conditional.new(Array(bs), d) } | \"_\" { Skip.new } | \"^\" { Break.new } | \"%\" { Indirection.new } | \"s\" { String.new } | \"d\" { Decimal.new } | \"x\" { Hex.new } | \"o\" { Octal.new } | \"b\" { Binary.new } | \"r\" { Radix.new } | \"f\" { Float.new } | \"e\" { Exponent.new } | \"g\" { General.new } | \"c\" { Character.new } | \"v\" { Any.new })")
-  Rules[:_sub] = rule_info("sub", "(flagged | nested(e))*:as { Array(as) }")
-  Rules[:_root] = rule_info("root", "(flagged | chunk)*:as !. { Formatter.new(Array(as)) }")
+  Rules[:_flag] = rule_info("flag", "(\"\#\" { Number.new(0, nil) } | \"0\" &(\".\" /\\d/ | /\\d/) { ZeroPad.new(0) } | \".\" < /\\d+/ > { Precision.new(0, text.to_i) } | < /\\d+/ > { Number.new(0, text.to_i) } | < /[\\.\\+\\*=<>,\\?]/ > { Symbol.new(0, text) })")
+  Rules[:_segment] = rule_info("segment", "(\"p\" \"(\" sub(\")\"):s \")\" (\"(\" sub(\")\"):p \")\")? { Pluralize.new(0, s, [], p) } | \"l\" \"(\" sub(\")\"):c \")\" { create(Lowercase, c) } | \"c\" \"(\" sub(\")\"):c \")\" { create(Capitalize, c) } | \"u\" \"(\" sub(\")\"):c \")\" { create(Uppercase, c) } | \"j\" (\"(\" sub(\")\"):c \")\" { c })+:cs { create(Justify, cs) } | \"{\" sub(\"}\"):c \"}\" { create(Iterate, c) } | (\"[\" sub(\"]\"):c \"]\" { c })+:bs (\"(\" sub(\")\"):d \")\" { d })? { Conditional.new(0, Array(bs), [], d) } | \"_\" { create(Skip) } | \"^\" { create(Break) } | \"%\" { create(Indirection) } | \"s\" { create(String) } | \"d\" { create(Decimal) } | \"x\" { create(Hex) } | \"o\" { create(Octal) } | \"b\" { create(Binary) } | \"r\" { create(Radix) } | \"f\" { create(Float) } | \"e\" { create(Exponent) } | \"g\" { create(General) } | \"c\" { create(Character) } | \"v\" { create(Any) })")
+  Rules[:_sub] = rule_info("sub", "(flagged | nested(e))*:as { Array(as) } { Formatter.new(0, Array(as)) }")
+  Rules[:_root] = rule_info("root", "sub(\"\")")
 end

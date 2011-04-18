@@ -1,14 +1,24 @@
 %% name = Atomy::Format::Parser
 
-%%{ require File.expand_path("../atomy.kpeg.rb", __FILE__); include Atomy::Format }
+%%{
+    require File.expand_path("../atomy.kpeg.rb", __FILE__)
+    include Atomy::Format
+
+    def create(x, *as)
+      as << []
+      x.send(:new, 1, *as)
+    end
+}
 
 %atomy = Atomy::Parser
+
+       line = { current_line }
 
     text(e) = < /[^\\%#{Regexp.quote(e)}]+/ > { text }
             | "\\" < /[%\(\)\{\}\[\]]/ > { text }
             | "\\" %atomy.escape:e { e }
 
-  nested(e) = text(e)+:c { Chunk.new(c.join) }
+  nested(e) = text(e)+:c { Chunk.new(0, [], c.join) }
 
       chunk = nested("")
 
@@ -16,46 +26,46 @@
                 { s.flags = fs; s }
 
        flag = "#"
-                { Number.new(nil) }
+                { Number.new(0, nil) }
             | "0" &("." /\d/ | /\d/)
-                { ZeroPad.new }
+                { ZeroPad.new(0) }
             | "." < /\d+/ >
-                { Precision.new(text.to_i) }
+                { Precision.new(0, text.to_i) }
             | < /\d+/ >
-                { Number.new(text.to_i) }
+                { Number.new(0, text.to_i) }
             | < /[\.\+\*=<>,\?]/ >
-                { Symbol.new(text) }
+                { Symbol.new(0, text) }
 
     segment = "p" "(" sub(")"):s ")" ("(" sub(")"):p ")")?
-                { Pluralize.new(s, p) }
+                { Pluralize.new(0, s, [], p) }
             | "l" "(" sub(")"):c ")"
-                { Lowercase.new(c) }
+                { create(Lowercase, c) }
             | "c" "(" sub(")"):c ")"
-                { Capitalize.new(c) }
+                { create(Capitalize, c) }
             | "u" "(" sub(")"):c ")"
-                { Uppercase.new(c) }
+                { create(Uppercase, c) }
             | "j" ("(" sub(")"):c ")" { c })+:cs
-                { Justify.new(cs) }
+                { create(Justify, cs) }
             | "{" sub("}"):c "}"
-                { Iterate.new(c) }
+                { create(Iterate, c) }
             | ("[" sub("]"):c "]" { c })+:bs ("(" sub(")"):d ")" { d })?
-                { Conditional.new(Array(bs), d) }
-            | "_" { Skip.new }
-            | "^" { Break.new }
-            | "%" { Indirection.new }
-            | "s" { String.new }
-            | "d" { Decimal.new }
-            | "x" { Hex.new }
-            | "o" { Octal.new }
-            | "b" { Binary.new }
-            | "r" { Radix.new }
-            | "f" { Float.new }
-            | "e" { Exponent.new }
-            | "g" { General.new }
-            | "c" { Character.new }
-            | "v" { Any.new }
+                { Conditional.new(0, Array(bs), [], d) }
+            | "_" { create(Skip) }
+            | "^" { create(Break) }
+            | "%" { create(Indirection) }
+            | "s" { create(String) }
+            | "d" { create(Decimal) }
+            | "x" { create(Hex) }
+            | "o" { create(Octal) }
+            | "b" { create(Binary) }
+            | "r" { create(Radix) }
+            | "f" { create(Float) }
+            | "e" { create(Exponent) }
+            | "g" { create(General) }
+            | "c" { create(Character) }
+            | "v" { create(Any) }
+                { Formatter.new(0, Array(as)) }
 
      sub(e) = (flagged | nested(e))*:as { Array(as) }
 
-       root = (flagged | chunk)*:as !.
-                { Formatter.new(Array(as)) }
+       root = sub("")

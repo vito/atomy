@@ -8,4 +8,4 @@ import(base + "/format/parser")
 
 export-to(atomy):
   macro-quoter(f) [c]:
-    `(Atomy::Format::Parser atomy/format/parse(~c))
+    Atomy::Format::Parser atomy/format/parse(c)

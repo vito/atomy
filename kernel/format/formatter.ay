@@ -4,14 +4,22 @@ module(Atomy::Format):
   class(Formatter):
     attr-accessor(#position)
 
-    export: initialize(@segments) := do:
+    export:
+      initialize(@line, @segments) :=
+        reset!
+
+      bytecode(g) := do:
+        pos(g)
+        construct(g)
+
+    reset! := do:
       @input = []
       @output = ""
       @position = 0
       @stop? = false
       @iterating = []
 
-    format(*@input) := do:
+    scan(*@input) := do:
       @segments each [s]:
         s match:
           Break ? symbol?(".") -> do:
@@ -27,6 +35,11 @@ module(Atomy::Format):
 
       @output
 
+    format(*inputs) := do:
+      res = scan(*inputs)
+      reset!
+      res
+
     alias-method(#"[]", #atomy/format/format)
 
     peek-input := @input [@position]
@@ -36,10 +49,10 @@ module(Atomy::Format):
       @position += 1
       v
 
-    next-inputs := @input [@position .. -1]
+    next-inputs := @input [@position .. -1] || []
 
-    process(Chunk(s)) :=
-      @output << s
+    process(c: Chunk) :=
+      @output << c text
 
     process(String) :=
       @output << next-input to-s
@@ -116,9 +129,9 @@ module(Atomy::Format):
     process(i: Indirection) :=
       if(i symbol?("*"))
         then:
-          @output << sub-format(next-input segments)
+          @output << sub-format(next-input)
         else:
-          @output << Formatter new(next-input segments) format(*next-input)
+          @output << next-input format(*next-input)
 
     process(i: Iterate) := do:
       splat? = i symbol?("*")
@@ -144,7 +157,7 @@ module(Atomy::Format):
             then:
               @iterating = inputs
               inputs each [is]:
-                @output << Formatter new(i content) format(*is)
+                @output << i content format(*is)
             else:
               @input = inputs
               @position = 0
@@ -236,21 +249,17 @@ module(Atomy::Format):
     float(nil, x) := sprintf("%" + x, Float(next-input))
     float(n, x) := sprintf("%." + n to-s + x, Float(next-input))
 
-    sub-format(ss) := do:
-      sub = Formatter new(ss)
+    sub-format(sub) := do:
       sub position = @position
-      out = sub format(*@input)
+      out = sub scan(*@input)
       @position = sub position
+      sub reset!
       out
 
     number(s, default = 1) := do:
       s flags each [f]:
-        f match:
-          Number(nil) ->
-            return(next-inputs size)
-
-          Number(n) ->
-            return(n)
+        when(f is-a?(Number)):
+          return(f value || next-inputs size)
 
       default
 

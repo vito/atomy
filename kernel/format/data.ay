@@ -1,51 +1,84 @@
 namespace(atomy/format)
 
-module(Atomy::Format):
-  data(Object):
-    Segment(@flags):
-      Chunk(@text)
-      String
-      Decimal
-      Hex
-      Octal
-      Binary
-      Radix
-      Float
-      Exponent
-      General
-      Character
-      Any
-      Pluralize(@singular, @plural)
-      Lowercase(@content)
-      Capitalize(@content)
-      Uppercase(@content)
-      Justify(@segments)
-      Skip
-      Indirection
-      Iterate(@content)
-      Break
-      Conditional(@branches, @default)
+macro(ast(root, &nodes)):
+  parent = root || 'Atomy::AST::Node
+  cs = nodes contents map [e]:
+    e match:
+      Atomy::AST::Send -> do:
+        name = Atomy::AST::Constant new(0, e method-name)
 
-  data(Flag):
+        children = []
+        attributes = []
+
+        e arguments each [a]:
+          a match:
+            `[@~name] ->
+              attributes << `[#~name]
+
+            `@~name ->
+              attributes << `#~name
+
+            _ ->
+              children << a
+
+        `(class(~name < ~parent):
+            children(~*children)
+            attributes(~*attributes)
+            generate)
+
+      _ ->
+        `(class(~e < ~parent):
+            generate)
+
+  when(root):
+    cs unshift(`(class(~root < Atomy::AST::Node) {}))
+
+  `(do: ~*cs)
+
+module(Atomy::Format):
+  ast(Segment):
+    Chunk([#flags], @text)
+    String([#flags])
+    Decimal([#flags])
+    Hex([#flags])
+    Octal([#flags])
+    Binary([#flags])
+    Radix([#flags])
+    Float([#flags])
+    Exponent([#flags])
+    General([#flags])
+    Character([#flags])
+    Any([#flags])
+    Pluralize(#singular, [#flags], #plural?)
+    Lowercase(#content, [#flags])
+    Capitalize(#content, [#flags])
+    Uppercase(#content, [#flags])
+    Justify([#segments], [#flags])
+    Skip([#flags])
+    Indirection([#flags])
+    Iterate(#content, [#flags])
+    Break([#flags])
+    Conditional([#branches], [#flags], #default?)
+
+  ast(Flag):
     Number(@value)
     Symbol(@character)
     ZeroPad
-    Precision(@int)
+    Precision(@value)
 
-  data(Object):
-    Formatter(@segments)
+  ast:
+    Formatter([#segments])
 
   Segment symbol?(m) :=
     @flags any? [f]:
       f match:
-        Symbol(s) -> s == m
+        Symbol -> f character == m
         _ -> false
 
   Segment precision := do:
     @flags each [f]:
-      f match:
-        Precision(n) ->
-          return(n)
+      when(f is-a?(Precision)):
+        return(f value)
 
     nil
 
