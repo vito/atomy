@@ -22,7 +22,7 @@ macro(data(root, &children)):
               ~(Atomy::AST::QuasiQuote new(0, pat)) pattern)
 
         define =
-          `(do:
+          `(export:
               class(~name < ~root):
                 attr-accessor(~*(
                   e arguments collect [a]:
@@ -30,7 +30,7 @@ macro(data(root, &children)):
 
                 initialize(~*(e arguments)) := #ok
 
-              export: ~pat-def)
+              ~pat-def)
 
         if(e block)
           then:
@@ -43,13 +43,16 @@ macro(data(root, &children)):
             define
 
       Atomy::AST::Constant ->
-        `(class(~e < ~root):)
+        `(class(~e < ~root):
+            export: initialize := #ok)
 
       Atomy::AST::ScopedConstant ->
-        `(class(~e < ~root):)
+        `(class(~e < ~root):
+            export: initialize := #ok)
 
       Atomy::AST::ToplevelConstant ->
-        `(class(~e < ~root):)
+        `(class(~e < ~root):
+            export: initialize := #ok)
 
       _ -> raise("unknown module name: " + e to-s)
 
