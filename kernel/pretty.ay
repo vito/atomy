@@ -39,6 +39,8 @@ export-to(atomy):
 
     text("#") <> partial
 
+  Particle to-s := pretty render
+
   Symbol pretty := do:
     s = to-s
     if(s =~ r(u)"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-\\:.\/\?])*$")
