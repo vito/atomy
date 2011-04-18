@@ -20,8 +20,8 @@ class Atomy::Parser
     end
 
     attr_reader :string
-    attr_reader :result, :failing_rule_offset
-    attr_accessor :pos
+    attr_reader :failing_rule_offset
+    attr_accessor :result, :pos
 
     # STANDALONE START
     def current_column(target=pos)
@@ -234,6 +234,7 @@ class Atomy::Parser
       begin
         if val = __send__(rule, *args)
           other.pos = @pos
+          other.result = @result
         else
           other.set_failed_rule "#{self.class}##{rule}"
         end
@@ -387,21 +388,21 @@ class Atomy::Parser
   def _sp
     while true
 
-    _save1 = self.pos
-    while true # choice
-    _tmp = match_string(" ")
-    break if _tmp
-    self.pos = _save1
-    _tmp = match_string("\t")
-    break if _tmp
-    self.pos = _save1
-    _tmp = apply(:_comment)
-    break if _tmp
-    self.pos = _save1
-    break
-    end # end choice
+      _save1 = self.pos
+      while true # choice
+        _tmp = match_string(" ")
+        break if _tmp
+        self.pos = _save1
+        _tmp = match_string("\t")
+        break if _tmp
+        self.pos = _save1
+        _tmp = apply(:_comment)
+        break if _tmp
+        self.pos = _save1
+        break
+      end # end choice
 
-    break unless _tmp
+      break unless _tmp
     end
     _tmp = true
     set_failed_rule :_sp unless _tmp
@@ -412,24 +413,24 @@ class Atomy::Parser
   def _wsp
     while true
 
-    _save1 = self.pos
-    while true # choice
-    _tmp = match_string(" ")
-    break if _tmp
-    self.pos = _save1
-    _tmp = match_string("\t")
-    break if _tmp
-    self.pos = _save1
-    _tmp = match_string("\n")
-    break if _tmp
-    self.pos = _save1
-    _tmp = apply(:_comment)
-    break if _tmp
-    self.pos = _save1
-    break
-    end # end choice
+      _save1 = self.pos
+      while true # choice
+        _tmp = match_string(" ")
+        break if _tmp
+        self.pos = _save1
+        _tmp = match_string("\t")
+        break if _tmp
+        self.pos = _save1
+        _tmp = match_string("\n")
+        break if _tmp
+        self.pos = _save1
+        _tmp = apply(:_comment)
+        break if _tmp
+        self.pos = _save1
+        break
+      end # end choice
 
-    break unless _tmp
+      break unless _tmp
     end
     _tmp = true
     set_failed_rule :_wsp unless _tmp
@@ -442,34 +443,34 @@ class Atomy::Parser
 
     _save1 = self.pos
     while true # choice
-    _tmp = match_string(" ")
-    break if _tmp
-    self.pos = _save1
-    _tmp = match_string("\t")
-    break if _tmp
-    self.pos = _save1
-    _tmp = apply(:_comment)
-    break if _tmp
-    self.pos = _save1
-    break
+      _tmp = match_string(" ")
+      break if _tmp
+      self.pos = _save1
+      _tmp = match_string("\t")
+      break if _tmp
+      self.pos = _save1
+      _tmp = apply(:_comment)
+      break if _tmp
+      self.pos = _save1
+      break
     end # end choice
 
     if _tmp
       while true
-    
-    _save2 = self.pos
-    while true # choice
-    _tmp = match_string(" ")
-    break if _tmp
-    self.pos = _save2
-    _tmp = match_string("\t")
-    break if _tmp
-    self.pos = _save2
-    _tmp = apply(:_comment)
-    break if _tmp
-    self.pos = _save2
-    break
-    end # end choice
+
+        _save2 = self.pos
+        while true # choice
+          _tmp = match_string(" ")
+          break if _tmp
+          self.pos = _save2
+          _tmp = match_string("\t")
+          break if _tmp
+          self.pos = _save2
+          _tmp = apply(:_comment)
+          break if _tmp
+          self.pos = _save2
+          break
+        end # end choice
 
         break unless _tmp
       end
@@ -487,40 +488,40 @@ class Atomy::Parser
 
     _save1 = self.pos
     while true # choice
-    _tmp = match_string(" ")
-    break if _tmp
-    self.pos = _save1
-    _tmp = match_string("\t")
-    break if _tmp
-    self.pos = _save1
-    _tmp = match_string("\n")
-    break if _tmp
-    self.pos = _save1
-    _tmp = apply(:_comment)
-    break if _tmp
-    self.pos = _save1
-    break
+      _tmp = match_string(" ")
+      break if _tmp
+      self.pos = _save1
+      _tmp = match_string("\t")
+      break if _tmp
+      self.pos = _save1
+      _tmp = match_string("\n")
+      break if _tmp
+      self.pos = _save1
+      _tmp = apply(:_comment)
+      break if _tmp
+      self.pos = _save1
+      break
     end # end choice
 
     if _tmp
       while true
-    
-    _save2 = self.pos
-    while true # choice
-    _tmp = match_string(" ")
-    break if _tmp
-    self.pos = _save2
-    _tmp = match_string("\t")
-    break if _tmp
-    self.pos = _save2
-    _tmp = match_string("\n")
-    break if _tmp
-    self.pos = _save2
-    _tmp = apply(:_comment)
-    break if _tmp
-    self.pos = _save2
-    break
-    end # end choice
+
+        _save2 = self.pos
+        while true # choice
+          _tmp = match_string(" ")
+          break if _tmp
+          self.pos = _save2
+          _tmp = match_string("\t")
+          break if _tmp
+          self.pos = _save2
+          _tmp = match_string("\n")
+          break if _tmp
+          self.pos = _save2
+          _tmp = apply(:_comment)
+          break if _tmp
+          self.pos = _save2
+          break
+        end # end choice
 
         break unless _tmp
       end
@@ -538,144 +539,144 @@ class Atomy::Parser
     _save = self.pos
     while true # choice
 
-    _save1 = self.pos
-    while true # sequence
-    _save2 = self.pos
+      _save1 = self.pos
+      while true # sequence
+        _save2 = self.pos
 
-    _save3 = self.pos
-    while true # sequence
-    _tmp = match_string("\n")
-    unless _tmp
-      self.pos = _save3
+        _save3 = self.pos
+        while true # sequence
+          _tmp = match_string("\n")
+          unless _tmp
+            self.pos = _save3
+            break
+          end
+          _tmp = apply(:_sp)
+          unless _tmp
+            self.pos = _save3
+          end
+          break
+        end # end sequence
+
+        if _tmp
+          while true
+
+            _save4 = self.pos
+            while true # sequence
+              _tmp = match_string("\n")
+              unless _tmp
+                self.pos = _save4
+                break
+              end
+              _tmp = apply(:_sp)
+              unless _tmp
+                self.pos = _save4
+              end
+              break
+            end # end sequence
+
+            break unless _tmp
+          end
+          _tmp = true
+        else
+          self.pos = _save2
+        end
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _save5 = self.pos
+        _tmp = begin;  continue?(p) ; end
+        self.pos = _save5
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save6 = self.pos
+      while true # sequence
+        _tmp = apply(:_sig_sp)
+        unless _tmp
+          self.pos = _save6
+          break
+        end
+        _save7 = self.pos
+
+        _save8 = self.pos
+        while true # sequence
+          _save9 = self.pos
+
+          _save10 = self.pos
+          while true # sequence
+            _tmp = match_string("\n")
+            unless _tmp
+              self.pos = _save10
+              break
+            end
+            _tmp = apply(:_sp)
+            unless _tmp
+              self.pos = _save10
+            end
+            break
+          end # end sequence
+
+          if _tmp
+            while true
+
+              _save11 = self.pos
+              while true # sequence
+                _tmp = match_string("\n")
+                unless _tmp
+                  self.pos = _save11
+                  break
+                end
+                _tmp = apply(:_sp)
+                unless _tmp
+                  self.pos = _save11
+                end
+                break
+              end # end sequence
+
+              break unless _tmp
+            end
+            _tmp = true
+          else
+            self.pos = _save9
+          end
+          unless _tmp
+            self.pos = _save8
+            break
+          end
+          _save12 = self.pos
+          _tmp = begin;  continue?(p) ; end
+          self.pos = _save12
+          unless _tmp
+            self.pos = _save8
+          end
+          break
+        end # end sequence
+
+        unless _tmp
+          _tmp = true
+          self.pos = _save7
+        end
+        unless _tmp
+          self.pos = _save6
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+      _save13 = self.pos
+      _tmp = get_byte
+      self.pos = _save13
+      break if _tmp
+      self.pos = _save
       break
-    end
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save3
-    end
-    break
-    end # end sequence
-
-    if _tmp
-      while true
-    
-    _save4 = self.pos
-    while true # sequence
-    _tmp = match_string("\n")
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save4
-    end
-    break
-    end # end sequence
-
-        break unless _tmp
-      end
-      _tmp = true
-    else
-      self.pos = _save2
-    end
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _save5 = self.pos
-    _tmp = begin;  continue?(p) ; end
-    self.pos = _save5
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save6 = self.pos
-    while true # sequence
-    _tmp = apply(:_sig_sp)
-    unless _tmp
-      self.pos = _save6
-      break
-    end
-    _save7 = self.pos
-
-    _save8 = self.pos
-    while true # sequence
-    _save9 = self.pos
-
-    _save10 = self.pos
-    while true # sequence
-    _tmp = match_string("\n")
-    unless _tmp
-      self.pos = _save10
-      break
-    end
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save10
-    end
-    break
-    end # end sequence
-
-    if _tmp
-      while true
-    
-    _save11 = self.pos
-    while true # sequence
-    _tmp = match_string("\n")
-    unless _tmp
-      self.pos = _save11
-      break
-    end
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save11
-    end
-    break
-    end # end sequence
-
-        break unless _tmp
-      end
-      _tmp = true
-    else
-      self.pos = _save9
-    end
-    unless _tmp
-      self.pos = _save8
-      break
-    end
-    _save12 = self.pos
-    _tmp = begin;  continue?(p) ; end
-    self.pos = _save12
-    unless _tmp
-      self.pos = _save8
-    end
-    break
-    end # end sequence
-
-    unless _tmp
-      _tmp = true
-      self.pos = _save7
-    end
-    unless _tmp
-      self.pos = _save6
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-    _save13 = self.pos
-    _tmp = get_byte
-    self.pos = _save13
-    break if _tmp
-    self.pos = _save
-    break
     end # end choice
 
     set_failed_rule :_cont unless _tmp
@@ -695,21 +696,21 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\p{Ll}_])/u)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
+      _text_start = self.pos
+      _tmp = scan(/\A(?-mix:[\p{Ll}_])/u)
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_ident_start unless _tmp
@@ -721,49 +722,49 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _text_start = self.pos
+      _text_start = self.pos
 
-    _save1 = self.pos
-    while true # choice
-    _tmp = scan(/\A(?-mix:[\p{L}\d])/u)
-    break if _tmp
-    self.pos = _save1
+      _save1 = self.pos
+      while true # choice
+        _tmp = scan(/\A(?-mix:[\p{L}\d])/u)
+        break if _tmp
+        self.pos = _save1
 
-    _save2 = self.pos
-    while true # sequence
-    _save3 = self.pos
-    _tmp = match_string(":")
-    _tmp = _tmp ? nil : true
-    self.pos = _save3
-    unless _tmp
-      self.pos = _save2
+        _save2 = self.pos
+        while true # sequence
+          _save3 = self.pos
+          _tmp = match_string(":")
+          _tmp = _tmp ? nil : true
+          self.pos = _save3
+          unless _tmp
+            self.pos = _save2
+            break
+          end
+          _tmp = apply(:_op_letter)
+          unless _tmp
+            self.pos = _save2
+          end
+          break
+        end # end sequence
+
+        break if _tmp
+        self.pos = _save1
+        break
+      end # end choice
+
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = apply(:_op_letter)
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save1
-    break
-    end # end choice
-
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_ident_letter unless _tmp
@@ -775,21 +776,21 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\p{S}!@#%&*\-\\:.\/\?])/u)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
+      _text_start = self.pos
+      _tmp = scan(/\A(?-mix:[\p{S}!@#%&*\-\\:.\/\?])/u)
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_op_letter unless _tmp
@@ -801,38 +802,38 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _text_start = self.pos
-    _save1 = self.pos
-    _tmp = apply(:_op_letter)
-    if _tmp
-      while true
-        _tmp = apply(:_op_letter)
-        break unless _tmp
+      _text_start = self.pos
+      _save1 = self.pos
+      _tmp = apply(:_op_letter)
+      if _tmp
+        while true
+          _tmp = apply(:_op_letter)
+          break unless _tmp
+        end
+        _tmp = true
+      else
+        self.pos = _save1
       end
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save2 = self.pos
+      _tmp = begin;  text != ":" ; end
+      self.pos = _save2
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text ; end
       _tmp = true
-    else
-      self.pos = _save1
-    end
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _save2 = self.pos
-    _tmp = begin;  text != ":" ; end
-    self.pos = _save2
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_operator unless _tmp
@@ -844,39 +845,39 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _text_start = self.pos
+      _text_start = self.pos
 
-    _save1 = self.pos
-    while true # sequence
-    _tmp = apply(:_ident_start)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    while true
-    _tmp = apply(:_ident_letter)
-    break unless _tmp
-    end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_ident_start)
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        while true
+          _tmp = apply(:_ident_letter)
+          break unless _tmp
+        end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
 
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text.tr("-", "_") ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    @result = begin;  text.tr("-", "_") ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_identifier unless _tmp
@@ -888,38 +889,38 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = match_string("(")
-    unless _tmp
-      self.pos = _save
+      _tmp = match_string("(")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_expression)
+      x = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string(")")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  x ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_expression)
-    x = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string(")")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  x ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_grouped unless _tmp
@@ -931,13 +932,13 @@ class Atomy::Parser
 
     _save = self.pos
     while true # choice
-    _tmp = scan(/\A(?-mix:--.*?$)/)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_multi_comment)
-    break if _tmp
-    self.pos = _save
-    break
+      _tmp = scan(/\A(?-mix:--.*?$)/)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_multi_comment)
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_comment unless _tmp
@@ -949,16 +950,16 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = match_string("{-")
-    unless _tmp
-      self.pos = _save
+      _tmp = match_string("{-")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_in_multi)
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = apply(:_in_multi)
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_multi_comment unless _tmp
@@ -971,77 +972,77 @@ class Atomy::Parser
     _save = self.pos
     while true # choice
 
-    _save1 = self.pos
-    while true # sequence
-    _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = match_string("-}")
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
+      _save1 = self.pos
+      while true # sequence
+        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = match_string("-}")
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save2 = self.pos
-    while true # sequence
-    _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = match_string("{-")
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = apply(:_in_multi)
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = match_string("-}")
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
+      _save2 = self.pos
+      while true # sequence
+        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = match_string("{-")
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = apply(:_in_multi)
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = match_string("-}")
+        unless _tmp
+          self.pos = _save2
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save3 = self.pos
-    while true # sequence
-    _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = scan(/\A(?-mix:[-{}])/)
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply(:_in_multi)
-    unless _tmp
-      self.pos = _save3
-    end
-    break
-    end # end sequence
+      _save3 = self.pos
+      while true # sequence
+        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _tmp = scan(/\A(?-mix:[-{}])/)
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _tmp = apply(:_in_multi)
+        unless _tmp
+          self.pos = _save3
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
-    break
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_in_multi unless _tmp
@@ -1054,95 +1055,95 @@ class Atomy::Parser
     _save = self.pos
     while true # choice
 
-    _save1 = self.pos
-    while true # sequence
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = match_string(",")
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_wsp)
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = match_string(",")
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_wsp)
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save2 = self.pos
-    while true # sequence
-    _save3 = self.pos
+      _save2 = self.pos
+      while true # sequence
+        _save3 = self.pos
 
-    _save4 = self.pos
-    while true # sequence
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    _tmp = match_string("\n")
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save4
-    end
-    break
-    end # end sequence
+        _save4 = self.pos
+        while true # sequence
+          _tmp = apply(:_sp)
+          unless _tmp
+            self.pos = _save4
+            break
+          end
+          _tmp = match_string("\n")
+          unless _tmp
+            self.pos = _save4
+            break
+          end
+          _tmp = apply(:_sp)
+          unless _tmp
+            self.pos = _save4
+          end
+          break
+        end # end sequence
 
-    if _tmp
-      while true
-    
-    _save5 = self.pos
-    while true # sequence
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    _tmp = match_string("\n")
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    _tmp = apply(:_sp)
-    unless _tmp
-      self.pos = _save5
-    end
-    break
-    end # end sequence
+        if _tmp
+          while true
 
-        break unless _tmp
-      end
-      _tmp = true
-    else
-      self.pos = _save3
-    end
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _save6 = self.pos
-    _tmp = begin;  current_column >= c ; end
-    self.pos = _save6
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
+            _save5 = self.pos
+            while true # sequence
+              _tmp = apply(:_sp)
+              unless _tmp
+                self.pos = _save5
+                break
+              end
+              _tmp = match_string("\n")
+              unless _tmp
+                self.pos = _save5
+                break
+              end
+              _tmp = apply(:_sp)
+              unless _tmp
+                self.pos = _save5
+              end
+              break
+            end # end sequence
 
-    break if _tmp
-    self.pos = _save
-    break
+            break unless _tmp
+          end
+          _tmp = true
+        else
+          self.pos = _save3
+        end
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _save6 = self.pos
+        _tmp = begin;  current_column >= c ; end
+        self.pos = _save6
+        unless _tmp
+          self.pos = _save2
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_delim unless _tmp
@@ -1161,62 +1162,62 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    @result = begin;  current_column ; end
-    _tmp = true
-    c = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_expression)
-    x = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _ary = []
-    while true
-
-    _save2 = self.pos
-    while true # sequence
-    _tmp = _delim(c)
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = apply(:_expression)
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
-
-    _ary << @result if _tmp
-    break unless _tmp
-    end
-    _tmp = true
-    @result = _ary
-    xs = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save3 = self.pos
-    _tmp = _delim(c)
-    unless _tmp
+      @result = begin;  current_column ; end
       _tmp = true
-      self.pos = _save3
-    end
-    unless _tmp
-      self.pos = _save
+      c = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_expression)
+      x = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _ary = []
+      while true
+
+        _save2 = self.pos
+        while true # sequence
+          _tmp = _delim(c)
+          unless _tmp
+            self.pos = _save2
+            break
+          end
+          _tmp = apply(:_expression)
+          unless _tmp
+            self.pos = _save2
+          end
+          break
+        end # end sequence
+
+        _ary << @result if _tmp
+        break unless _tmp
+      end
+      _tmp = true
+      @result = _ary
+      xs = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save3 = self.pos
+      _tmp = _delim(c)
+      unless _tmp
+        _tmp = true
+        self.pos = _save3
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  [x] + Array(xs) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    @result = begin;  [x] + Array(xs) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_expressions unless _tmp
@@ -1228,52 +1229,52 @@ class Atomy::Parser
 
     _save = self.pos
     while true # choice
-    _tmp = apply(:_true)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_false)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_self)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_nil)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_number)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_quote)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_quasi_quote)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_splice)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_unquote)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_string)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_constant)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_variable)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_block)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_list)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_unary)
-    break if _tmp
-    self.pos = _save
-    break
+      _tmp = apply(:_true)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_false)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_self)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_nil)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_number)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_quote)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_quasi_quote)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_splice)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_unquote)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_string)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_constant)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_variable)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_block)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_list)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_unary)
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_level0 unless _tmp
@@ -1285,16 +1286,16 @@ class Atomy::Parser
 
     _save = self.pos
     while true # choice
-    _tmp = apply(:_headless)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_grouped)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_level0)
-    break if _tmp
-    self.pos = _save
-    break
+      _tmp = apply(:_headless)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_grouped)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_level0)
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_level1 unless _tmp
@@ -1306,13 +1307,13 @@ class Atomy::Parser
 
     _save = self.pos
     while true # choice
-    _tmp = apply(:_send)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_level1)
-    break if _tmp
-    self.pos = _save
-    break
+      _tmp = apply(:_send)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_level1)
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_level2 unless _tmp
@@ -1324,19 +1325,19 @@ class Atomy::Parser
 
     _save = self.pos
     while true # choice
-    _tmp = apply(:_macro)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_op_assoc_prec)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_binary_send)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_level2)
-    break if _tmp
-    self.pos = _save
-    break
+      _tmp = apply(:_macro)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_op_assoc_prec)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_binary_send)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_level2)
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_level3 unless _tmp
@@ -1348,31 +1349,31 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("true")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = apply(:_ident_letter)
+      _tmp = _tmp ? nil : true
+      self.pos = _save1
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Primitive.new(line, :true) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = match_string("true")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save1 = self.pos
-    _tmp = apply(:_ident_letter)
-    _tmp = _tmp ? nil : true
-    self.pos = _save1
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Primitive.new(line, :true) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_true unless _tmp
@@ -1384,31 +1385,31 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("false")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = apply(:_ident_letter)
+      _tmp = _tmp ? nil : true
+      self.pos = _save1
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Primitive.new(line, :false) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = match_string("false")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save1 = self.pos
-    _tmp = apply(:_ident_letter)
-    _tmp = _tmp ? nil : true
-    self.pos = _save1
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Primitive.new(line, :false) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_false unless _tmp
@@ -1420,31 +1421,31 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("self")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = apply(:_ident_letter)
+      _tmp = _tmp ? nil : true
+      self.pos = _save1
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Primitive.new(line, :self) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = match_string("self")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save1 = self.pos
-    _tmp = apply(:_ident_letter)
-    _tmp = _tmp ? nil : true
-    self.pos = _save1
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Primitive.new(line, :self) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_self unless _tmp
@@ -1456,31 +1457,31 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("nil")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = apply(:_ident_letter)
+      _tmp = _tmp ? nil : true
+      self.pos = _save1
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Primitive.new(line, :nil) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = match_string("nil")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save1 = self.pos
-    _tmp = apply(:_ident_letter)
-    _tmp = _tmp ? nil : true
-    self.pos = _save1
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Primitive.new(line, :nil) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_nil unless _tmp
@@ -1493,146 +1494,146 @@ class Atomy::Parser
     _save = self.pos
     while true # choice
 
-    _save1 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\+\-]?0[oO][\da-fA-F]+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    @result = begin;  Atomy::AST::Primitive.new(line, text.to_i(8)) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _text_start = self.pos
+        _tmp = scan(/\A(?-mix:[\+\-]?0[oO][\da-fA-F]+)/)
+        if _tmp
+          text = get_text(_text_start)
+        end
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin;  Atomy::AST::Primitive.new(line, text.to_i(8)) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save2 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\+\-]?0[xX][0-7]+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    @result = begin;  Atomy::AST::Primitive.new(line, text.to_i(16)) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
+      _save2 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _text_start = self.pos
+        _tmp = scan(/\A(?-mix:[\+\-]?0[xX][0-7]+)/)
+        if _tmp
+          text = get_text(_text_start)
+        end
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        @result = begin;  Atomy::AST::Primitive.new(line, text.to_i(16)) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save2
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save3 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    @result = begin;  Atomy::AST::Primitive.new(line, text.to_f) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save3
-    end
-    break
-    end # end sequence
+      _save3 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _text_start = self.pos
+        _tmp = scan(/\A(?-mix:[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+)/)
+        if _tmp
+          text = get_text(_text_start)
+        end
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        @result = begin;  Atomy::AST::Primitive.new(line, text.to_f) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save3
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save4 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\+\-]?\d+\.\d+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    @result = begin;  Atomy::AST::Primitive.new(line, text.to_f) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save4
-    end
-    break
-    end # end sequence
+      _save4 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save4
+          break
+        end
+        _text_start = self.pos
+        _tmp = scan(/\A(?-mix:[\+\-]?\d+\.\d+)/)
+        if _tmp
+          text = get_text(_text_start)
+        end
+        unless _tmp
+          self.pos = _save4
+          break
+        end
+        @result = begin;  Atomy::AST::Primitive.new(line, text.to_f) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save4
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save5 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[\+\-]?\d+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    @result = begin;  Atomy::AST::Primitive.new(line, text.to_i) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save5
-    end
-    break
-    end # end sequence
+      _save5 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save5
+          break
+        end
+        _text_start = self.pos
+        _tmp = scan(/\A(?-mix:[\+\-]?\d+)/)
+        if _tmp
+          text = get_text(_text_start)
+        end
+        unless _tmp
+          self.pos = _save5
+          break
+        end
+        @result = begin;  Atomy::AST::Primitive.new(line, text.to_i) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save5
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
-    break
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_number unless _tmp
@@ -1644,60 +1645,60 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("macro")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("(")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_expression)
+      p = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string(")")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_block)
+      b = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Macro.new(line, p, b.block_body) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = match_string("macro")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("(")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_expression)
-    p = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string(")")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_block)
-    b = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Macro.new(line, p, b.block_body) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_macro unless _tmp
@@ -1709,26 +1710,26 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_sig_wsp)
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_sig_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _text_start = self.pos
+      _tmp = scan(/\A(?-mix:left|right)/)
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text.to_sym ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:left|right)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  text.to_sym ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_op_assoc unless _tmp
@@ -1740,26 +1741,26 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_sig_wsp)
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_sig_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _text_start = self.pos
+      _tmp = scan(/\A(?-mix:[0-9]+)/)
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text.to_i ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[0-9]+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  text.to_i ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_op_prec unless _tmp
@@ -1771,91 +1772,91 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("operator")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save1 = self.pos
-    _tmp = apply(:_op_assoc)
-    @result = nil unless _tmp
-    unless _tmp
-      _tmp = true
-      self.pos = _save1
-    end
-    assoc = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_op_prec)
-    prec = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save2 = self.pos
-    _ary = []
-
-    _save3 = self.pos
-    while true # sequence
-    _tmp = apply(:_sig_wsp)
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply(:_operator)
-    unless _tmp
-      self.pos = _save3
-    end
-    break
-    end # end sequence
-
-    if _tmp
-      _ary << @result
-      while true
-    
-    _save4 = self.pos
-    while true # sequence
-    _tmp = apply(:_sig_wsp)
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    _tmp = apply(:_operator)
-    unless _tmp
-      self.pos = _save4
-    end
-    break
-    end # end sequence
-
-        _ary << @result if _tmp
-        break unless _tmp
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
       end
-      _tmp = true
-      @result = _ary
-    else
-      self.pos = _save2
-    end
-    os = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::Macro.set_op_info(os, assoc, prec)
+      _tmp = match_string("operator")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = apply(:_op_assoc)
+      @result = nil unless _tmp
+      unless _tmp
+        _tmp = true
+        self.pos = _save1
+      end
+      assoc = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_op_prec)
+      prec = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save2 = self.pos
+      _ary = []
+
+      _save3 = self.pos
+      while true # sequence
+        _tmp = apply(:_sig_wsp)
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _tmp = apply(:_operator)
+        unless _tmp
+          self.pos = _save3
+        end
+        break
+      end # end sequence
+
+      if _tmp
+        _ary << @result
+        while true
+
+          _save4 = self.pos
+          while true # sequence
+            _tmp = apply(:_sig_wsp)
+            unless _tmp
+              self.pos = _save4
+              break
+            end
+            _tmp = apply(:_operator)
+            unless _tmp
+              self.pos = _save4
+            end
+            break
+          end # end sequence
+
+          _ary << @result if _tmp
+          break unless _tmp
+        end
+        _tmp = true
+        @result = _ary
+      else
+        self.pos = _save2
+      end
+      os = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::Macro.set_op_info(os, assoc, prec)
                       Atomy::AST::Operator.new(line, assoc, prec, os)
                     ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
     end # end sequence
 
     set_failed_rule :_op_assoc_prec unless _tmp
@@ -1867,29 +1868,29 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("'")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_level1)
+      e = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Quote.new(line, e) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = match_string("'")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_level1)
-    e = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Quote.new(line, e) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_quote unless _tmp
@@ -1901,29 +1902,29 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("`")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_level1)
+      e = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::QuasiQuote.new(line, e) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = match_string("`")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_level1)
-    e = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::QuasiQuote.new(line, e) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_quasi_quote unless _tmp
@@ -1935,29 +1936,29 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("~*")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_level1)
+      e = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Splice.new(line, e) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = match_string("~*")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_level1)
-    e = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Splice.new(line, e) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_splice unless _tmp
@@ -1969,29 +1970,29 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("~")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_level1)
+      e = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Unquote.new(line, e) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = match_string("~")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_level1)
-    e = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Unquote.new(line, e) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_unquote unless _tmp
@@ -2003,13 +2004,13 @@ class Atomy::Parser
 
     _save = self.pos
     while true # choice
-    _tmp = apply(:_number_escapes)
-    break if _tmp
-    self.pos = _save
-    _tmp = apply(:_escapes)
-    break if _tmp
-    self.pos = _save
-    break
+      _tmp = apply(:_number_escapes)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_escapes)
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_escape unless _tmp
@@ -2021,21 +2022,21 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[^\\"]+)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
+      _text_start = self.pos
+      _tmp = scan(/\A(?-mix:[^\\"]+)/)
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_str_seq unless _tmp
@@ -2047,70 +2048,70 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("\"")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _text_start = self.pos
-    _ary = []
-    while true
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("\"")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _text_start = self.pos
+      _ary = []
+      while true
 
-    _save2 = self.pos
-    while true # choice
+        _save2 = self.pos
+        while true # choice
 
-    _save3 = self.pos
-    while true # sequence
-    _tmp = match_string("\\")
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply(:_escape)
-    unless _tmp
-      self.pos = _save3
-    end
-    break
-    end # end sequence
+          _save3 = self.pos
+          while true # sequence
+            _tmp = match_string("\\")
+            unless _tmp
+              self.pos = _save3
+              break
+            end
+            _tmp = apply(:_escape)
+            unless _tmp
+              self.pos = _save3
+            end
+            break
+          end # end sequence
 
-    break if _tmp
-    self.pos = _save2
-    _tmp = apply(:_str_seq)
-    break if _tmp
-    self.pos = _save2
-    break
-    end # end choice
+          break if _tmp
+          self.pos = _save2
+          _tmp = apply(:_str_seq)
+          break if _tmp
+          self.pos = _save2
+          break
+        end # end choice
 
-    _ary << @result if _tmp
-    break unless _tmp
-    end
-    _tmp = true
-    @result = _ary
-    c = @result
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
+        _ary << @result if _tmp
+        break unless _tmp
+      end
+      _tmp = true
+      @result = _ary
+      c = @result
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("\"")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::String.new(line, c.join, text) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = match_string("\"")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::String.new(line, c.join, text) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_string unless _tmp
@@ -2122,21 +2123,21 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[A-Z][a-zA-Z0-9_]*)/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save
+      _text_start = self.pos
+      _tmp = scan(/\A(?-mix:[A-Z][a-zA-Z0-9_]*)/)
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    @result = begin;  text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_constant_name unless _tmp
@@ -2149,131 +2150,131 @@ class Atomy::Parser
     _save = self.pos
     while true # choice
 
-    _save1 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply(:_constant_name)
-    m = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _ary = []
-    while true
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_constant_name)
+        m = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _ary = []
+        while true
 
-    _save3 = self.pos
-    while true # sequence
-    _tmp = match_string("::")
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply(:_constant_name)
-    unless _tmp
-      self.pos = _save3
-    end
-    break
-    end # end sequence
+          _save3 = self.pos
+          while true # sequence
+            _tmp = match_string("::")
+            unless _tmp
+              self.pos = _save3
+              break
+            end
+            _tmp = apply(:_constant_name)
+            unless _tmp
+              self.pos = _save3
+            end
+            break
+          end # end sequence
 
-    _ary << @result if _tmp
-    break unless _tmp
-    end
-    _tmp = true
-    @result = _ary
-    s = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    @result = begin; 
+          _ary << @result if _tmp
+          break unless _tmp
+        end
+        _tmp = true
+        @result = _ary
+        s = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin; 
                     names = [m] + Array(s)
                     const_chain(line, names)
                   ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save4 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    _save5 = self.pos
-    _ary = []
+      _save4 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save4
+          break
+        end
+        _save5 = self.pos
+        _ary = []
 
-    _save6 = self.pos
-    while true # sequence
-    _tmp = match_string("::")
-    unless _tmp
-      self.pos = _save6
-      break
-    end
-    _tmp = apply(:_constant_name)
-    unless _tmp
-      self.pos = _save6
-    end
-    break
-    end # end sequence
+        _save6 = self.pos
+        while true # sequence
+          _tmp = match_string("::")
+          unless _tmp
+            self.pos = _save6
+            break
+          end
+          _tmp = apply(:_constant_name)
+          unless _tmp
+            self.pos = _save6
+          end
+          break
+        end # end sequence
 
-    if _tmp
-      _ary << @result
-      while true
-    
-    _save7 = self.pos
-    while true # sequence
-    _tmp = match_string("::")
-    unless _tmp
-      self.pos = _save7
-      break
-    end
-    _tmp = apply(:_constant_name)
-    unless _tmp
-      self.pos = _save7
-    end
-    break
-    end # end sequence
+        if _tmp
+          _ary << @result
+          while true
 
-        _ary << @result if _tmp
-        break unless _tmp
-      end
-      _tmp = true
-      @result = _ary
-    else
-      self.pos = _save5
-    end
-    s = @result
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    @result = begin; 
+            _save7 = self.pos
+            while true # sequence
+              _tmp = match_string("::")
+              unless _tmp
+                self.pos = _save7
+                break
+              end
+              _tmp = apply(:_constant_name)
+              unless _tmp
+                self.pos = _save7
+              end
+              break
+            end # end sequence
+
+            _ary << @result if _tmp
+            break unless _tmp
+          end
+          _tmp = true
+          @result = _ary
+        else
+          self.pos = _save5
+        end
+        s = @result
+        unless _tmp
+          self.pos = _save4
+          break
+        end
+        @result = begin; 
                     names = Array(s)
                     const_chain(line, names, true)
                   ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save4
-    end
-    break
-    end # end sequence
+        _tmp = true
+        unless _tmp
+          self.pos = _save4
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
-    break
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_constant unless _tmp
@@ -2285,24 +2286,24 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_identifier)
+      n = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Variable.new(line, n) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = apply(:_identifier)
-    n = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Variable.new(line, n) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_variable unless _tmp
@@ -2314,38 +2315,38 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = match_string(":")
+      _tmp = _tmp ? nil : true
+      self.pos = _save1
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_op_letter)
+      o = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_level1)
+      e = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Unary.new(line, e, o) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _save1 = self.pos
-    _tmp = match_string(":")
-    _tmp = _tmp ? nil : true
-    self.pos = _save1
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_op_letter)
-    o = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_level1)
-    e = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Unary.new(line, e, o) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_unary unless _tmp
@@ -2357,44 +2358,44 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = match_string("(")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save1 = self.pos
-    _tmp = apply(:_expressions)
-    @result = nil unless _tmp
-    unless _tmp
+      _tmp = match_string("(")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = apply(:_expressions)
+      @result = nil unless _tmp
+      unless _tmp
+        _tmp = true
+        self.pos = _save1
+      end
+      as = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string(")")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Array(as) ; end
       _tmp = true
-      self.pos = _save1
-    end
-    as = @result
-    unless _tmp
-      self.pos = _save
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string(")")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Array(as) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_args unless _tmp
@@ -2407,130 +2408,130 @@ class Atomy::Parser
     _save = self.pos
     while true # choice
 
-    _save1 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = match_string(":")
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _save2 = self.pos
-    _tmp = apply(:_operator)
-    _tmp = _tmp ? nil : true
-    self.pos = _save2
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _save3 = self.pos
-    _tmp = apply(:_expressions)
-    @result = nil unless _tmp
-    unless _tmp
-      _tmp = true
-      self.pos = _save3
-    end
-    es = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _save4 = self.pos
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = match_string(":")
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _save2 = self.pos
+        _tmp = apply(:_operator)
+        _tmp = _tmp ? nil : true
+        self.pos = _save2
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_wsp)
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _save3 = self.pos
+        _tmp = apply(:_expressions)
+        @result = nil unless _tmp
+        unless _tmp
+          _tmp = true
+          self.pos = _save3
+        end
+        es = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _save4 = self.pos
 
-    _save5 = self.pos
-    while true # sequence
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    _tmp = match_string(";")
-    unless _tmp
-      self.pos = _save5
-    end
-    break
-    end # end sequence
+        _save5 = self.pos
+        while true # sequence
+          _tmp = apply(:_wsp)
+          unless _tmp
+            self.pos = _save5
+            break
+          end
+          _tmp = match_string(";")
+          unless _tmp
+            self.pos = _save5
+          end
+          break
+        end # end sequence
 
-    unless _tmp
-      _tmp = true
-      self.pos = _save4
-    end
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    @result = begin;  Atomy::AST::Block.new(line, Array(es), []) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
+        unless _tmp
+          _tmp = true
+          self.pos = _save4
+        end
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin;  Atomy::AST::Block.new(line, Array(es), []) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save6 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save6
-      break
-    end
-    _tmp = match_string("{")
-    unless _tmp
-      self.pos = _save6
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save6
-      break
-    end
-    _save7 = self.pos
-    _tmp = apply(:_expressions)
-    @result = nil unless _tmp
-    unless _tmp
-      _tmp = true
-      self.pos = _save7
-    end
-    es = @result
-    unless _tmp
-      self.pos = _save6
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save6
-      break
-    end
-    _tmp = match_string("}")
-    unless _tmp
-      self.pos = _save6
-      break
-    end
-    @result = begin;  Atomy::AST::Block.new(line, Array(es), []) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save6
-    end
-    break
-    end # end sequence
+      _save6 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save6
+          break
+        end
+        _tmp = match_string("{")
+        unless _tmp
+          self.pos = _save6
+          break
+        end
+        _tmp = apply(:_wsp)
+        unless _tmp
+          self.pos = _save6
+          break
+        end
+        _save7 = self.pos
+        _tmp = apply(:_expressions)
+        @result = nil unless _tmp
+        unless _tmp
+          _tmp = true
+          self.pos = _save7
+        end
+        es = @result
+        unless _tmp
+          self.pos = _save6
+          break
+        end
+        _tmp = apply(:_wsp)
+        unless _tmp
+          self.pos = _save6
+          break
+        end
+        _tmp = match_string("}")
+        unless _tmp
+          self.pos = _save6
+          break
+        end
+        @result = begin;  Atomy::AST::Block.new(line, Array(es), []) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save6
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
-    break
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_block unless _tmp
@@ -2542,50 +2543,50 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("[")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save1 = self.pos
-    _tmp = apply(:_expressions)
-    @result = nil unless _tmp
-    unless _tmp
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("[")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = apply(:_expressions)
+      @result = nil unless _tmp
+      unless _tmp
+        _tmp = true
+        self.pos = _save1
+      end
+      es = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("]")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::List.new(line, Array(es)) ; end
       _tmp = true
-      self.pos = _save1
-    end
-    es = @result
-    unless _tmp
-      self.pos = _save
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = match_string("]")
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::List.new(line, Array(es)) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_list unless _tmp
@@ -2598,102 +2599,102 @@ class Atomy::Parser
     _save = self.pos
     while true # choice
 
-    _save1 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply(:_send)
-    r = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = _cont(pos)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = apply(:_level0)
-    n = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _save2 = self.pos
-    _tmp = apply(:_args)
-    @result = nil unless _tmp
-    unless _tmp
-      _tmp = true
-      self.pos = _save2
-    end
-    as = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    @result = begin;  Atomy::AST::Send.create(line, r, Array(as), n) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_send)
+        r = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = _cont(pos)
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_level0)
+        n = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _save2 = self.pos
+        _tmp = apply(:_args)
+        @result = nil unless _tmp
+        unless _tmp
+          _tmp = true
+          self.pos = _save2
+        end
+        as = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin;  Atomy::AST::Send.create(line, r, Array(as), n) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save3 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply(:_level1)
-    r = @result
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = _cont(pos)
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply(:_level0)
-    n = @result
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _save4 = self.pos
-    _tmp = apply(:_args)
-    @result = nil unless _tmp
-    unless _tmp
-      _tmp = true
-      self.pos = _save4
-    end
-    as = @result
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    @result = begin;  Atomy::AST::Send.create(line, r, Array(as), n) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save3
-    end
-    break
-    end # end sequence
+      _save3 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _tmp = apply(:_level1)
+        r = @result
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _tmp = _cont(pos)
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _tmp = apply(:_level0)
+        n = @result
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _save4 = self.pos
+        _tmp = apply(:_args)
+        @result = nil unless _tmp
+        unless _tmp
+          _tmp = true
+          self.pos = _save4
+        end
+        as = @result
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        @result = begin;  Atomy::AST::Send.create(line, r, Array(as), n) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save3
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
-    break
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_sends unless _tmp
@@ -2712,25 +2713,25 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_level0)
-    n = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_args)
-    as = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Atomy::AST::Send.create(
+      _tmp = apply(:_line)
+      line = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_level0)
+      n = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_args)
+      as = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Send.create(
                         line,
                         Atomy::AST::Primitive.new(line, :self),
                         as,
@@ -2740,11 +2741,11 @@ class Atomy::Parser
                         true
                       )
                     ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
     end # end sequence
 
     set_failed_rule :_headless unless _tmp
@@ -2756,96 +2757,96 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _save1 = self.pos
-    _ary = []
+      _save1 = self.pos
+      _ary = []
 
-    _save2 = self.pos
-    while true # sequence
-    _tmp = _cont(pos)
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = apply(:_operator)
-    o = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = apply(:_sig_wsp)
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = apply(:_level2)
-    e = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    @result = begin;  [o, e] ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
+      _save2 = self.pos
+      while true # sequence
+        _tmp = _cont(pos)
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = apply(:_operator)
+        o = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = apply(:_sig_wsp)
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = apply(:_level2)
+        e = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        @result = begin;  [o, e] ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save2
+        end
+        break
+      end # end sequence
 
-    if _tmp
-      _ary << @result
-      while true
-    
-    _save3 = self.pos
-    while true # sequence
-    _tmp = _cont(pos)
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply(:_operator)
-    o = @result
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply(:_sig_wsp)
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _tmp = apply(:_level2)
-    e = @result
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    @result = begin;  [o, e] ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save3
-    end
-    break
-    end # end sequence
+      if _tmp
+        _ary << @result
+        while true
 
-        _ary << @result if _tmp
-        break unless _tmp
+          _save3 = self.pos
+          while true # sequence
+            _tmp = _cont(pos)
+            unless _tmp
+              self.pos = _save3
+              break
+            end
+            _tmp = apply(:_operator)
+            o = @result
+            unless _tmp
+              self.pos = _save3
+              break
+            end
+            _tmp = apply(:_sig_wsp)
+            unless _tmp
+              self.pos = _save3
+              break
+            end
+            _tmp = apply(:_level2)
+            e = @result
+            unless _tmp
+              self.pos = _save3
+              break
+            end
+            @result = begin;  [o, e] ; end
+            _tmp = true
+            unless _tmp
+              self.pos = _save3
+            end
+            break
+          end # end sequence
+
+          _ary << @result if _tmp
+          break unless _tmp
+        end
+        _tmp = true
+        @result = _ary
+      else
+        self.pos = _save1
       end
+      bs = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  bs.flatten ; end
       _tmp = true
-      @result = _ary
-    else
-      self.pos = _save1
-    end
-    bs = @result
-    unless _tmp
-      self.pos = _save
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    @result = begin;  bs.flatten ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_binary_c unless _tmp
@@ -2858,57 +2859,57 @@ class Atomy::Parser
     _save = self.pos
     while true # choice
 
-    _save1 = self.pos
-    while true # sequence
-    _tmp = apply(:_level2)
-    l = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _tmp = _binary_c(current_position)
-    c = @result
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    @result = begin;  resolve(nil, l, c).first ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_level2)
+        l = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = _binary_c(current_position)
+        c = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin;  resolve(nil, l, c).first ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save2 = self.pos
-    while true # sequence
-    _tmp = apply(:_line)
-    line = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = apply(:_operator)
-    o = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = apply(:_sig_wsp)
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    _tmp = apply(:_expression)
-    r = @result
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    @result = begin;  Atomy::AST::BinarySend.new(
+      _save2 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = apply(:_operator)
+        o = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = apply(:_sig_wsp)
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = apply(:_expression)
+        r = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        @result = begin;  Atomy::AST::BinarySend.new(
                         line,
                         Atomy::AST::Primitive.new(line, :self),
                         r,
@@ -2916,16 +2917,16 @@ class Atomy::Parser
                         true
                       )
                     ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
+        _tmp = true
+        unless _tmp
+          self.pos = _save2
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
-    break
+      break if _tmp
+      self.pos = _save
+      break
     end # end choice
 
     set_failed_rule :_binary_send unless _tmp
@@ -2938,838 +2939,838 @@ class Atomy::Parser
     _save = self.pos
     while true # choice
 
-    _save1 = self.pos
-    while true # sequence
-    _tmp = match_string("n")
-    unless _tmp
-      self.pos = _save1
+      _save1 = self.pos
+      while true # sequence
+        _tmp = match_string("n")
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin;  "\n" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save2 = self.pos
+      while true # sequence
+        _tmp = match_string("s")
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        @result = begin;  " " ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save2
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save3 = self.pos
+      while true # sequence
+        _tmp = match_string("r")
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        @result = begin;  "\r" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save3
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save4 = self.pos
+      while true # sequence
+        _tmp = match_string("t")
+        unless _tmp
+          self.pos = _save4
+          break
+        end
+        @result = begin;  "\t" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save4
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save5 = self.pos
+      while true # sequence
+        _tmp = match_string("v")
+        unless _tmp
+          self.pos = _save5
+          break
+        end
+        @result = begin;  "\v" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save5
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save6 = self.pos
+      while true # sequence
+        _tmp = match_string("f")
+        unless _tmp
+          self.pos = _save6
+          break
+        end
+        @result = begin;  "\f" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save6
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save7 = self.pos
+      while true # sequence
+        _tmp = match_string("b")
+        unless _tmp
+          self.pos = _save7
+          break
+        end
+        @result = begin;  "\b" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save7
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save8 = self.pos
+      while true # sequence
+        _tmp = match_string("a")
+        unless _tmp
+          self.pos = _save8
+          break
+        end
+        @result = begin;  "\a" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save8
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save9 = self.pos
+      while true # sequence
+        _tmp = match_string("e")
+        unless _tmp
+          self.pos = _save9
+          break
+        end
+        @result = begin;  "\e" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save9
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save10 = self.pos
+      while true # sequence
+        _tmp = match_string("\\")
+        unless _tmp
+          self.pos = _save10
+          break
+        end
+        @result = begin;  "\\" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save10
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save11 = self.pos
+      while true # sequence
+        _tmp = match_string("\"")
+        unless _tmp
+          self.pos = _save11
+          break
+        end
+        @result = begin;  "\"" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save11
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save12 = self.pos
+      while true # sequence
+        _tmp = match_string("BS")
+        unless _tmp
+          self.pos = _save12
+          break
+        end
+        @result = begin;  "\b" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save12
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save13 = self.pos
+      while true # sequence
+        _tmp = match_string("HT")
+        unless _tmp
+          self.pos = _save13
+          break
+        end
+        @result = begin;  "\t" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save13
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save14 = self.pos
+      while true # sequence
+        _tmp = match_string("LF")
+        unless _tmp
+          self.pos = _save14
+          break
+        end
+        @result = begin;  "\n" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save14
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save15 = self.pos
+      while true # sequence
+        _tmp = match_string("VT")
+        unless _tmp
+          self.pos = _save15
+          break
+        end
+        @result = begin;  "\v" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save15
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save16 = self.pos
+      while true # sequence
+        _tmp = match_string("FF")
+        unless _tmp
+          self.pos = _save16
+          break
+        end
+        @result = begin;  "\f" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save16
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save17 = self.pos
+      while true # sequence
+        _tmp = match_string("CR")
+        unless _tmp
+          self.pos = _save17
+          break
+        end
+        @result = begin;  "\r" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save17
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save18 = self.pos
+      while true # sequence
+        _tmp = match_string("SO")
+        unless _tmp
+          self.pos = _save18
+          break
+        end
+        @result = begin;  "\016" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save18
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save19 = self.pos
+      while true # sequence
+        _tmp = match_string("SI")
+        unless _tmp
+          self.pos = _save19
+          break
+        end
+        @result = begin;  "\017" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save19
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save20 = self.pos
+      while true # sequence
+        _tmp = match_string("EM")
+        unless _tmp
+          self.pos = _save20
+          break
+        end
+        @result = begin;  "\031" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save20
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save21 = self.pos
+      while true # sequence
+        _tmp = match_string("FS")
+        unless _tmp
+          self.pos = _save21
+          break
+        end
+        @result = begin;  "\034" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save21
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save22 = self.pos
+      while true # sequence
+        _tmp = match_string("GS")
+        unless _tmp
+          self.pos = _save22
+          break
+        end
+        @result = begin;  "\035" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save22
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save23 = self.pos
+      while true # sequence
+        _tmp = match_string("RS")
+        unless _tmp
+          self.pos = _save23
+          break
+        end
+        @result = begin;  "\036" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save23
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save24 = self.pos
+      while true # sequence
+        _tmp = match_string("US")
+        unless _tmp
+          self.pos = _save24
+          break
+        end
+        @result = begin;  "\037" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save24
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save25 = self.pos
+      while true # sequence
+        _tmp = match_string("SP")
+        unless _tmp
+          self.pos = _save25
+          break
+        end
+        @result = begin;  " " ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save25
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save26 = self.pos
+      while true # sequence
+        _tmp = match_string("NUL")
+        unless _tmp
+          self.pos = _save26
+          break
+        end
+        @result = begin;  "\000" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save26
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save27 = self.pos
+      while true # sequence
+        _tmp = match_string("SOH")
+        unless _tmp
+          self.pos = _save27
+          break
+        end
+        @result = begin;  "\001" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save27
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save28 = self.pos
+      while true # sequence
+        _tmp = match_string("STX")
+        unless _tmp
+          self.pos = _save28
+          break
+        end
+        @result = begin;  "\002" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save28
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save29 = self.pos
+      while true # sequence
+        _tmp = match_string("ETX")
+        unless _tmp
+          self.pos = _save29
+          break
+        end
+        @result = begin;  "\003" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save29
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save30 = self.pos
+      while true # sequence
+        _tmp = match_string("EOT")
+        unless _tmp
+          self.pos = _save30
+          break
+        end
+        @result = begin;  "\004" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save30
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save31 = self.pos
+      while true # sequence
+        _tmp = match_string("ENQ")
+        unless _tmp
+          self.pos = _save31
+          break
+        end
+        @result = begin;  "\005" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save31
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save32 = self.pos
+      while true # sequence
+        _tmp = match_string("ACK")
+        unless _tmp
+          self.pos = _save32
+          break
+        end
+        @result = begin;  "\006" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save32
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save33 = self.pos
+      while true # sequence
+        _tmp = match_string("BEL")
+        unless _tmp
+          self.pos = _save33
+          break
+        end
+        @result = begin;  "\a" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save33
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save34 = self.pos
+      while true # sequence
+        _tmp = match_string("DLE")
+        unless _tmp
+          self.pos = _save34
+          break
+        end
+        @result = begin;  "\020" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save34
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save35 = self.pos
+      while true # sequence
+        _tmp = match_string("DC1")
+        unless _tmp
+          self.pos = _save35
+          break
+        end
+        @result = begin;  "\021" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save35
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save36 = self.pos
+      while true # sequence
+        _tmp = match_string("DC2")
+        unless _tmp
+          self.pos = _save36
+          break
+        end
+        @result = begin;  "\022" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save36
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save37 = self.pos
+      while true # sequence
+        _tmp = match_string("DC3")
+        unless _tmp
+          self.pos = _save37
+          break
+        end
+        @result = begin;  "\023" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save37
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save38 = self.pos
+      while true # sequence
+        _tmp = match_string("DC4")
+        unless _tmp
+          self.pos = _save38
+          break
+        end
+        @result = begin;  "\024" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save38
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save39 = self.pos
+      while true # sequence
+        _tmp = match_string("NAK")
+        unless _tmp
+          self.pos = _save39
+          break
+        end
+        @result = begin;  "\025" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save39
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save40 = self.pos
+      while true # sequence
+        _tmp = match_string("SYN")
+        unless _tmp
+          self.pos = _save40
+          break
+        end
+        @result = begin;  "\026" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save40
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save41 = self.pos
+      while true # sequence
+        _tmp = match_string("ETB")
+        unless _tmp
+          self.pos = _save41
+          break
+        end
+        @result = begin;  "\027" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save41
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save42 = self.pos
+      while true # sequence
+        _tmp = match_string("CAN")
+        unless _tmp
+          self.pos = _save42
+          break
+        end
+        @result = begin;  "\030" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save42
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save43 = self.pos
+      while true # sequence
+        _tmp = match_string("SUB")
+        unless _tmp
+          self.pos = _save43
+          break
+        end
+        @result = begin;  "\032" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save43
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save44 = self.pos
+      while true # sequence
+        _tmp = match_string("ESC")
+        unless _tmp
+          self.pos = _save44
+          break
+        end
+        @result = begin;  "\e" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save44
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save45 = self.pos
+      while true # sequence
+        _tmp = match_string("DEL")
+        unless _tmp
+          self.pos = _save45
+          break
+        end
+        @result = begin;  "\177" ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save45
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save46 = self.pos
+      while true # sequence
+        _text_start = self.pos
+        _tmp = get_byte
+        if _tmp
+          text = get_text(_text_start)
+        end
+        unless _tmp
+          self.pos = _save46
+          break
+        end
+        @result = begin;  "\\" + text ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save46
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
       break
-    end
-    @result = begin;  "\n" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save2 = self.pos
-    while true # sequence
-    _tmp = match_string("s")
-    unless _tmp
-      self.pos = _save2
-      break
-    end
-    @result = begin;  " " ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save3 = self.pos
-    while true # sequence
-    _tmp = match_string("r")
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    @result = begin;  "\r" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save3
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save4 = self.pos
-    while true # sequence
-    _tmp = match_string("t")
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    @result = begin;  "\t" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save4
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save5 = self.pos
-    while true # sequence
-    _tmp = match_string("v")
-    unless _tmp
-      self.pos = _save5
-      break
-    end
-    @result = begin;  "\v" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save5
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save6 = self.pos
-    while true # sequence
-    _tmp = match_string("f")
-    unless _tmp
-      self.pos = _save6
-      break
-    end
-    @result = begin;  "\f" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save6
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save7 = self.pos
-    while true # sequence
-    _tmp = match_string("b")
-    unless _tmp
-      self.pos = _save7
-      break
-    end
-    @result = begin;  "\b" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save7
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save8 = self.pos
-    while true # sequence
-    _tmp = match_string("a")
-    unless _tmp
-      self.pos = _save8
-      break
-    end
-    @result = begin;  "\a" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save8
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save9 = self.pos
-    while true # sequence
-    _tmp = match_string("e")
-    unless _tmp
-      self.pos = _save9
-      break
-    end
-    @result = begin;  "\e" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save9
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save10 = self.pos
-    while true # sequence
-    _tmp = match_string("\\")
-    unless _tmp
-      self.pos = _save10
-      break
-    end
-    @result = begin;  "\\" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save10
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save11 = self.pos
-    while true # sequence
-    _tmp = match_string("\"")
-    unless _tmp
-      self.pos = _save11
-      break
-    end
-    @result = begin;  "\"" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save11
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save12 = self.pos
-    while true # sequence
-    _tmp = match_string("BS")
-    unless _tmp
-      self.pos = _save12
-      break
-    end
-    @result = begin;  "\b" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save12
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save13 = self.pos
-    while true # sequence
-    _tmp = match_string("HT")
-    unless _tmp
-      self.pos = _save13
-      break
-    end
-    @result = begin;  "\t" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save13
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save14 = self.pos
-    while true # sequence
-    _tmp = match_string("LF")
-    unless _tmp
-      self.pos = _save14
-      break
-    end
-    @result = begin;  "\n" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save14
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save15 = self.pos
-    while true # sequence
-    _tmp = match_string("VT")
-    unless _tmp
-      self.pos = _save15
-      break
-    end
-    @result = begin;  "\v" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save15
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save16 = self.pos
-    while true # sequence
-    _tmp = match_string("FF")
-    unless _tmp
-      self.pos = _save16
-      break
-    end
-    @result = begin;  "\f" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save16
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save17 = self.pos
-    while true # sequence
-    _tmp = match_string("CR")
-    unless _tmp
-      self.pos = _save17
-      break
-    end
-    @result = begin;  "\r" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save17
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save18 = self.pos
-    while true # sequence
-    _tmp = match_string("SO")
-    unless _tmp
-      self.pos = _save18
-      break
-    end
-    @result = begin;  "\016" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save18
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save19 = self.pos
-    while true # sequence
-    _tmp = match_string("SI")
-    unless _tmp
-      self.pos = _save19
-      break
-    end
-    @result = begin;  "\017" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save19
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save20 = self.pos
-    while true # sequence
-    _tmp = match_string("EM")
-    unless _tmp
-      self.pos = _save20
-      break
-    end
-    @result = begin;  "\031" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save20
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save21 = self.pos
-    while true # sequence
-    _tmp = match_string("FS")
-    unless _tmp
-      self.pos = _save21
-      break
-    end
-    @result = begin;  "\034" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save21
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save22 = self.pos
-    while true # sequence
-    _tmp = match_string("GS")
-    unless _tmp
-      self.pos = _save22
-      break
-    end
-    @result = begin;  "\035" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save22
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save23 = self.pos
-    while true # sequence
-    _tmp = match_string("RS")
-    unless _tmp
-      self.pos = _save23
-      break
-    end
-    @result = begin;  "\036" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save23
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save24 = self.pos
-    while true # sequence
-    _tmp = match_string("US")
-    unless _tmp
-      self.pos = _save24
-      break
-    end
-    @result = begin;  "\037" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save24
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save25 = self.pos
-    while true # sequence
-    _tmp = match_string("SP")
-    unless _tmp
-      self.pos = _save25
-      break
-    end
-    @result = begin;  " " ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save25
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save26 = self.pos
-    while true # sequence
-    _tmp = match_string("NUL")
-    unless _tmp
-      self.pos = _save26
-      break
-    end
-    @result = begin;  "\000" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save26
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save27 = self.pos
-    while true # sequence
-    _tmp = match_string("SOH")
-    unless _tmp
-      self.pos = _save27
-      break
-    end
-    @result = begin;  "\001" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save27
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save28 = self.pos
-    while true # sequence
-    _tmp = match_string("STX")
-    unless _tmp
-      self.pos = _save28
-      break
-    end
-    @result = begin;  "\002" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save28
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save29 = self.pos
-    while true # sequence
-    _tmp = match_string("ETX")
-    unless _tmp
-      self.pos = _save29
-      break
-    end
-    @result = begin;  "\003" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save29
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save30 = self.pos
-    while true # sequence
-    _tmp = match_string("EOT")
-    unless _tmp
-      self.pos = _save30
-      break
-    end
-    @result = begin;  "\004" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save30
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save31 = self.pos
-    while true # sequence
-    _tmp = match_string("ENQ")
-    unless _tmp
-      self.pos = _save31
-      break
-    end
-    @result = begin;  "\005" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save31
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save32 = self.pos
-    while true # sequence
-    _tmp = match_string("ACK")
-    unless _tmp
-      self.pos = _save32
-      break
-    end
-    @result = begin;  "\006" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save32
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save33 = self.pos
-    while true # sequence
-    _tmp = match_string("BEL")
-    unless _tmp
-      self.pos = _save33
-      break
-    end
-    @result = begin;  "\a" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save33
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save34 = self.pos
-    while true # sequence
-    _tmp = match_string("DLE")
-    unless _tmp
-      self.pos = _save34
-      break
-    end
-    @result = begin;  "\020" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save34
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save35 = self.pos
-    while true # sequence
-    _tmp = match_string("DC1")
-    unless _tmp
-      self.pos = _save35
-      break
-    end
-    @result = begin;  "\021" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save35
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save36 = self.pos
-    while true # sequence
-    _tmp = match_string("DC2")
-    unless _tmp
-      self.pos = _save36
-      break
-    end
-    @result = begin;  "\022" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save36
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save37 = self.pos
-    while true # sequence
-    _tmp = match_string("DC3")
-    unless _tmp
-      self.pos = _save37
-      break
-    end
-    @result = begin;  "\023" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save37
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save38 = self.pos
-    while true # sequence
-    _tmp = match_string("DC4")
-    unless _tmp
-      self.pos = _save38
-      break
-    end
-    @result = begin;  "\024" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save38
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save39 = self.pos
-    while true # sequence
-    _tmp = match_string("NAK")
-    unless _tmp
-      self.pos = _save39
-      break
-    end
-    @result = begin;  "\025" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save39
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save40 = self.pos
-    while true # sequence
-    _tmp = match_string("SYN")
-    unless _tmp
-      self.pos = _save40
-      break
-    end
-    @result = begin;  "\026" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save40
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save41 = self.pos
-    while true # sequence
-    _tmp = match_string("ETB")
-    unless _tmp
-      self.pos = _save41
-      break
-    end
-    @result = begin;  "\027" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save41
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save42 = self.pos
-    while true # sequence
-    _tmp = match_string("CAN")
-    unless _tmp
-      self.pos = _save42
-      break
-    end
-    @result = begin;  "\030" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save42
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save43 = self.pos
-    while true # sequence
-    _tmp = match_string("SUB")
-    unless _tmp
-      self.pos = _save43
-      break
-    end
-    @result = begin;  "\032" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save43
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save44 = self.pos
-    while true # sequence
-    _tmp = match_string("ESC")
-    unless _tmp
-      self.pos = _save44
-      break
-    end
-    @result = begin;  "\e" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save44
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save45 = self.pos
-    while true # sequence
-    _tmp = match_string("DEL")
-    unless _tmp
-      self.pos = _save45
-      break
-    end
-    @result = begin;  "\177" ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save45
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save46 = self.pos
-    while true # sequence
-    _text_start = self.pos
-    _tmp = get_byte
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save46
-      break
-    end
-    @result = begin;  "\\" + text ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save46
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-    break
     end # end choice
 
     set_failed_rule :_escapes unless _tmp
@@ -3782,109 +3783,109 @@ class Atomy::Parser
     _save = self.pos
     while true # choice
 
-    _save1 = self.pos
-    while true # sequence
-    _tmp = scan(/\A(?-mix:[xX])/)
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[0-9a-fA-F]{1,5})/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save1
-      break
-    end
-    @result = begin;  [text.to_i(16)].pack("U") ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save1
-    end
-    break
-    end # end sequence
+      _save1 = self.pos
+      while true # sequence
+        _tmp = scan(/\A(?-mix:[xX])/)
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _text_start = self.pos
+        _tmp = scan(/\A(?-mix:[0-9a-fA-F]{1,5})/)
+        if _tmp
+          text = get_text(_text_start)
+        end
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin;  [text.to_i(16)].pack("U") ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
 
-    break if _tmp
-    self.pos = _save
+      break if _tmp
+      self.pos = _save
 
-    _save2 = self.pos
-    while true # sequence
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:\d{1,6})/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save2
+      _save2 = self.pos
+      while true # sequence
+        _text_start = self.pos
+        _tmp = scan(/\A(?-mix:\d{1,6})/)
+        if _tmp
+          text = get_text(_text_start)
+        end
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        @result = begin;  [text.to_i].pack("U") ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save2
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save3 = self.pos
+      while true # sequence
+        _tmp = scan(/\A(?-mix:[oO])/)
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _text_start = self.pos
+        _tmp = scan(/\A(?-mix:[0-7]{1,7})/)
+        if _tmp
+          text = get_text(_text_start)
+        end
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        @result = begin;  [text.to_i(16)].pack("U") ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save3
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save4 = self.pos
+      while true # sequence
+        _tmp = scan(/\A(?-mix:[uU])/)
+        unless _tmp
+          self.pos = _save4
+          break
+        end
+        _text_start = self.pos
+        _tmp = scan(/\A(?-mix:[0-9a-fA-F]{4})/)
+        if _tmp
+          text = get_text(_text_start)
+        end
+        unless _tmp
+          self.pos = _save4
+          break
+        end
+        @result = begin;  [text.to_i(16)].pack("U") ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save4
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
       break
-    end
-    @result = begin;  [text.to_i].pack("U") ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save2
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save3 = self.pos
-    while true # sequence
-    _tmp = scan(/\A(?-mix:[oO])/)
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[0-7]{1,7})/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save3
-      break
-    end
-    @result = begin;  [text.to_i(16)].pack("U") ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save3
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-
-    _save4 = self.pos
-    while true # sequence
-    _tmp = scan(/\A(?-mix:[uU])/)
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    _text_start = self.pos
-    _tmp = scan(/\A(?-mix:[0-9a-fA-F]{4})/)
-    if _tmp
-      text = get_text(_text_start)
-    end
-    unless _tmp
-      self.pos = _save4
-      break
-    end
-    @result = begin;  [text.to_i(16)].pack("U") ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save4
-    end
-    break
-    end # end sequence
-
-    break if _tmp
-    self.pos = _save
-    break
     end # end choice
 
     set_failed_rule :_number_escapes unless _tmp
@@ -3896,36 +3897,36 @@ class Atomy::Parser
 
     _save = self.pos
     while true # sequence
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_expressions)
+      es = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = get_byte
+      _tmp = _tmp ? nil : true
+      self.pos = _save1
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Array(es) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
       break
-    end
-    _tmp = apply(:_expressions)
-    es = @result
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _tmp = apply(:_wsp)
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    _save1 = self.pos
-    _tmp = get_byte
-    _tmp = _tmp ? nil : true
-    self.pos = _save1
-    unless _tmp
-      self.pos = _save
-      break
-    end
-    @result = begin;  Array(es) ; end
-    _tmp = true
-    unless _tmp
-      self.pos = _save
-    end
-    break
     end # end sequence
 
     set_failed_rule :_root unless _tmp

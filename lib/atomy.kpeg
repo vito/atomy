@@ -1,3 +1,5 @@
+%% name = Atomy::Parser
+
 %% {
   def current_position(target=pos)
     cur_offset = 0
