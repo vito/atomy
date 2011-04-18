@@ -181,12 +181,10 @@ module(Atomy::AST):
 macro(labels(&body)):
   Atomy::AST::Labels new(line, body contents)
 
-macro(go(name)):
-  Atomy::AST::GoTo new(line, name name)
-
 macro(while(test, &body)):
   names [loop, done]:
-    `(let-macro(break = 'go(~done),
+    `(let-macro(go(name) = Atomy::AST::GoTo new(line, name name),
+                break = 'go(~done),
                 next = 'go(~loop)):
         labels:
           ~loop:
@@ -200,7 +198,8 @@ macro(while(test, &body)):
 
 macro(until(test, &body)):
   names [loop, done]:
-    `(let-macro(break = 'go(~done),
+    `(let-macro(go(name) = Atomy::AST::GoTo new(line, name name),
+                break = 'go(~done),
                 next = 'go(~loop)):
         labels:
           ~loop:
@@ -214,7 +213,8 @@ macro(until(test, &body)):
 
 macro(loop(&body)):
   names [loop, done]:
-    `(let-macro(break = 'go(~done),
+    `(let-macro(go(name) = Atomy::AST::GoTo new(line, name name),
+                break = 'go(~done),
                 next = 'go(~loop)):
         labels:
           ~loop:
