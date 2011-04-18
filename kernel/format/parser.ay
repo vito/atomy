@@ -1,0 +1,13 @@
+namespace(atomy/format)
+
+module(Atomy::Format):
+  require(File expand-path("../../../lib/formatter.kpeg.rb", _FILE))
+
+  class(Parser):
+    class(<< self):
+      parse(source) :=
+        new(source) onto:
+          unless(parse):
+            raise-error
+
+          result

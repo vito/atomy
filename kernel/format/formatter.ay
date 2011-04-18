@@ -1,0 +1,327 @@
+namespace(atomy/format)
+
+module(Atomy::Format):
+  class(Formatter):
+    attr-accessor(#position)
+
+    export: initialize(@segments) := do:
+      @input = []
+      @output = ""
+      @position = 0
+      @stop? = false
+      @iterating = []
+
+    format(*@input) := do:
+      @segments each [s]:
+        s match:
+          Break ? symbol?(".") -> do:
+            when(@iterating empty?):
+              @stop? = true
+              break
+
+          Break ->
+            when(next-inputs empty?):
+              break
+
+          _ -> process(s)
+
+      @output
+
+    alias-method(#"[]", #atomy/format/format)
+
+    peek-input := @input [@position]
+
+    next-input := do:
+      v = peek-input
+      @position += 1
+      v
+
+    next-inputs := @input [@position .. -1]
+
+    process(Chunk(s)) :=
+      @output << s
+
+    process(String) :=
+      @output << next-input to-s
+
+    process(Decimal) :=
+      @output << Integer(next-input) to-s
+
+    process(Hex) :=
+      @output << Integer(next-input) to-s(16)
+
+    process(Octal) :=
+      @output << Integer(next-input) to-s(8)
+
+    process(Binary) :=
+      @output << Integer(next-input) to-s(2)
+
+    process(r: Radix) :=
+      @output << Integer(next-input) to-s(r precision)
+
+    process(f: Float) :=
+      @output << float(f precision, "f")
+
+    process(f: Exponent) :=
+      @output << float(f precision, "e")
+
+    process(f: General) :=
+      @output << float(f precision, "g")
+
+    process(c: Character) :=
+      @output << char(next-input)
+
+    process(Any) :=
+      @output << next-input pretty render
+
+    process(p: Pluralize) := do:
+      word = sub-format(p singular)
+      num =
+        if(p symbol?(">"))
+          then: peek-input
+          else: next-input
+
+      condition:
+        num == 1 ->
+          @output << word
+
+        p plural ->
+          @output << sub-format(p plural)
+
+        otherwise ->
+          @output << pluralize(word)
+
+    process(l: Lowercase) :=
+      @output << sub-format(l content) downcase
+
+    process(c: Capitalize) := do:
+      words = sub-format(c content) split(" ")
+      number(c, words size) times [n]:
+        unless(n == 0):
+          @output << " "
+
+        @output << words shift capitalize
+
+      unless(words empty?):
+        @output << " " + words join(" ")
+
+    process(u: Uppercase) :=
+      @output << sub-format(u content) upcase
+
+    process(s: Skip) :=
+      if(s symbol?("<"))
+        then: @position -= number(s)
+        else: @position += number(s)
+
+    process(i: Indirection) :=
+      if(i symbol?("*"))
+        then:
+          @output << sub-format(next-input segments)
+        else:
+          @output << Formatter new(next-input segments) format(*next-input)
+
+    process(i: Iterate) := do:
+      splat? = i symbol?("*")
+      sub? = i symbol?(".")
+      always-run? = i symbol?("+")
+      iterations = number(i, nil)
+
+      inputs =
+        if(splat?)
+          then: next-inputs
+          else: next-input
+
+      before = [@input, @position]
+
+      when(inputs empty? && always-run? &&
+            iterations != 0):
+        @output << sub-format(i content)
+        return(nil)
+
+      iterations match:
+        nil ->
+          if(sub?)
+            then:
+              @iterating = inputs
+              inputs each [is]:
+                @output << Formatter new(i content) format(*is)
+            else:
+              @input = inputs
+              @position = 0
+              iterate(i content)
+        n -> do:
+          @input = inputs
+          @position = 0
+          iterate-max(n, i content)
+
+      if(splat?)
+        then: @position = @input size
+        else: [@input, @position] = before
+
+    process(c: Conditional) :=
+      [c symbol?("?"), c branches] match:
+        [true, t . (f . _)] ->
+          @output << sub-format(if(next-input) then: t; else: f)
+
+        [true, [t]] ->
+          when(next-input):
+            @output << sub-format(t)
+
+        _ -> do:
+          n = next-number(c)
+          if(n >= c branches size)
+            then:
+              when(c default):
+                @output << sub-format(c default)
+            else:
+              @output << sub-format(c branches [n])
+
+    process(j: Justify) :=
+      @output <<
+        justify(j, j segments collect [s]: sub-format(s))
+
+    process(x) := error(#todo(x))
+
+
+    pluralize(s) :=
+      condition:
+        s =~ r(i)"o$" ->
+          s + "es"
+
+        s =~ r(i)"[aeiou]$" ->
+          s + "s"
+
+        s =~ r(i)"(?<root>.+[aeiou])y$" ->
+          s + "s"
+
+        s =~ r(i)"(lay-by|stand-by)$" ->
+          s + "s"
+
+        s =~ r(i)"(.+)y$" ->
+          $1 + "es"
+
+        s =~ r(i)"(.+)us$" ->
+          $1 + ""
+
+        s =~ r(i)"(.+)sis$" ->
+          $1 + "es"
+
+        s =~ r(i)"(.+)(ex|ix)$" ->
+          $1 + "ces"
+
+        s =~ r(i)"(.+)(ss|sh|ch|dge)$" ->
+          s + "es"
+
+        otherwise ->
+          s + "s"
+
+
+    iterate(f) :=
+      until(next-inputs empty? || @stop?):
+        @output << sub-format(f)
+
+    iterate-max(max, f) :=
+      max times:
+        when(next-inputs empty? || @stop?):
+          break
+
+        @output << sub-format(f)
+
+    next-number(s) :=
+      number(s, nil) || next-input
+
+    char(n: Integer) := n chr
+    char(s) := s to-s [0, 1]
+
+    float(nil, x) := sprintf("%" + x, Float(next-input))
+    float(n, x) := sprintf("%." + n to-s + x, Float(next-input))
+
+    sub-format(ss) := do:
+      sub = Formatter new(ss)
+      sub position = @position
+      out = sub format(*@input)
+      @position = sub position
+      out
+
+    number(s, default = 1) := do:
+      s flags each [f]:
+        f match:
+          Number(nil) ->
+            return(next-inputs size)
+
+          Number(n) ->
+            return(n)
+
+      default
+
+    justify-r(j, s) :=
+      number(j, nil) match:
+        nil -> s
+        w -> do:
+          padding = if(j zero-pad?) then: "0"; else: " "
+
+          condition:
+            j symbol?("=") || j symbol?("<") && j symbol(">") ->
+              s center(w, padding)
+
+            j symbol?("<") ->
+              s ljust(w, padding)
+
+            otherwise ->
+              s rjust(w, padding)
+
+    justify(j, [s]) := justify-r(j, s)
+    justify(j, ss) :=
+      number(j, nil) match:
+        nil -> ss join
+        to -> justify-to(j, to, ss)
+
+    justify-to(_, _, []) := ""
+    justify-to(j, to, all: s . ss) := do:
+      needed = to - all collect(&#size) inject(*#"+")
+
+      spacings =
+        condition:
+          j symbol?("<") && j symbol?(">") || j symbol?("=") ->
+            all size + 1
+
+          j symbol?("<") ->
+            all size
+
+          j symbol?(">") ->
+            all size
+
+          otherwise ->
+            all size - 1
+
+      naive-average = needed / spacings
+
+      average =
+        if(needed - naive-average * spacings >= spacings - 1)
+          then: naive-average + 1
+          else: naive-average
+
+      condition:
+        j symbol?("<") || j symbol?("=") ->
+          [ " " * naive-average
+            s
+            " " * average
+            spaced(j, average, needed - naive-average - average, ss)
+          ] join
+
+        otherwise ->
+          [ s
+            " " * naive-average
+            spaced(j, average, needed - naive-average, ss)
+          ] join
+
+    spaced(_, _, _, []) := ""
+    spaced(j, _, left, [s]) :=
+      if(j symbol?(">") || j symbol?("="))
+        then: s + " " * left
+        else: " " * left + s
+    spaced(j, average, left, s . ss) :=
+      [ s
+        " " * average
+        spaced(j, average, left - average, ss)
+      ] join

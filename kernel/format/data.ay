@@ -1,0 +1,56 @@
+namespace(atomy/format)
+
+module(Atomy::Format):
+  data(Object):
+    Segment(@flags):
+      Chunk(@text)
+      String
+      Decimal
+      Hex
+      Octal
+      Binary
+      Radix
+      Float
+      Exponent
+      General
+      Character
+      Any
+      Pluralize(@singular, @plural)
+      Lowercase(@content)
+      Capitalize(@content)
+      Uppercase(@content)
+      Justify(@segments)
+      Skip
+      Indirection
+      Iterate(@content)
+      Break
+      Conditional(@branches, @default)
+
+  data(Flag):
+    Number(@value)
+    Symbol(@character)
+    ZeroPad
+    Precision(@int)
+
+  data(Object):
+    Formatter(@segments)
+
+  Segment symbol?(m) :=
+    @flags any? [f]:
+      f match:
+        Symbol(s) -> s == m
+        _ -> false
+
+  Segment precision := do:
+    @flags each [f]:
+      f match:
+        Precision(n) ->
+          return(n)
+
+    nil
+
+  Segment zero-pad? :=
+    @flags any? [f]:
+      f match:
+        ZeroPad -> true
+        _ -> false

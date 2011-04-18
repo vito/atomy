@@ -1,0 +1,61 @@
+%% name = Atomy::Format::Parser
+
+%%{ require File.expand_path("../atomy.kpeg.rb", __FILE__); include Atomy::Format }
+
+%atomy = Atomy::Parser
+
+    text(e) = < /[^\\%#{Regexp.quote(e)}]+/ > { text }
+            | "\\" < /[%\(\)\{\}\[\]]/ > { text }
+            | "\\" %atomy.escape:e { e }
+
+  nested(e) = text(e)+:c { Chunk.new(c.join) }
+
+      chunk = nested("")
+
+    flagged = "%" flag*:fs segment:s
+                { s.flags = fs; s }
+
+       flag = "#"
+                { Number.new(nil) }
+            | "0" &("." /\d/ | /\d/)
+                { ZeroPad.new }
+            | "." < /\d+/ >
+                { Precision.new(text.to_i) }
+            | < /\d+/ >
+                { Number.new(text.to_i) }
+            | < /[\.\+\*=<>,\?]/ >
+                { Symbol.new(text) }
+
+    segment = "p" "(" sub(")"):s ")" ("(" sub(")"):p ")")?
+                { Pluralize.new(s, p) }
+            | "l" "(" sub(")"):c ")"
+                { Lowercase.new(c) }
+            | "c" "(" sub(")"):c ")"
+                { Capitalize.new(c) }
+            | "u" "(" sub(")"):c ")"
+                { Uppercase.new(c) }
+            | "j" ("(" sub(")"):c ")" { c })+:cs
+                { Justify.new(cs) }
+            | "{" sub("}"):c "}"
+                { Iterate.new(c) }
+            | ("[" sub("]"):c "]" { c })+:bs ("(" sub(")"):d ")" { d })?
+                { Conditional.new(Array(bs), d) }
+            | "_" { Skip.new }
+            | "^" { Break.new }
+            | "%" { Indirection.new }
+            | "s" { String.new }
+            | "d" { Decimal.new }
+            | "x" { Hex.new }
+            | "o" { Octal.new }
+            | "b" { Binary.new }
+            | "r" { Radix.new }
+            | "f" { Float.new }
+            | "e" { Exponent.new }
+            | "g" { General.new }
+            | "c" { Character.new }
+            | "v" { Any.new }
+
+     sub(e) = (flagged | nested(e))*:as { Array(as) }
+
+       root = (flagged | chunk)*:as !.
+                { Formatter.new(Array(as)) }

@@ -1,6 +1,9 @@
 task :parser do
   sh "kpeg -f -s lib/atomy.kpeg"
 end
+
+task :formatter do
+  sh "kpeg -f -s lib/formatter.kpeg"
 end
 
 task :clean do
