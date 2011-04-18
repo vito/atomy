@@ -64,8 +64,8 @@
             | "g" { create(General) }
             | "c" { create(Character) }
             | "v" { create(Any) }
-                { Formatter.new(0, Array(as)) }
 
      sub(e) = (flagged | nested(e))*:as { Array(as) }
+                { Formatter.new(0, Array(as)) }
 
        root = sub("")
