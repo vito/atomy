@@ -1,3 +1,5 @@
+namespace(tests/format)
+
 describe("formatting"):
   describe("chunks of text"):
     it("formats as the text itself"):

@@ -1,4 +1,4 @@
-test(super)
+namespace(tests/super)
 
 class(ZSuperA):
   test-1 := #super

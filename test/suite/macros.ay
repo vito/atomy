@@ -1,4 +1,4 @@
-test(macros)
+namespace(tests/macros)
 
 describe("macros"):
   describe("unique name generation"):

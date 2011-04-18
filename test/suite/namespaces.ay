@@ -1,4 +1,4 @@
-test(namespaces)
+namespace(tests/namespaces)
 
 describe("namespaces"):
   describe(#no-namespace):

@@ -1,4 +1,4 @@
-test(blocks)
+namespace(tests/blocks)
 
 describe("blocks"):
   describe(#call):

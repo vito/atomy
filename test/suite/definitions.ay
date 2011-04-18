@@ -1,4 +1,4 @@
-test(definitions)
+namespace(tests/definitions)
 
 describe("definitions"):
   describe("arguments"):

@@ -1,4 +1,4 @@
-test(scope)
+namespace(tests/scope)
 
 describe("assignment"):
   describe("="):

@@ -1,4 +1,4 @@
-test(quotes)
+namespace(tests/quotes)
 
 describe("quasiquotation"):
   it("constructs an expression"):

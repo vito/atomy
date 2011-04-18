@@ -1,4 +1,4 @@
-test(patterns)
+namespace(tests/patterns)
 
 describe("pattern-matching"):
   describe("expressions"):

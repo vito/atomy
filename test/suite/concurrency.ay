@@ -1,4 +1,4 @@
-test(concurrency)
+namespace(tests/concurrency)
 
 describe("concurrency"):
   describe("spawn"):
