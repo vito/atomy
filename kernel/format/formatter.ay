@@ -54,38 +54,38 @@ module(Atomy::Format):
     process(c: Chunk) :=
       @output << c text
 
-    process(String) :=
-      @output << next-input to-s
+    process(s: String) :=
+      @output << justified(s, next-input to-s, true)
 
-    process(Decimal) :=
-      @output << Integer(next-input) to-s
+    process(i: Decimal) :=
+      @output << integer(i, 10)
 
-    process(Hex) :=
-      @output << Integer(next-input) to-s(16)
+    process(i: Hex) :=
+      @output << integer(i, 16)
 
-    process(Octal) :=
-      @output << Integer(next-input) to-s(8)
+    process(i: Octal) :=
+      @output << integer(i, 8)
 
-    process(Binary) :=
-      @output << Integer(next-input) to-s(2)
+    process(i: Binary) :=
+      @output << integer(i, 2)
 
-    process(r: Radix) :=
-      @output << Integer(next-input) to-s(r precision)
+    process(i: Radix) :=
+      @output << integer(i, i precision)
 
     process(f: Float) :=
-      @output << float(f precision, "f")
+      @output << float(f, "f")
 
     process(f: Exponent) :=
-      @output << float(f precision, "e")
+      @output << float(f, "e")
 
     process(f: General) :=
-      @output << float(f precision, "g")
+      @output << float(f, "g")
 
     process(c: Character) :=
-      @output << char(next-input)
+      @output << char(c, next-input)
 
-    process(Any) :=
-      @output << next-input pretty render
+    process(a: Any) :=
+      @output << justified(a, next-input pretty render, true)
 
     process(p: Pluralize) := do:
       word = sub-format(p singular)
@@ -193,7 +193,7 @@ module(Atomy::Format):
       @output <<
         justify(j, j segments collect [s]: sub-format(s))
 
-    process(x) := error(#todo(x))
+    process(x) := raise("todo formatting: " + x inspect)
 
 
     pluralize(s) :=
@@ -243,11 +243,18 @@ module(Atomy::Format):
     next-number(s) :=
       number(s, nil) || next-input
 
-    char(n: Integer) := n chr
-    char(s) := s to-s [0, 1]
+    char(c, n: Integer) := justified(c, n chr, true)
+    char(c, s) := justified(c, s to-s [0, 1], true)
 
-    float(nil, x) := sprintf("%" + x, Float(next-input))
-    float(n, x) := sprintf("%." + n to-s + x, Float(next-input))
+    integer(i, base) := justified(i, Integer(next-input) to-s)
+
+    float(f, x) := do:
+      format =
+        if(f precision)
+          then: "%." + f precision to-s + x
+          else: "%" + x
+
+      justified(f, sprintf(format, Float(next-input)))
 
     sub-format(sub) := do:
       sub position = @position
@@ -263,23 +270,23 @@ module(Atomy::Format):
 
       default
 
-    justify-r(j, s) :=
+    justified(j, s, left? = false) :=
       number(j, nil) match:
         nil -> s
         w -> do:
           padding = if(j zero-pad?) then: "0"; else: " "
 
           condition:
-            j symbol?("=") || j symbol?("<") && j symbol(">") ->
+            j symbol?("=") || j symbol?("<") && j symbol?(">") ->
               s center(w, padding)
 
-            j symbol?("<") ->
+            left? && !(j symbol?(">")) || j symbol?("<") ->
               s ljust(w, padding)
 
             otherwise ->
               s rjust(w, padding)
 
-    justify(j, [s]) := justify-r(j, s)
+    justify(j, [s]) := justified(j, s)
     justify(j, ss) :=
       number(j, nil) match:
         nil -> ss join
