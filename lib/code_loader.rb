@@ -37,14 +37,14 @@ module Atomy
         end
       end
 
-      def compile_if_needed(fn)
+      def compile_if_needed(fn, debug = false)
         source = source_name(fn)
         compiled = compiled_name(fn)
 
         if !File.exists?(compiled) ||
             File.stat(compiled).mtime < File.stat(fn).mtime
           CodeLoader.compiled! true
-          Compiler.compile fn
+          Compiler.compile fn, nil, debug
         end
 
         compiled
@@ -82,7 +82,7 @@ module Atomy
         path[0] == ?/ or path.prefix?("./") or path.prefix?("../")
       end
 
-      def load_file(fn, r = :run)
+      def load_file(fn, r = :run, debug = false)
         if qualified_path?(fn)
           file = find_file(fn)
         else
@@ -97,7 +97,7 @@ module Atomy
         CodeLoader.reason = r
         CodeLoader.compiled! false
 
-        cfn = compile_if_needed(file)
+        cfn = compile_if_needed(file, debug)
         cl = Rubinius::CodeLoader.new(cfn)
         cm = cl.load_compiled_file(cfn, 0)
         script = cm.create_script(false)

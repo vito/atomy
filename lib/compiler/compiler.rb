@@ -10,12 +10,17 @@ module Atomy
       end
     end
 
-    def self.compile(file, output = nil, line = 1)
+    def self.compile(file, output = nil, debug = false)
       compiler = new :atomy_file, :compiled_file
 
       parser = compiler.parser
       parser.root Atomy::AST::Script
-      parser.input file, line
+      parser.input file, 1
+
+      if debug
+        printer = compiler.packager.print
+        printer.bytecode = debug
+      end
 
       writer = compiler.writer
       writer.name = output ? output : compiled_name(file)
@@ -117,7 +122,7 @@ module Atomy
       end
     end
 
-    def self.evaluate(string, bnd = nil, file = "(eval)", line = 1)
+    def self.evaluate(string, bnd = nil, file = "(eval)", line = 1, debug = false)
       if bnd.nil?
         bnd = Binding.setup(
           Rubinius::VariableScope.of_sender,
@@ -126,7 +131,7 @@ module Atomy
         )
       end
 
-      cm = compile_eval(string, bnd.variables, file, line)
+      cm = compile_eval(string, bnd.variables, file, line, debug)
       cm.scope = bnd.static_scope.dup
       cm.name = :__eval__
 

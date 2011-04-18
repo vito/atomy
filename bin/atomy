@@ -4,6 +4,7 @@ base = File.expand_path "../../lib/", __FILE__
 kernel = File.expand_path "../../kernel/", __FILE__
 
 require 'readline'
+require 'optparse'
 
 require base + "/macros"
 require base + "/method"
@@ -29,11 +30,52 @@ puts "loading kernel"
 require_atomy(kernel + "/boot.ay")
 puts Time.now - a
 
+options = {}
+OptionParser.new do |o|
+  o.banner = "usage: atomy [options]"
+
+  o.on("-B", "--print-bytecode", "print out compiled bytecode") do |v|
+    options[:debug] = v
+  end
+
+  o.on("-e", "--evaluate EXPR", "evaluate EXPR and print the result") do |v|
+    options[:evaluate] = v
+  end
+
+  o.on("-s", "--before-start EXPR", "evaluate EXPR beforehand") do |v|
+    options[:start] = v
+  end
+
+  o.on("-l", "--load FILE", "load FILENAME and start the REPL") do |v|
+    options[:load] = v
+  end
+
+  o.on_tail("-h", "--help", "show this message") do
+    puts o
+    exit
+  end
+end.parse!
+
 Atomy::Namespace.ensure(:user)
 
-if ARGV[0]
-  require_atomy(ARGV[0])
-  exit(0)
+if str = options[:evaluate] || options[:start]
+  res = Atomy::Compiler.evaluate(
+    str,
+    nil,
+    "(eval)",
+    1,
+    options[:debug]
+  )
+
+  if options[:evaluate]
+    res.send(:"atomy/write")
+    exit(0)
+  end
+end
+
+if file = options[:load] || ARGV[0]
+  require_atomy(file, ARGV[0] ? :run : :load, options[:debug])
+  exit(0) if ARGV[0]
 end
 
 if respond_to?(:"atomy/repl", true)
