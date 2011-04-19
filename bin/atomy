@@ -58,64 +58,70 @@ end.parse!
 
 Atomy::Namespace.ensure(:user)
 
-if str = options[:evaluate] || options[:start]
-  res = Atomy::Compiler.evaluate(
-    str,
-    nil,
-    "(eval)",
-    1,
-    options[:debug]
-  )
+def run_atomy(options)
+  if str = options[:evaluate] || options[:start]
+    $0 = "(eval)"
+    res = Atomy::Compiler.evaluate(
+      str,
+      nil,
+      "(eval)",
+      1,
+      options[:debug]
+    )
 
-  if options[:evaluate]
-    res.send(:"atomy/write")
-    exit(0)
-  end
-end
-
-if file = options[:load] || ARGV[0]
-  require_atomy(file, ARGV[0] ? :run : :load, options[:debug])
-  exit(0) if ARGV[0]
-end
-
-if respond_to?(:"atomy/repl", true)
-  send(:"atomy/repl", File.expand_path("~/.atomy_history"))
-else
-  $stderr.puts("main REPL startup failed! here's a basic one:")
-
-  HISTORY_FILE = File.expand_path("~/.atomy_history")
-
-  if File.exists?(HISTORY_FILE)
-    File.open(HISTORY_FILE, "r") do |f|
-      f.readlines.each do |l|
-        Readline::HISTORY << l.strip
-      end
+    if options[:evaluate]
+      res.send(Atomy.namespaced("atomy", "write").to_sym)
+      return
     end
   end
 
-  begin
-    SANE_HISTORY = []
-    while str = Readline.readline("> ")
-      next if str.empty?
+  if file = options[:load] || ARGV[0]
+    $0 = file
+    require_atomy(file, ARGV[0] ? :run : :load, options[:debug])
+    return if ARGV[0]
+  end
 
-      SANE_HISTORY << str
+  if respond_to?(Atomy.namespaced("atomy", "repl").to_sym, true)
+    send(Atomy.namespaced("atomy", "repl").to_sym, File.expand_path("~/.atomy_history"))
+  else
+    $stderr.puts("main REPL startup failed! here's a basic one:")
 
-      begin
-        res = Atomy::Compiler.evaluate str, TOPLEVEL_BINDING
-        if res.respond_to?(:pretty)
-          puts "=> #{res.pretty.render}"
-        else
-          puts "=> #{res.inspect}"
+    history_file = File.expand_path("~/.atomy_history")
+
+    if File.exists?(history_file)
+      File.open(history_file, "r") do |f|
+        f.readlines.each do |l|
+          Readline::HISTORY << l.strip
         end
-      rescue StandardError => e
-        puts "ERROR!"
-        puts "#{e}:\n  #{e.message}"
-        puts e.backtrace
       end
     end
-  ensure
-    File.open(HISTORY_FILE, "a") do |f|
-      f.puts(*SANE_HISTORY)
+
+    begin
+      sane_history = []
+      while str = Readline.readline("> ")
+        next if str.empty?
+
+        sane_history << str
+
+        begin
+          res = Atomy::Compiler.evaluate str, TOPLEVEL_BINDING
+          if res.respond_to?(:pretty)
+            puts "=> #{res.pretty.render}"
+          else
+            puts "=> #{res.inspect}"
+          end
+        rescue StandardError => e
+          puts "ERROR!"
+          puts "#{e}:\n  #{e.message}"
+          puts e.backtrace
+        end
+      end
+    ensure
+      File.open(history_file, "a") do |f|
+        f.puts(*sane_history)
+      end
     end
   end
 end
+
+run_atomy(options)
