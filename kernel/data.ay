@@ -16,6 +16,9 @@ macro($'exception):
 macro($'path):
   Atomy::AST::GlobalVariable new(line, ":")
 
+macro($'0):
+  Atomy::AST::GlobalVariable new(line, "0")
+
 macro($(x: Constant)):
   Atomy::AST::GlobalVariable new(x line, x identifier)
 
