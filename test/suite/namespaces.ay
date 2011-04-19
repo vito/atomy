@@ -92,11 +92,13 @@ describe("namespaces"):
       in-namespace(foo-2):
         n-foo-2 := 1
         n-foo-3 := n-foo-2
+        n-foo-2 should-be(1)
+        n-foo-3 should-be(1)
 
       in-namespace(bar-2):
-        use(tests/namespaces)
+        use(tests/namespaces, foo-2)
         n-foo-2 should-be(0)
-        foo-2/n-foo-3 should-be(1)
+        n-foo-3 should-be(1)
 
   describe(#export):
     it("executes the body with definitions going to the bottom namespace"):
@@ -194,6 +196,7 @@ describe("namespaces"):
         'm-foo-1 expand namespace should-be("foo_10")
         m-foo-1 should-be(1)
 
+  -- TODO
   it("allows calling methods in other namespaces"):
     no-namespace:
       1 atomy/should-be(1)
