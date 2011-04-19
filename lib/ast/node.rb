@@ -432,29 +432,29 @@ EOF
 
       def resolve
         ns = Atomy::Namespace.get
-        recursively do |x|
-          case x
-          when Atomy::AST::Send, Atomy::AST::Variable,
-               Atomy::AST::BinarySend, Atomy::AST::Unary
-            if !x.namespace
-              y = x.dup
-              if ns && n = ns.resolve(x.namespace_symbol)
-                y.namespace = n.to_s
-              else
-                y.namespace = "_"
-              end
-              y
-            else
-              x
-            end
+        return self if @namespace || !ns
+
+        case self
+        when Atomy::AST::Send, Atomy::AST::Variable,
+              Atomy::AST::BinarySend, Atomy::AST::Unary
+          y = dup
+          if n = ns.resolve(namespace_symbol)
+            y.namespace = n.to_s
           else
-            x
+            y.namespace = "_"
           end
+          y
+        else
+          self
         end
       end
 
+      def prepare
+        self
+      end
+
       def compile(g)
-        bytecode(g)
+        prepare.bytecode(g)
       end
 
       def load_bytecode(g)

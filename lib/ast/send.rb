@@ -34,8 +34,8 @@ module Atomy
         Atomy.namespaced(@namespace, @method_name)
       end
 
-      def compile(g)
-        expand.bytecode(g)
+      def prepare
+        resolve.expand
       end
 
       def bytecode(g)
@@ -48,7 +48,7 @@ module Atomy
 
         args = 0
         @arguments.each do |a|
-          e = a.expand
+          e = a.prepare
           if e.kind_of?(BlockPass)
             block = e
             break

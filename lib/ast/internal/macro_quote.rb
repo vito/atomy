@@ -17,9 +17,7 @@ module Atomy
         ).to_node
       end
 
-      def compile(g)
-        expand.compile(g)
-      end
+      alias :prepare :expand
     end
   end
 end

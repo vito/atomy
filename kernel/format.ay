@@ -6,6 +6,8 @@ import(base + "/format/data")
 import(base + "/format/formatter")
 import(base + "/format/parser")
 
+symbols(parse)
+
 export-to(atomy):
   macro-quoter(f) [c]:
-    Atomy::Format::Parser atomy/format/parse(c)
+    Atomy::Format::Parser parse(c)

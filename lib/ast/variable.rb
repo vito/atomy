@@ -14,8 +14,8 @@ module Atomy
         )
       end
 
-      def compile(g)
-        expand.bytecode(g)
+      def prepare
+        resolve.expand
       end
 
       def message_name

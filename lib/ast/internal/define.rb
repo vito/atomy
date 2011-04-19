@@ -44,11 +44,6 @@ module Atomy
         end
       end
 
-      def resolve
-        # don't resolve the body yet; do that when defining
-        n
-      end
-
       def ns_method_name(g)
         if method_name == "initialize"
           g.push_literal :initialize
@@ -118,7 +113,6 @@ module Atomy
         g.make_array arguments.size
         g.make_array 2
         @body.construct(g, nil)
-        g.send :resolve, 0
         g.make_array 2
 
         receiver.target(g)

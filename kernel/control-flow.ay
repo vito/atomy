@@ -107,7 +107,7 @@ module(Atomy::AST):
 
       args = 0
       @arguments each [a]:
-        e = a expand
+        e = a prepare
         e match:
           BlockPass -> do:
             block =! e
@@ -142,7 +142,7 @@ module(Atomy::AST):
 
       args = 0
       @arguments each [a]:
-        e = a expand
+        e = a prepare
         e match:
           Splat -> do:
             splat =! e
