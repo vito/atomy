@@ -31,30 +31,33 @@ require_atomy(kernel + "/boot.ay")
 puts Time.now - a
 
 options = {}
-OptionParser.new do |o|
-  o.banner = "usage: atomy [options]"
 
-  o.on("-B", "--print-bytecode", "print out compiled bytecode") do |v|
-    options[:debug] = v
-  end
+unless ARGV.empty? || ARGV[0][0] != ?-
+  OptionParser.new do |o|
+    o.banner = "usage: atomy [options]"
 
-  o.on("-e", "--evaluate EXPR", "evaluate EXPR and print the result") do |v|
-    options[:evaluate] = v
-  end
+    o.on("-B", "--print-bytecode", "print out compiled bytecode") do |v|
+      options[:debug] = v
+    end
 
-  o.on("-s", "--before-start EXPR", "evaluate EXPR beforehand") do |v|
-    options[:start] = v
-  end
+    o.on("-e", "--evaluate EXPR", "evaluate EXPR and print the result") do |v|
+      options[:evaluate] = v
+    end
 
-  o.on("-l", "--load FILE", "load FILENAME and start the REPL") do |v|
-    options[:load] = v
-  end
+    o.on("-s", "--before-start EXPR", "evaluate EXPR beforehand") do |v|
+      options[:start] = v
+    end
 
-  o.on_tail("-h", "--help", "show this message") do
-    puts o
-    exit
-  end
-end.parse!
+    o.on("-l", "--load FILE", "load FILENAME and start the REPL") do |v|
+      options[:load] = v
+    end
+
+    o.on_tail("-h", "--help", "show this message") do
+      puts o
+      exit
+    end
+  end.parse!
+end
 
 Atomy::Namespace.ensure(:user)
 
