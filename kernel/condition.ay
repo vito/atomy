@@ -22,11 +22,13 @@ data(Object):
   Condition:
     Error:
       SimpleError(@value)
+      ExceptionError(@exception)
 
     Warning:
       SimpleWarning(@value)
 
 SimpleError message := "ERROR: " + @value to-s
+ExceptionError message := "EXCEPTION: " + @exception message
 SimpleWarning message := "WARNING: " + @value to-s
 
 
@@ -70,33 +72,6 @@ class(DefaultDebugger):
 dynamic(debugger, DefaultDebugger)
 
 
--- register handlers for executing some action
-macro(x bind(&y)):
-  names [a]:
-    callback = `([~a]: ~a match: ~*(y contents))
-    `(let(handlers = ^handlers + [~callback]):
-        ~(x caller))
-
--- register restarts available to handlers for the duration
--- of some action's executation
-macro(with-restarts(*restarts, &body)):
-  names [context]:
-    rs = restarts collect [`(~n -> ~e)]:
-      n match:
-        Atomy::AST::Variable ->
-          `(#~n -> { ~e })
-
-        Atomy::AST::Send -> do:
-          name = Atomy::AST::Variable new(0, n method-name)
-          `(#~name -> [~*(n arguments)] { ~e })
-
-    `({ let(restarts = ^restarts + [[#[~*rs], #~context]]):
-          ~(body caller)
-      } rescue:
-          (e: RestartException(#~context, recv, args)) ->
-            recv call(*args))
-
-
 -- send a signal through the handlers, nearest-first
 signal(c) := do:
   ^handlers reverse-each [callback]:
@@ -106,6 +81,7 @@ signal(c) := do:
 
 -- send a signal, and start the debugger if none handle it
 error(v) := error(SimpleError new(v))
+error(e: Exception) := error(ExceptionError new(e))
 error(e: Error) := do:
   signal(e)
 
@@ -132,3 +108,32 @@ restart(name, *args) := do:
         raise(RestartException new(context, x, args))
 
   raise(NoRestartError new(name))
+
+
+-- register handlers for executing some action
+macro(x bind(&y)):
+  names [a]:
+    callback = `([~a]: ~a match: ~*(y contents))
+    `(let(handlers = ^handlers + [~callback]):
+        ~x rescue:
+          (e: StandardError) -> error(e))
+
+-- register restarts available to handlers for the duration
+-- of some action's executation
+macro(with-restarts(*restarts, &body)):
+  names [context]:
+    rs = restarts collect [`(~n -> ~e)]:
+      n match:
+        Atomy::AST::Variable ->
+          `(#~n -> { ~e })
+
+        Atomy::AST::Send -> do:
+          name = Atomy::AST::Variable new(0, n method-name)
+          `(#~name -> [~*(n arguments)] { ~e })
+
+    `({ let(restarts = ^restarts + [[#[~*rs], #~context]]):
+          ~body rescue:
+            (e: StandardError) -> error(e)
+      } rescue:
+        (e: RestartException(#~context, recv, args)) ->
+          recv call(*args))
