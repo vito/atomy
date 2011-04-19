@@ -80,7 +80,7 @@ module Atomy
 
     def self.register(name, args, body, let = false)
       ns = Atomy::Namespace.get(Thread.current[:atomy_define_in])
-      meth = ns ? ns.name.to_s + "/" + name : name
+      meth = ns ? Atomy.namespaced(ns.name, name) : name
       meth = (intern meth).to_sym
 
       if let && Environment.respond_to?(meth)
@@ -120,7 +120,7 @@ module Atomy
       methods = []
       if name && ns = Atomy::Namespace.get
         ([ns.name] + ns.using).each do |n|
-          methods << intern(n.to_s + "/" + name).to_sym
+          methods << intern(Atomy.namespaced(n, name)).to_sym
         end
       end
 

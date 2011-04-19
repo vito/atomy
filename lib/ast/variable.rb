@@ -19,11 +19,7 @@ module Atomy
       end
 
       def message_name
-        if @namespace && @namespace != "_"
-          @namespace + "/" + @name
-        else
-          @name
-        end
+        Atomy.namespaced(@namespace, @name)
       end
 
       def bytecode(g)

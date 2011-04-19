@@ -76,11 +76,9 @@ module Atomy
   end
 end
 
+# TODO: allow_private stuff
 def Rubinius.bind_call(recv, nmeth, *args, &blk)
-  # TODO: allow_private stuff
-  split = nmeth.to_s.split("/")
-  meth_name = split.pop
-  ns_name = !split.empty? && split.join("/")
+  ns_name, meth_name = Atomy.from_namespaced(nmeth)
 
   if ns_name == "_"
     ns = nil
@@ -108,7 +106,7 @@ def Rubinius.bind_call(recv, nmeth, *args, &blk)
 
     nss.reverse_each do |n|
       next unless n.contains?(meth)
-      m = (n.name.to_s + "/" + meth.to_s).to_sym
+      m = Atomy.namespaced(n.name, meth).to_sym
       res = Rubinius::CallUnit.test(
         Rubinius::CallUnit.test_respond_to(m),
         Rubinius::CallUnit.send_as(m),

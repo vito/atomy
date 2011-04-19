@@ -56,11 +56,9 @@ module Atomy
         end
 
         if @namespace
-          if @namespace == "_"
-            g.push_literal method_name.to_sym
-          else
-            g.push_literal((@namespace + "/" + method_name).to_sym)
-          end
+          g.push_literal(
+            Atomy.namespaced(@namespace, method_name).to_sym
+          )
           return
         end
 

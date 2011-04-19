@@ -17,11 +17,7 @@ module Atomy
       end
 
       def message_name
-        if @namespace && @namespace != "_"
-          @namespace + "/" + @operator
-        else
-          @operator
-        end
+        Atomy.namespaced(@namespace, @operator)
       end
 
       def compile(g)
