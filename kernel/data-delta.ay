@@ -87,7 +87,7 @@ macro-quoter(raw) [c]: c
 macro(_undefined):
   Atomy::AST::Undefined new(line)
 
-macro($(x: Primitive)):
+macro($(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
   Atomy::AST::NthRef new(line, x value)
 
 export:

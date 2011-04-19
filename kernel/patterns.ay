@@ -1,15 +1,10 @@
 namespace(atomy)
 
 module(Atomy::Patterns):
-  data(Pattern):
-    RuntimeClass(@body, @name)
-    Predicate(@pattern, @test)
-    With(@expression, @pattern)
-    And(@a, @b)
-    Or(@a, @b)
-
   export:
-    class(RuntimeClass):
+    class(RuntimeClass < Pattern):
+      initialize(@body, @name) := #ok
+
       construct(g) := do:
         get(g)
         @body construct(g)
@@ -30,7 +25,9 @@ module(Atomy::Patterns):
         g swap
         g kind-of
 
-    class(Predicate):
+    class(Predicate < Pattern):
+      initialize(@pattern, @test) := #ok
+
       construct(g) := do:
         get(g)
         @pattern construct(g)
@@ -64,14 +61,16 @@ module(Atomy::Patterns):
 
         done set!
 
-      deconstruct(g, locals = #[]) :=
+      deconstruct(g, locals = Hash new) :=
         @pattern deconstruct(g, locals)
 
       local-names := @pattern local-names
 
       bindings := @pattern bindings
 
-    class(With):
+    class(With < Pattern):
+      initialize(@expression, @pattern) := #ok
+
       construct(g) := do:
         get(g)
         @expression construct(g)
@@ -92,7 +91,7 @@ module(Atomy::Patterns):
         g send(#call-on-instance, 1)
         @pattern matches?(g)
 
-      deconstruct(g, locals = #[]) := do:
+      deconstruct(g, locals = Hash new) := do:
         `{ ~@expression } bytecode(g)
         g send(#block, 0)
         g swap
@@ -103,7 +102,9 @@ module(Atomy::Patterns):
 
       bindings := @pattern bindings
 
-    class(And):
+    class(And < Pattern):
+      initialize(@a, @b) := #ok
+
       construct(g) := do:
         get(g)
         @a construct(g)
@@ -136,14 +137,16 @@ module(Atomy::Patterns):
 
         done set!
 
-      deconstruct(g, locals = #[]) := do:
+      deconstruct(g, locals = Hash new) := do:
         g dup
         @a deconstruct(g, locals)
         @b deconstruct(g, locals)
 
       local-names := [@a local-names + @b local-names] uniq
 
-    class(Or):
+    class(Or < Pattern):
+      initialize(@a, @b) := #ok
+
       construct(g) := do:
         get(g)
         @a construct(g)
