@@ -67,6 +67,8 @@ module Atomy
 
         g.push_cpath_top
         g.find_const :Atomy
+        g.push_cpath_top
+        g.find_const :Atomy
         g.find_const :Namespace
         g.send :get, 0
         g.dup
@@ -74,12 +76,12 @@ module Atomy
 
         g.send :name, 0
         g.send :to_s, 0
-        g.push_literal "/"
         g.push_literal method_name
-        g.string_build 3
+        g.send :namespaced, 2
         g.goto done
 
         no_ns.set!
+        g.pop
         g.pop
         g.push_literal method_name
 
