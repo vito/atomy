@@ -3,12 +3,11 @@ namespace(atomy)
 export:
   module(Atomy::Patterns):
     -- pattern precision hierarchy, from least precise to most
-    -- TODO: Predicate, RuntimeClass
     [ [ Any, BlockPass, Splat, Attribute,
         NamedClass, NamedGlobal, NamedInstance
       ]
 
-      [Constant, SingletonClass]
+      [Constant, SingletonClass, RuntimeClass]
 
       [HeadTail]
 
@@ -23,6 +22,9 @@ export:
     Pattern precision := 0
 
     Named precision := @pattern precision
+
+    Predicate precision :=
+      @pattern precision + 1
 
     (a: Pattern) <=> (b: Pattern) :=
       a precision <=> b precision
@@ -96,7 +98,7 @@ export:
       a head =~ b head && a tail =~ b tail
 
     (a: List) =~ (b: List) :=
-      a patterns zip(b patterns) all? [a, b]:
+      a patterns zip(b patterns) all? [[a, b]]:
         when(a nil? || b nil?):
           return(false)
 
@@ -136,7 +138,7 @@ export:
 
 
     -- helper for comparing aggregate patterns like lists
-    : self ; compare(xs, ys) := do:
+    { self } compare(xs, ys) := do:
       total = 0
 
       xs zip(ys) [[x, y]]:
