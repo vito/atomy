@@ -46,6 +46,7 @@ module Atomy
       def as_message(send)
         send.dup.tap do |s|
           s.method_name = @name
+          s.namespace = @namespace
         end
       end
     end
