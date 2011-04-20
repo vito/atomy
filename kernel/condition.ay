@@ -3,15 +3,9 @@ namespace(atomy)
 dynamic(handlers, [])
 dynamic(restarts, [])
 
--- Exceptions used by condition system
-data(RuntimeError):
-  NoRestartError(@name)
-
+-- used by condition system
 data(Exception):
   RestartException(@context, @receiver, @args)
-
-NoRestartError initialize(@name) :=
-  super("unknown restart: " + @name)
 
 RestartException initialize(@context, @receiver, @args) :=
   super("you should never see or `rescue' this")
@@ -23,6 +17,7 @@ data(Object):
     Error:
       SimpleError(@value)
       ExceptionError(@exception)
+      NoRestartError(@name)
 
     Warning:
       SimpleWarning(@value)
@@ -30,6 +25,7 @@ data(Object):
 SimpleError message := "ERROR: " + @value to-s
 ExceptionError message := "EXCEPTION: " + @exception message
 SimpleWarning message := "WARNING: " + @value to-s
+NoRestartError message := "unknown restart " + @name show
 
 
 -- Default debugger; show the error message and let them
@@ -107,7 +103,7 @@ restart(name, *args) := do:
       (x: Proc) ->
         raise(RestartException new(context, x, args))
 
-  raise(NoRestartError new(name))
+  error(NoRestartError new(name))
 
 
 -- register handlers for executing some action

@@ -34,7 +34,7 @@ describe("condition"):
             signal(#foo)
             0
         } bind: #foo -> restart(#not-ok)
-      } should-raise(NoRestartError)
+      } should-error(NoRestartError)
 
     it("can send arguments to the restart"):
       { with-restarts(ok(x) -> x + 1):
