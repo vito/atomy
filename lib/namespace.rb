@@ -1,5 +1,18 @@
 module Atomy
   NAMESPACES = {}
+  NAMESPACE_DELIM = "_ns_"
+
+  def self.namespaced(ns, name)
+    return name.to_s if !ns or ns == "_"
+    ns.to_s + NAMESPACE_DELIM + name.to_s
+  end
+
+  def self.from_namespaced(resolved)
+    split = resolved.to_s.split(NAMESPACE_DELIM)
+    meth_name = split.pop
+    ns_name = !split.empty? && split.join(NAMESPACE_DELIM)
+    [ns_name, meth_name]
+  end
 
   class Namespace
     attr_reader :name, :using, :symbols

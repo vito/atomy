@@ -185,7 +185,7 @@
                   }
 
        variable = line:line identifier:n
-                    { Atomy::AST::Variable.new(line, n) }
+                    { Atomy::AST::Variable.new(line, n.gsub("/", Atomy::NAMESPACE_DELIM)) }
 
           unary = line:line !":" op_letter:o level1:e
                     { Atomy::AST::Unary.new(line, e, o) }

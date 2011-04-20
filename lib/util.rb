@@ -12,8 +12,6 @@ class Rubinius::Generator
 end
 
 module Atomy
-  NAMESPACE_DELIM = "/"
-
   def self.const_from_string(g, name)
     g.push_cpath_top
     top = nil
@@ -21,18 +19,6 @@ module Atomy
       next if s.empty?
       g.find_const s.to_sym
     end
-  end
-
-  def self.namespaced(ns, name)
-    return name.to_s if !ns or ns == "_"
-    ns.to_s + NAMESPACE_DELIM + name.to_s
-  end
-
-  def self.from_namespaced(resolved)
-    split = resolved.to_s.split(NAMESPACE_DELIM)
-    meth_name = split.pop
-    ns_name = !split.empty? && split.join(NAMESPACE_DELIM)
-    [ns_name, meth_name]
   end
 
   def self.assign_local(g, name, set = false)

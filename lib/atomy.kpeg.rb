@@ -2281,7 +2281,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # variable = line:line identifier:n { Atomy::AST::Variable.new(line, n) }
+  # variable = line:line identifier:n { Atomy::AST::Variable.new(line, n.gsub("/", Atomy::NAMESPACE_DELIM)) }
   def _variable
 
     _save = self.pos
@@ -2298,7 +2298,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::Variable.new(line, n) ; end
+      @result = begin;  Atomy::AST::Variable.new(line, n.gsub("/", Atomy::NAMESPACE_DELIM)) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -3974,7 +3974,7 @@ class Atomy::Parser
   Rules[:_string] = rule_info("string", "line:line \"\\\"\" < (\"\\\\\" escape | str_seq)*:c > \"\\\"\" { Atomy::AST::String.new(line, c.join, text) }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
   Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s {                     names = [m] + Array(s)                     const_chain(line, names)                   } | line:line (\"::\" constant_name)+:s {                     names = Array(s)                     const_chain(line, names, true)                   })")
-  Rules[:_variable] = rule_info("variable", "line:line identifier:n { Atomy::AST::Variable.new(line, n) }")
+  Rules[:_variable] = rule_info("variable", "line:line identifier:n { Atomy::AST::Variable.new(line, n.gsub(\"/\", Atomy::NAMESPACE_DELIM)) }")
   Rules[:_unary] = rule_info("unary", "line:line !\":\" op_letter:o level1:e { Atomy::AST::Unary.new(line, e, o) }")
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_block] = rule_info("block", "(line:line \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), []) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), []) })")
