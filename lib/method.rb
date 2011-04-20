@@ -144,7 +144,7 @@ module Atomy
         passed = g.new_label
         decons = g.new_label
 
-        num = reqs.size + i
+        num = reqs.size + i + block_offset
         g.passed_arg num
         g.git passed
 

@@ -56,6 +56,11 @@ describe("macros"):
       (2 + 1) m-foo-9 should-be(1)
       (2 + 1) m-foo-10 should-be(1)
 
+    it("can specify defaults for arguments"):
+      macro(default-having(x = '42)): x
+      default-having() should-be(42)
+      default-having(41) should-be(41)
+
     it("can define macros in their expansion"):
       macro(x m-foo-11): `(macro(~x): '42)
       ('1 m-foo-110) m-foo-11
