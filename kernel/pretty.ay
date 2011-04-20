@@ -4,7 +4,9 @@ comma-delim(ds) :=
   hsep(comma punctuate(ds))
 
 export-to(atomy):
-  (o: Object) pretty := Doc text(inspect)
+  Object pretty := Doc text(inspect)
+
+  Object show := pretty render
 
   Array pretty :=
     doc: brackets(comma-delim(self all-pretty))
