@@ -46,6 +46,21 @@ x should-raise(y) :=
   } else:
       raise("#should-raise - no exception raised")
 
+x should-error(y) :=
+  { with-restarts(errored -> nil):
+      x call write
+      raise("#should-error - no error signaled")
+  } bind {
+    (e: ExceptionError) ->
+      raise(e exception)
+
+    (e: Error) -> do:
+      when(e kind-of?(y)):
+        restart(#errored)
+
+      raise("expected error " + y to-s + ", got: " + e message)
+  }
+
 describe(x, &body) := do:
   (Therie indentation + "- " + x to-s) print
   let(therie-nesting-level = ^therie-nesting-level + 1):
