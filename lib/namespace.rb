@@ -34,7 +34,20 @@ module Atomy
     end
 
     def use(sym)
+      raise "namespace `#{sym}` tried to use itself" if sym == @name
+      raise "unknown namespace `#{sym}'" unless ns = Namespace.get(sym)
+      raise "circular namespaces: `#{@name}' <=> `#{sym}'" if ns.uses?(@name)
       @using << sym unless @using.include?(sym)
+    end
+
+    def uses?(ns)
+      return true if @using.include?(ns)
+
+      @using.each do |u|
+        return true if Namespace.get(u).uses?(ns)
+      end
+
+      false
     end
 
     def resolve(sym)
