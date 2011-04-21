@@ -64,6 +64,14 @@ module Atomy
       nil
     end
 
+    def top_down(&blk)
+      yield @name
+      @using.each do |u|
+        Atomy::Namespace.get(u).top_down(&blk)
+      end
+      nil
+    end
+
     def self.define_target
       Thread.current[:atomy_define_in] ||
         get && get.name.to_s
