@@ -16,9 +16,10 @@ describe("namespaces"):
 
   describe(#use):
     it("modifies the current namespace to use another"):
+      in-namespace(bar) {}
       in-namespace(foo):
-        use(foo)
-        ^namespace using should: include?(#foo)
+        use(bar)
+        ^namespace using should: include?(#bar)
 
     it("accepts multiple arguments"):
       in-namespace(x):
@@ -34,8 +35,8 @@ describe("namespaces"):
 
     it("ignores duplicates"):
       in-namespace(foo):
-        use(foo)
-        ^namespace using count(#foo) should-be(1)
+        use(bar)
+        ^namespace using count(#bar) should-be(1)
 
   describe(#symbols):
     it("registers the given names in the current namespace"):
@@ -76,11 +77,11 @@ describe("namespaces"):
     it("should register methods only in the current namespace"):
       n-foo-1 := 0
 
-      in-namespace(foo):
+      in-namespace(d-foo-1):
         n-foo-1 := 1
         n-foo-1 should-be(1)
 
-      in-namespace(bar):
+      in-namespace(d-bar-1):
         n-foo-1 := 2
         n-foo-1 should-be(2)
       
