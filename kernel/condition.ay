@@ -22,11 +22,14 @@ data(Object):
     Warning:
       SimpleWarning(@value)
 
-SimpleError message := "ERROR: " + @value to-s
-ExceptionError message := "EXCEPTION: " + @exception message
-SimpleWarning message := "WARNING: " + @value to-s
+Condition name := class name
+
+SimpleError message := @value to-s
+ExceptionError message := @exception message
+SimpleWarning message := @value to-s
 NoRestartError message := "unknown restart " + @name show
 
+ExceptionError name := @exception class name
 
 -- Default debugger; show the error message and let them
 -- pick from the available restarts.
@@ -34,7 +37,7 @@ class(DefaultDebugger):
   class(<< self):
     define(show-error-banner(e)):
       ("-" * 78) print
-      e message each-line [l]:
+      (e name + ": " + e message) each-line [l]:
         ("*** " + l) display
 
       "\n" display
