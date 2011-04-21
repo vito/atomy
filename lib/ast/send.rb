@@ -46,6 +46,10 @@ module Atomy
         block = @block
         splat = nil
 
+        unless @namespace == "_"
+          g.push_literal message_name.to_sym
+        end
+
         args = 0
         @arguments.each do |a|
           e = a.prepare
@@ -71,19 +75,22 @@ module Atomy
           if @namespace == "_"
             g.send_with_splat @method_name.to_sym, args, @private
           else
-            g.call_custom_with_splat message_name.to_sym, args
+            #g.call_custom_with_splat message_name.to_sym, args
+            g.send_with_splat :atomy_send, args + 1
           end
         elsif block
           block.compile(g)
           if @namespace == "_"
             g.send_with_block @method_name.to_sym, args, @private
           else
-            g.call_custom_with_block message_name.to_sym, args
+            g.send_with_block :atomy_send, args + 1
+            #g.call_custom_with_block message_name.to_sym, args
           end
         elsif @namespace == "_"
           g.send @method_name.to_sym, args, @private
         else
-          g.call_custom message_name.to_sym, args
+          g.send :atomy_send, args + 1
+          #g.call_custom message_name.to_sym, args
         end
       end
     end

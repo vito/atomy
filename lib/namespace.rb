@@ -124,6 +124,7 @@ end
 
 # NOTE: this is currently not used
 # TODO: allow_private stuff
+=begin
 def Rubinius.bind_call(recv, nmeth, *args, &blk)
   ns_name, meth_name = Atomy.from_namespaced(nmeth)
 
@@ -164,6 +165,7 @@ def Rubinius.bind_call(recv, nmeth, *args, &blk)
 
   res
 end
+=end
 
 class Object
   alias :respond_to_atomy_old? :respond_to?
@@ -201,4 +203,6 @@ class Object
 
     __send__(meth_name.to_sym, *as, &blk)
   end
+
+  alias_method :atomy_send, :send
 end
