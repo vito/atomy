@@ -73,13 +73,15 @@ module Atomy
     end
 
     def self.define_target
-      Thread.current[:atomy_define_in] ||
+      Thread.current.atomy_get_local(:atomy_define_in) ||
         get && get.name.to_s
     end
 
     def self.ensure(name, using = [])
-      Thread.current[:atomy_namespace] =
+      Thread.current.atomy_set_local(
+        :atomy_namespace,
         create(name, using)
+      )
     end
 
     def self.create(name, using = [])
@@ -89,11 +91,11 @@ module Atomy
 
     def self.get(name = nil)
       return NAMESPACES[name.to_sym] if name
-      Thread.current[:atomy_namespace]
+      Thread.current.atomy_get_local(:atomy_namespace)
     end
 
     def self.set(x)
-      Thread.current[:atomy_namespace] = x
+      Thread.current.atomy_set_local(:atomy_namespace, x)
     end
 
     def self.register(sym, name = nil)
@@ -110,6 +112,17 @@ module Atomy
   end
 end
 
+class Thread
+  def atomy_get_local(n)
+    @locals[n]
+  end
+
+  def atomy_set_local(n, v)
+    @locals[n] = v
+  end
+end
+
+# NOTE: this is currently not used
 # TODO: allow_private stuff
 def Rubinius.bind_call(recv, nmeth, *args, &blk)
   ns_name, meth_name = Atomy.from_namespaced(nmeth)
@@ -150,4 +163,42 @@ def Rubinius.bind_call(recv, nmeth, *args, &blk)
   end
 
   res
+end
+
+class Object
+  alias :respond_to_atomy_old? :respond_to?
+
+  def respond_to?(nmeth, include_private = false)
+    return true if respond_to_atomy_old?(nmeth, include_private)
+
+    ns_name, meth_name = Atomy.from_namespaced(nmeth)
+
+    if ns_name != "_" and \
+        ns = Atomy::Namespace.get(ns_name && ns_name.to_sym)
+      ns.top_down do |name|
+        m = Atomy.namespaced(name, meth_name)
+        return true if respond_to_atomy_old?(m, include_private)
+      end
+    end
+
+    false
+  end
+
+  def send(nmeth, *as, &blk)
+    return __send__(nmeth, *as, &blk) \
+      if respond_to_atomy_old?(nmeth, true)
+
+    ns_name, meth_name = Atomy.from_namespaced(nmeth)
+
+    if ns_name != "_" and \
+        ns = Atomy::Namespace.get(ns_name && ns_name.to_sym)
+      ns.top_down do |name|
+        m = Atomy.namespaced(name, meth_name)
+        return __send__(m, *as, &blk) \
+          if respond_to_atomy_old?(m, true)
+      end
+    end
+
+    __send__(meth_name.to_sym, *as, &blk)
+  end
 end
