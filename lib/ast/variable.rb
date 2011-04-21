@@ -30,7 +30,9 @@ module Atomy
           var.get_bytecode(g)
         else
           g.push_self
-          g.call_custom message_name.to_sym, 0
+          g.push_literal message_name.to_sym
+          g.send :atomy_send, 1
+          #g.call_custom message_name.to_sym, 0
         end
       end
 

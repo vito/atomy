@@ -30,11 +30,13 @@ module Atomy
       def bytecode(g)
         pos(g)
         @lhs.compile(g)
+        g.push_literal message_name.to_sym unless @namespace == "_"
         @rhs.compile(g)
         if @namespace == "_"
           g.send @operator.to_sym, 1
         else
-          g.call_custom method_name.to_sym, 1
+          g.send :atomy_send, 2
+          #g.call_custom method_name.to_sym, 1
         end
       end
     end

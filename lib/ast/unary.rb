@@ -30,7 +30,9 @@ module Atomy
         if @namespace == "_"
           g.send @operator.to_sym, 0
         else
-          g.call_custom method_name.to_sym, 0
+          g.push_literal message_name.to_sym
+          g.send :atomy_send, 1
+          #g.call_custom method_name.to_sym, 0
         end
       end
 

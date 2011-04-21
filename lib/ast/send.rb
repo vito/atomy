@@ -75,8 +75,8 @@ module Atomy
           if @namespace == "_"
             g.send_with_splat @method_name.to_sym, args, @private
           else
-            #g.call_custom_with_splat message_name.to_sym, args
             g.send_with_splat :atomy_send, args + 1
+            #g.call_custom_with_splat message_name.to_sym, args
           end
         elsif block
           block.compile(g)
