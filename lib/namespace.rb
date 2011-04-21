@@ -205,4 +205,15 @@ class Object
   end
 
   alias_method :atomy_send, :send
+
+  # TODO: method
+
+class Module
+  # TODO: alias_method, instance_method, module_function, private,
+  # private_class_method, protected, public, public_class_method
+  #
+  # TODO?: define_method, method_defined?, private_method_defined?,
+  # protected_method_defined?, public_method_defined?, remove_method,
+  # undef_method
+end
 end
