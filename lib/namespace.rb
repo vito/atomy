@@ -109,6 +109,19 @@ module Atomy
       return unless ns
       ns.name
     end
+
+    def self.try_methods(name)
+      ns_name, meth_name = Atomy.from_namespaced(name)
+
+      if ns_name != "_" and \
+          ns = Atomy::Namespace.get(ns_name && ns_name.to_sym)
+        ns.top_down do |name|
+          yield Atomy.namespaced(name, meth_name).to_sym
+        end
+      end
+
+      meth_name.to_sym
+    end
   end
 end
 
@@ -173,40 +186,45 @@ class Object
   def respond_to?(nmeth, include_private = false)
     return true if respond_to_atomy_old?(nmeth, include_private)
 
-    ns_name, meth_name = Atomy.from_namespaced(nmeth)
-
-    if ns_name != "_" and \
-        ns = Atomy::Namespace.get(ns_name && ns_name.to_sym)
-      ns.top_down do |name|
-        m = Atomy.namespaced(name, meth_name)
-        return true if respond_to_atomy_old?(m, include_private)
-      end
+    Atomy::Namespace.try_methods(nmeth) do |m|
+      return true if respond_to_atomy_old?(m, include_private)
     end
 
     false
   end
 
   def send(nmeth, *as, &blk)
-    return __send__(nmeth, *as, &blk) \
-      if respond_to_atomy_old?(nmeth, true)
+    if respond_to_atomy_old?(nmeth, true)
+      return __send__(nmeth, *as, &blk)
+    end
 
-    ns_name, meth_name = Atomy.from_namespaced(nmeth)
-
-    if ns_name != "_" and \
-        ns = Atomy::Namespace.get(ns_name && ns_name.to_sym)
-      ns.top_down do |name|
-        m = Atomy.namespaced(name, meth_name)
-        return __send__(m, *as, &blk) \
-          if respond_to_atomy_old?(m, true)
+    name = Atomy::Namespace.try_methods(nmeth) do |m|
+      if respond_to_atomy_old?(m, true)
+        return __send__(m, *as, &blk)
       end
     end
 
-    __send__(meth_name.to_sym, *as, &blk)
+    __send__(name, *as, &blk)
   end
 
   alias_method :atomy_send, :send
 
-  # TODO: method
+  alias :method_atomy_old :method
+
+  def method(nmeth)
+    sym = Rubinius::Type.coerce_to_symbol nmeth
+    cm = Rubinius.find_method(self, sym)
+
+    return Method.new(self, cm[1], cm[0], sym) if cm
+
+    name = Atomy::Namespace.try_methods(nmeth) do |m|
+      cm = Rubinius.find_method(self, m)
+      return Method.new(self, cm[1], cm[0], m) if cm
+    end
+
+    method_atomy_old(name)
+  end
+end
 
 class Module
   # TODO: alias_method, instance_method, module_function, private,
@@ -215,5 +233,4 @@ class Module
   # TODO?: define_method, method_defined?, private_method_defined?,
   # protected_method_defined?, public_method_defined?, remove_method,
   # undef_method
-end
 end
