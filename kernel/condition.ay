@@ -20,73 +20,33 @@ RestartException initialize(@context, @receiver, @args) :=
   super("you should never see or `rescue' this")
 
 
-doc"Condition system hierarchy. You should subclass one of these to create \
-your own conditions." for:
-  data(Object):
-    Condition:
-      Error:
-        SimpleError(@value)
-        ExceptionError(@exception)
-        NoRestartError(@name)
+section("Conditions"):
+  doc"Condition system hierarchy. You should subclass one of these to create \
+  your own conditions." for:
+    data(Object):
+      Condition:
+        Error:
+          SimpleError(@value)
+          ExceptionError(@exception)
+          NoRestartError(@name)
 
-      Warning:
-        SimpleWarning(@value)
+        Warning:
+          SimpleWarning(@value)
 
-doc"Get the name of a condition. By default, this will be the class name, \
-but you may override this for your own behaviour." for:
-  Condition name := class name
+  doc"Get the name of a condition. By default, this will be the class name, \
+  but you may override this for your own behaviour." for:
+    Condition name := class name
 
-doc"A human-friendly  message displayed for the condition. \
-Override this." for:
-  Condition message := inspect
+    ExceptionError name := @exception class name
 
-doc"
-  The default debugger. This will show the condition name, its message, \
-  and let the user pick from the available restarts." for:
-  class(DefaultDebugger):
-    class(<< self):
-      define(show-error-banner(e)):
-        ("-" * 78) print
-        (e name + ": " + e message) each-line [l]:
-          ("*** " + l) display
+  doc"A human-friendly  message displayed for the condition. \
+  Override this." for:
+    Condition message := inspect
 
-SimpleError message := @value to-s
-ExceptionError message := @exception message
-SimpleWarning message := @value to-s
-NoRestartError message := "unknown restart " + @name show
-
-ExceptionError name := @exception class name
-
-        "\n" display
-
-      define(show-options-for(e)):
-        linear = []
-        ^restarts reverse-each [[rs, context]]:
-          rs each-pair [n, x]:
-            linear << [context, n, x]
-
-        when(linear empty?):
-          exit(1)
-
-        "\n" display
-        "restarts:" print
-        linear each-with-index [[_, n, _], i]:
-          ("  :" + i to-s + " -> " + n to-s) print
-
-      define(run(e)):
-        show-error-banner(e)
-
-        linear = show-options-for(e)
-
-        "!> " display
-        [context, _, x] = linear [gets to-i]
-        raise(RestartException new(context, x, []))
-
-
-doc"
-  The current debugger. This should \hl{respond-to?(#run)} with the \
-  condition passed as an argument." for:
-  dynamic(debugger, DefaultDebugger)
+    SimpleError message := @value to-s
+    ExceptionError message := @exception message
+    SimpleWarning message := @value to-s
+    NoRestartError message := "unknown restart " + @name show
 
 
 section("Handling"):
@@ -95,6 +55,7 @@ section("Handling"):
 
     See \hl{with-restarts}.
   " spec {
+    name is-a?(Symbol)
     => any
   } for {
     restart(name, *args) := do:
@@ -117,6 +78,7 @@ section("Handling"):
 
     The result is the result of \hl{body}.
   " spec {
+    y contents all? [x]: x match { `(~_ -> ~_) -> true, _ -> false }
     => any
   } for {
     macro(body bind(&y)):
@@ -133,8 +95,8 @@ section("Handling"):
 
   doc"
     Register restarts available for the duration of \hl{body}'s execution.
-    The \hl{restarts} should be in the form of \hl{\italic{name}(*\italic{args}) -> \italic{body}}.
 
+    The \hl{restarts} should be in the form of \hl{\italic{name}(*\italic{args}) -> \italic{body}}.
 
     The result is the result of \hl{body}.
   " spec {
@@ -180,15 +142,16 @@ section("Signalling"):
     signal(c) := do:
       ^handlers reverse-each [callback]:
         callback [c]
+
       #ok
   } examples:
     signal(#foo)
     { signal(#foo) } bind: #foo -> "got foo" print
 
 
-
   doc"
     Like \hl{signal}, except that if no restart is triggered, the current \hl{^debugger} is started.
+
     If the given value is not an \hl{Error}, it is wrapped in a \hl{SimpleError}. If the value is a Ruby \hl{Exception}, it is wrapped in an \hl{ExceptionError}.
   " spec {
     => _
@@ -197,7 +160,6 @@ section("Signalling"):
     error(e: Exception) := error(ExceptionError new(e))
     error(e: Error) := do:
       signal(e)
-
 
       with-output-to(^error-port):
         ^debugger run(e)
@@ -225,3 +187,46 @@ section("Signalling"):
   } examples:
     warning("Suspicious!")
     { warning("Quiet, you!") } bind: Warning -> restart(#muffle-warning)
+
+
+section("Debuggers"):
+  doc"
+    The default debugger. This will show the condition name, its message, \
+    and let the user pick from the available restarts." for:
+    class(DefaultDebugger):
+      class(<< self):
+        define(show-error-banner(e)):
+          ("-" * 78) print
+          (e name + ": " + e message) each-line [l]:
+            ("*** " + l) display
+
+          "\n" display
+
+        define(show-options-for(e)):
+          linear = []
+          ^restarts reverse-each [[rs, context]]:
+            rs each-pair [n, x]:
+              linear << [context, n, x]
+
+          when(linear empty?):
+            exit(1)
+
+          "\n" display
+          "restarts:" print
+          linear each-with-index [[_, n, _], i]:
+            ("  :" + i to-s + " -> " + n to-s) print
+
+        define(run(e)):
+          show-error-banner(e)
+
+          linear = show-options-for(e)
+
+          "!> " display
+          [context, _, x] = linear [gets to-i]
+          raise(RestartException new(context, x, []))
+
+
+  doc"
+    The current debugger. This should \hl{respond-to?(#run)} with the \
+    condition passed as an argument." for:
+    dynamic(debugger, DefaultDebugger)
