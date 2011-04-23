@@ -61,10 +61,14 @@ Empty    <> (d: Doc) := d
 
 
 -- position one document above another, overlapping if possible
+(a: Doc) // Empty := a
+Empty // (b: Doc) := b
 (a: Doc) // (b: Doc) := Above new(a, b, true)
 
 
 -- position one document above another
+(a: Doc) /+/ Empty := a
+Empty /+/ (b: Doc) := b
 (a: Doc) /+/ (b: Doc) := Above new(a, b, false)
 
 
