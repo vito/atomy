@@ -17,13 +17,14 @@ for-macro:
 
   to-thumb(x: Atomy::AST::Macro) :=
     indent(escape(x pattern show))
-  to-thumb(x: Atomy::AST::BinarySend) :=
-    x operator match:
-      ":=" ->
-        indent(escape(x lhs show))
-  to-thumb(d: `(data())) :=
+  to-thumb(`(~meth := ~_)) :=
+    indent(escape(meth show))
+  to-thumb(d: `(data(Object))) :=
     let(atomy/pretty/multiline? = true):
       indent(escape(d block body show))
+  to-thumb(d: `(data(~r))) :=
+    let(atomy/pretty/multiline? = true):
+      indent(escape(`(~r ~(d block)) show))
   to-thumb(`(dynamic(~n, ~r))) :=
     indent(`^~n show + "\n> " + r show)
   to-thumb(`(class(~n))) :=
