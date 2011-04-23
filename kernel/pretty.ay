@@ -22,7 +22,7 @@ module(Atomy::AST):
   Quote unamb := pretty
   ScopedConstant unamb := pretty
   Send unamb :=
-    if([#binary, #send] include?(^context))
+    if(from?(#binary, #send))
       then: pretty
       else: Doc parens(pretty)
   Splice unamb := pretty
@@ -33,8 +33,19 @@ module(Atomy::AST):
   Variable unamb := pretty
   Node unamb := Doc parens(pretty)
 
-from(context, &y) :=
-  let(context = context, &y)
+from(*where, &y) :=
+  let(context = where flatten, &y)
+
+from?(*where) :=
+  [^context, where] match:
+    [(a: Array), (b: Array)] ->
+      a any? [x]: b include?(x)
+    [(a: Array), b] ->
+      a include?(b)
+    [a, (b: Array)] ->
+      b include?(a)
+    [a, b] ->
+      a == b
 
 export-to(atomy):
   Object pretty := Doc text(inspect)
@@ -97,14 +108,16 @@ export-to(atomy):
         doc: @lhs unamb <+> text(@operator) <+> @rhs unamb
 
     Block pretty :=
-      from(#top):
-        doc:
-          args =
-            if(@arguments empty?)
-              then: empty
-              else: brackets(comma-delim(@arguments all-pretty))
+      doc:
+        args =
+          if(@arguments empty?)
+            then: empty
+            else: brackets(from(#top): comma-delim(@arguments all-pretty))
 
-          args <+> lbrace <+> comma-delim(@contents all-pretty) <+> rbrace
+        contents = from(#top): comma-delim(@contents all-pretty)
+        if(from?(#send-block) && from?(#top))
+          then: args <> colon <+> contents
+          else: args <+> lbrace <+> contents <+> rbrace
 
     BlockPass pretty :=
       from(#unary):
@@ -170,16 +183,23 @@ export-to(atomy):
 
     Send pretty :=
       doc:
-        block = if(@block) then: @block unamb; else: empty
+        block =
+          from(#send-block, ^context):
+            if(@block) then: @block unamb; else: empty
 
         with-block = [x]:
-          if(^multiline? && @block is-a?(Block))
-            then:
+          condition:
+            ^multiline? && @block is-a?(Block) -> do:
               cs = vcat(@block contents all-pretty) nest(2)
               if(^context == #top)
                 then: x <> colon // cs
                 else: x <+> lbrace // cs // rbrace
-            else: x <+> block
+
+            from?(#top) ->
+              x <> block
+
+            otherwise ->
+              x <+> block
 
         args =
           from(#top):
