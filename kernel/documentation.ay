@@ -1,0 +1,130 @@
+namespace(atomy/documentation)
+
+for-macro:
+  escape(x) :=
+    x gsub(r"[\{\}\\]", raw"\\\0")
+
+  indent(x, n = 1) :=
+    x split("\n") collect [x] { (" " * n * 2) + x } join("\n")
+
+  str-expr(e) :=
+    escape(
+      e match:
+        String -> e
+        Atomy::AST::String -> e value
+        _ -> e show
+    )
+
+  to-thumb(x: Atomy::AST::Macro) :=
+    indent(escape(x pattern show))
+  to-thumb(x: Atomy::AST::BinarySend) :=
+    x operator match:
+      ":=" ->
+        indent(escape(x lhs show))
+  to-thumb(d: `(data())) :=
+    let(atomy/pretty/multiline? = true):
+      indent(escape(d block body show))
+  to-thumb(`(dynamic(~n, ~r))) :=
+    indent(`^~n show + "\n> " + r show)
+  to-thumb(`(class(~n))) :=
+    indent(n show + "\n> Class")
+
+  to-spec([]) := ""
+  to-spec(b) :=
+    "\n" + indent(
+      b collect [e] {
+        e match:
+          `(=> ~x) ->
+            "> " + str-expr(x)
+
+          _ ->
+            "| " + str-expr(e)
+      } join("\n")
+    )
+
+  to-examples(b) :=
+    b collect [e] {
+      "    " + str-expr(e)
+    } join("\n")
+
+export-to(atomy):
+  -- TODO: shoudln't need to export this; not being resolved in #section
+  macro(for-docs(&body)):
+    `(when(^documentation):
+        ^documentation << ~(body block-body))
+
+  macro-quoter(doc) [c]:
+    for-docs:
+      c + "\n\n"
+
+    c
+
+  macro-quoter(title) [c]:
+    for-docs:
+      "\\title{" + escape(c) + "}\n\n"
+
+    c
+
+  macro(section(name, &body)):
+    `(do:
+        evaluate-when(compile):
+          for-docs: "\\section{" + ~name + "}{\n\\style{Atomy}\n\n"
+
+        res = ~(body caller)
+
+        evaluate-when(compile):
+          for-docs: "}"
+        
+        res)
+
+  macro(docs spec(&s) for(&code)):
+    for-docs:
+      [ "\\define{"
+        "\n" + to-thumb(code contents first)
+        to-spec(s contents)
+        "\n}{"
+        docs contents
+        "}\n\n"
+      ] join
+
+    code block-body
+
+  macro(docs for(&code)):
+    for-docs:
+      [ "\\define{"
+        "\n" + to-thumb(code contents first)
+        "\n}{"
+        docs contents
+        "}\n\n"
+      ] join
+
+    code block-body
+
+  macro(docs spec(&s) for(&code) examples(&es)):
+    for-docs:
+      [ "\\define{"
+        "\n" + to-thumb(code contents first)
+        to-spec(s contents)
+        "\n}{"
+        docs contents
+        "\n  \\examples{"
+        "\n" + to-examples(es contents)
+        "\n  }"
+        "\n}\n\n"
+      ] join
+
+    code block-body
+
+  macro(docs for(&code) examples(&es)):
+    for-docs:
+      [ "\\define{"
+        "\n" + to-thumb(code contents first)
+        "\n}{"
+        docs contents
+        "\n  \\examples{"
+        "\n" + to-examples(es contents)
+        "\n  }"
+        "\n}\n\n"
+      ] join
+
+    code block-body

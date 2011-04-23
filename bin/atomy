@@ -25,11 +25,6 @@ def require_atomy(*as)
   end
 end
 
-a = Time.now
-puts "loading kernel"
-require_atomy(kernel + "/boot.ay")
-puts Time.now - a
-
 options = {}
 
 unless ARGV.empty? || ARGV[0][0] != ?-
@@ -52,12 +47,21 @@ unless ARGV.empty? || ARGV[0][0] != ?-
       options[:load] = v
     end
 
+    o.on("-d", "--documentation DIR", "generate documentation with output to DIR") do |v|
+      Atomy::CodeLoader.documentation = v
+    end
+
     o.on_tail("-h", "--help", "show this message") do
       puts o
       exit
     end
   end.parse!
 end
+
+a = Time.now
+puts "loading kernel"
+require_atomy(kernel + "/boot.ay")
+puts Time.now - a
 
 Atomy::Namespace.ensure(:user)
 

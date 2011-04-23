@@ -5,6 +5,6 @@ macro(import(name)): `(require-atomy(~name, "load" to-sym))
 
 "operators define data comparison dynamic control-flow namespaces
 patterns precision data-delta particles hashes node block errors
-doc pretty format concurrency io condition therie repl" split each [k]:
+doc pretty documentation format concurrency io condition therie repl" split each [k]:
   puts("loading " + k)
   import(File expand-path("../", _FILE) + "/" + k)
