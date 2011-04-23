@@ -102,9 +102,9 @@ export-to(atomy):
           args =
             if(@arguments empty?)
               then: empty
-              else: parens(comma-delim(@arguments all-pretty))
+              else: brackets(comma-delim(@arguments all-pretty))
 
-          args <> lbrace <+> comma-delim(@contents all-pretty) <+> rbrace
+          args <+> lbrace <+> comma-delim(@contents all-pretty) <+> rbrace
 
     BlockPass pretty :=
       from(#unary):
