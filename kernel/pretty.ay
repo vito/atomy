@@ -1,5 +1,8 @@
 namespace(atomy/pretty)
 
+dynamic(multiline?, false)
+dynamic(context, #top)
+
 comma-delim(ds) :=
   hsep(comma punctuate(ds))
 
@@ -17,6 +20,10 @@ module(Atomy::AST):
   QuasiQuote unamb := pretty
   Quote unamb := pretty
   ScopedConstant unamb := pretty
+  Send unamb :=
+    if([#binary, #send] include?(^context))
+      then: pretty
+      else: Doc parens(pretty)
   Splice unamb := pretty
   String unamb := pretty
   ToplevelConstant unamb := pretty
@@ -24,6 +31,9 @@ module(Atomy::AST):
   Unquote unamb := pretty
   Variable unamb := pretty
   Node unamb := Doc parens(pretty)
+
+from(context, &y) :=
+  let(context = context, &y)
 
 export-to(atomy):
   Object pretty := Doc text(inspect)
@@ -65,8 +75,8 @@ export-to(atomy):
 
   Symbol pretty := do:
     s = to-s
-    if(s =~ r(u)"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-\\:.\/\?])*$")
-      then: Doc text("#" + s)
+    if(s =~ r(u)"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-_\\:.\/\?])*$")
+      then: Doc text("#") <> Doc ident(s)
       else: Doc text("#") <> s pretty
 
   Hash pretty := doc:
@@ -77,26 +87,33 @@ export-to(atomy):
             k unamb <+> text("->") <+> v unamb))
 
   module(Atomy::AST):
-    Assign pretty := doc: @lhs unamb <+> text("=") <+> @rhs unamb
+    Assign pretty :=
+      from(#assign):
+        doc: @lhs unamb <+> text("=") <+> @rhs unamb
 
-    BinarySend pretty := doc:
-      @lhs unamb <+> text(@operator) <+> @rhs unamb
+    BinarySend pretty :=
+      from(#binary):
+        doc: @lhs unamb <+> text(@operator) <+> @rhs unamb
 
-    Block pretty := doc:
-      args =
-        if(@arguments empty?)
-          then: empty
-          else: parens(comma-delim(@arguments all-pretty))
+    Block pretty :=
+      from(#top):
+        doc:
+          args =
+            if(@arguments empty?)
+              then: empty
+              else: parens(comma-delim(@arguments all-pretty))
 
-      args <> lbrace <+> comma-delim(@contents all-pretty) <+> rbrace
+          args <> lbrace <+> comma-delim(@contents all-pretty) <+> rbrace
 
-    BlockPass pretty := doc: text("&") <> @body unamb
+    BlockPass pretty :=
+      from(#unary):
+        doc: text("&") <> @body unamb
 
     Class pretty := doc:
       sub =
         if(@superclass kind-of?(Primitive) && @superclass value == #nil)
           then: empty
-          else: text("<") <+> @superclass unamb
+          else: text("<") <+> from(#binary): @superclass unamb
 
       name =
         @name match:
@@ -111,13 +128,17 @@ export-to(atomy):
 
     Constant pretty := doc: text(@identifier)
 
-    Define pretty := doc: @lhs unamb <+> text(":=") <+> @body unamb
+    Define pretty :=
+      from(#define):
+        doc: @lhs unamb <+> text(":=") <+> @body unamb
 
     GlobalVariable pretty := doc: ident(name to-s)
 
     InstanceVariable pretty := doc: ident(name to-s)
 
-    List pretty := doc: brackets(comma-delim(@elements all-pretty))
+    List pretty :=
+      from(#top):
+        doc: brackets(comma-delim(@elements all-pretty))
 
     Macro pretty := doc:
       text("macro") <+> parens(@pattern pretty) <+> @body pretty
@@ -133,40 +154,67 @@ export-to(atomy):
         #nil -> text("nil")
         x -> x pretty
 
-    QuasiQuote pretty := doc: text("`") <> @expression unamb
+    QuasiQuote pretty :=
+      from(#unary):
+        doc: text("`") <> @expression unamb
 
-    Quote pretty := doc: text("'") <> @expression unamb
+    Quote pretty :=
+      from(#unary):
+        doc: text("'") <> @expression unamb
 
-    ScopedConstant pretty := doc:
-      @parent unamb <> text("::") <> text(name to-s)
+    ScopedConstant pretty :=
+      from(#scoped-constant):
+        doc:
+          @parent unamb <> text("::") <> text(name to-s)
 
-    Send pretty := doc:
-      block = if(@block) then: @block pretty; else: empty
+    Send pretty :=
+      doc:
+        block = if(@block) then: @block unamb; else: empty
 
-      args =
-        if(@arguments empty?)
-          then: empty
-          else: parens(comma-delim(@arguments all-pretty))
+        with-block = [x]:
+          if(^multiline? && @block is-a?(Block))
+            then:
+              cs = vcat(@block contents all-pretty) nest(2)
+              if(^context == #top)
+                then: x <> colon // cs
+                else: x <+> lbrace // cs // rbrace
+            else: x <+> block
 
-      if(@receiver kind-of?(Primitive) && @receiver value == #"self")
-        then: ident(@method-name) <> args <+> block
-        else:
-          @receiver unamb <+> ident(@method-name) <> args <+> block
+        args =
+          from(#top):
+            if(@arguments empty?)
+              then: empty
+              else: parens(comma-delim(@arguments all-pretty))
 
-    Splice pretty := doc: text("~*") <> @expression unamb
+        condition:
+          @receiver kind-of?(Primitive) && @receiver value == #"self" ->
+            with-block [ident(@method-name) <> args]
+
+          otherwise ->
+            with-block [from(#send) { @receiver unamb } <+> ident(@method-name) <> args]
+
+    Splice pretty :=
+      from(#unary):
+        doc: text("~*") <> @expression unamb
 
     String pretty := @value pretty
 
     ToplevelConstant pretty := doc: text("::") <> text(name to-s)
 
-    Unary pretty := doc: text(@operator) <> @receiver unamb
+    Unary pretty :=
+      from(#unary):
+        doc: text(@operator) <> @receiver unamb
 
-    Unquote pretty := doc: text("~") <> @expression unamb
+    Unquote pretty :=
+      from(#unary):
+        doc: text("~") <> @expression unamb
 
     Variable pretty := doc: ident(@name)
 
-    InlinedBody pretty := doc:
-      parens(hsep(comma punctuate(@expressions collect [e]: e pretty)))
+    InlinedBody pretty :=
+      from(#top):
+        doc:
+          parens(hsep(comma punctuate(@expressions collect [e]: e pretty)))
 
     Or pretty := `(~@a || ~@b) pretty
 
