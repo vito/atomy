@@ -195,7 +195,7 @@ export-to(atomy):
                 then: x <> colon // cs
                 else: x <+> lbrace // cs // rbrace
 
-            from?(#top) ->
+            from?(#top) && @block arguments empty? ->
               x <> block
 
             otherwise ->
