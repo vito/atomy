@@ -236,6 +236,9 @@ module(Atomy::AST):
     Particle pattern :=
       Atomy::Patterns::Particle new(@name to-sym)
 
+    QuasiQuote pattern :=
+      Atomy::Patterns::QuasiQuote new(self)
+
     Send pattern :=
       if(@block)
         then:
@@ -249,9 +252,6 @@ module(Atomy::AST):
             @method-name
             @arguments
           )
-
-    QuasiQuote pattern :=
-      Atomy::Patterns::QuasiQuote new(self)
 
     String pattern :=
       Atomy::Patterns::Match new(@value)

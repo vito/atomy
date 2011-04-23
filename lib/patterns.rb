@@ -246,6 +246,12 @@ module Atomy::Patterns
     end
   end
 
+  class Atomy::AST::String
+    def pattern
+      Match.new(@value)
+    end
+  end
+
   class Atomy::AST::Particle
     def pattern
       Particle.new(@name.to_sym) # TODO: other forms
