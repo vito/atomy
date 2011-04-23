@@ -6,7 +6,7 @@ dynamic(context, #top)
 comma-delim(ds) :=
   hsep(comma punctuate(ds))
 
-ident(n) := text(n tr("_", "-") gsub("_ns_", "/"))
+ident(n) := text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
 
 module(Atomy::AST):
   Block unamb := pretty
