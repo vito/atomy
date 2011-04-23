@@ -13,6 +13,7 @@ module(Atomy::AST):
   ClassVariable unamb := pretty
   Constant unamb := pretty
   GlobalVariable unamb := pretty
+  (InlinedBody ? @contents size < 2) unamb := pretty
   InstanceVariable unamb := pretty
   List unamb := pretty
   Particle unamb := pretty
@@ -214,7 +215,7 @@ export-to(atomy):
     InlinedBody pretty :=
       from(#top):
         doc:
-          parens(hsep(comma punctuate(@expressions collect [e]: e pretty)))
+          hsep(comma punctuate(@expressions collect [e]: e pretty))
 
     Or pretty := `(~@a || ~@b) pretty
 
