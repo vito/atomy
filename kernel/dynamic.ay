@@ -39,5 +39,5 @@ macro(let(*bindings, &body)):
   `(do:
       ~*save
       { ~*set
-        ~*(body contents)
+        ~(body caller)
       } ensuring: ~*restore)
