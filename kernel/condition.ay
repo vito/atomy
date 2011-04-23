@@ -1,5 +1,14 @@
 namespace(atomy)
 
+title "Condition System"
+
+doc"
+Rather than traditional exceptions, Atomy sports a condition/restart system \
+modeled on Common Lisp's design. The native Ruby exception handling is \
+available, but conditions and restarts are much more flexible.
+"
+
+-- registered handlers/restarts
 dynamic(handlers, [])
 dynamic(restarts, [])
 
@@ -11,18 +20,35 @@ RestartException initialize(@context, @receiver, @args) :=
   super("you should never see or `rescue' this")
 
 
--- Base condition hierarchy
-data(Object):
-  Condition:
-    Error:
-      SimpleError(@value)
-      ExceptionError(@exception)
-      NoRestartError(@name)
+doc"Condition system hierarchy. You should subclass one of these to create \
+your own conditions." for:
+  data(Object):
+    Condition:
+      Error:
+        SimpleError(@value)
+        ExceptionError(@exception)
+        NoRestartError(@name)
 
-    Warning:
-      SimpleWarning(@value)
+      Warning:
+        SimpleWarning(@value)
 
-Condition name := class name
+doc"Get the name of a condition. By default, this will be the class name, \
+but you may override this for your own behaviour." for:
+  Condition name := class name
+
+doc"A human-friendly  message displayed for the condition. \
+Override this." for:
+  Condition message := inspect
+
+doc"
+  The default debugger. This will show the condition name, its message, \
+  and let the user pick from the available restarts." for:
+  class(DefaultDebugger):
+    class(<< self):
+      define(show-error-banner(e)):
+        ("-" * 78) print
+        (e name + ": " + e message) each-line [l]:
+          ("*** " + l) display
 
 SimpleError message := @value to-s
 ExceptionError message := @exception message
@@ -31,108 +57,171 @@ NoRestartError message := "unknown restart " + @name show
 
 ExceptionError name := @exception class name
 
--- Default debugger; show the error message and let them
--- pick from the available restarts.
-class(DefaultDebugger):
-  class(<< self):
-    define(show-error-banner(e)):
-      ("-" * 78) print
-      (e name + ": " + e message) each-line [l]:
-        ("*** " + l) display
+        "\n" display
 
-      "\n" display
+      define(show-options-for(e)):
+        linear = []
+        ^restarts reverse-each [[rs, context]]:
+          rs each-pair [n, x]:
+            linear << [context, n, x]
 
-    define(show-options-for(e)):
-      linear = []
+        when(linear empty?):
+          exit(1)
+
+        "\n" display
+        "restarts:" print
+        linear each-with-index [[_, n, _], i]:
+          ("  :" + i to-s + " -> " + n to-s) print
+
+      define(run(e)):
+        show-error-banner(e)
+
+        linear = show-options-for(e)
+
+        "!> " display
+        [context, _, x] = linear [gets to-i]
+        raise(RestartException new(context, x, []))
+
+
+doc"
+  The current debugger. This should \hl{respond-to?(#run)} with the \
+  condition passed as an argument." for:
+  dynamic(debugger, DefaultDebugger)
+
+
+section("Handling"):
+  doc"
+    Trigger the \hl{name} restart, passing \hl{args} along to its callback.
+
+    See \hl{with-restarts}.
+  " spec {
+    => any
+  } for {
+    restart(name, *args) := do:
       ^restarts reverse-each [[rs, context]]:
-        rs each-pair [n, x]:
-          linear << [context, n, x]
+        rs [name] match:
+          (x: Proc) ->
+            raise(RestartException new(context, x, args))
 
-      when(linear empty?):
-        exit(1)
-
-      "\n" display
-      "restarts:" print
-      linear each-with-index [[_, n, _], i]:
-        ("  :" + i to-s + " -> " + n to-s) print
-
-    define(run(e)):
-      show-error-banner(e)
-
-      linear = show-options-for(e)
-
-      "!> " display
-      [context, _, x] = linear [gets to-i]
-      raise(RestartException new(context, x, []))
+      error(NoRestartError new(name))
+  } examples:
+    { with-restarts(foo -> 42):
+        signal(#bar)
+    } bind: #bar -> restart(#foo)
 
 
--- the current debugging handler; should be an object
--- that will respond to #run with the error passed.
-dynamic(debugger, DefaultDebugger)
+  doc"
+    Register handlers for various signals for the duration of \hl{x}'s execution.
+
+    The body of \hl{y} is similar to \hl{match}; \hl{\italic{pattern} -> \italic{body}}.
+
+    The result is the result of \hl{body}.
+  " spec {
+    => any
+  } for {
+    macro(body bind(&y)):
+      names [a]:
+        callback = `([~a]: ~a match: ~*(y contents))
+        `(let(handlers = ^handlers + [~callback]):
+            ~body rescue:
+              (e: StandardError) -> error(e))
+  } examples:
+    { signal(#a) } bind: #a -> "got A!" print
+    { signal(#b) } bind: #a -> "got A!" print
+    { { signal(#a) } bind: #a -> "inner" print } bind: #a -> "outer" print
 
 
--- send a signal through the handlers, nearest-first
-signal(c) := do:
-  ^handlers reverse-each [callback]:
-    callback [c]
-
-  #ok
-
--- send a signal, and start the debugger if none handle it
-error(v) := error(SimpleError new(v))
-error(e: Exception) := error(ExceptionError new(e))
-error(e: Error) := do:
-  signal(e)
-
-  with-output-to(^error-port):
-    ^debugger run(e)
-
--- send a signal, and write the message to the error port
-warning(v) := warning(SimpleWarning new(v))
-warning(w: Warning) :=
-  with-restarts(muffle-warning -> #ok):
-    signal(w)
-
-    with-output-to(^error-port):
-      w message print
-
-  #ok
+  doc"
+    Register restarts available for the duration of \hl{body}'s execution.
+    The \hl{restarts} should be in the form of \hl{\italic{name}(*\italic{args}) -> \italic{body}}.
 
 
--- call a restart with the given args
-restart(name, *args) := do:
-  ^restarts reverse-each [[rs, context]]:
-    rs [name] match:
-      (x: Proc) ->
-        raise(RestartException new(context, x, args))
+    The result is the result of \hl{body}.
+  " spec {
+    => any
+  } for {
+    macro(with-restarts(*restarts, &body)):
+      names [context]:
+        rs = restarts collect [`(~n -> ~e)]:
+          n match:
+            Atomy::AST::Variable ->
+              `(#~n -> { ~e })
 
-  error(NoRestartError new(name))
+            Atomy::AST::Send -> do:
+              name = Atomy::AST::Variable new(0, n method-name)
+              `(#~name -> [~*(n arguments)] { ~e })
+
+        `({ let(restarts = ^restarts + [[#[~*rs], #~context]]):
+              ~body rescue:
+                (e: StandardError) -> error(e)
+          } rescue:
+            (e: RestartException(#~context, recv, args)) ->
+              recv call(*args))
+  } examples:
+    { with-restarts(x -> 1, y -> 2):
+        signal(#a)
+    } bind: #a -> restart(#x)
+
+    { with-restarts(x -> 1, y -> 2):
+        signal(#a)
+    } bind: #a -> restart(#y)
+
+    { with-restarts(x(a) -> a * 7):
+        signal(#a)
+    } bind: #a -> restart(#x, 6)
 
 
--- register handlers for executing some action
-macro(x bind(&y)):
-  names [a]:
-    callback = `([~a]: ~a match: ~*(y contents))
-    `(let(handlers = ^handlers + [~callback]):
-        ~x rescue:
-          (e: StandardError) -> error(e))
+section("Signalling"):
+  doc"
+    Signal a value through all bound handlers, nearest-first, stopping when one triggers a restart.
+  " spec {
+    => #ok
+  } for {
+    signal(c) := do:
+      ^handlers reverse-each [callback]:
+        callback [c]
+      #ok
+  } examples:
+    signal(#foo)
+    { signal(#foo) } bind: #foo -> "got foo" print
 
--- register restarts available to handlers for the duration
--- of some action's executation
-macro(with-restarts(*restarts, &body)):
-  names [context]:
-    rs = restarts collect [`(~n -> ~e)]:
-      n match:
-        Atomy::AST::Variable ->
-          `(#~n -> { ~e })
 
-        Atomy::AST::Send -> do:
-          name = Atomy::AST::Variable new(0, n method-name)
-          `(#~name -> [~*(n arguments)] { ~e })
 
-    `({ let(restarts = ^restarts + [[#[~*rs], #~context]]):
-          ~body rescue:
-            (e: StandardError) -> error(e)
-      } rescue:
-        (e: RestartException(#~context, recv, args)) ->
-          recv call(*args))
+  doc"
+    Like \hl{signal}, except that if no restart is triggered, the current \hl{^debugger} is started.
+    If the given value is not an \hl{Error}, it is wrapped in a \hl{SimpleError}. If the value is a Ruby \hl{Exception}, it is wrapped in an \hl{ExceptionError}.
+  " spec {
+    => _
+  } for {
+    error(v) := error(SimpleError new(v))
+    error(e: Exception) := error(ExceptionError new(e))
+    error(e: Error) := do:
+      signal(e)
+
+
+      with-output-to(^error-port):
+        ^debugger run(e)
+  } examples:
+    error("Oh no!")
+    { error("Oh no!") } bind: Error -> "INCOMING" print
+
+
+  doc"
+    Like \hl{signal}, except that if no restart is triggered, the warning is printed to \hl{^error-port}.
+
+    If the given value is not a \hl{Warning}, it is wrapped in a \hl{SimpleWarning}. Warning messages can be muffled by binding for \hl{Warning} and triggering the \hl{#muffle-warning} restart.
+  " spec {
+    => #ok
+  } for {
+    warning(v) := warning(SimpleWarning new(v))
+    warning(w: Warning) :=
+      with-restarts(muffle-warning -> #ok):
+        signal(w)
+
+        with-output-to(^error-port):
+          w message print
+
+      #ok
+  } examples:
+    warning("Suspicious!")
+    { warning("Quiet, you!") } bind: Warning -> restart(#muffle-warning)
