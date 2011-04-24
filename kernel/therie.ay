@@ -1,90 +1,193 @@
 namespace(therie)
 
+title"Testing with Therie"
+
+doc"
+Therie is a small and simple behavioral-style testing suite that comes with
+Atomy. To use it, you should use the \hl{therie} namespace, which provides the
+following methods.
+
+\atomy{
+  use(therie)
+}
+"
+
 dynamic(nesting-level, 0)
 
-class(Stats):
-  attr-accessor(#passed, #failed)
+doc"
+  A trivial container of \hl{passed} and \hl{failed} counts, with accessors \
+  for both.
+" for:
+  class(Stats):
+    attr-accessor(#passed, #failed)
 
-  initialize := do:
-    @passed = 0
-    @failed = 0
+    export:
+      initialize := do:
+        @passed = 0
+        @failed = 0
 
-indentation :=
-  " " * (^nesting-level * 2)
+      inspect := f"Stats(@passed = %d, @failed = %d)" [@passed, @failed]
 
-theorize(&as) := do:
-  $stats = Stats new
+  dynamic(stats, nil)
 
-  as call
-  "\n" display
 
-  $stats onto:
-    f"total of %d tests (%s passed, %s failed)" [
-      failed + passed
-      passed to-s colored(#green)
-      if(failed == 0)
-        then: "0"
-        else: failed to-s colored(#red)
-    ] display
+section("Structure"):
+  doc"\evaluate{use(therie)}"
 
-    "\n" display
+  doc"
+    Run \hl{tests} and keep track of how many passed and how many failed, \
+    printing the stats at the end and returning them.
+  " spec {
+    => Stats
+  } for {
+    theorize(&tests) :=
+      let(stats = Stats new):
+        tests call
+        "\n" display
 
-o should(&check) :=
-  unless(o onto(&check)):
-    raise(f"assertion failed for %v" [o])
+        ^stats onto:
+          f"total of %d tests (%s passed, %s failed)" [
+            failed + passed
+            passed to-s colored(#green)
+            if(failed == 0)
+              then: "0"
+              else: failed to-s colored(#red)
+          ] display
 
-x should-be(y) :=
-  unless(x == y):
-    raise(f"expected %v, got %v" [x, y])
+          "\n" display
 
-x should-raise(y) :=
-  x rescue {
-    e ->
-      unless(e kind-of?(y)):
-        raise(f"expected exception %s, got: %s" [y, e])
-  } else:
-      raise("#should-raise - no exception raised")
+        ^stats
+  } examples:
+    theorize:
+      describe("foo"):
+        it("does x"): true should-be(false)
+        it("does x"): true should-be(true)
 
-x should-error(y) :=
-  { with-restarts(errored -> nil):
-      x call write
-      raise("#should-error - no error signaled")
-  } bind {
-    (e: ExceptionError) ->
-      raise(e exception)
 
-    (e: Error) -> do:
-      when(e kind-of?(y)):
-        restart(#errored)
+  doc"
+    Logically group together a set of behavior.
 
-      raise(f"expected error %s, got: %s" [y, e message])
-  }
+    Prints out \hl{what}, with each test in \hl{body} indented afterward.
+  " for {
+    describe(what, &body) := do:
+      f"- %s" [what] indented print
 
-describe(x, &body) := do:
-  f"- %s" [x] indented print
-  let(nesting-level = ^nesting-level + 1):
-    body call
+      let(nesting-level = ^nesting-level + 1):
+        body call
 
-it(description, &tests) :=
-  { tests call
-    f"✓ %s" [description] indented colored(#green) print
-  } rescue {
-    e -> do:
-      $stats failed += 1
-      f"✗ %s" [description] indented colored(#red) print
-      f"  ` %s: %s" [
-        e class name
-        e message
-      ] indented colored(#yellow) print
+      nil
+  } examples:
+    describe("foo"):
+      it("does x"): true should-be(false)
+      it("does x"): true should-be(true)
 
-      e backtrace first(5) each [l]:
-        f"    %s" [l colored(#cyan)] indented print
-  } else:
-      $stats passed += 1
 
-String indented := indentation + self
+  doc"
+    Describe some behavior that the tests in \hl{body} will demonstrate.
+  " for {
+    it(description, &tests) := do:
+      { tests call
+        f"✓ %s" [description] indented colored(#green) print
+      } rescue {
+        e -> do:
+          when(^stats):
+            ^stats failed += 1
+
+          f"✗ %s" [description] indented colored(#red) print
+          f"  ` %s: %s" [
+            e class name
+            e message
+          ] indented colored(#yellow) print
+
+          e backtrace first(5) each [l]:
+            f"    %s" [l colored(#cyan)] indented print
+      } else:
+        when(^stats):
+          ^stats passed += 1
+
+      nil
+  } examples:
+    it("adds correctly"): (2 + 2) should-be(4)
+    it("adds correctly"): (1 + 2) should-be(4)
+
+
+section("Tests"):
+  doc"\evaluate{use(therie)}"
+
+  doc"
+    Test that \hl{predicate} is satisified by \hl{o} by evaluating it with \
+    \hl{o} as \hl{self}.
+  " for {
+    o should(&check) :=
+      unless(o onto(&check)):
+        raise(f"assertion failed for %v" [o])
+  } examples:
+    (2 + 2) should: even?
+    (2 + 2) should: odd?
+
+
+  doc"
+    Test for \hl{x == y}.
+  " for {
+    x should-be(y) :=
+      unless(x == y):
+        raise(f"expected %v, got %v" [y, x])
+  } examples:
+    (2 + 2) should-be(4)
+    (1 + 2) should-be(4)
+
+
+  doc"
+    Test that executing \hl{x} will raise an exception of class \hl{y}.
+  " spec {
+    x respond-to?(#call)
+    y is-a?(Class)
+  } for {
+    x should-raise(y) :=
+      x rescue {
+        e ->
+          unless(e kind-of?(y)):
+            raise(f"expected exception %s, got: %s" [y, e])
+      } else:
+          raise("#should-raise - no exception raised")
+  } examples:
+    { abc } should-raise(NoMethodError)
+    { #ok } should-raise(NoMethodError)
+
+
+  doc"
+    Test that executing \hl{x} will signal an error of class \hl{y}.
+  " spec {
+    x respond-to?(#call)
+    y is-a?(Class)
+  } for {
+    x should-error(y) :=
+      { with-restarts(errored -> nil):
+          x call
+          raise("#should-error - no error signaled")
+      } bind {
+        (e: ExceptionError) ->
+          raise(e exception)
+
+        (e: Error) -> do:
+          when(e kind-of?(y)):
+            restart(#errored)
+
+          raise(f"expected error %s, got: %s" [y, e message])
+      }
+  } examples:
+    { error(#foo) } should-error(SimpleError)
+    { #ok } should-error(SimpleError)
+
+
+-- helpers
+String indented := " " * (^nesting-level * 2) + self
 
 String colored(color) := do:
+  -- only makes sense to colorize if we're outputting to a terminal
+  unless(^output-port tty?):
+    return(self)
+
   codes =
     [ #black
       #red
