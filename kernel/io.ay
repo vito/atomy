@@ -1,18 +1,244 @@
 namespace(atomy)
 
-dynamic(output-port, $stdout)
-dynamic(input-port, $stdin)
-dynamic(error-port, $stderr)
+-- condition kernel not loaded yet; predeclare this
+symbols(error)
 
-x print := x tap: ^output-port puts(x to-s)
-x display := x tap: ^output-port send(#print, x to-s)
-x write := x tap: ^output-port puts(x show)
+title"Input & Output"
 
-with-output-to((x: String), mode = "w", &y) :=
-  let(output-port = File open(x, mode)):
-    y ensuring:
-      ^output-port close
+doc"Where to write normal output." for:
+  dynamic(output-port, $stdout)
 
-with-output-to(x, &y) :=
-  let(output-port = x):
-    y call
+doc"Where to read input from." for:
+  dynamic(input-port, $stdin)
+
+doc"Where to write error/warning output." for:
+  dynamic(error-port, $stderr)
+
+section("Output"):
+  doc"
+    Write \hl{x to-s} to \hl{^output-port}, followed by a linebreak.
+  " spec {
+    => x
+  } for {
+    x print := x tap: ^output-port puts(x to-s)
+  } examples:
+    1 print
+    "hello" print
+
+  doc"
+    Write \hl{x to-s} to \hl{^output-port}.
+  " spec {
+    => x
+  } for {
+    x display := x tap: ^output-port send(#print, x to-s)
+  } examples:
+    1 display
+    "hello" display
+
+  doc"
+    Write \hl{x show} to \hl{^output-port}.
+  " spec {
+    => x
+  } for {
+    x write := x tap: ^output-port puts(x show)
+  } examples:
+    1 write
+    "hello" write
+
+  doc"
+    Set \hl{^output-port} to write output to \hl{filename} for the duration \
+    of \hl{action}, ensuring that the file is closed.
+
+    Returns the result of \hl{action}.
+  " spec {
+    filename is-a?(String)
+    mode is-a?(String)
+    => any
+  } for {
+    with-output-to((filename: String), mode = "w", &action) :=
+      let(output-port = File open(filename, mode)):
+        action ensuring:
+          ^output-port close
+  } examples:
+    with-output-to("foo"):
+      42 print
+
+    with-output-to("foo", "a"):
+      "hello" print
+
+    File open("foo", &#read)
+
+  doc"
+    Set \hl{^output-port} to write to \hl{io} for the duration of \hl{action}.
+
+    Returns the result of \hl{action}.
+  " spec {
+    => any
+  } for {
+    with-output-to(io, &action) :=
+      let(output-port = io, &action)
+  } examples:
+    require("stringio")
+    x = StringIO new
+    with-output-to(x):
+      "hello!" write
+    x string
+
+  doc"
+    Set \hl{^error-port} to write error output to \hl{filename} for the \
+    duration of \hl{action}, ensuring that the file is closed.
+
+    Returns the result of \hl{action}.
+  " spec {
+    filename is-a?(String)
+    mode is-a?(String)
+    => any
+  } for {
+    with-error-to((filename: String), mode = "w", &action) :=
+      let(error-port = File open(filename, mode)):
+        action ensuring:
+          ^error-port close
+  } examples:
+    with-error-to("foo", "a"):
+      warning(#some-warning)
+
+    File open("foo", &#read)
+
+  doc"
+    Set \hl{^error-port} to write to \hl{io} for the duration of \hl{action}.
+
+    Returns the result of \hl{action}.
+  " spec {
+    => any
+  } for {
+    with-error-to(io, &action) :=
+      let(error-port = io, &action)
+  } examples:
+    require("stringio")
+    x = StringIO new
+
+    with-error-to(x):
+      warning(#foo)
+
+    x string
+
+section("Input"):
+  doc"
+    Read a line of text from \hl{^input-port}, signalling \hl{EndOfFile} on \
+    end of file. Lines are separated by \hl{sep}. A separator of \hl{nil} \
+    reads the entire contents, and a zero-length separator reads the input \
+    one paragraph at a time (separated by two linebreaks).
+  " spec {
+    => String
+  } for {
+    read-line(sep = $separator) := do:
+      x = ^input-port gets(sep)
+
+      unless(x):
+        error(EndOfFile new(^input-port))
+
+      x
+  } examples:
+    with-input-from("foo"):
+      read-line
+
+  doc"
+    Read all lines of text from \hl{^input-port}. Lines are separated by \
+    \hl{sep}. A separator of \hl{nil} reads the entire contents as one \
+    segment, and a zero-length separator reads the input one paragraph at a \
+    time (separated by two linebreaks).
+  " spec {
+    => String
+  } for {
+    read-lines(sep = $separator) := do:
+      x = ^input-port readlines(sep)
+
+      unless(x):
+        error(EndOfFile new(^input-port))
+
+      x
+  } examples:
+    with-input-from("foo"):
+      read-lines
+
+  doc"
+    Read a single byte from \hl{^input-port}, signalling \hl{EndOfFile} on \
+    end of file.
+  " spec {
+    => Integer
+  } for {
+    read-byte := do:
+      x = ^input-port getc
+
+      unless(x):
+        error(EndOfFile new(^input-port))
+
+      x
+  } examples:
+    with-input-from("foo"):
+      read-byte
+
+  doc"
+    Same as \hl{read-byte chr}.
+  " spec {
+    => String
+  } for {
+    read-char := read-byte chr
+  } examples:
+    with-input-from("foo"):
+      read-char
+
+  doc"
+    Read at most \hl{length} bytes from \hl{^input-port}, or to the end of \
+    file if \hl{length} is \hl{nil}. If \hl{buffer} is given, the data read \
+    will be written to it.
+  " spec {
+    length nil? || length >= 0
+    buffer nil? || buffer is-a?(String)
+    => String || buffer || nil
+  } for {
+    read(length = nil, buffer = nil) :=
+      ^input-port send(#read, length, buffer)
+  } examples:
+    x = ""
+    with-input-from("foo"):
+      read(10)
+
+    with-input-from("foo"):
+      read(10, x)
+
+    x
+
+  doc"
+    Set \hl{^input-port} to read input from \hl{filename} for the duration \
+    of \hl{action}, ensuring that the file is closed.
+
+    Returns the result of \hl{action}.
+  " spec {
+    filename is-a?(String)
+    mode is-a?(String)
+    => any
+  } for {
+    with-input-from((filename: String), mode = "r", &action) :=
+      let(input-port = File open(filename, mode)):
+        action ensuring:
+          ^input-port close
+  } examples:
+    with-input-from("foo"):
+      read-line
+
+  doc"
+    Set \hl{^input-port} to write to \hl{io} for the duration of \hl{action}.
+
+    Returns the result of \hl{action}.
+  " spec {
+    => any
+  } for {
+    with-input-from(io, &action) :=
+      let(input-port = io, &action)
+  } examples:
+    require("stringio")
+    x = StringIO new("hello\ngoodbye\n")
+
+    with-input-from(x):
+      read-line

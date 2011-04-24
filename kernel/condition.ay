@@ -38,6 +38,8 @@ section("Conditions"):
           SimpleError(@value)
           ExceptionError(@exception)
           NoRestartError(@name)
+          PortError(@port):
+            EndOfFile
 
         Warning:
           SimpleWarning(@value)
@@ -56,6 +58,7 @@ section("Conditions"):
     ExceptionError message := @exception message
     SimpleWarning message := @value to-s
     NoRestartError message := "unknown restart " + @name show
+    EndOfFile message := "unexpected end-of-file for " + @port show
 
 
 section("Handling"):
