@@ -43,16 +43,13 @@ macro(data(root, &children)):
             define
 
       Atomy::AST::Constant ->
-        `(class(~e < ~root):
-            export: initialize := #ok)
+        `(class(~e < ~root):)
 
       Atomy::AST::ScopedConstant ->
-        `(class(~e < ~root):
-            export: initialize := #ok)
+        `(class(~e < ~root):)
 
       Atomy::AST::ToplevelConstant ->
-        `(class(~e < ~root):
-            export: initialize := #ok)
+        `(class(~e < ~root):)
 
       _ -> raise("unknown module name: " + e to-s)
 
