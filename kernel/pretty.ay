@@ -179,7 +179,7 @@ export-to(atomy):
     ScopedConstant pretty :=
       from(#scoped-constant):
         doc:
-          @parent unamb <> text("::") <> text(name to-s)
+          @parent unamb <> text("::") <> text(@identifier)
 
     Send pretty :=
       doc:
@@ -220,7 +220,7 @@ export-to(atomy):
 
     String pretty := @value pretty
 
-    ToplevelConstant pretty := doc: text("::") <> text(name to-s)
+    ToplevelConstant pretty := doc: text("::") <> text(@identifier)
 
     Unary pretty :=
       from(#unary):
