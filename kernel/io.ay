@@ -6,7 +6,7 @@ dynamic(error-port, $stderr)
 
 x print := x tap: ^output-port puts(x to-s)
 x display := x tap: ^output-port send(#print, x to-s)
-x write := x tap: ^output-port puts(x pretty render)
+x write := x tap: ^output-port puts(x show)
 
 with-output-to((x: String), mode = "w", &y) :=
   let(output-port = File open(x, mode)):

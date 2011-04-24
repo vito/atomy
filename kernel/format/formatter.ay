@@ -85,7 +85,7 @@ module(Atomy::Format):
       @output << char(c, next-input)
 
     process(a: Any) :=
-      @output << justified(a, next-input pretty render, true)
+      @output << justified(a, next-input show, true)
 
     process(p: Pluralize) := do:
       word = sub-format(p singular)
