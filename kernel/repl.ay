@@ -40,14 +40,13 @@ class(ReplDebugger):
     run(e) := do:
       DefaultDebugger show-error-banner(e)
 
-      linear = DefaultDebugger show-options-for(e)
+      DefaultDebugger show-options-for(e)
 
       { basic-repl } bind:
         #prompt -> restart(#use-prompt, "[!]> ")
 
-        #special(n ? (=~ r"\d+")) -> do:
-          [context, _, x] = linear [n to-i]
-          raise(RestartException new(context, x, []))
+        #special(n ? (=~ r"\d+")) ->
+          ^restarts [n to-i] write invoke
 
 repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
   when(history && File exists?(history)):

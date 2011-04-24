@@ -1,6 +1,6 @@
 namespace(atomy)
 
-title "Condition System"
+title"Condition System"
 
 doc"
 Rather than traditional exceptions, Atomy sports a condition/restart system \
@@ -12,13 +12,22 @@ available, but conditions and restarts are much more flexible.
 dynamic(handlers, [])
 dynamic(restarts, [])
 
--- used by condition system
-data(Exception):
-  RestartException(@context, @receiver, @args)
+for-macro:
+  catcher(x) :=
+    x match:
+      Atomy::AST::Variable ->
+        Atomy::AST::Variable new(x line, "restart:" + x name)
 
-RestartException initialize(@context, @receiver, @args) :=
-  super("you should never see or `rescue' this")
+      Atomy::AST::Send ->
+        Atomy::AST::Variable new(x line, "restart:" + x method-name)
 
+data(Object):
+  Restart(@name, @action)
+
+Restart invoke(*args) :=
+  throw(("restart:" + @name to-s) to-sym, @action [*args])
+
+symbols(signal, warning, error, restart)
 
 section("Conditions"):
   doc"Condition system hierarchy. You should subclass one of these to create \
@@ -59,10 +68,9 @@ section("Handling"):
     => any
   } for {
     restart(name, *args) := do:
-      ^restarts reverse-each [[rs, context]]:
-        rs [name] match:
-          (x: Proc) ->
-            raise(RestartException new(context, x, args))
+      ^restarts each [r]:
+        when(r name == name):
+          r invoke(*args)
 
       error(NoRestartError new(name))
   } examples:
@@ -102,23 +110,23 @@ section("Handling"):
   " spec {
     => any
   } for {
-    macro(with-restarts(*restarts, &body)):
-      names [context]:
-        rs = restarts collect [`(~n -> ~e)]:
-          n match:
-            Atomy::AST::Variable ->
-              `(#~n -> { ~e })
+    macro(with-restarts(*restarts, &block)):
+      rs = restarts collect [`(~n -> ~e)]:
+        n match:
+          Atomy::AST::Variable ->
+            `(Restart new(#~n, { ~e }))
 
-            Atomy::AST::Send -> do:
-              name = Atomy::AST::Variable new(0, n method-name)
-              `(#~name -> [~*(n arguments)] { ~e })
+          Atomy::AST::Send -> do:
+            name = Atomy::AST::Variable new(0, n method-name)
+            `(Restart new(#~name, [~*(n arguments)] { ~e }))
 
-        `({ let(restarts = ^restarts + [[#[~*rs], #~context]]):
-              ~body rescue:
-                (e: StandardError) -> error(e)
-          } rescue:
-            (e: RestartException(#~context, recv, args)) ->
-              recv call(*args))
+      body =
+        restarts reduce(
+          `{ ~block rescue: (e: StandardError) -> error(e) }
+        ) [x, `(~name -> ~_)]:
+          `{ catch(#~catcher(name), &~x) }
+
+      `(let(restarts = [~*rs] + ^restarts, &~body))
   } examples:
     { with-restarts(x -> 1, y -> 2):
         signal(#a)
@@ -203,27 +211,21 @@ section("Debuggers"):
           "\n" display
 
         define(show-options-for(e)):
-          linear = []
-          ^restarts reverse-each [[rs, context]]:
-            rs each-pair [n, x]:
-              linear << [context, n, x]
-
-          when(linear empty?):
+          when(^restarts empty?):
             exit(1)
 
           "\n" display
           "restarts:" print
-          linear each-with-index [[_, n, _], i]:
-            ("  :" + i to-s + " -> " + n to-s) print
+          ^restarts each-with-index [r, i]:
+            ("  :" + i to-s + " -> " + r name to-s) print
 
         define(run(e)):
           show-error-banner(e)
 
-          linear = show-options-for(e)
+          show-options-for(e)
 
           "!> " display
-          [context, _, x] = linear [gets to-i]
-          raise(RestartException new(context, x, []))
+          ^restarts [gets to-i] invoke
 
 
   doc"
