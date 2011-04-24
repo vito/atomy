@@ -19,29 +19,29 @@ theorize(&as) := do:
   "\n" display
 
   $stats onto:
-    [ "total of", failed + passed, "tests"
-      "(" + passed to-s ansi-colored(#green), "passed,"
+    f"total of %d tests (%s passed, %s failed)" [
+      failed + passed
+      passed to-s colored(#green)
       if(failed == 0)
         then: "0"
-        else: failed to-s ansi-colored(#red)
-      "failed)"
-    ] join(" ") display
+        else: failed to-s colored(#red)
+    ] display
 
     "\n" display
 
 o should(&check) :=
   unless(o onto(&check)):
-    raise("assertion failed for " + o inspect)
+    raise(f"assertion failed for %v" [o])
 
 x should-be(y) :=
   unless(x == y):
-    raise("expected " + y pretty render + ", got " + x pretty render)
+    raise(f"expected %v, got %v" [x, y])
 
 x should-raise(y) :=
   x rescue {
     e ->
       unless(e kind-of?(y)):
-        raise("expected exception " + y to-s + ", got: " + e to-s)
+        raise(f"expected exception %s, got: %s" [y, e])
   } else:
       raise("#should-raise - no exception raised")
 
@@ -57,31 +57,34 @@ x should-error(y) :=
       when(e kind-of?(y)):
         restart(#errored)
 
-      raise("expected error " + y to-s + ", got: " + e message)
+      raise(f"expected error %s, got: %s" [y, e message])
   }
 
 describe(x, &body) := do:
-  (indentation + "- " + x to-s) print
+  f"- %s" [x] indented print
   let(nesting-level = ^nesting-level + 1):
     body call
 
 it(description, &tests) :=
   { tests call
-    (indentation + "✓ " + description)
-      ansi-colored(#green) print
+    f"✓ %s" [description] indented colored(#green) print
   } rescue {
     e -> do:
       $stats failed += 1
-      (indentation + "✗ " + description)
-        ansi-colored(#red) print
-      (indentation + "  ` " + e class name + ": " + e message)
-        ansi-colored(#yellow) print
+      f"✗ %s" [description] indented colored(#red) print
+      f"  ` %s: %s" [
+        e class name
+        e message
+      ] indented colored(#yellow) print
+
       e backtrace first(5) each [l]:
-        (indentation + "    " + l ansi-colored(#cyan)) print
+        f"    %s" [l colored(#cyan)] indented print
   } else:
       $stats passed += 1
 
-(s: String) ansi-colored(color) := do:
+String indented := indentation + self
+
+String colored(color) := do:
   codes =
     [ #black
       #red
@@ -91,10 +94,8 @@ it(description, &tests) :=
       #magenta
       #cyan
       #white
-    ] zip(Range new(0, 7) to-a)
+    ] zip((0 ... 7) to-a)
 
-  hash = Hash new
-  codes each [[p, n]]:
-    hash store(p, n)
+  hash = Hash [codes]
 
-  "\e[9" + hash fetch(color) to-s + "m" + s + "\e[0m"
+  "\e[9" + hash [color] to-s + "m" + self + "\e[0m"
