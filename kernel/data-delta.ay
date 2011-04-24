@@ -28,7 +28,7 @@ macro(data(root, &children)):
                   e arguments collect [a]:
                     `#~(a receiver)))
 
-                initialize(~*(e arguments)) := #ok
+                initialize(~*(e arguments)) := nil
 
               ~pat-def)
 

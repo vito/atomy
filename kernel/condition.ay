@@ -145,13 +145,13 @@ section("Signalling"):
   doc"
     Signal a value through all bound handlers, nearest-first, stopping when one triggers a restart.
   " spec {
-    => #ok
+    => nil
   } for {
     signal(c) := do:
       ^handlers reverse-each [callback]:
         callback [c]
 
-      #ok
+      nil
   } examples:
     signal(#foo)
     { signal(#foo) } bind: #foo -> "got foo" print
@@ -181,17 +181,17 @@ section("Signalling"):
 
     If the given value is not a \hl{Warning}, it is wrapped in a \hl{SimpleWarning}. Warning messages can be muffled by binding for \hl{Warning} and triggering the \hl{#muffle-warning} restart.
   " spec {
-    => #ok
+    => nil
   } for {
     warning(v) := warning(SimpleWarning new(v))
     warning(w: Warning) :=
-      with-restarts(muffle-warning -> #ok):
+      with-restarts(muffle-warning -> nil):
         signal(w)
 
         with-output-to(^error-port):
           w message print
 
-      #ok
+        nil
   } examples:
     warning("Suspicious!")
     { warning("Quiet, you!") } bind: Warning -> restart(#muffle-warning)
