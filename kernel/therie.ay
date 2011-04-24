@@ -94,7 +94,7 @@ String colored(color) := do:
       #magenta
       #cyan
       #white
-    ] zip((0 ... 7) to-a)
+    ] zip((0 .. 7) to-a)
 
   hash = Hash [codes]
 
