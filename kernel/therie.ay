@@ -1,20 +1,19 @@
-namespace(atomy)
+namespace(therie)
 
-dynamic(therie-nesting-level, 0)
+dynamic(nesting-level, 0)
 
-module(Therie):
-  class(Stats):
-    attr-accessor(#passed, #failed)
+class(Stats):
+  attr-accessor(#passed, #failed)
 
-    initialize := do:
-      @passed = 0
-      @failed = 0
+  initialize := do:
+    @passed = 0
+    @failed = 0
 
-  { self } indentation :=
-    " " * (^therie-nesting-level * 2)
+indentation :=
+  " " * (^nesting-level * 2)
 
 theorize(&as) := do:
-  $stats = Therie::Stats new
+  $stats = Stats new
 
   as call
   "\n" display
@@ -62,23 +61,23 @@ x should-error(y) :=
   }
 
 describe(x, &body) := do:
-  (Therie indentation + "- " + x to-s) print
-  let(therie-nesting-level = ^therie-nesting-level + 1):
+  (indentation + "- " + x to-s) print
+  let(nesting-level = ^nesting-level + 1):
     body call
 
 it(description, &tests) :=
   { tests call
-    (Therie indentation + "✓ " + description)
+    (indentation + "✓ " + description)
       ansi-colored(#green) print
   } rescue {
     e -> do:
       $stats failed += 1
-      (Therie indentation + "✗ " + description)
+      (indentation + "✗ " + description)
         ansi-colored(#red) print
-      (Therie indentation + "  ` " + e class name + ": " + e message)
+      (indentation + "  ` " + e class name + ": " + e message)
         ansi-colored(#yellow) print
       e backtrace first(5) each [l]:
-        (Therie indentation + "    " + l ansi-colored(#cyan)) print
+        (indentation + "    " + l ansi-colored(#cyan)) print
   } else:
       $stats passed += 1
 

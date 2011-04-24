@@ -1,3 +1,6 @@
+namespace(atomy/tests)
+use(therie)
+
 theories = ARGV at(1) || "*"
 
 theorize:

@@ -1,4 +1,5 @@
 namespace(tests/namespaces)
+use(therie)
 
 describe("namespaces"):
   describe(#no-namespace):
@@ -8,6 +9,7 @@ describe("namespaces"):
   describe(#in-namespace):
     it("creates a new namespace if it does not exist"):
       in-namespace(foo):
+        use(therie)
         ^namespace register(#fizz)
 
     it("switches to an existing namespace"):
@@ -17,6 +19,7 @@ describe("namespaces"):
   describe(#use):
     it("modifies the current namespace to use another"):
       in-namespace(bar) {}
+
       in-namespace(foo):
         use(bar)
         ^namespace using should: include?(#bar)
@@ -29,7 +32,7 @@ describe("namespaces"):
         bar := 1
 
       in-namespace(z):
-        use(x, y)
+        use(x, y, therie)
         foo should-be(1)
         bar should-be(1)
 
@@ -52,10 +55,12 @@ describe("namespaces"):
       var = 0
 
       in-namespace(foo-0):
+        use(therie)
         macro(var): '1
         var should-be(1)
 
       in-namespace(bar-0):
+        use(therie)
         macro(var): '2
         var should-be(2)
       
@@ -69,7 +74,7 @@ describe("namespaces"):
         macro(m-foo-1): '(n-foo-1())
 
       in-namespace(bar-1):
-        use(foo-1)
+        use(foo-1, therie)
         'm-foo-1 expand namespace should-be("foo_1")
         m-foo-1 should-be(1)
 
@@ -78,10 +83,12 @@ describe("namespaces"):
       n-foo-1 := 0
 
       in-namespace(d-foo-1):
+        use(therie)
         n-foo-1 := 1
         n-foo-1 should-be(1)
 
       in-namespace(d-bar-1):
+        use(therie)
         n-foo-1 := 2
         n-foo-1 should-be(2)
       
@@ -91,12 +98,14 @@ describe("namespaces"):
       n-foo-2 := 0
 
       in-namespace(foo-2):
+        use(therie)
         n-foo-2 := 1
         n-foo-3 := n-foo-2
         n-foo-2 should-be(1)
         n-foo-3 should-be(1)
 
       in-namespace(bar-2):
+        use(therie)
         use(tests/namespaces, foo-2)
         n-foo-2 should-be(0)
         n-foo-3 should-be(1)
@@ -104,6 +113,8 @@ describe("namespaces"):
   describe(#export):
     it("executes the body with definitions going to the bottom namespace"):
       in-namespace(bar-3):
+        use(therie)
+
         n-foo-4 := 0
 
         export:
@@ -142,9 +153,12 @@ describe("namespaces"):
 
   describe(#export-to):
     it("executes the body with definitions going to a given namespace"):
-      in-namespace(foo-6) {}
+      in-namespace(foo-6):
+        use(therie)
 
       in-namespace(bar-7):
+        use(therie)
+
         foo := 0
 
         export-to(foo-6):
@@ -168,10 +182,12 @@ describe("namespaces"):
       var-2 = 0
 
       in-namespace(foo-8):
+        use(therie)
         macro(var-2): '1
         var-2 should-be(1)
 
       in-namespace(bar-9):
+        use(therie)
         export-to(foo-8):
           macro(var-2): '2
 
@@ -185,9 +201,11 @@ describe("namespaces"):
     it("resolves a macro's body in its namespace"):
       n-foo-8 := 0
 
-      in-namespace(foo-9) {}
+      in-namespace(foo-9):
+        use(therie)
 
       in-namespace(foo-10):
+        use(therie)
         n-foo-9 := 1
         export-to(bar-9):
           macro(m-foo-1): '(n-foo-9())
@@ -200,4 +218,4 @@ describe("namespaces"):
   -- TODO
   it("allows calling methods in other namespaces"):
     no-namespace:
-      1 atomy/should-be(1)
+      1 therie/should-be(1)

@@ -1,4 +1,5 @@
 namespace(tests/super)
+use(therie)
 
 class(ZSuperA):
   test-1 := #super

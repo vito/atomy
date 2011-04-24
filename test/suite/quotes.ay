@@ -1,4 +1,5 @@
 namespace(tests/quotes)
+use(therie)
 
 describe("quasiquotation"):
   it("constructs an expression"):

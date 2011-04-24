@@ -1,4 +1,5 @@
 namespace(tests/patterns)
+use(therie)
 
 describe("pattern-matching"):
   describe("expressions"):

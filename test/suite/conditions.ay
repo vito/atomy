@@ -1,4 +1,5 @@
 namespace(tests/conditions)
+use(therie)
 
 describe("condition"):
   describe(#signal):

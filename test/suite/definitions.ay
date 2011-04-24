@@ -1,4 +1,5 @@
 namespace(tests/definitions)
+use(therie)
 
 describe("definitions"):
   describe("arguments"):

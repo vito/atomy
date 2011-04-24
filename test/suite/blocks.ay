@@ -1,4 +1,5 @@
 namespace(tests/blocks)
+use(therie)
 
 describe("blocks"):
   describe(#call):
