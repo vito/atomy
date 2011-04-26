@@ -3,9 +3,9 @@ namespace(therie)
 title"Testing with Therie"
 
 doc"
-Therie is a small and simple behavioral-style testing suite that comes with
-Atomy. To use it, you should use the \hl{therie} namespace, which provides the
-following methods.
+Therie is a small and simple behavioral-style testing suite that comes with \
+Atomy. To use it, you should use the \hl{therie} namespace, which provides \
+the following methods.
 
 \atomy{
   use(therie)

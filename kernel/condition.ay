@@ -3,9 +3,9 @@ namespace(atomy)
 title"Condition System"
 
 doc"
-Rather than traditional exceptions, Atomy sports a condition/restart system \
-modeled on Common Lisp's design. The native Ruby exception handling is \
-available, but conditions and restarts are much more flexible.
+  Rather than traditional exceptions, Atomy sports a condition/restart \
+  system modeled on Common Lisp's design. The native Ruby exception handling \
+  is available, but conditions and restarts are much more flexible.
 "
 
 -- registered handlers/restarts
@@ -30,8 +30,10 @@ Restart invoke(*args) :=
 symbols(signal, warning, error, restart)
 
 section("Conditions"):
-  doc"Condition system hierarchy. You should subclass one of these to create \
-  your own conditions." for:
+  doc"
+    Condition system hierarchy. You should subclass one of these to create \
+    your own conditions.
+  " for:
     data(Object):
       Condition:
         Error:
@@ -44,14 +46,17 @@ section("Conditions"):
         Warning:
           SimpleWarning(@value)
 
-  doc"Get the name of a condition. By default, this will be the class name, \
-  but you may override this for your own behaviour." for:
+  doc"
+    Get the name of a condition. By default, this will be the class name, \
+    but you may override this for your own behaviour.
+  " for:
     Condition name := class name
 
     ExceptionError name := @exception class name
 
-  doc"A human-friendly  message displayed for the condition. \
-  Override this." for:
+  doc"
+    A human-friendly message displayed for the condition. Override this.
+  " for:
     Condition message := inspect
 
     SimpleError message := @value to-s
@@ -63,7 +68,7 @@ section("Conditions"):
 
 section("Handling"):
   doc"
-    Trigger the \hl{name} restart, passing \hl{args} along to its callback.
+    Invoke the \hl{name} restart, passing \hl{args} along to its callback.
 
     See \hl{with-restarts}.
   " spec {
@@ -83,9 +88,11 @@ section("Handling"):
 
 
   doc"
-    Register handlers for various signals for the duration of \hl{x}'s execution.
+    Register handlers for various signals for the duration of \hl{x}'s \
+    execution.
 
-    The body of \hl{y} is similar to \hl{match}; \hl{\italic{pattern} -> \italic{body}}.
+    The body of \hl{y} is similar to \hl{match}; \hl{\italic{pattern} -> \
+    \italic{body}}.
 
     The result is the result of \hl{body}.
   " spec {
@@ -107,7 +114,8 @@ section("Handling"):
   doc"
     Register restarts available for the duration of \hl{body}'s execution.
 
-    The \hl{restarts} should be in the form of \hl{\italic{name}(*\italic{args}) -> \italic{body}}.
+    The \hl{restarts} should be in the form of \
+    \hl{\italic{name}(*\italic{args}) -> \italic{body}}.
 
     The result is the result of \hl{body}.
   " spec {
@@ -146,7 +154,8 @@ section("Handling"):
 
 section("Signalling"):
   doc"
-    Signal a value through all bound handlers, nearest-first, stopping when one triggers a restart.
+    Signal a value through all bound handlers, nearest-first, stopping when \
+    a restart is invoked.
   " spec {
     => nil
   } for {
@@ -161,9 +170,12 @@ section("Signalling"):
 
 
   doc"
-    Like \hl{signal}, except that if no restart is triggered, the current \hl{^debugger} is started.
+    Like \hl{signal}, except that if no restart is invoked, the current \
+    \hl{^debugger} is started.
 
-    If the given value is not an \hl{Error}, it is wrapped in a \hl{SimpleError}. If the value is a Ruby \hl{Exception}, it is wrapped in an \hl{ExceptionError}.
+    If the given value is not an \hl{Error}, it is wrapped in a \
+    \hl{SimpleError}. If the value is a Ruby \hl{Exception}, it is wrapped \
+    in an \hl{ExceptionError}.
   " spec {
     => _
   } for {
@@ -180,9 +192,12 @@ section("Signalling"):
 
 
   doc"
-    Like \hl{signal}, except that if no restart is triggered, the warning is printed to \hl{^error-port}.
+    Like \hl{signal}, except that if no restart is invoked, the warning is \
+    printed to \hl{^error-port}.
 
-    If the given value is not a \hl{Warning}, it is wrapped in a \hl{SimpleWarning}. Warning messages can be muffled by binding for \hl{Warning} and triggering the \hl{#muffle-warning} restart.
+    If the given value is not a \hl{Warning}, it is wrapped in a \
+    \hl{SimpleWarning}. Warning messages can be muffled by binding for \
+    \hl{Warning} and invoking the \hl{#muffle-warning} restart.
   " spec {
     => nil
   } for {
@@ -203,7 +218,8 @@ section("Signalling"):
 section("Debuggers"):
   doc"
     The default debugger. This will show the condition name, its message, \
-    and let the user pick from the available restarts." for:
+    and let the user pick from the available restarts.
+  " for:
     class(DefaultDebugger):
       class(<< self):
         define(show-error-banner(e)):
@@ -230,8 +246,10 @@ section("Debuggers"):
           "!> " display
           ^restarts [gets to-i] invoke
 
-
   doc"
-    The current debugger. This should \hl{respond-to?(#run)} with the \
-    condition passed as an argument." for:
+    The current debugger. \hl{run} will be called with the condition as an \
+    argument.
+  " spec {
+    respond-to?(#run)
+  } for:
     dynamic(debugger, DefaultDebugger)
