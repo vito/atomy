@@ -32,6 +32,9 @@ for-macro:
     indent(`^~n show + "\n> " + r show)
   to-thumb(`(class(~n))) :=
     indent(n show + "\n> Class")
+  to-thumb(`(module(~n))) :=
+    indent(n show + "\n> Module")
+  to-thumb(x) := str-expr(x)
 
   to-spec([]) := ""
   to-spec(b) :=
