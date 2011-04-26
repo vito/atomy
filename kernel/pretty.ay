@@ -53,6 +53,8 @@ export-to(atomy):
 
   Object show := pretty render
 
+  Doc pretty := self
+
   Array pretty :=
     doc: brackets(comma-delim(self all-pretty))
 
