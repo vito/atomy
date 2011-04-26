@@ -1,5 +1,8 @@
 namespace(atomy/documentation)
 
+in-namespace(atomy):
+  symbols(pretty, show)
+
 for-macro:
   escape(x) :=
     x gsub(r"[\{\}\\]", raw"\\\0")
