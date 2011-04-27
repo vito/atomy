@@ -19,24 +19,25 @@ section("Documents"):
   doc"
     The empty document, with a height and width of \hl{0}.
   " spec { => "Class" } for: "Empty"
+
   doc"
     A document comprised of two documents positioned beside each other, with \
     an optional space in-between.
   " spec { => "Class" } for: "Beside(@left, @right, @space?)"
 
-
   doc"
     A document comprised of two documents positioned above and below each \
     other, optionally overlapping if possible.
   " spec { => "Class" } for: "Above(@above, @below, @overlap?)"
+
   doc"
     A document indented to a given depth.
   " spec { => "Class" } for: "Nest(@body, @depth)"
 
-
   doc"
     A document containing arbitrary text, with a height of \hl{1}.
   " spec { => "Class" } for: "Text(@value)"
+
   doc"
     Trivial emptiness check. \hl{true} for \hl{Empty}, \hl{false} for \
     everything else.
@@ -44,7 +45,6 @@ section("Documents"):
     => "Boolean"
   } for {
     "Doc empty?"
-
 
     Doc empty? := false
     Empty empty? := true
@@ -60,6 +60,7 @@ section("Documents"):
     => "Integer"
   } for {
     "Doc width"
+
     Empty width := 0
     Text width := @value size
     Beside width :=
@@ -76,12 +77,12 @@ section("Documents"):
   doc"
     Calculate the height of the document, in lines.
 
-
     Note that an empty document has a height of 0.
   " spec {
     => "Integer"
   } for {
     "Doc height"
+
     Empty height := 0
     Text height := 1
     Beside height := [@left height, @right height] max
@@ -103,7 +104,6 @@ section("Documents"):
   } for {
     "Doc render"
 
-
     Text render := @value
     Empty render := ""
     Beside render :=
@@ -113,6 +113,7 @@ section("Documents"):
     Above render := do:
       a = @above render
       b = @below render
+
       if(@overlap? && @below kind-of?(Nest) &&
           @below depth > @above width)
         then:
@@ -141,7 +142,6 @@ section("Constructing"):
   } for {
     "(left: Doc) <+> (right: Doc)"
 
-
     (l: Doc) <+> (r: Doc) := Beside new(l, r, true)
     (d: Doc) <+> Empty := d
     Empty    <+> (d: Doc) := d
@@ -154,13 +154,13 @@ section("Constructing"):
     "doc { text(\"x\") <+> value(42) }"
     "doc { empty <+> value(42) }"
 
+
   doc"
     Position one document beside another unless either side is empty.
   " spec {
     => "Doc"
   } for {
     "(left: Doc) <> (right: Doc)"
-
 
     (l: Doc) <> (r: Doc) := Beside new(l, r, false)
     (d: Doc) <> Empty := d
