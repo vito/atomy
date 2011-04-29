@@ -22,6 +22,9 @@ macro($'separator):
 macro($'0):
   Atomy::AST::GlobalVariable new(line, "0")
 
+macro($(x: String)):
+  Atomy::AST::GlobalVariable new(line, x value)
+
 macro($(x: Constant)):
   Atomy::AST::GlobalVariable new(x line, x identifier)
 
