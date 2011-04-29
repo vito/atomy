@@ -36,14 +36,14 @@ section("Conditions"):
   " for:
     data(Object):
       Condition:
-        Error:
+        Error(@backtrace):
           SimpleError(@value)
           ExceptionError(@exception)
           NoRestartError(@name)
           PortError(@port):
             EndOfFile
 
-        Warning:
+        Warning(@backtrace):
           SimpleWarning(@value)
 
   doc"
@@ -179,9 +179,21 @@ section("Signalling"):
   " spec {
     => _
   } for {
-    error(v) := error(SimpleError new(v))
-    error(e: Exception) := error(ExceptionError new(e))
-    error(e: Error) := do:
+    error(x) := do:
+      e =
+        x match:
+          Exception ->
+            ExceptionError new(x) tap [err]:
+              err backtrace = x locations
+
+          Error ->
+            x tap [err]:
+              err backtrace = Rubinius::VM backtrace(0)
+
+          _ ->
+            SimpleError new(x) tap [err]:
+              err backtrace = Rubinius::VM backtrace(0)
+
       signal(e)
 
       with-output-to(^error-port):
@@ -201,9 +213,18 @@ section("Signalling"):
   " spec {
     => nil
   } for {
-    warning(v) := warning(SimpleWarning new(v))
-    warning(w: Warning) :=
+    warning(x) :=
       with-restarts(muffle-warning -> nil):
+        w =
+          x match:
+            Warning ->
+              x tap [wrn]:
+                wrn backtrace = Rubinius::VM backtrace(0)
+
+            _ ->
+              SimpleWarning new(x) tap [wrn]:
+                wrn backtrace = Rubinius::VM backtrace(0)
+
         signal(w)
 
         with-output-to(^error-port):

@@ -72,9 +72,17 @@ doc"
 " for:
   class(ReplDebugger):
     class(<< self):
+      show-backtrace(e) := do:
+        Rubinius::Backtrace backtrace(e backtrace) _/show print
+        debug(e)
+
       run(e) := do:
         DefaultDebugger show-error-banner(e)
 
+        with-restarts(backtrace -> show-backtrace(e)):
+          debug(e)
+
+      debug(e) := do:
         DefaultDebugger show-options-for(e)
 
         { basic-repl } bind:
