@@ -81,7 +81,7 @@ module Atomy
           end
         when Variable, Unquote,
              Constant, ScopedConstant, ToplevelConstant
-          send.receiver = Send.create(
+          send.receiver = Send.new(
             send.receiver.line,
             Primitive.new(send.receiver.line, :self),
             [],

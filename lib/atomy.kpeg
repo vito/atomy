@@ -190,6 +190,7 @@
                   }
 
        variable = line:line identifier:n
+                    # TODO: hack
                     { Atomy::AST::Variable.new(line, n.gsub("/", Atomy::NAMESPACE_DELIM)) }
 
           unary = line:line !":" op_letter:o level1:e
@@ -206,13 +207,13 @@
                     { Atomy::AST::List.new(line, Array(es)) }
 
      sends(pos) = line:line send:r cont(pos) level0:n args?:as
-                    { Atomy::AST::Send.create(line, r, Array(as), n) }
+                    { Atomy::AST::Send.new(line, r, Array(as), n) }
                 | line:line level1:r cont(pos) level0:n args?:as
-                    { Atomy::AST::Send.create(line, r, Array(as), n) }
+                    { Atomy::AST::Send.new(line, r, Array(as), n) }
            send = sends(current_position)
 
        headless = line:line level0:n args:as
-                    { Atomy::AST::Send.create(
+                    { Atomy::AST::Send.new(
                         line,
                         Atomy::AST::Primitive.new(line, :self),
                         as,

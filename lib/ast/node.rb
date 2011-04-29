@@ -172,7 +172,7 @@ EOF
                 "g.push_literal(@#{a})"
               }.join("; ")}
 
-            g.send :create, #{all.size + 1}
+            g.send :new, #{all.size + 1}
           end
 EOF
 
@@ -300,12 +300,6 @@ EOF
     module NodeLike
       attr_accessor :line
 
-      def self.included(cls)
-        def cls.create(*as)
-          new(*as)
-        end
-      end
-
       # yield this node's subnodes to a block recursively, and then itself
       # override this if for nodes with children, ie lists
       #
@@ -412,7 +406,7 @@ EOF
       end
 
       def caller
-        Atomy::AST::Send.create(
+        Atomy::AST::Send.new(
           @line,
           self,
           [],
