@@ -5,6 +5,14 @@ module Atomy
       slots :namespace?
       generate
 
+      def self.new(*as)
+        x = super
+        unless x.namespace
+          x.namespace, x.name = Atomy.from_namespaced(x.name)
+        end
+        x
+      end
+
       def register_macro(body, let = false)
         Atomy::Macro.register(
           method_name,

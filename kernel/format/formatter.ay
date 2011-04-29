@@ -35,12 +35,14 @@ module(Atomy::Format):
 
       @output
 
-    format(*inputs) := do:
-      res = scan(*inputs)
-      reset!
-      res
+    export-to(atomy):
+      format(*inputs) := do:
+        res = scan(*inputs)
+        reset!
+        res
 
-    alias-method(#"[]", #atomy/format/format)
+      -- TODO: use alias-method
+      self [*inputs] := format(*inputs)
 
     peek-input := @input [@position]
 
