@@ -96,10 +96,10 @@ export-to(atomy):
 
   Hash pretty := doc:
     text("#") <>
-      brackets(
-        comma-delim(
+      brackets $:
+        comma-delim $:
           self to-a collect [[k, v]]:
-            k unamb <+> text("->") <+> v unamb))
+            k unamb <+> text("->") <+> v unamb
 
   module(Atomy::AST):
     Assign pretty :=

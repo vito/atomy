@@ -2,10 +2,9 @@ Atomy::DYNAMIC_ROOTS = Hash new
 
 for-macro:
   key(n) :=
-    Atomy::AST::Variable new(
+    Atomy::AST::Variable new $:
       n line
       "atomy_" + n resolve message-name
-    )
 
   dynvar(x) :=
     `(Thread current [#~key(x)] || Atomy::DYNAMIC_ROOTS [#~x])

@@ -1,0 +1,3 @@
+`($~(x: Atomy::AST::Block)) as-message(send) :=
+  send receiver to-send dup tap [s]:
+    s arguments += x contents

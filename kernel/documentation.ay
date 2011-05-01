@@ -11,12 +11,11 @@ for-macro:
     x split("\n") collect [x] { (" " * n * 2) + x } join("\n")
 
   str-expr(e) :=
-    escape(
+    escape $:
       e match:
         String -> e
         Atomy::AST::String -> e value
         _ -> e show
-    )
 
   to-thumb(x: Atomy::AST::Macro) :=
     indent(escape(x pattern show))
@@ -38,7 +37,7 @@ for-macro:
 
   to-spec([]) := ""
   to-spec(b) :=
-    "\n" + indent(
+    "\n" + indent $:
       b collect [e] {
         e match:
           `(=> ~x) ->
@@ -47,7 +46,6 @@ for-macro:
           _ ->
             "| " + str-expr(e)
       } join("\n")
-    )
 
   to-examples(b) :=
     b collect [e] {
@@ -81,7 +79,7 @@ export-to(atomy):
 
         evaluate-when(compile):
           for-docs: "}"
-        
+
         res)
 
   macro(docs spec(&s) for(&code)):

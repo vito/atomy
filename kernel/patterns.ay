@@ -205,18 +205,16 @@ module(Atomy::Patterns):
 module(Atomy::AST):
   export:
     Variable pattern :=
-      Atomy::Patterns::Named new(
+      Atomy::Patterns::Named new $:
         @name
         Atomy::Patterns::Any new
-      )
 
     Primitive pattern :=
       Atomy::Patterns::Match new(@value)
 
     List pattern :=
-      Atomy::Patterns::List new(
+      Atomy::Patterns::List new $:
         @elements collect [e]: e to-pattern
-      )
 
     Constant pattern :=
       Atomy::Patterns::Constant new(self)
@@ -242,16 +240,14 @@ module(Atomy::AST):
     Send pattern :=
       if(@block)
         then:
-          Atomy::Patterns::Named new(
+          Atomy::Patterns::Named new $:
             @method-name
             @block contents [0] to-pattern
-          )
         else:
-          Atomy::Patterns::Attribute new(
+          Atomy::Patterns::Attribute new $:
             @receiver
             @method-name
             @arguments
-          )
 
     String pattern :=
       Atomy::Patterns::Match new(@value)

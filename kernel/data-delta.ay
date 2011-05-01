@@ -24,9 +24,9 @@ macro(data(root, &children)):
         define =
           `(export:
               class(~name < ~root):
-                attr-accessor(~*(
-                  e arguments collect [a]:
-                    `#~(a receiver)))
+                attr-accessor $:
+                  ~*(e arguments collect [a]:
+                      `#~(a receiver))
 
                 initialize(~*(e arguments)) := nil
 

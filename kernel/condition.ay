@@ -14,12 +14,13 @@ dynamic(restarts, [])
 
 for-macro:
   catcher(x) :=
-    x match:
-      Atomy::AST::Variable ->
-        Atomy::AST::Variable new(x line, "restart:" + x name)
+    Atomy::AST::Variable new(x line) $:
+      x match:
+        Atomy::AST::Variable ->
+          "restart:" + x name
 
-      Atomy::AST::Send ->
-        Atomy::AST::Variable new(x line, "restart:" + x method-name)
+        Atomy::AST::Send ->
+          "restart:" + x method-name
 
 data(Object):
   Restart(@name, @action)
