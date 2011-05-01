@@ -81,16 +81,7 @@ module Atomy
           end
         when Variable, Unquote,
              Constant, ScopedConstant, ToplevelConstant
-          send.receiver = Send.new(
-            send.receiver.line,
-            Primitive.new(send.receiver.line, :self),
-            [],
-            send.receiver,
-            nil,
-            nil,
-            true
-          )
-
+          send.receiver = send.receiver.to_send
           as_message(send)
         when List
           dup.tap do |b|

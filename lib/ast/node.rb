@@ -393,6 +393,18 @@ EOF
         self
       end
 
+      def to_send
+        Send.new(
+          @line,
+          Primitive.new(@line, :self),
+          [],
+          self,
+          nil,
+          nil,
+          true
+        )
+      end
+
       def method_name
         nil
       end

@@ -36,6 +36,10 @@ module Atomy
         Atomy.namespaced(@namespace, @method_name)
       end
 
+      def to_send
+        self
+      end
+
       def prepare
         resolve.expand
       end
