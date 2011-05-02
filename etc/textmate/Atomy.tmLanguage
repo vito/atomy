@@ -18,37 +18,37 @@
     <array>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])(if|then|else|error|warning|while|unless|signal)(?![\p{L}\d!@#%&amp;*-./\?\p{S}])</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(if|then|else|error|warning|while|unless|signal)(?![\p{L}\d!@#%&amp;*\-./\?\p{S}])</string>
             <key>name</key>
             <string>keyword.control.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])(macro|operator)(?![\p{L}\d!@#%&amp;*-./\?\p{S}])</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(macro|operator)(?![\p{L}\d!@#%&amp;*\-./\?\p{S}])</string>
             <key>name</key>
             <string>keyword.other.reserved.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])(self|me)(?![\p{L}\d!@#%&amp;*-./\?\p{S}])</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(self|me)(?![\p{L}\d!@#%&amp;*\-./\?\p{S}])</string>
             <key>name</key>
             <string>variable.language.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>['`][\p{Ll}_][\p{L}\d!@#%&amp;*-./\?\p{S}]*</string>
+            <string>['`][\p{Ll}_][\p{L}\d!@#%&amp;*\-./\?\p{S}]*</string>
             <key>name</key>
             <string>string.quoted.other.expression.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>~[\p{Ll}_][\p{L}\d!@#%&amp;*-./\?\p{S}]*</string>
+            <string>~[\p{Ll}_][\p{L}\d!@#%&amp;*\-./\?\p{S}]*</string>
             <key>name</key>
             <string>string.interpolated.expression.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>~\*[\p{Ll}_][\p{L}\d!@#%&amp;*-./\?\p{S}]*</string>
+            <string>~\*[\p{Ll}_][\p{L}\d!@#%&amp;*\-./\?\p{S}]*</string>
             <key>name</key>
             <string>string.interpolated.expression.atomy</string>
         </dict>
@@ -123,31 +123,31 @@
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])(&amp;&amp;|\|\||!)(?![\p{L}\d!@#%&amp;*-./\?\p{S}])</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(&amp;&amp;|\|\||!)(?![\p{L}\d!@#%&amp;*\-./\?\p{S}])</string>
             <key>name</key>
             <string>keyword.operator.logical.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])(true|false|nil)(?![\p{L}\d!@#%&amp;*-./\?\p{S}])</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(true|false|nil)(?![\p{L}\d!@#%&amp;*\-./\?\p{S}])</string>
             <key>name</key>
             <string>constant.language.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])(?i:(0x\h*))</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(?i:(0x\h*))</string>
             <key>name</key>
             <string>constant.numeric.integer.hexadecimal.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])(?i:(0o[0-7]*))</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(?i:(0o[0-7]*))</string>
             <key>name</key>
             <string>constant.numeric.integer.octal.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])(?i:(\d+\.\d*(e[\-\+]?\d+)?))(?=[^a-zA-Z_])</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(?i:(\d+\.\d*(e[\-\+]?\d+)?))(?=[^a-zA-Z_])</string>
             <key>name</key>
             <string>constant.numeric.float.atomy</string>
         </dict>
@@ -159,19 +159,19 @@
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])(?i:(\d+e[\-\+]?\d+))</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(?i:(\d+e[\-\+]?\d+))</string>
             <key>name</key>
             <string>constant.numeric.float.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])([\-\+]?\d+/[\-\+]?\d+)</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])([\-\+]?\d+/[\-\+]?\d+)</string>
             <key>name</key>
             <string>constant.numeric.rational.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*-./\?\p{S}])([\-\+]?\d+)</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])([\-\+]?\d+)</string>
             <key>name</key>
             <string>constant.numeric.integer.decimal.atomy</string>
         </dict>
@@ -185,7 +185,7 @@
                 </dict>
             </dict>
             <key>match</key>
-            <string>(?:^|\s)(#)[\p{Ll}_][\p{L}\d!@#%&amp;*-./\?\p{S}]*</string>
+            <string>(?:^|\s)(#)[\p{Ll}_][\p{L}\d!@#%&amp;*\-./\?\p{S}]*</string>
             <key>name</key>
             <string>constant.other.symbol.atomy</string>
         </dict>
@@ -199,7 +199,7 @@
                 </dict>
             </dict>
             <key>match</key>
-            <string>(?:^|\s)(@)[a-z_][[:alnum:]_!@#%&amp;*-./\?\p{S}]*</string>
+            <string>(?:^|\s)(@)[a-z_][[:alnum:]_!@#%&amp;*\-./\?\p{S}]*</string>
             <key>name</key>
             <string>variable.other.readwrite.instance.atomy</string>
         </dict>
@@ -213,7 +213,7 @@
                 </dict>
             </dict>
             <key>match</key>
-            <string>(?:^|\s)(@@)[a-z_][[:alnum:]_!@#%&amp;*-./\?\p{S}]*</string>
+            <string>(?:^|\s)(@@)[a-z_][[:alnum:]_!@#%&amp;*\-./\?\p{S}]*</string>
             <key>name</key>
             <string>variable.other.readwrite.class.atomy</string>
         </dict>
@@ -227,7 +227,7 @@
                 </dict>
             </dict>
             <key>match</key>
-            <string>(?:^|\s)($)[a-z_][[:alnum:]_!@#%&amp;*-./\?\p{S}]*</string>
+            <string>(?:^|\s)($)[a-z_][[:alnum:]_!@#%&amp;*\-./\?\p{S}]*</string>
             <key>name</key>
             <string>variable.other.readwrite.global.atomy</string>
         </dict>
