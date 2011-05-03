@@ -2,6 +2,7 @@ namespace(atomy/pretty)
 
 dynamic(multiline?, false)
 dynamic(context, #top)
+dynamic(colored?, false)
 
 comma-delim(ds) :=
   hsep(comma punctuate(ds))
@@ -49,6 +50,12 @@ from?(*where) :=
       a == b
 
 export-to(atomy):
+  String pretty := super colored(#yellow)
+  Integer pretty := super colored(#blue)
+  Float pretty := super colored(#blue)
+  TrueClass pretty := super colored(#green)
+  FalseClass pretty := super colored(#red)
+  NilClass pretty := super colored(#black)
   Object pretty := Doc text(inspect)
 
   Object show := pretty render
@@ -169,7 +176,7 @@ export-to(atomy):
         #true -> text("true")
         #false -> text("false")
         #nil -> text("nil")
-        x -> x pretty
+        x -> text(x inspect)
 
     QuasiQuote pretty :=
       from(#unary):
@@ -215,13 +222,16 @@ export-to(atomy):
             with-block [ident(@method-name) <> args]
 
           otherwise ->
-            with-block [from(#send) { @receiver unamb } <+> ident(@method-name) <> args]
+            with-block [
+              from(#send) { @receiver unamb } <+>
+                ident(@method-name) <> args
+            ]
 
     Splice pretty :=
       from(#unary):
         doc: text("~*") <> @expression unamb
 
-    String pretty := @value pretty
+    String pretty := Doc text(@value inspect)
 
     ToplevelConstant pretty := doc: text("::") <> text(@identifier)
 
@@ -251,3 +261,23 @@ export-to(atomy):
 
 
 Array all-pretty := collect [x]: x pretty
+
+Doc colored(color) := do:
+  -- only makes sense to colorize if we're outputting to a terminal
+  unless(^output-port tty? && ^colored?):
+    return(self)
+
+  codes =
+    [ #black
+      #red
+      #green
+      #yellow
+      #blue
+      #magenta
+      #cyan
+      #white
+    ] zip((0 .. 7) to-a)
+
+  hash = Hash [codes]
+
+  Doc text("\e[9" + hash [color] to-s + "m") <> self <> Doc text("\e[0m")

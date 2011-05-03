@@ -113,7 +113,9 @@ doc"
     { let(debugger = ReplDebugger):
         frame = 0
 
-        { basic-repl(bnd) } bind:
+        { let(atomy/pretty/colored? = true):
+            basic-repl(bnd)
+        } bind:
           #prompt ->
             restart(#use-prompt, "[" + frame to-s + "]> ")
 
