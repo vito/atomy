@@ -220,4 +220,3 @@ macro(loop(&body)):
             go(~loop)
 
           ~done {})
-
