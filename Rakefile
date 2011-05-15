@@ -16,9 +16,9 @@ end
 
 task :docs do
   sh "./bin/atomy -d docs/reference -s exit"
-  sh "./bin/atomy ../doodle/bin/doodle docs/reference.ddl -o doodle"
+  sh "./bin/atomy ../doodle/bin/doodle docs/index.ddl -o doodle"
 end
 
 task :sync_docs do
-  sh "rsync -a -P -e \"ssh -p 7331\" doodle/ alex@atomo-lang.org:/srv/http/atomo-lang.org/site/docs/atomy/"
+  sh "rsync -a -P -e \"ssh -p 7331\" doodle/ alex@atomy-lang.org:/srv/http/atomy-lang.org/site/docs/"
 end
