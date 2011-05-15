@@ -97,7 +97,7 @@ export-to(atomy):
 
   Symbol pretty := do:
     s = to-s
-    if(s =~ r(u)"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-_\\:.\/\?])*$")
+    if(s =~ r"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-_\\:.\/\?])*$"(u))
       then: Doc text("#") <> Doc ident(s)
       else: Doc text("#") <> s pretty
 

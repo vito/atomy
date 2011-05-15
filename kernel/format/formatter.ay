@@ -200,31 +200,31 @@ module(Atomy::Format):
 
     pluralize(s) :=
       condition:
-        s =~ r(i)"o$" ->
+        s =~ r"o$"(i) ->
           s + "es"
 
-        s =~ r(i)"[aeiou]$" ->
+        s =~ r"[aeiou]$"(i) ->
           s + "s"
 
-        s =~ r(i)"(?<root>.+[aeiou])y$" ->
+        s =~ r"(?<root>.+[aeiou])y$"(i) ->
           s + "s"
 
-        s =~ r(i)"(lay-by|stand-by)$" ->
+        s =~ r"(lay-by|stand-by)$"(i) ->
           s + "s"
 
-        s =~ r(i)"(.+)y$" ->
+        s =~ r"(.+)y$"(i) ->
           $1 + "es"
 
-        s =~ r(i)"(.+)us$" ->
+        s =~ r"(.+)us$"(i) ->
           $1 + ""
 
-        s =~ r(i)"(.+)sis$" ->
+        s =~ r"(.+)sis$"(i) ->
           $1 + "es"
 
-        s =~ r(i)"(.+)(ex|ix)$" ->
+        s =~ r"(.+)(ex|ix)$"(i) ->
           $1 + "ces"
 
-        s =~ r(i)"(.+)(ss|sh|ch|dge)$" ->
+        s =~ r"(.+)(ss|sh|ch|dge)$"(i) ->
           s + "es"
 
         otherwise ->
