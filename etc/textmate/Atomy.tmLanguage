@@ -141,19 +141,19 @@
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(?i:(0x\h*))</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])[\-\+]?(?i:(0x\h*))</string>
             <key>name</key>
             <string>constant.numeric.integer.hexadecimal.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(?i:(0o[0-7]*))</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])[\-\+]?(?i:(0o[0-7]*))</string>
             <key>name</key>
             <string>constant.numeric.integer.octal.atomy</string>
         </dict>
         <dict>
             <key>match</key>
-            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])(?i:(\d+\.\d*(e[\-\+]?\d+)?))(?=[^a-zA-Z_])</string>
+            <string>(?&lt;![\p{L}\d!@#%&amp;*\-./\?\p{S}])[\-\+]?(?i:(\d+\.\d*(e[\-\+]?\d+)?))(?![a-zA-Z_])</string>
             <key>name</key>
             <string>constant.numeric.float.atomy</string>
         </dict>
