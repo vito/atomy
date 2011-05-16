@@ -79,7 +79,7 @@
       \hl{1}, \hl{-1}, \hl{0xdeadbeef}, \hl{0o644}, \hl{-0x10}, \hl{-0o10} ...
     }
 
-    \item{doubles}{
+    \item{floats}{
       \hl{1.0}, \hl{-1.5}, \hl{1.5e10}, \hl{1.4e-3}, \hl{-1.4e4}...
     }
 
@@ -106,17 +106,20 @@
         r"foo"
         r"\\p\{Hiragana\}"(u)
       }
+
+      Note that as a macro-quote, the string is a  raw string, with no \
+      escapes except for \code{\\"}.
     }
 
     \item{pseudo variables}{\hl{self}, \hl{nil}, \hl{true}, and \hl{false}}
 
-    \item{arrays}{\hl{[]}, \hl{[1]}, \hl{[1, 2]}, \hl{[1, #two, "three"]}, ...}
+    \item{arrays}{\hl{[]}, \hl{[1]}, \hl{[1, #two, "three"]}, ...}
 
     \item{expressions}{
       \definitions{
         \item{quoted}{
-          An apostrophe (\code{'}) before an expression "quotes" it, turning \
-          it into an expression literal:
+          An apostrophe (\code{'}) before an expression "quotes" it, \
+          preventing evaluation and turning it into an expression literal:
 
           \example-segment{
             '1
@@ -142,12 +145,6 @@
             `\{ a = ~(2 + 2) \}
             `[1, 2, ~(1 + 2)]
           }
-
-          Note that unquoting too far signals an \hl{@out-of-quote:} error.
-
-          \example{
-            `~~(2 + 2)
-          }
         }
       }
     }
@@ -158,14 +155,23 @@
       begins with a colon (\code{:}) and optionally ends with a semicolon    \
       (\code{;}).
 
-      Block parsing is whitespace-aware; see {- \reference{General Rules}. -}
+      Block parsing is whitespace-aware; see \reference{General Rules}.
+
+      \example{
+        \{ 1 + 1 \}
+        : 1 + 1 ;
+        : foo
+      }
+
+      Note that these literals have no notion of "arguments" - this is \
+      expanded on in \reference{dispatch-syntax}.
     }
   }
 }
 
 \section{Dispatch}{dispatch-syntax}{
   Atomy's dispatch is considerably simple: one expression followed by \
-  another, optionally including arguments.
+  another, optionally with arguments listed in parentheses.
 
   Most of the time, you'll be using a variable as the method name:
 
@@ -174,9 +180,14 @@
     \{ 1 sqrt \} call
   }
 
-  However, you can actually use anything there, as long as it knows how to be used as a message. This is done by defining \hl{as-message(send)} for the node, where \hl{send} the \hl{Send} it's being used in. This method should return a \hl{Send} node.
+  However, you can actually use anything there, as long as it knows how to be\
+  used as a message. This is done by defining \hl{as-message(send)} on the \
+  node, where \hl{send} is the \hl{Send} it's being used in. This method \
+  should return a \hl{Send} node.
 
-  There are currently three other things you can use as a message: a \hl{List}, a \hl{Block}, and a \hl{UnarySend} of \code{$}. But feel free to define your own.
+  There are currently three other things you can use as a message: a \
+  \hl{List}, a \hl{Block}, and a \hl{UnarySend} of \code{$}. But feel free to\
+  define your own.
 
   When a \hl{List} is used as a message, it sends \code{[]} with its contents\
   as the arguments, as in Ruby. Note that this will also give you \code{[]=} \
@@ -191,11 +202,12 @@
 
   When a \hl{Block} is used as a message, it attaches itself as a Ruby-style \
   proc-arg. When a \hl{List} and a \hl{Block} are used in combination, the \
-  \hl{List} instead acts as the block's arguments.
+  \hl{List} acts as the block's arguments.
 
   \example{
     2 times: "hi" print
     [1, 2, 3] collect [x]: x * 2
+    [a, b]: a + b
   }
 
   You can also include arguments with the message by following the expression\
@@ -207,7 +219,9 @@
     [a] \{ a + 1 \} call(2)
   }
 
-  A \hl{UnarySend} of \code{$} sent to a \hl{Block} can be used as syntactic sugar for avoiding parentheses around argument lists; when used as a message, it simply appends the block's contents to the send's arguments.
+  A \hl{UnarySend} of \code{$} sent to a \hl{Block} can be used as syntactic \
+  sugar for avoiding parentheses around argument lists; when used as a \
+  message, it simply appends the block's contents to the send's arguments.
 
   \example-segment{
     1 foo $: 2, 3
@@ -223,15 +237,21 @@
   {- See \reference{defining-macros}. -}
 
   \verbatim{
-    macro(pattern): [expressions ...]
+    macro(pattern) [block]
       where
         pattern = a message pattern
-        expressions = the macro's body
+        block = the macro's body
+  }
+
+  \example-segment{
+    macro(x foo): '42
+    macro(x bar) { '43 }
   }
 }
 
 \section{\hl{operator}}{operator-syntax}{
-  You can control how Atomy parses binary operators like \hl{+} and \hl{->} via the \hl{operator} keyword. The syntax is as follows:
+  You can control how Atomy parses binary operators like \hl{+} and \hl{->} \
+  via the \hl{operator} keyword. The syntax is as follows:
 
   \verbatim{
     operator [associativity] [precedence] operators
@@ -241,7 +261,8 @@
         operators = operator +
   }
 
-  An omitted associativity implies left, and an omitted precedence implies 5 (the default). One of the two must be provided.
+  An omitted associativity implies left, and an omitted precedence implies 5 \
+  (the default). One of the two must be provided.
 
   \example-segment{
     operator right 0 ->
@@ -249,6 +270,4 @@
     operator 7 % * /
     operator 6 + -
   }
-
-  Operator expressions, when evaluated, just return \hl{@ok}.
 }

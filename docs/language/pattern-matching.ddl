@@ -1,0 +1,235 @@
+\title{Pattern Matching}
+
+At the very heart of Atomy is pattern-matching, and its behavior with dispatch. Patterns are used to both check for and deconstruct a value in one fell swoop. Depending on the scenario, a pattern-match may error if it doesn't match (\hl{=}, \hl{=!}, and sometimes methods), or just silently fail (\hl{match}).
+
+When defining a method, a few things occur. First, the target of the definition is determined based on the message receiver pattern. See \reference{A Pattern's Target} for a more detailed account, but you don't have to memorize any of this.
+
+Once the target is determined, Atomy will check to see if the method is already defined on the target, perhaps with different patterns. If it doesn't exist, the method is simply inserted. If it does, the method is inserted based on its "precision" in relation to the others.
+
+This sorting is the magic dust. Pattern A is said to be "more precise" than pattern B if it matches fewer cases, or if pattern B will always match what pattern A will match, but not the other way around.
+
+For example, the pattern \hl{1} is much more precise than the pattern \hl{x} - the former only matches the integer \hl{1}, while the latter will match any value! In addition, with two \hl{Constant} patterns, one specifying a subclass of the other, the subclass is more precise.
+
+Care is taken to maintain proper precision-based ordering so that an object may be extended after the fact with method definitions that handle more specific cases. For example, let's say in your original code you define this:
+
+\atomy{
+  1 foo := -1
+  2 foo := -2
+  _ foo := #umm
+}
+
+Without precision sorting, not only would the order of definitions matter greatly, but no one would be able to handle any other cases! If someone came along and tried defining \hl{3 foo := -3}, it would be unreachable, because the wildcard \hl{_} matches \italic{everything}. They'd always get back \hl{#umm} for everything but \hl{1} and \hl{2}. Likewise, if you defined that catch-all case first, it would override the others.
+
+With precision sorting, things "just work." You can define your methods in whatever order you want - maybe writing the catch-all first and then drilling into the details afterward. It doesn't matter.
+
+\section{Types of Patterns}{
+  There are a ton of different pattern-matchers that come with Atomy, owing to the fact that they are so easy to define and can provide for immense expressive power.
+
+  \definitions{
+    \item{\hl{_}, \hl{foo}, \hl{@foo}, \hl{@@foo}, \hl{$foo}, ...}{
+      Possibly-named wildcard matches. Global, instance, and class variables behave the same, but bind as their respective types rather than as locals.
+
+      \example{
+        _ = 1
+        a = 2
+        a
+      }
+    }
+
+    \item{\hl{1}, \hl{4.0}, \hl{true}, \hl{false}, \hl{"foo"}, \hl{#foo}, ...}{
+      Primitive literal values that will match only themselves.
+
+      \example{
+        1 = 1
+        1 = 2
+        4.0 = 4.0
+        4.0 = 4.000000000001
+        "foo" = "foo"
+      }
+    }
+
+    \item{\hl{foo: pattern}, \hl{foo \{ pattern \}}}{
+      A named pattern-match. Matches \hl{pattern}, binding the value it matches to a local variable, \hl{foo}.
+
+      \example{
+        (foo: 2) = 2
+        foo
+        (foo: 2) = 1
+      }
+    }
+
+    \item{\hl{head . tail}}{
+      Matches a non-empty list, pattern-matching its first value on \hl{head} and the rest of it on \hl{tail}.
+
+      \example{
+        (x . xs) = [1, 2, 3]
+        x
+        xs
+      }
+    }
+
+    \item{\hl{[]}, \hl{[pattern, pattern-2]}, ...}{
+      Matches a list of fixed length, recursively matching each \hl{pattern} on each of its values.
+
+      \example{
+        [] = []
+        [a, b] = [1, 2]
+        [c, 4] = [3, 4]
+        [a, b, c]
+      }
+    }
+
+    \item{\hl{#foo(x)}, \hl{#foo(x, _)}, ...}{
+      Matches a particle value, recursively pattern-matching the particle's values. A wildcard in a particle pattern matches placeholders, but no other pattern will.
+
+      \example{
+        #foo(x) = #foo(2)
+        x
+        #foo(_) = #foo(_)
+        #foo(_) = #foo(2)
+        #foo(2) = #foo(_)
+      }
+    }
+
+    \item{\hl{'a}, \hl{`a}, \hl{`(1 + ~b)}, ...}{
+      Matches expression values recursively. Unquotes serve as nested patterns, with the same recursive semantics as quasiquotation.
+
+      \example{
+        `a = `a
+        `(1 + ~b) = '(1 + 2)
+        `(1 + ~'2) = '(1 + 2)
+        ``(1 + ~~c) = ``(1 + ~3)
+        [b, c]
+      }
+    }
+
+    \item{\hl{\{ expression \}}}{
+      Used to target a value's singleton class; \hl{expression} is evaluated and its singleton class is the target for a definition. This pattern acts as a wildcard otherwise.
+
+      \example{
+        a = "foo"
+        \{ a \} fizz := 42
+        a fizz
+        "foo" fizz
+      }
+    }
+
+    \item{\hl{&pattern}}{
+      Ruby-style proc-arg pattern, used to capture a block passed to a method as a \hl{Proc}.
+
+      \example{
+        x my-block(&y) := y [x]
+        1 my-block: 42
+        1 my-block [x]: x + 2
+      }
+    }
+
+    \item{\hl{*pattern}}{
+      Ruby-style "splat" pattern, typically used to match the rest of the arguments in a method definition.
+
+      \example{
+        x my-splat(y, *zs) := [x, y, zs]
+        1 my-splat(2, 3, 4, 5)
+        x my-splat(y, *[3, zs]) := [x, y, zs]
+        1 my-splat(2, 3, 4)
+      }
+    }
+
+    \item{\hl{pattern = default}}{
+      Ruby-style default argument pattern. Will match \hl{pattern} on the argument, or on \hl{default}'s value if the argument is not given.
+
+      \example{
+        x my-default(y = x + 1) := [x, y]
+        1 my-default
+        1 my-default(42)
+      }
+    }
+
+    \item{\hl{pattern ? predicate}}{
+      Matches \hl{pattern}, and then evaluates \hl{predicate} with the value as \hl{self}, only succeeding if both the match and the predicate succeed.
+
+      If \hl{pattern} is not given, \hl{_} is assumed.
+
+      \example{
+        (Integer ? odd?) = 41
+        (Integer ? odd?) = 42
+        (Integer ? odd?) = "foo"
+        (? odd?) = 41
+        (? odd?) = 42
+        (? odd?) = "foo"
+      }
+    }
+
+    \item{\hl{pattern-1 & pattern-2}}{
+      Succeeds only if both patterns match the value. This is similar to \hl{foo: pattern-2}, but you can specify a pattern rather than a named wildcard in place of \hl{foo}.
+
+      \example{
+        (Integer & 41) = 41
+        (Integer & 42) = 41
+        (a & b) = x
+        [a, b]
+      }
+    }
+
+    \item{\hl{pattern-1 | pattern-2}}{
+      Succeeds if either patterns match the value. This pattern is short-circuiting; if one matches, the other won't be attempted. Therefore, don't rely on bindings in the second pattern being set.
+
+      \example{
+        (one | two) = 41
+        [one, two]
+        (1 | 2) = 2
+        (1 | x) = 2
+        x
+      }
+    }
+
+    \item{\hl{with(expression, pattern)}}{
+      Matches \hl{pattern} on the result of evaluating \hl{expression} with the value as \hl{self}. Useful for matching things like instance variables.
+
+      \example{
+        with(odd?, true) = 1
+        data(Object): MyPoint(@x, @y)
+        with(@x, 1) = MyPoint new(1, 2)
+      }
+    }
+  }
+}
+
+\section{A Pattern's Target}{
+  When defining a method, the receiver in the message-pattern determines where the method is inserted.
+
+  \definitions{
+    \item{
+      \hl{_}, \hl{foo}, \hl{@foo}, \hl{@@foo}, \hl{$foo}, ...
+    }{\hl{Object}}
+    \item{\hl{\{ foo bar \}}}{\code{foo bar}'s singleton class}
+    \item{\hl{Foo}, \hl{Foo::Bar}, \hl{::Bar}, ...}{
+      the class named by the constant
+    }
+    \item{\hl{1}, \hl{2}, ...}{\hl{Integer}}
+    {- \item{\hl{$a}, \hl{$b}, ...}{\hl{Character}} -}
+    \item{\hl{true}}{\hl{TrueClass}}
+    \item{\hl{false}}{\hl{FalseClass}}
+    \item{\hl{1.0}, \hl{2.0}, ...}{\hl{Float}}
+    {- \item{\hl{1/2}, \hl{3/4}, ...}{\hl{Rational}} -}
+    \item{\hl{""}, \hl{"foo"}, ...}{\hl{String}}
+    \item{
+      \hl{head . tail}, \hl{[]}, \hl{[pattern, pattern-2]}, ...
+    }{\hl{List}}
+    \item{\hl{'x}, \hl{`x}, \hl{`(1 + ~y)}, ...}{\hl{Expression}}
+    \item{\hl{#foo}}{\hl{Symbol}}
+    \item{\hl{#foo(1)}}{\hl{Particle}}
+    \item{
+      \hl{foo: pattern}, \hl{foo \{ pattern \}}
+    }{target of \italic{pattern}}
+    \item{\hl{pattern = default}}{target of \italic{pattern}}
+    \item{\hl{pattern ? predicate}}{target of \italic{pattern}}
+    \item{\hl{? predicate}}{\hl{Object}}
+    \item{\hl{pattern-1 & pattern-2}}{target of \italic{pattern-1}}
+    \item{\hl{pattern-1 | pattern-2}}{target of \italic{pattern-1}}
+    \item{\hl{with(expression, pattern}}{\hl{Object}}
+    \item{\hl{&foo}, \hl{*foo}}{\hl{Object}}
+  }
+
+  Thus, \hl{1 foo := x} is a definition placed on \hl{Integer}, while \hl{{ self } foo} is inserted on \hl{self}'s singleton class, similar to \code{def self.foo; ...; end} in Ruby.
+}
