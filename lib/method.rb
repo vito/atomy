@@ -52,6 +52,7 @@ module Atomy
     reqs = 0
     defs = 0
     names = []
+    splatted = false
 
     resolved = branches.collect do |pats, meth|
       segs = segments(pats[1])
@@ -67,12 +68,16 @@ module Atomy
         names += p.local_names
       end
 
-      g.splat_index = block_offset + reqs + defs if segs[2]
+      splatted = true if segs[2]
 
       [pats[0], segs, meth]
     end
 
     names.uniq!
+
+    if splatted
+      g.splat_index = block_offset + reqs + defs
+    end
 
     total += block_offset
 
@@ -106,6 +111,11 @@ module Atomy
         g.gif skip
       end
 
+      if splat
+        g.push_local(g.splat_index)
+        splat.pattern.deconstruct(g)
+      end
+
       if recv.bindings > 0
         g.dup
         recv.deconstruct(g, locals)
@@ -119,11 +129,6 @@ module Atomy
           g.push_block_arg
           block.deconstruct(g, locals)
         end
-      end
-
-      if splat
-        g.push_local(g.splat_index)
-        splat.pattern.deconstruct(g)
       end
 
       reqs.each_with_index do |a, i|
