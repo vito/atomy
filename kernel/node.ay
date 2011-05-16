@@ -12,7 +12,7 @@ export:
       Atomy::Patterns::Default new(p to-pattern, d)
 
     `(? ~t) pattern :=
-      Atomy::Patterns::Predicate new(Any new, t)
+      Atomy::Patterns::Predicate new(Atomy::Patterns::Any new, t)
 
     `(~p ? ~t) pattern :=
       Atomy::Patterns::Predicate new(p to-pattern, t)
