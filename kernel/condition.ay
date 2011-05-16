@@ -229,7 +229,7 @@ section("Signalling"):
         signal(w)
 
         with-output-to(^error-port):
-          w message print
+          (w name + ": " + w message) print
 
         nil
   } examples:
