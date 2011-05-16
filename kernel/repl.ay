@@ -91,7 +91,7 @@ doc"
           #special(n ? (=~ r"\d+")) ->
             ^restarts [n to-i] invoke
 
-          #quit -> exit(0)
+          #quit -> exit(1)
 
 dynamic(debugger, ReplDebugger)
 
