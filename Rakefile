@@ -14,8 +14,11 @@ task :install do
   sh "rbx -S gem uninstall atomy; rbx -S gem build atomy.gemspec; rbx -S gem install atomy-*.gem --no-ri --no-rdoc"
 end
 
-task :docs do
+task :reference do
   sh "./bin/atomy -d docs/reference -s exit"
+end
+
+task :docs do
   sh "./bin/atomy ../doodle/bin/doodle docs/index.ddl -o _doodle"
 end
 
