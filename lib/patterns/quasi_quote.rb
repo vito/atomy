@@ -53,11 +53,14 @@ module Atomy::Patterns
       g.pop
 
       where = nil
+      splice = false
 
       pre = proc { |e, c, d|
         where << c if c && where
 
         where = [] if !where and c == :expression
+
+        splice = true if e.kind_of?(Atomy::AST::Splice)
 
         if !(e.unquote? && d == 1) && where && c != :unquoted
           e.get(g)
@@ -100,7 +103,14 @@ module Atomy::Patterns
       @quoted.through_quotes(pre, post) do |e|
         ctx = where.last == :unquoted ? where[0..-2] : where
         g.push_stack_local them
-        context(g, ctx)
+        if splice
+          g.send ctx.last[0], 0
+          g.push_int ctx.last[1]
+          g.send :drop, 1
+          splice = false
+        else
+          context(g, ctx)
+        end
         e.to_pattern.matches?(g)
         g.gif mismatch
         e
@@ -121,11 +131,14 @@ module Atomy::Patterns
       g.pop
 
       where = nil
+      splice = false
 
       pre = proc { |n, c|
         where << c if c && where
 
         where = [] if !where and c == :expression
+
+        splice = true if n.kind_of?(Atomy::AST::Splice)
 
         true
       }
@@ -135,7 +148,14 @@ module Atomy::Patterns
       @quoted.through_quotes(pre, post) do |e|
         ctx = where.last == :unquoted ? where[0..-2] : where
         g.push_stack_local them
-        context(g, ctx)
+        if splice
+          g.send ctx.last[0], 0
+          g.push_int ctx.last[1]
+          g.send :drop, 1
+          splice = false
+        else
+          context(g, ctx)
+        end
         e.to_pattern.deconstruct(g)
         e
       end
