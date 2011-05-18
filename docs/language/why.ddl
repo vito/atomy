@@ -59,6 +59,13 @@
 
   \section{Go ahead, be a monkey.}{
     Atomy also attempts to solve the monkey-patching problem via selector namespaces. This is still in flux, but is a high priority.
+
+    \example{
+      in-namespace(foo): Integer foo := 1
+      in-namespace(bar): Integer foo := 2
+      in-namespace(foo): 10 foo
+      in-namespace(bar): 10 foo
+    }
   }
 
   \section{A Handful of Shiny Toys}{
@@ -88,9 +95,37 @@
       }
 
       \item{syntax as macros}{
-        Where Ruby has global, instance, and class variable syntax, Atomy actually implements these as unary send macros. Same for symbols (\hl{#to-a}), particles (\hl{#foo(1, _)}, splats (\hl{*args}), block-passing (\hl{&foo}). If something can be a macro or regular method, it will be. This has been applied very broadly.
+        Where Ruby has global, instance, and class variable syntax, Atomy actually implements these as unary send macros. The same goes for for symbols (\hl{#to-a}), particles (\hl{#foo(1, _)}, splats (\hl{*args}), block-passing (\hl{&foo}), and a few others. If something can be a macro or regular method, it will be. This has been applied very broadly.
 
-        There are currently four "types" of macros: variable, unary, binary, and regular message sends. Variable macros are used for things like \hl{_FILE} and \hl{_LINE}.
+        There are currently four "types" of macros: variable (\hl{_FILE}), unary (\hl{-foo}), binary (\hl{a + b}), and regular message sends (\hl{1 foo}).
+      }
+
+      \item{particles}{
+        Like Atomo, Atomy has a concept of "partial messages" which can act as ad-hoc data structures. They respond to \hl{call} and \hl{to-proc}, so you can use them as block shorthand.
+
+        \example{
+          [1, 2, 3] collect(&#(* 3))
+        }
+
+        You can also pattern-match them, so they are often used for simple data structures, similar to how atoms and tuples are used in Erlang.
+
+        \example{
+          #ok(x) = #ok(1)
+          x
+        }
+
+        In a particle, \code{_} acts as a placeholder. Sending \hl{call} will fill these values in order with the values you pass, and then send the message.
+
+        \example{
+          #kind-of?(_) call(1, Integer)
+        }
+
+        Note that they have very similar syntax as \hl{Symbol}s; in fact, Atomy also defines \hl{call} on \hl{Symbol} so you can generally use them interchangeably.
+
+        \example{
+          #odd? call(1)
+          #odd? call(2)
+        }
       }
 
       \item{extensible pattern-matching}{

@@ -92,7 +92,7 @@ With precision sorting, things "just work." You can define your methods in whate
     }
 
     \item{\hl{'a}, \hl{`a}, \hl{`(1 + ~b)}, ...}{
-      Matches expression values recursively. Unquotes serve as nested patterns, with the same recursive semantics as quasiquotation.
+      Matches expression values recursively. Unquotes serve as nested patterns, with the same recursive semantics as quasiquotation. Splice unquotes are similar, but act as "splats", matching the rest of its container.
 
       \example{
         `a = `a
@@ -100,6 +100,9 @@ With precision sorting, things "just work." You can define your methods in whate
         `(1 + ~'2) = '(1 + 2)
         ``(1 + ~~c) = ``(1 + ~3)
         [b, c]
+        `[1, 2, ~*['3, '4]] = '[1, 2, 3, 4]
+        `[1, 2, ~*xs] = '[1, 2, 1 + 2, 1 + 3]
+        xs
       }
     }
 
@@ -199,9 +202,9 @@ With precision sorting, things "just work." You can define your methods in whate
   When defining a method, the receiver in the message-pattern determines where the method is inserted.
 
   \definitions{
-    \item{
-      \hl{_}, \hl{foo}, \hl{@foo}, \hl{@@foo}, \hl{$foo}, ...
-    }{\hl{Object}}
+    \item{\hl{_}, \hl{foo}, \hl{@foo}, \hl{@@foo}, \hl{$foo}, ...}{
+      \hl{Object}
+    }
     \item{\hl{\{ foo bar \}}}{\code{foo bar}'s singleton class}
     \item{\hl{Foo}, \hl{Foo::Bar}, \hl{::Bar}, ...}{
       the class named by the constant
@@ -213,21 +216,23 @@ With precision sorting, things "just work." You can define your methods in whate
     \item{\hl{1.0}, \hl{2.0}, ...}{\hl{Float}}
     {- \item{\hl{1/2}, \hl{3/4}, ...}{\hl{Rational}} -}
     \item{\hl{""}, \hl{"foo"}, ...}{\hl{String}}
-    \item{
-      \hl{head . tail}, \hl{[]}, \hl{[pattern, pattern-2]}, ...
-    }{\hl{List}}
+    \item{\hl{head . tail}, \hl{[]}, \hl{[pattern, pattern-2]}, ...}{
+      \hl{List}
+    }
     \item{\hl{'x}, \hl{`x}, \hl{`(1 + ~y)}, ...}{\hl{Expression}}
     \item{\hl{#foo}}{\hl{Symbol}}
     \item{\hl{#foo(1)}}{\hl{Particle}}
-    \item{
-      \hl{foo: pattern}, \hl{foo \{ pattern \}}
-    }{target of \italic{pattern}}
+    \item{\hl{foo: pattern}, \hl{foo \{ pattern \}}}{
+      target of \italic{pattern}
+    }
     \item{\hl{pattern = default}}{target of \italic{pattern}}
     \item{\hl{pattern ? predicate}}{target of \italic{pattern}}
     \item{\hl{? predicate}}{\hl{Object}}
     \item{\hl{pattern-1 & pattern-2}}{target of \italic{pattern-1}}
     \item{\hl{pattern-1 | pattern-2}}{target of \italic{pattern-1}}
-    \item{\hl{with(expression, pattern}}{\hl{Object}}
+    \item{\hl{pattern-1 with(expression, pattern-2)}}{
+      target of \italic{pattern-1}
+    }
     \item{\hl{&foo}, \hl{*foo}}{\hl{Object}}
   }
 
