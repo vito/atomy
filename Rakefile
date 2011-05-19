@@ -11,7 +11,7 @@ task :clean do
 end
 
 task :install do
-  sh "rbx -S gem uninstall atomy; rbx -S gem build atomy.gemspec; rbx -S gem install atomy-*.gem --no-ri --no-rdoc"
+  sh "rm *.gem; rbx -S gem uninstall atomy; rbx -S gem build atomy.gemspec; rbx -S gem install atomy-*.gem --no-ri --no-rdoc"
 end
 
 task :reference do

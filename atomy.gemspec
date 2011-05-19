@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = "atomy"
-  s.version = "0.0.1"
+  s.version = "0.1.1"
 
   s.authors = ["Alex Suraci"]
   s.date = "2011-02-26"
@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
     Dir.glob("lib/*.rb") +
     Dir.glob("kernel/**/*.ay")
 
-  files = files.reject{ |f| f =~ /\.(atomyc|rbc)$/ }
+  files = files.reject{ |f| f =~ /\.(ayc|rbc)$/ }
 
   s.files = files
 
@@ -25,11 +25,6 @@ Gem::Specification.new do |s|
   s.has_rdoc = false
   s.homepage = "http://www.atomy-lang.org"
   s.rubyforge_project = "atomy"
-  s.summary = "atomy programming language"
-  s.description = <<EOD
-atomy is a small, simple, insanely flexible and expressive programming
-language. its design is inspired by Scheme (small, simple core), Slate
-(multiple dispatch, keywords), Ruby (very DSL-friendly), and Erlang
-(message-passing concurrency).
-EOD
+  s.summary = "the Atomy programming language"
+  s.description = s.summary
 end
