@@ -1,6 +1,7 @@
 class PatternMismatch < RuntimeError
-  def initialize(p)
+  def initialize(p, v)
     @pattern = p
+    @value = v
   end
 end
 
@@ -52,7 +53,7 @@ module Atomy::Patterns
     # try pattern-matching, erroring on failure
     # effect on the stack: top value removed
     def match(g, set = false, locals = {})
-      error = g.new_label
+      mismatch = g.new_label
       done = g.new_label
 
       local_names.each do |n|
@@ -61,16 +62,20 @@ module Atomy::Patterns
 
       g.dup
       matches?(g)
-      g.gif error
+      g.gif mismatch
+
       deconstruct(g, locals)
       g.goto done
 
-      error.set!
-      g.pop
+      mismatch.set!
       g.push_self
-      g.push_const :PatternMismatch
+      g.swap
+      g.push_cpath_top
+      g.find_const :PatternMismatch
+      g.swap
       construct(g)
-      g.send :new, 1
+      g.swap
+      g.send :new, 2
       g.allow_private
       g.send :raise, 1
       g.pop
