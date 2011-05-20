@@ -121,6 +121,10 @@ module Atomy
         scope.parent = self
       end
 
+      def module?
+        @parent.module?
+      end
+
       def search_local(name)
         if variable = variables[name]
           variable.nested_reference
