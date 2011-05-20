@@ -98,11 +98,9 @@ export:
       a head =~ b head && a tail =~ b tail
 
     (a: List) =~ (b: List) :=
-      a patterns zip(b patterns) all? [[a, b]]:
-        when(a nil? || b nil?):
-          return(false)
-
-        a =~ b
+      a patterns size == b patterns size &&
+        a patterns zip(b patterns) all? [[a, b]]:
+          a =~ b
 
     (a: Match) =~ (b: Match) :=
       a value == b value
@@ -142,7 +140,7 @@ export:
       total = 0
 
       xs zip(ys) [[x, y]]:
-        unless(x nil? || y nil?):
+        unless(y nil?):
           total += x <=> y
 
       total <=> 0

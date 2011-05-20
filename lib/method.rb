@@ -232,6 +232,8 @@ module Atomy
   end
 
   def self.equivalent?(xs, ys)
+    return false unless xs.size == ys.size
+
     xs.zip(ys) do |x, y|
       return false unless x =~ y
     end
