@@ -4,4 +4,4 @@ MethodFail message :=
 
 PatternMismatch message :=
   "pattern of type `" + @pattern class name split("::") last +
-    "' did not match value `" + @value inspect + "'"
+    "' did not match value `" + @value show + "'"
