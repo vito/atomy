@@ -60,9 +60,9 @@ macro(macro-quoter(n, &x)):
   `(evaluate-when(compile, load):
       Atomy::Macro::Environment quoter(#~n, &~x))
 
-macro-quoter(w) [c]: c split
 
 macro-quoter(r) [c, fs]:
+macro-quoter(w) [_, _, v]: v split
   flags = 0
 
   when(fs include?("m")):
@@ -79,7 +79,7 @@ macro-quoter(r) [c, fs]:
 
   `(Regexp new(~c, ~flags))
 
-macro-quoter(raw) [c]: c
+macro-quoter(raw) [r]: r
 
 macro(_undefined):
   Atomy::AST::Undefined new(line)

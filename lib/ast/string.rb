@@ -15,7 +15,8 @@ module Atomy
           @line,
           send.receiver.name,
           @raw || @value,
-          send.arguments.collect(&:name)
+          send.arguments.collect(&:name),
+          @value
         )
       end
     end

@@ -52,9 +52,9 @@ module Atomy
           @@quoters[name] = blk
         end
 
-        def quote(name, contents, flags)
+        def quote(name, contents, flags, value = nil)
           if a = @@quoters[name.to_sym]
-            a.call(contents, flags)
+            a.call(contents, flags, value)
           else
             raise "unknown quoter #{name.inspect}"
           end
