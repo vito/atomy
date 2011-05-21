@@ -77,7 +77,7 @@ macro-quoter(w) [_, _, v]: v split
   when(fs include?("u")):
     flags |= Regexp::KCODE_UTF8
 
-  `(Regexp new(~c, ~flags))
+  `(::Regexp new(~interpolated(r), ~flags))
 
 macro-quoter(raw) [r]: r
 
