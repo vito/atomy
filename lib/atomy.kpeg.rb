@@ -1224,6 +1224,44 @@ class Atomy::Parser
     return _tmp
   end
 
+  # interpolated = wsp expressions:es wsp "}" { Atomy::AST::Tree.new(0, Array(es)) }
+  def _interpolated
+
+    _save = self.pos
+    while true # sequence
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_expressions)
+      es = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string("}")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Atomy::AST::Tree.new(0, Array(es)) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_interpolated unless _tmp
+    return _tmp
+  end
+
   # level0 = (true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | constant | variable | block | list | unary)
   def _level0
 
@@ -3957,6 +3995,7 @@ class Atomy::Parser
   Rules[:_delim] = rule_info("delim", "(wsp \",\" wsp | (sp \"\\n\" sp)+ &{ current_column >= c })")
   Rules[:_expression] = rule_info("expression", "level3")
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }")
+  Rules[:_interpolated] = rule_info("interpolated", "wsp expressions:es wsp \"}\" { Atomy::AST::Tree.new(0, Array(es)) }")
   Rules[:_level0] = rule_info("level0", "(true | false | self | nil | number | quote | quasi_quote | splice | unquote | string | constant | variable | block | list | unary)")
   Rules[:_level1] = rule_info("level1", "(headless | grouped | level0)")
   Rules[:_level2] = rule_info("level2", "(send | level1)")
