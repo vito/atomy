@@ -14,7 +14,8 @@ module(Atomy::AST):
   ClassVariable unamb := pretty
   Constant unamb := pretty
   GlobalVariable unamb := pretty
-  (InlinedBody ? @contents size < 2) unamb := pretty
+  (InlinedBody ? @expressions size < 2) unamb := pretty
+  (Tree ? @nodes size < 2) unamb := pretty
   InstanceVariable unamb := pretty
   List unamb := pretty
   Particle unamb := pretty
@@ -259,6 +260,12 @@ export-to(atomy):
     Ensure pretty := doc:
       @body pretty <+> text("ensuring:") <+> @ensure pretty
 
+    Tree pretty := doc:
+      if(^multiline?)
+        then:
+          from(#top): vcat(@nodes all-pretty)
+        else:
+          from(#list): comma-delim(@nodes all-pretty)
 
 Array all-pretty := collect [x]: x pretty
 

@@ -76,7 +76,7 @@ module Atomy
     def self.compile_node(node, scope = nil, file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_bytecode, :compiled_method
 
-      eval = Rubinius::AST::EvalExpression.new(AST::Tree.new([node]))
+      eval = Rubinius::AST::EvalExpression.new(AST::Tree.new(line, [node]))
       eval.file = file
 
       if debug

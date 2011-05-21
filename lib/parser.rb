@@ -7,13 +7,13 @@ module Atomy
     def self.parse_string(source)
       p = new(source)
       p.raise_error unless p.parse
-      AST::Tree.new(p.result)
+      AST::Tree.new(0, p.result)
     end
 
     def self.parse_file(name)
       p = new(File.open(name, "rb").read)
       p.raise_error unless p.parse
-      AST::Tree.new(p.result)
+      AST::Tree.new(0, p.result)
     end
   end
 

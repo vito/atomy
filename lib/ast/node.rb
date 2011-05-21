@@ -485,19 +485,16 @@ EOF
       end
     end
 
-    class Tree
-      attr_accessor :nodes
-
-      def initialize(nodes)
-        @nodes = Array(nodes)
-      end
+    class Tree < Node
+      children [:nodes]
+      generate
 
       def bytecode(g)
         @nodes.each { |n| n.compile(g) }
       end
 
       def collect
-        Tree.new(@nodes.collect { |n| yield n })
+        Tree.new(0, @nodes.collect { |n| yield n })
       end
     end
 
