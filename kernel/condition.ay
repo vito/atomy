@@ -22,8 +22,7 @@ for-macro:
         Atomy::AST::Send ->
           "restart:" + x method-name
 
-data(Object):
-  Restart(@name, @action)
+data(Restart(@name, @action))
 
 Restart invoke(*args) :=
   throw(("restart:" + @name to-s) to-sym, @action [*args])
@@ -35,17 +34,16 @@ section("Conditions"):
     Condition system hierarchy. You should subclass one of these to create \
     your own conditions.
   " for:
-    data(Object):
-      Condition:
-        Error(@backtrace):
-          SimpleError(@value)
-          ExceptionError(@exception)
-          NoRestartError(@name)
-          PortError(@port):
-            EndOfFile
+    data(Condition):
+      Error(@backtrace):
+        SimpleError(@value)
+        ExceptionError(@exception)
+        NoRestartError(@name)
+        PortError(@port):
+          EndOfFile
 
-        Warning(@backtrace):
-          SimpleWarning(@value)
+      Warning(@backtrace):
+        SimpleWarning(@value)
 
   doc"
     Get the name of a condition. By default, this will be the class name, \

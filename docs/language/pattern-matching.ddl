@@ -191,7 +191,7 @@ With precision sorting, things "just work." You can define your methods in whate
 
       \example{
         Integer with(odd?, true) = 1
-        data(Object): MyPoint(@x, @y)
+        data(MyPoint(@x, @y))
         with(@x, 1) = MyPoint new(1, 2)
       }
     }

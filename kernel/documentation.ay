@@ -21,6 +21,9 @@ for-macro:
     indent(escape(x pattern show))
   to-thumb(`(~meth := ~_)) :=
     indent(escape(meth show))
+  to-thumb(d: `(data())) :=
+    let(atomy/pretty/multiline? = true):
+      indent(escape(d block body show))
   to-thumb(d: `(data(Object))) :=
     let(atomy/pretty/multiline? = true):
       indent(escape(d block body show))
