@@ -1,6 +1,6 @@
 namespace(atomy)
 
-macro(data(root, &children)):
+macro(data(root = 'Object, &children)):
   cs = children contents map [e]:
     e match:
       Atomy::AST::Send -> do:
