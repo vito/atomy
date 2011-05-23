@@ -69,38 +69,58 @@ module(Atomy::Patterns):
       bindings := @pattern bindings
 
     class(With < Pattern):
-      initialize(@expression, @pattern) := #ok
+      initialize(@pattern, @expression, @sub-pattern) := #ok
 
       construct(g) := do:
         get(g)
-        @expression construct(g)
         @pattern construct(g)
-        g send(#new, 2)
+        @expression construct(g)
+        @sub-pattern construct(g)
+        g send(#new, 3)
 
       (== b) :=
         b kind-of?(With) &&
+          @pattern == b pattern &&
           @expression == b expression &&
-          @pattern == b pattern
+          @sub-pattern == b pattern
 
-      target(g) := Any new target(g)
+      target(g) := @pattern target(g)
 
       matches?(g) := do:
+        mismatch = g new-label
+        done = g new-label
+
+        g dup
+        @pattern matches?(g)
+        g gif(mismatch)
+
         `{ ~@expression } bytecode(g)
         g send(#block, 0)
         g swap
         g send(#call-on-instance, 1)
-        @pattern matches?(g)
+        @sub-pattern matches?(g)
+        g dup
+        g git(done)
+
+        mismatch set!
+        g pop
+        g push-false
+
+        done set!
 
       deconstruct(g, locals = Hash new) := do:
+        g dup
+        @pattern deconstruct(g, locals)
+
         `{ ~@expression } bytecode(g)
         g send(#block, 0)
         g swap
         g send(#call-on-instance, 1)
-        @pattern deconstruct(g, locals)
+        @sub-pattern deconstruct(g, locals)
 
-      local-names := @pattern local-names
+      local-names := @pattern local-names + @sub-pattern local-names
 
-      bindings := @pattern bindings
+      bindings := @pattern bindings + @sub-pattern bindings
 
     class(And < Pattern):
       initialize(@a, @b) := #ok

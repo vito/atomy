@@ -186,11 +186,11 @@ With precision sorting, things "just work." You can define your methods in whate
       }
     }
 
-    \item{\hl{with(expression, pattern)}}{
-      Matches \hl{pattern} on the result of evaluating \hl{expression} with the value as \hl{self}. Useful for matching things like instance variables.
+    \item{\hl{pattern with(expression, sub-pattern)}}{
+      Matches \hl{pattern} on the value. If the match succeeds, matches \hl{sub-pattern} on the result of evaluating \hl{expression} with the value as \hl{self}. Useful for matching things like instance variables. An omitted \hl{pattern} implies \hl{_}.
 
       \example{
-        with(odd?, true) = 1
+        Integer with(odd?, true) = 1
         data(Object): MyPoint(@x, @y)
         with(@x, 1) = MyPoint new(1, 2)
       }

@@ -13,7 +13,7 @@ macro(data(root, &children)):
           Atomy::AST::Unquote new(0, t)
 
         e arguments zip(tmps) [[a, t]]:
-          pat =! `(~pat & with(~a, ~t))
+          pat =! `(~pat with(~a, ~t))
 
         cons = `(~(name)(~*tmps))
 
@@ -153,3 +153,4 @@ export:
           s bytecode(g)
 
         g string-build(@segments size)
+

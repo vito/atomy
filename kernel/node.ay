@@ -23,8 +23,11 @@ export:
     `(~a | ~b) pattern :=
       Atomy::Patterns::Or new(a to-pattern, b to-pattern)
 
-    `(with(~attr, ~p)) pattern :=
-      Atomy::Patterns::With new(attr, p to-pattern)
+    `(with(~e, ~y)) pattern :=
+      Atomy::Patterns::With new(Atomy::Patterns::Any new, e, y to-pattern)
+
+    `(~x with(~e, ~y)) pattern :=
+      Atomy::Patterns::With new(x to-pattern, e, y to-pattern)
 
     `@@~n pattern :=
       Atomy::Patterns::NamedClass new(n name)
