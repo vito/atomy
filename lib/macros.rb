@@ -279,22 +279,25 @@ module Atomy
         n = unary_chain(n)
       end
 
-      # TODO: this is too powerful. `foo = 'Object` pattern breaks.
       n = n.recursively do |sub|
         case sub
         when Atomy::AST::Constant
-          Atomy::AST::ScopedConstant.new(
-            sub.line,
+          if Atomy::AST.constants.include? sub.identifier
             Atomy::AST::ScopedConstant.new(
               sub.line,
-              Atomy::AST::Constant.new(
+              Atomy::AST::ScopedConstant.new(
                 sub.line,
-                "Atomy"
+                Atomy::AST::Constant.new(
+                  sub.line,
+                  "Atomy"
+                ),
+                "AST"
               ),
-              "AST"
-            ),
-            sub.identifier
-          )
+              sub.identifier
+            )
+          else
+            sub
+          end
         else
           sub
         end
