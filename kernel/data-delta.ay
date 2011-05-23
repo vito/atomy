@@ -1,60 +1,62 @@
 namespace(atomy)
 
+for-macro:
+  define-class(root, e) := `(class(~e < ~root) {})
+  define-class(root, e: Atomy::AST::Send) := do:
+    name =
+      Atomy::AST::Constant new(0, e method-name)
+
+    attrs = []
+    e through-quotes [x]:
+      x match:
+        `@~_ -> attrs << x
+
+      x
+
+    tmps = names(attrs size) collect [t]:
+      Atomy::AST::Unquote new(0, t)
+
+    pat = name
+    attrs zip(tmps) [[a, t]]:
+      pat =! `(~pat with(~a, ~t))
+
+    cons = `(~(name)(~*tmps))
+
+    pat-def =
+      `(~(Atomy::AST::QuasiQuote new(0, cons)) pattern :=
+          ~(Atomy::AST::QuasiQuote new(0, pat)) pattern)
+
+    class =
+      if(root)
+        then: `(~name < ~root)
+        else: name
+
+    define =
+      `(export:
+          class(~class):
+            attr-accessor $:
+              ~*(attrs collect [a]:
+                  `#~(a receiver))
+
+            initialize(~*(e arguments)) := nil
+
+          ~pat-def)
+
+    if(e block)
+      then:
+        `(do:
+            ~define
+            ~*(e block contents collect [c]:
+                 define-class(name, c)))
+      else:
+        define
+
 macro(data(root = 'Object, &children)):
-  cs = children contents map [e]:
-    e match:
-      Atomy::AST::Send -> do:
-        name =
-          Atomy::AST::Constant new(0, e method-name)
+  children ||= '{}
 
-        pat = name
-
-        tmps = names(e arguments size) collect [t]:
-          Atomy::AST::Unquote new(0, t)
-
-        e arguments zip(tmps) [[a, t]]:
-          pat =! `(~pat with(~a, ~t))
-
-        cons = `(~(name)(~*tmps))
-
-        pat-def =
-          `(~(Atomy::AST::QuasiQuote new(0, cons)) pattern :=
-              ~(Atomy::AST::QuasiQuote new(0, pat)) pattern)
-
-        define =
-          `(export:
-              class(~name < ~root):
-                attr-accessor $:
-                  ~*(e arguments collect [a]:
-                      `#~(a receiver))
-
-                initialize(~*(e arguments)) := nil
-
-              ~pat-def)
-
-        if(e block)
-          then:
-            `(do:
-                ~define
-
-                data(~name):
-                  ~*(e block contents))
-          else:
-            define
-
-      Atomy::AST::Constant ->
-        `(class(~e < ~root):)
-
-      Atomy::AST::ScopedConstant ->
-        `(class(~e < ~root):)
-
-      Atomy::AST::ToplevelConstant ->
-        `(class(~e < ~root):)
-
-      _ -> raise("unknown module name: " + e to-s)
-
-  `(do: class(~root) {}, ~*cs, nil)
-
+  `(do:
+      ~(define-class(nil, `(~root ~children)))
+      nil)
 
 macro(macro-quoter(n, &x)):
   `(evaluate-when(compile, load):
