@@ -25,3 +25,7 @@ end
 task :sync_docs do
   sh "rsync -a -P -e \"ssh -p 7331\" _doodle/ alex@atomy-lang.org:/srv/http/atomy-lang.org/site/docs/"
 end
+
+task :test do
+  sh "./bin/atomy test/main.ay"
+end
