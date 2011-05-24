@@ -306,4 +306,4 @@ module(Atomy::AST):
       Atomy::Patterns::Match new(@value)
 
     Node pattern :=
-      raise("unknown pattern: " + self inspect)
+      raise("unknown pattern: " + self to-sexp inspect)
