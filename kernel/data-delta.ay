@@ -7,11 +7,12 @@ for-macro:
       Atomy::AST::Constant new(0, e method-name)
 
     attrs = []
-    e through-quotes [x]:
-      x match:
-        `@~_ -> attrs << x
+    e arguments each [a]:
+      a through-quotes [x]:
+        x match:
+          `@~_ -> attrs << x
 
-      x
+        x
 
     tmps = names(attrs size) collect [t]:
       Atomy::AST::Unquote new(0, t)
