@@ -510,7 +510,9 @@ EOF
         container_bytecode(g) do
           g.push_state self
 
-          load = g.new_label
+          when_load = g.new_label
+          done_loading = g.new_label
+          when_run = g.new_label
           start = g.new_label
           done = g.new_label
 
@@ -520,14 +522,46 @@ EOF
           g.send :reason, 0
           g.push_literal :load
           g.send :==, 1
-          g.git load
+          g.git when_load
+
+          done_loading.set!
+
+          g.push_cpath_top
+          g.find_const :Atomy
+          g.find_const :CodeLoader
+          g.send :reason, 0
+          g.push_literal :run
+          g.send :==, 1
+          g.git when_run
 
           start.set!
           @body.bytecode g
           g.goto done
 
-          load.set!
+          when_load.set!
           Atomy::CodeLoader.when_load.each do |e, c|
+            if c
+              skip = g.new_label
+
+              g.push_cpath_top
+              g.find_const :Atomy
+              g.find_const :CodeLoader
+              g.send :compiled?, 0
+              g.git skip
+
+              e.load_bytecode(g)
+              g.pop
+
+              skip.set!
+            else
+              e.load_bytecode(g)
+              g.pop
+            end
+          end
+          g.goto done_loading
+
+          when_run.set!
+          Atomy::CodeLoader.when_run.each do |e, c|
             if c
               skip = g.new_label
 

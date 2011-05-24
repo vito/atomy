@@ -13,6 +13,9 @@ macro(x := y):
   Atomy::CodeLoader when-load <<
     [`(Atomy::Namespace register(~(x namespace-symbol), ~where)), true]
 
+  Atomy::CodeLoader when-run <<
+    [`(Atomy::Namespace register(~(x namespace-symbol), ~where)), true]
+
   Atomy::AST::Define new(x line, x, y, where)
 
 macro(define(x, &y)):
@@ -47,39 +50,82 @@ macro(class(name, &body)):
 macro(module(name, &body)):
   Atomy::AST::Module new(name line, name, body block-body)
 
+macro(evaluate-when('compile, 'load, 'run, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
 macro(evaluate-when('compile, 'run, 'load, &x)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
-  `(when(!(Atomy::CodeLoader compiled?) &&
-          Atomy::CodeLoader reason == #run):
-      ~*(x contents))
-
-macro(evaluate-when('run, 'compile, &x)):
-  x body evaluate
-  `(when(!(Atomy::CodeLoader compiled?) &&
-           Atomy::CodeLoader reason == #run):
-      ~*(x contents))
-
-macro(evaluate-when('compile, 'run, &x)):
-  x body evaluate
-  `(when(!(Atomy::CodeLoader compiled?) &&
-           Atomy::CodeLoader reason == #run):
-      ~*(x contents))
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
 
 macro(evaluate-when('compile, 'load, &x)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   'nil
 
+macro(evaluate-when('compile, 'run, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
 macro(evaluate-when('compile, &x)):
   x body evaluate
   'nil
 
-macro(evaluate-when('run, &x)):
-  `(when(Atomy::CodeLoader reason == #run) { ~*(x contents) })
+macro(evaluate-when('load, 'compile, 'run, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
+macro(evaluate-when('load, 'run, 'compile, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
+macro(evaluate-when('load, 'compile, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  'nil
+
+macro(evaluate-when('load, 'run, &x)):
+  Atomy::CodeLoader when-load << [x block-body, false]
+  Atomy::CodeLoader when-run << [x block-body, false]
+  'nil
 
 macro(evaluate-when('load, &x)):
   Atomy::CodeLoader when-load << [x block-body, false]
+  'nil
+
+macro(evaluate-when('run, 'load, 'compile, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
+macro(evaluate-when('run, 'compile, 'load, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
+macro(evaluate-when('run, 'load, &x)):
+  Atomy::CodeLoader when-load << [x block-body, false]
+  Atomy::CodeLoader when-run << [x block-body, false]
+  'nil
+
+macro(evaluate-when('run, 'compile, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
+macro(evaluate-when('run, &x)):
+  Atomy::CodeLoader when-run << [x block-body, false]
   'nil
 
 macro(for-macro(&b)):

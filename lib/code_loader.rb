@@ -19,6 +19,14 @@ module Atomy
         @when_load = x
       end
 
+      def when_run
+        @when_run ||= []
+      end
+
+      def when_run=(x)
+        @when_run = x
+      end
+
       def compiled?
         @compiled ||= false
       end
@@ -121,6 +129,7 @@ module Atomy
         return require(file) unless file.suffix?(".ay")
 
         CodeLoader.when_load = []
+        CodeLoader.when_run = []
         CodeLoader.reason = r
         CodeLoader.compiled! false
 
