@@ -44,16 +44,16 @@ module Atomy
         end
       end
 
+      # result must be a string on the stack
       def ns_method_name(g)
         if method_name == "initialize"
-          g.push_literal :initialize
+          g.push_literal "initialize"
           return
         end
 
         if @namespace
-          g.push_literal(
-            Atomy.namespaced(@namespace, method_name).to_sym
-          )
+          g.push_literal \
+            Atomy.namespaced(@namespace, method_name)
           return
         end
 
