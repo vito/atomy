@@ -51,5 +51,9 @@ module Atomy::Patterns
     def bindings
       1 + @pattern.bindings
     end
+
+    def wildcard?
+      @pattern.wildcard?
+    end
   end
 end

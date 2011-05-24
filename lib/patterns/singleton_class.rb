@@ -27,5 +27,9 @@ module Atomy::Patterns
       g.pop
       g.push_true
     end
+
+    def wildcard?
+      true
+    end
   end
 end

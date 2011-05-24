@@ -19,16 +19,16 @@ module Atomy
     [req, dfs, spl, blk]
   end
 
-  def self.match_self?(pat)
+  def self.should_match_self?(pat)
     case pat
     when Patterns::Match
       pat.value != :self
     when Patterns::Constant
       false
     when Patterns::Named
-      match_self?(pat.pattern)
+      should_match_self?(pat.pattern)
     else
-      true
+      !pat.wildcard?
     end
   end
 
@@ -105,9 +105,9 @@ module Atomy
         g.gif skip
       end
 
-      if match_self?(recv)
+      if should_match_self?(recv)
         g.dup
-        recv.matches?(g)
+        recv.matches_self?(g)
         g.gif skip
       end
 
@@ -132,12 +132,16 @@ module Atomy
       end
 
       reqs.each_with_index do |a, i|
+        next if a.wildcard? && a.bindings == 0
+
         g.push_local(i + block_offset)
 
         if a.bindings > 0
-          g.dup
-          a.matches?(g)
-          g.gif argmis
+          unless a.wildcard?
+            g.dup
+            a.matches?(g)
+            g.gif argmis
+          end
           a.deconstruct(g, locals)
         else
           a.matches?(g)

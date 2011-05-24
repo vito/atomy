@@ -39,6 +39,10 @@ module Atomy::Patterns
     def bindings
       @pattern.bindings
     end
+
+    def wildcard?
+      @pattern.wildcard?
+    end
   end
 end
 

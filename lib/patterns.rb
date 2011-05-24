@@ -20,6 +20,12 @@ module Atomy::Patterns
       raise Rubinius::CompileError, "no #matches? for #{self}"
     end
 
+    # TODO: a dynamic var would be better;
+    # this is annoying to handle recursively
+    def matches_self?(g)
+      matches?(g)
+    end
+
     # match the pattern on the value at the top of the stack
     # effect on the stack: top value removed
     def deconstruct(g, locals = {})
@@ -50,21 +56,26 @@ module Atomy::Patterns
       match(g, set, locals)
     end
 
+    def wildcard?
+      false
+    end
+
     # try pattern-matching, erroring on failure
     # effect on the stack: top value removed
     def match(g, set = false, locals = {})
-      mismatch = g.new_label
-      done = g.new_label
-
       local_names.each do |n|
         locals[n] ||= Atomy.assign_local(g, n, set)
       end
+
+      mismatch = g.new_label
+      done = g.new_label
 
       g.dup
       matches?(g)
       g.gif mismatch
 
       deconstruct(g, locals)
+
       g.goto done
 
       mismatch.set!

@@ -90,6 +90,8 @@ module(Atomy::Patterns):
         mismatch = g new-label
         done = g new-label
 
+        @result = g new-stack-local
+
         g dup
         @pattern matches?(g)
         g gif(mismatch)
@@ -97,7 +99,10 @@ module(Atomy::Patterns):
         `{ ~@expression } bytecode(g)
         g send(#block, 0)
         g swap
-        g send(#call-on-instance, 1)
+        g push-scope
+        g send(#call-under, 2)
+        g set-stack-local(@result)
+
         @sub-pattern matches?(g)
         g dup
         g git(done)
@@ -108,14 +113,42 @@ module(Atomy::Patterns):
 
         done set!
 
-      deconstruct(g, locals = Hash new) := do:
+      matches-self?(g) := do:
+        mismatch = g new-label
+        done = g new-label
+
+        @result = g new-stack-local
+
+        @pattern matches-self?(g)
+        g gif(mismatch)
+
+        @expression compile(g)
+        g set-stack-local(@result)
+
+        @sub-pattern matches?(g)
         g dup
+        g git(done)
+
+        g pop
+
+        mismatch set!
+        g push-false
+
+        done set!
+
+      deconstruct(g, locals = Hash new) := do:
+        unless(@result): g dup
         @pattern deconstruct(g, locals)
 
-        `{ ~@expression } bytecode(g)
-        g send(#block, 0)
-        g swap
-        g send(#call-on-instance, 1)
+        if(@result)
+          then: g push-stack-local(@result)
+          else:
+            `{ ~@expression } bytecode(g)
+            g send(#block, 0)
+            g swap
+            g push-scope
+            g send(#call-under, 2)
+
         @sub-pattern deconstruct(g, locals)
 
       local-names := @pattern local-names + @sub-pattern local-names
