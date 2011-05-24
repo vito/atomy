@@ -54,3 +54,10 @@ macro(x for(e) in(c) if(t)):
         ~c each [~e]:
           when(~t):
             ~tmp << ~x)
+
+module(Enumerable):
+  fold-left(i = _undefined, &block) :=
+    inject(i, &block)
+
+  fold-right(i = _undefined, &block) :=
+    reverse inject(i) [x, y]: block [y, x]
