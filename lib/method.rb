@@ -177,16 +177,18 @@ module Atomy
       skip.set!
     end
 
-    g.invoke_primitive :vm_check_super_callable, 0
-    g.gif mismatch
+    unless name == :initialize
+      g.invoke_primitive :vm_check_super_callable, 0
+      g.gif mismatch
 
-    g.push_block
-    if g.state.super?
-      g.zsuper g.state.super.name
-    else
-      g.zsuper nil
+      g.push_block
+      if g.state.super?
+        g.zsuper g.state.super.name
+      else
+        g.zsuper nil
+      end
+      g.goto done
     end
-    g.goto done
 
     mismatch.set!
     g.push_self
