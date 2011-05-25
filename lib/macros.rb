@@ -276,7 +276,7 @@ module Atomy
               sub.line,
               Atomy::AST::ScopedConstant.new(
                 sub.line,
-                Atomy::AST::Constant.new(
+                Atomy::AST::ToplevelConstant.new(
                   sub.line,
                   "Atomy"
                 ),
