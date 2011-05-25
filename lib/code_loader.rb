@@ -27,6 +27,7 @@ module Atomy
         @when_run = x
       end
 
+      # TODO: make sure this works as expected with multiple loadings
       def compiled?
         @compiled ||= false
       end

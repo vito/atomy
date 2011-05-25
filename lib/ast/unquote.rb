@@ -6,6 +6,7 @@ module Atomy
 
       def construct(g, d = nil)
         pos(g)
+
         # TODO: fail if depth == 0
         if d == 1
           @expression.compile(g)

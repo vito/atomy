@@ -4,6 +4,7 @@ module Atomy
       children :expression
       generate
 
+      # TODO: does this get called? looks like Unquote does some heavy lifting
       def construct(g, d = nil)
         pos(g)
         # TODO: fail if depth == 0
