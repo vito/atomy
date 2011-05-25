@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Define < Node
       children :pattern, :body
-      slots :namespace?
       generate
 
       def arguments
@@ -51,12 +50,6 @@ module Atomy
           return
         end
 
-        if @namespace
-          g.push_literal \
-            Atomy.namespaced(@namespace, method_name)
-          return
-        end
-
         no_ns = g.new_label
         done = g.new_label
 
@@ -65,12 +58,10 @@ module Atomy
         g.push_cpath_top
         g.find_const :Atomy
         g.find_const :Namespace
-        g.send :get, 0
+        g.send :define_target, 0
         g.dup
         g.gif no_ns
 
-        g.send :name, 0
-        g.send :to_s, 0
         g.push_literal method_name
         g.send :namespaced, 2
         g.goto done
@@ -112,7 +103,7 @@ module Atomy
         end
         g.make_array arguments.size
         g.make_array 2
-        @body.construct(g, nil)
+        @body.construct(g)
         g.make_array 2
 
         receiver.target(g)

@@ -16,7 +16,7 @@ macro(x := y):
   Atomy::CodeLoader when-run <<
     [`(Atomy::Namespace register(~(x namespace-symbol), ~where)), true]
 
-  Atomy::AST::Define new(x line, x, y, where)
+  Atomy::AST::Define new(x line, x, y)
 
 macro(define(x, &y)):
   `(~x := ~(y block-body))
