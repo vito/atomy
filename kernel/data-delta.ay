@@ -24,8 +24,9 @@ for-macro:
     cons = `(~(name)(~*tmps))
 
     pat-def =
-      `(~(Atomy::AST::QuasiQuote new(0, cons)) pattern :=
-          ~(Atomy::AST::QuasiQuote new(0, pat)) pattern)
+      `(evaluate-when(compile, load, run):
+          ~(Atomy::AST::QuasiQuote new(0, cons)) pattern :=
+              ~(Atomy::AST::QuasiQuote new(0, pat)) pattern)
 
     class =
       if(root)
