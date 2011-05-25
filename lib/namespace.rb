@@ -18,7 +18,9 @@ module Atomy
     attr_reader :name, :using, :symbols
 
     def initialize(name, using = [])
-      using = [:atomy] + using unless name == :atomy
+      if name != :atomy && NAMESPACES.key?(:atomy)
+        using.unshift(:atomy)
+      end
 
       @name = name
       @using = using
