@@ -55,5 +55,9 @@ module Atomy::Patterns
     def wildcard?
       @pattern.wildcard?
     end
+
+    def matches_self?
+      @pattern.matches_self?
+    end
   end
 end
