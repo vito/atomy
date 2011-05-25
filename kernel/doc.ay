@@ -1,453 +1,263 @@
-namespace(atomy)
-
-title"Pretty-Printing"
-
-data(Doc):
-  Empty
-  Beside(@left, @right, @space?)
-  Above(@above, @below, @overlap?)
-  Nest(@body, @depth)
-  Text(@value)
-
-section("Documents"):
-  doc"
-    A document is a structural collection of text. The following are the \
-    various types of documents, usually created with various combinators \
-    provided below.
-  "
-
-  doc"
-    The empty document, with a height and width of \hl{0}.
-  " spec { => "Class" } for: "Empty"
-
-  doc"
-    A document comprised of two documents positioned beside each other, with \
-    an optional space in-between.
-  " spec { => "Class" } for: "Beside(@left, @right, @space?)"
-
-  doc"
-    A document comprised of two documents positioned above and below each \
-    other, optionally overlapping if possible.
-  " spec { => "Class" } for: "Above(@above, @below, @overlap?)"
-
-  doc"
-    A document indented to a given depth.
-  " spec { => "Class" } for: "Nest(@body, @depth)"
-
-  doc"
-    A document containing arbitrary text, with a height of \hl{1}.
-  " spec { => "Class" } for: "Text(@value)"
-
-  doc"
-    Trivial emptiness check. \hl{true} for \hl{Empty}, \hl{false} for \
-    everything else.
-  " spec {
-    => "Boolean"
-  } for {
-    "Doc empty?"
-
-    Doc empty? := false
-    Empty empty? := true
-  } examples:
-    "doc { empty } empty?"
-    "doc { text(\"abc\") } empty?"
-    "doc { text(\"\") } empty?"
-
-
-  doc"
-    Calculate the width of the document, in characters.
-  " spec {
-    => "Integer"
-  } for {
-    "Doc width"
-
-    Empty width := 0
-    Text width := @value size
-    Beside width :=
-      if(@space?)
-        then: 1 + @left width + @right width
-        else: @left width + @right width
-    Nest width := (@body width + @depth)
-    Above width := [@above width, @below width] max
-  } examples:
-    "doc { empty } width"
-    "doc { text(\"abc\") } width"
-
-
-  doc"
-    Calculate the height of the document, in lines.
-
-    Note that an empty document has a height of 0.
-  " spec {
-    => "Integer"
-  } for {
-    "Doc height"
-
-    Empty height := 0
-    Text height := 1
-    Beside height := [@left height, @right height] max
-    Above height :=
-      if(@overlap? && @below kind-of?(Nest)
-          && @below depth > @above width)
-        then: @above height + @below height
-        else: 1 + @above height + @below height
-    Nest height := @body height
-  } examples:
-    "doc { empty } height"
-    "doc { text(\"abc\") } height"
-
-
-  doc"
-    Render the document as a \hl{String}.
-  " spec {
-    => "String"
-  } for {
-    "Doc render"
-
-    Text render := @value
-    Empty render := ""
-    Beside render :=
-      if(@space?)
-        then: @left render + " " + @right render
-        else: @left render + @right render
-    Above render := do:
-      a = @above render
-      b = @below render
-
-      if(@overlap? && @below kind-of?(Nest) &&
-          @below depth > @above width)
-        then:
-          b slice!(0, a size)
-          a + b
-        else:
-          a + "\n" + b
-    Nest render := do:
-      b = @body render
-      x = ""
-      b each-line [l]:
-        x << " " * @depth + l
-      x
-  } examples:
-    "doc { empty } render"
-    "doc { text(\"abc\") } render"
-    "'(1 + 1) pretty render"
-
-
-section("Constructing"):
-  doc"
-    Position one document beside another, separated by a space, unless either\
-    side is empty.
-  " spec {
-    => "Doc"
-  } for {
-    "(left: Doc) <+> (right: Doc)"
-
-    (l: Doc) <+> (r: Doc) := Beside new(l, r, true)
-    (d: Doc) <+> Empty := d
-    Empty    <+> (d: Doc) := d
-    (l: Doc) <+> (n: Nest) := (l <+> n body)
-    (l: Doc) <+> (a: Above) := do:
-      first = l <+> a above
-      rest = a below nest(l width + 1)
-      Above new(first, rest, a overlap?)
-  } examples:
-    "doc { text(\"x\") <+> value(42) }"
-    "doc { empty <+> value(42) }"
-
-
-  doc"
-    Position one document beside another unless either side is empty.
-  " spec {
-    => "Doc"
-  } for {
-    "(left: Doc) <> (right: Doc)"
-
-    (l: Doc) <> (r: Doc) := Beside new(l, r, false)
-    (d: Doc) <> Empty := d
-    Empty    <> (d: Doc) := d
-    (l: Doc) <> (n: Nest) := l <> n body
-    (l: Doc) <> (a: Above) := do:
-      first = l <> a above
-      rest = a below nest(l width)
-      Above new(first, rest, a overlap?)
-  } examples:
-    "doc { text(\"x\") <> value(42) }"
-    "doc { empty <> value(42) }"
-
-
-  doc"
-    Position one document above another, unless either are empty.
-
-    If the last line of the first argument stops at least one position before\
-    the first line of the second begins, these two lines are overlapped.
-  " spec {
-    => "Doc"
-  } for {
-    "(above: Doc) // (below: Doc)"
-
-    (a: Doc) // (b: Doc) := Above new(a, b, true)
-    (a: Doc) // Empty := a
-    Empty // (b: Doc) := b
-  } examples:
-    "doc { text(\"hi\") // text(\"there\") nest(1) }"
-    "doc { text(\"hi\") // text(\"there\") nest(5) }"
-
-
-  doc"
-    Position one document above another, without overlapping, unless either \
-    are empty.
-  " spec {
-    => "Doc"
-  } for {
-    "(above: Doc) /+/ (below: Doc)"
-
-    (a: Doc) /+/ (b: Doc) := Above new(a, b, false)
-    (a: Doc) /+/ Empty := a
-    Empty /+/ (b: Doc) := b
-  } examples:
-    "doc { text(\"hi\") /+/ text(\"there\") nest(1) }"
-    "doc { text(\"hi\") /+/ text(\"there\") nest(5) }"
-
-
-  doc"
-    Indent the document to the given \hl{depth}. For \hl{Nest}, this just \
-    increases its indentation level.
-  " spec {
-    "depth is-a?(Integer)"
-    => "Doc"
-  } for {
-    "Doc nest(depth)"
-
-    Nest nest(i) := Nest new(@body, @depth + i)
-    (d: Doc) nest(i) := Nest new(d, i)
-  } examples:
-    "doc { text(\"hi\") nest(5) }"
-    "doc { text(\"hi\") nest(5) nest(6) }"
-
-
-  doc"
-    Intersperse \hl{delimiter} document through \hl{documents}.
-  " spec {
-    "documents all?(&#is-a?(Doc))"
-    => "List"
-  } for {
-    "(delimiter: Doc) punctuate(documents: List)"
-
-    Doc punctuate([]) := []
-    Doc punctuate([d]) := [d]
-    (delim: Doc) punctuate(d . ds) :=
-      (delim punctuate(ds)) unshift(d <> delim)
-  } examples:
-    "doc { semi punctuate([value(1), value(2), value(3)]) }"
-    "doc { hsep(semi punctuate([value(1), value(2), value(3)])) }"
-
-
-section("Helpers"):
-  doc"
-    Shortcut for \hl{Doc onto(&body)}. This provides the various helper \
-    methods below, which are also available in the \hl{Pretty} module.
-  " for:
-    "doc(&body)"
-    macro(doc(&body)):
-      `(Doc onto(&~body))
-
-  module(Pretty):
-    section("Shortcuts"):
-      doc"
-        These shortcuts are primarily for quickly creating \hl{Text} \
-        documents, especially for things commonly found in syntax.
-      "
-
-      doc"
-        Create a \hl{Text} document with the given contents.
-      " spec {
-        "s is-a?(String)"
-        => "Doc"
-      } for:
-        "text(s)"
-        text(s) := Text new(s)
-
-      doc"
-        Create a \hl{Text} document with \hl{x inspect}.
-      " spec {
-        => "Doc"
-      } for:
-        "value(x)"
-        value(x) := Text new(x inspect)
-
-      doc"
-        Shortcut for \hl{text(\";\")}.
-      " spec {
-        => "Doc"
-      } for:
-        "semi"
-        semi := text(";")
-
-      doc"
-        Shortcut for \hl{text(\",\")}.
-      " spec {
-        => "Doc"
-      } for:
-        "comma"
-        comma := text(",")
-
-      doc"
-        Shortcut for \hl{text(\":\")}.
-      " spec {
-        => "Doc"
-      } for:
-        "colon"
-        colon := text(":")
-
-      doc"
-        Shortcut for \hl{text(\" \")}.
-      " spec {
-        => "Doc"
-      } for:
-        "space"
-        space := text(" ")
-
-      doc"
-        Shortcut for \hl{text(\"=\")}.
-      " spec {
-        => "Doc"
-      } for:
-        "equals"
-        equals := text("=")
-
-      doc"
-        Shortcut for \hl{text(\"(\")}.
-      " spec {
-        => "Doc"
-      } for:
-        "lparen"
-        lparen := text("(")
-
-      doc"
-        Shortcut for \hl{text(\")\")}.
-      " spec {
-        => "Doc"
-      } for:
-        "rparen"
-        rparen := text(")")
-
-      doc"
-        Shortcut for \hl{text(\"[\")}.
-      " spec {
-        => "Doc"
-      } for:
-        "lbrack"
-        lbrack := text("[")
-
-      doc"
-        Shortcut for \hl{text(\"]\")}.
-      " spec {
-        => "Doc"
-      } for:
-        "rbrack"
-        rbrack := text("]")
-
-      doc"
-        Shortcut for \hl{text(\"\{\")}.
-      " spec {
-        => "Doc"
-      } for:
-        "lbrace"
-        lbrace := text("{")
-
-      doc"
-        Shortcut for \hl{text(\"\}\")}.
-      " spec {
-        => "Doc"
-      } for:
-        "rbrace"
-        rbrace := text("}")
-
-    section("Wrapping"):
-      doc"
-        More shortcuts for common cases in pretty-printing, dealing with \
-        wrapping a document in delimiters.
-      "
-
-      doc"
-        Wrap a document in parentheses.
-      " spec {
-        => "Doc"
-      } for:
-        "parens(d)"
-        parens(d) := lparen <> d <> rparen
-
-      doc"
-        Wrap a document in brackets (\code{[]}).
-      " spec {
-        => "Doc"
-      } for:
-        "brackets(d: Doc)"
-        brackets(d) := lbrack <> d <> rbrack
-
-      doc"
-        Wrap a document in braces (\code{\{\}}).
-      " spec {
-        => "Doc"
-      } for:
-        "braces(d: Doc)"
-        braces(d) := lbrace <> d <> rbrace
-
-      doc"
-        Wrap a document in single-quotes.
-      " spec {
-        => "Doc"
-      } for:
-        "quotes(d: Doc)"
-        quotes(d) := text("'") <> d <> text("'")
-
-      doc"
-        Wrap a document in double-quotes.
-      " spec {
-        => "Doc"
-      } for:
-        "double-quotes(d: Doc)"
-        double-quotes(d) := text("\"") <> d <> text("\"")
-
-    section("Combining"):
-      doc"
-        Helpers for creating a single document from many.
-      "
-
-      doc"
-        An empty document. The identity for \hl{<>}, \hl{<+>}, \hl{//}, \
-        \hl{/+/}, and anywhere in the following methods.
-      " spec {
-        => "Doc"
-      } for:
-        "empty"
-        empty := Empty new
-
-      doc"
-        Reduce a list of documents with \hl{<>}.
-      " spec {
-        "ds all?(&#is-a?(Doc))"
-        => "Doc"
-      } for:
-        "hcat(ds)"
-        hcat(ds) := ds inject(empty) [a, b]: a <> b
-
-      doc"
-        Reduce a list of documents with \hl{<+>}.
-      " spec {
-        "ds all?(&#is-a?(Doc))"
-        => "Doc"
-      } for:
-        "hsep(ds)"
-        hsep(ds) := ds inject(empty) [a, b]: a <+> b
-
-      doc"
-        Reduce a list of documents with \hl{//}.
-      " spec {
-        "ds all?(&#is-a?(Doc))"
-        => "Doc"
-      } for:
-        "vcat(ds)"
-        vcat(ds) := ds inject(empty) [a, b]: a // b
-
-Doc extend(Pretty)
+namespace(atomy/doc)
+
+-- operator precedence/associativity
+operator right 5 </> <//> <$> <$$>
+operator right 6 <> <+>
+
+module(Atomy::Pretty):
+  -- combinatorial structures
+  data(Doc):
+    Empty
+    Cat(@x, @y)
+    Nest(@depth, @doc)
+    Text(@value)
+    Raw(@value)
+    Line(@space?)
+    Union(@x-thunk, @y-thunk)
+    Column(@thunk) -- @thunk is (Integer -> Doc)
+    Nesting(@thunk) -- @thunk is (Integer -> Doc)
+
+  -- simple documents (used internally)
+  data(SDoc):
+    SEmpty
+    SText(@value, @rest-thunk)
+    SRaw(@value, @rest-thunk)
+    SLine(@space?, @indentation, @rest-thunk)
+
+  -- helpful for debugging
+  SEmpty to-sexp := #sempty
+  SText  to-sexp := [#stext, @value, @next-thunk [] to-sexp]
+  SRaw   to-sexp := [#sraw, @value, @next-thunk [] to-sexp]
+  SLine  to-sexp := [#sline, @space?, @indentation, @next-thunk [] to-sexp]
+
+  Empty to-sexp := #empty
+  Cat   to-sexp := [#cat, @x to-sexp, @y to-sexp]
+  Nest  to-sexp := [#nest, @depth, @doc]
+  Text  to-sexp := [#text, @value]
+  Raw   to-sexp := [#raw, @value]
+  Line  to-sexp := [#line, @space?]
+  Union to-sexp := [#union, x to-sexp, y to-sexp]
+  Column to-sexp := column
+  Nesting to-sexp := nesting
+
+  -- lazy values
+  Union x := @x ||= @x-thunk call
+  Union y := @y ||= @y-thunk call
+  SText rest := @rest ||= @rest-thunk call
+  SRaw  rest := @rest ||= @rest-thunk call
+  SLine rest := @rest ||= @rest-thunk call
+
+  -- constructors
+  Empty <> y   := y
+  Doc <> Empty := self
+  Doc <> y     := Cat new(self, y)
+  Proc <|> y := Union new(self, y)
+  Doc  <|> y := Union new({ self }, { y })
+  Doc nest(i) := Nest new(i, self)
+
+  -- flatten a document
+  Empty       flatten := empty
+  Cat(x, y)   flatten := x flatten <> y flatten
+  Nest(i, x)  flatten := x flatten
+  Text(s)     flatten := text(s)
+  Raw(s)      flatten := raw(s)
+  Line(true)  flatten := text(" ")
+  Line(false) flatten := empty
+  Union       flatten := x flatten
+  Column(f)   flatten := column [x]: f [x] flatten
+  Nesting(f)  flatten := nesting [x]: f [x] flatten
+
+  -- hanging indentation
+  Doc hang(i) := align(self nest(i))
+
+  -- full indentation
+  Doc indent(i) := (text(" " * i) <> self) hang(i)
+
+  -- p punctuate([d1, d2, ..., dn]) => [d1 <> p, d2 <> p, ..., dn]
+  Doc punctuate([]) := []
+  Doc punctuate([d]) := [d]
+  Doc punctuate(d . ds) := [d <> self] + self punctuate(ds)
+
+  -- sep + punctuate
+  Doc separate(ds) := align(sep(self punctuate(ds)))
+
+  -- concatenate two documents, with a space in-between
+  Empty <+> y     := y
+  Doc   <+> Empty := self
+  Doc   <+> y     := self <> space <> y
+
+  -- concatenates two documents, with a `softline' in between
+  Empty </> y     := y
+  Doc   </> Empty := self
+  Doc   </> y     := self <> softline <> y
+
+  -- concatenates two documents, with a `softbreak' in between
+  Empty <//> y     := y
+  Doc   <//> Empty := self
+  Doc   <//> y     := self <> softbreak <> y
+
+  -- concatenates two documents, with a `line' in between
+  Empty <$> y     := y
+  Doc   <$> Empty := self
+  Doc   <$> y     := self <> line <> y
+
+  -- concatenates two documents, with a `linebreak' in between
+  Empty <$$> y     := y
+  Doc   <$$> Empty := self
+  Doc   <$$> y     := self <> linebreak <> y
+
+  -- helper for `best' by linearizing documents
+  []                     be(_, _) := SEmpty new
+  ([i, Empty]      . ds) be(w, k) := ds be(w, k)
+  ([i, Cat(x, y)]  . ds) be(w, k) := ([[i, x], [i, y]] + ds) be(w, k)
+  ([i, Nest(j, x)] . ds) be(w, k) := ([[i + j, x]] + ds) be(w, k)
+  ([i, Text(s)]    . ds) be(w, k) := SText new(s, { ds be(w, k + s size) })
+  ([i, Raw(s)]     . ds) be(w, k) := SRaw new(s, { ds be(w, k) })
+  ([i, Line(s)]    . ds) be(w, k) := SLine new(s, i, { ds be(w, i) })
+  ([i, Column(f)]  . ds) be(w, k) := ([[i, f [k]]] + ds) be(w, k)
+  ([i, Nesting(f)] . ds) be(w, k) := ([[i, f [i]]] + ds) be(w, k)
+  ([i, u: Union]   . ds) be(w, k) := do:
+    flattened = ([[i, u x]] + ds) be(w, k)
+    if(flattened fits?(w - k))
+      then: flattened
+      else: ([[i, u y]] + ds) be(w, k)
+
+  -- find the best configuration to fit document X in width w
+  Doc best(w, k) := [[0, self]] be(w, k)
+
+
+  -- test that a document can fit in a given width
+  SText fits?(w) := w >= 0 && rest fits?(w - @value size)
+  SDoc  fits?(w) := w >= 0
+
+  -- rendering to a string
+  SEmpty layout := ""
+  SText  layout := @value + rest layout
+  SRaw   layout := @value + rest layout
+  SLine  layout := "\n" + (" " * @indentation) + rest layout
+
+  -- rendering to a string
+  Cat(x, y)  layout := x layout + y layout
+  Empty      layout := ""
+  Text(s)    layout := s
+  Raw(s)     layout := s
+  Line       layout := "\n"
+  Union      layout := y layout
+  Nest(i, d) layout :=
+    d match:
+      Cat(x, y)  -> x nest(i) layout + y nest(i) layout
+      Empty      -> ""
+      Text(s)    -> s
+      Raw(s)     -> s
+      Line       -> "\n" + (" " * i)
+      Nest(e, x) -> Nest new(i + e, x) layout
+      Union      -> Nest new(i, d y) layout
+
+  -- pretty-printing with a maximum width
+  Doc render(width = 70) := best(width, 0) layout
+
+
+-- quick access to the following helpers
+export-to(atomy):
+  macro(doc(&f)):
+    `(in-namespace(atomy/doc): ~*(f contents))
+
+-- trivial constructors
+empty := Atomy::Pretty::Empty new
+text(s) := Atomy::Pretty::Text new(s to-s)
+raw(s) := Atomy::Pretty::Raw new(s to-s)
+line := Atomy::Pretty::Line new(true)
+linebreak := Atomy::Pretty::Line new(false)
+group(x) := { x flatten } <|> { x }
+softline := group(line)
+softbreak := group(linebreak)
+column(&f) := Atomy::Pretty::Column new(f)
+nesting(&f) := Atomy::Pretty::Nesting new(f)
+
+-- render x with the nesting level set to the current column
+align(x) :=
+  column [k]:
+    nesting [i]:
+      x nest(k - i)
+
+-- wrap `x' in `left' and `right'
+enclose(left, right, x) := left <> x <> right
+
+-- punctuate `xs' with `delim', separating with a space, and wrapping with
+-- `left` and `right`
+enclose-sep(left, right, delim, xs) :=
+  enclose(left, right, align(sep(delim punctuate(xs))))
+
+-- punctuate `xs' with `delim', and wrapping with `left` and `right`
+enclose-cat(left, right, delim, xs) :=
+  enclose(left, right, align(cat(delim punctuate(xs))))
+
+-- separating lists
+hsep(xs) := xs fold-right(empty) [x, y]: x <+> y
+vsep(xs) := xs fold-right(empty) [x, y]: x <$> y
+fill-sep(xs) := xs fold-right(empty) [x, y]: x </> y
+sep(xs) := group(vsep(xs))
+
+-- concatenating lists
+hcat(xs) := xs fold-right(empty) [x, y]: x <> y
+vcat(xs) := xs fold-right(empty) [x, y]: x <$$> y
+fill-cat(xs) := xs fold-right(empty) [x, y]: x <//> y
+cat(xs) := group(vcat(xs))
+
+-- fill a document with whitespace to width `i'
+fill(i, d) :=
+  width(d) [w]:
+    if(w >= i)
+      then: empty
+      else: text(" " * (i - w))
+
+-- fill a document with whitespace to width `i', breaking onto a new line if
+-- the document gets too long
+fill-break(i, d) :=
+  width(d) [w]:
+    if(w > i)
+      then: linebreak nest(i)
+      else: text(" " * (i - w))
+
+-- call `f' with the width of the passed document, and render the result
+-- after it
+width(d, &f) :=
+  column [c1]: d <> column [c2]: f [c2 - c1]
+
+-- helper documents
+lparen := text("(")
+rparen := text(")")
+langle := text("<")
+rangle := text(">")
+lbrace := text("{")
+rbrace := text("}")
+lbracket := text("[")
+rbracket := text("]")
+squote := text("'")
+dquote := text("\"")
+semi := text(";")
+colon := text(":")
+comma := text(",")
+space := text(" ")
+dot := text(".")
+backslash := text("\\")
+equals := text("=")
+
+-- helper for creating text from a string that may contain newlines
+string(s) := hcat(line punctuate(s split("\n") collect [x]: text(x)))
+
+-- wrappers
+parens(x) := lparen <> x <> rparen
+angles(x) := langle <> x <> rangle
+braces(x) := lbrace <> x <> rbrace
+brackets(x) := lbracket <> x <> rbracket
+squotes(x) := squote <> x <> squote
+dquotes(x) := dquote <> x <> dquote
+
+-- helpers for common syntax
+list(xs) :=
+  enclose(lbracket, rbracket, align(fill-sep(comma punctuate(xs))))
+tupled(xs) :=
+  enclose(lparen, rparen, align(fill-sep(comma punctuate(xs))))
+semi-braces(xs) :=
+  enclose-sep(lbrace, rbrace, semi, xs)

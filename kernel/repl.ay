@@ -132,8 +132,8 @@ doc"
           #special("h") ->
             ":h\thelp" print
 
-          #evaluated(r) ->
-            (" => " + r show) print
+          #evaluated(r) -> doc:
+            (text(" =>") <+> r pretty) render(60) print
     } ensuring:
       when(history):
         File open(history, "a") [f]:

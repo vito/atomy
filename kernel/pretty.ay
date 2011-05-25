@@ -1,11 +1,9 @@
 namespace(atomy/pretty)
+use(atomy/doc)
 
 dynamic(multiline?, false)
 dynamic(context, #top)
 dynamic(colored?, false)
-
-comma-delim(ds) :=
-  hsep(comma punctuate(ds))
 
 ident(n) := text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
 
@@ -26,14 +24,14 @@ module(Atomy::AST):
   Send unamb :=
     if(from?(#binary, #send))
       then: pretty
-      else: Doc parens(pretty)
+      else: parens(pretty)
   Splice unamb := pretty
   String unamb := pretty
   ToplevelConstant unamb := pretty
   Unary unamb := pretty
   Unquote unamb := pretty
   Variable unamb := pretty
-  Node unamb := Doc parens(pretty)
+  Node unamb := parens(pretty)
   _ unamb := pretty
 
 from(*where, &y) :=
@@ -57,40 +55,39 @@ export-to(atomy):
   TrueClass pretty := super colored(#green)
   FalseClass pretty := super colored(#red)
   NilClass pretty := super colored(#black)
-  Object pretty := Doc text(inspect)
+  Object pretty := text(inspect)
 
   Object show := pretty render
 
-  Doc pretty := self
+  Atomy::Pretty::Doc pretty := self
 
-  Array pretty :=
-    doc: brackets(comma-delim(self all-pretty))
+  Array pretty := list(all-pretty)
 
-  Particle pretty := doc:
+  Particle pretty := do:
     wildcard = [c]:
       if(c equal?(_undefined))
         then: '_
         else: c
 
-    operator? = self message to-s !~ r"^[a-z_]"
+    operator? = message to-s !~ r"^[a-z_]"
 
-    args = self arguments collect(&#(wildcard [_]))
+    args = arguments collect(&#(wildcard [_]))
 
     msg+args =
       if(operator?)
         then:
-          text(self message to-s) <+> args first unamb
+          text(message to-s) <+> args first unamb
         else:
-          ident(self message to-s) <>
-            parens(comma-delim(args all-pretty))
+          ident(message to-s) <>
+            tupled(args all-pretty)
 
     partial =
-      if(self receiver equal?(_undefined))
+      if(receiver equal?(_undefined))
         then:
           if(operator?)
             then: parens(msg+args)
             else: msg+args
-        else: parens(self receiver unamb <+> msg+args)
+        else: parens(receiver unamb <+> msg+args)
 
     text("#") <> partial
 
@@ -99,42 +96,47 @@ export-to(atomy):
   Symbol pretty := do:
     s = to-s
     if(s =~ r"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-_\\:.\/\?])*$"(u))
-      then: Doc text("#") <> Doc ident(s)
-      else: Doc text("#") <> s pretty
+      then: text("#") <> ident(s)
+      else: text("#") <> s pretty
 
-  Hash pretty := doc:
+  Hash pretty := do:
     text("#") <>
       brackets $:
-        comma-delim $:
-          self to-a collect [[k, v]]:
+        comma separate $:
+          to-a collect [[k, v]]:
             k unamb <+> text("->") <+> v unamb
 
   module(Atomy::AST):
     Assign pretty :=
       from(#assign):
-        doc: @lhs unamb <+> text("=") <+> @rhs unamb
+        @lhs unamb <+> text("=") <+> @rhs unamb
 
     BinarySend pretty :=
       from(#binary):
-        doc: @lhs unamb <+> text(@operator) <+> @rhs unamb
+        ((@lhs unamb <+> text(@operator)) </> @rhs unamb) hang(2)
 
-    Block pretty :=
-      doc:
-        args =
-          if(@arguments empty?)
-            then: empty
-            else: brackets(from(#list): comma-delim(@arguments all-pretty))
+    Block pretty := do:
+      args =
+        if(@arguments empty?)
+          then: empty
+          else:
+            brackets $:
+              from(#list):
+                hsep(comma punctuate(@arguments all-pretty))
 
-        contents = from(#list): comma-delim(@contents all-pretty)
-        if(from?(#send-block) && from?(#top))
-          then: args <> colon <+> contents
-          else: args <+> lbrace <+> contents <+> rbrace
+      contents =
+        from(#list):
+          align(sep(comma punctuate(@contents all-pretty)))
+
+      if(from?(#send-block) && from?(#top))
+        then: args <> colon <+> contents
+        else: align(args <+> (lbrace </> contents) nest(2) </> rbrace)
 
     BlockPass pretty :=
       from(#unary):
-        doc: text("&") <> @body unamb
+        text("&") <> @body unamb
 
-    Class pretty := doc:
+    Class pretty := do:
       sub =
         if(@superclass kind-of?(Primitive) && @superclass value == #nil)
           then: empty
@@ -145,35 +147,34 @@ export-to(atomy):
           Rubinius::AST::ClassName -> text(@name) name to-s
           _ -> @name unamb
 
-      body = lbrace <+> semi-delim(@body) expressions <+> rbrace
+      body = lbrace <+> comma separate(@body) expressions <+> rbrace
 
       text("class") <> text("(") <> name <+> sub <> text(")") <+> body
 
-    ClassVariable pretty := doc: ident(name to-s)
+    ClassVariable pretty := ident(name to-s)
 
-    Constant pretty := doc: text(@identifier)
+    Constant pretty := text(@identifier)
 
     Define pretty :=
       from(#define):
-        doc: @lhs unamb <+> text(":=") <+> @body unamb
+        @lhs unamb <+> text(":=") <+> @body unamb
 
-    GlobalVariable pretty := doc: ident(name to-s)
+    GlobalVariable pretty := ident(name to-s)
 
-    InstanceVariable pretty := doc: ident(name to-s)
+    InstanceVariable pretty := ident(name to-s)
 
     List pretty :=
       from(#list):
-        doc: brackets(comma-delim(@elements all-pretty))
+        list(@elements all-pretty)
 
-    Macro pretty := doc:
+    Macro pretty :=
       text("macro") <+> parens(@pattern pretty) <+> @body pretty
 
-    Particle pretty := doc: text("#") <> ident(@name)
+    Particle pretty := text("#") <> ident(@name)
 
-    Primitive pretty := doc:
+    Primitive pretty :=
       @value match:
-        -- TODO: glitch with #doc/#onto
-        #"self" -> text("self")
+        #self -> text("self")
         #true -> text("true")
         #false -> text("false")
         #nil -> text("nil")
@@ -181,95 +182,89 @@ export-to(atomy):
 
     QuasiQuote pretty :=
       from(#unary):
-        doc: text("`") <> @expression unamb
+        text("`") <> @expression unamb
 
     Quote pretty :=
       from(#unary):
-        doc: text("'") <> @expression unamb
+        text("'") <> @expression unamb
 
     ScopedConstant pretty :=
       from(#scoped-constant):
-        doc:
-          @parent unamb <> text("::") <> text(@identifier)
+        @parent unamb <> text("::") <> text(@identifier)
 
-    Send pretty :=
-      doc:
-        block =
-          from(#send-block, ^context):
-            if(@block) then: @block unamb; else: empty
+    Send pretty := do:
+      block =
+        from(#send-block, ^context):
+          if(@block) then: @block unamb; else: empty
 
-        with-block = [x]:
-          condition:
-            ^multiline? && @block is-a?(Block) -> do:
-              cs = from(#top): vcat(@block contents all-pretty) nest(2)
-              if(from?(#top))
-                then: x <> colon // cs
-                else: x <+> lbrace // cs // rbrace
-
-            from?(#top) && @block is-a?(Block) && @block arguments empty? ->
-              x <> block
-
-            otherwise ->
-              x <+> block
-
-        args =
-          from(#list):
-            if(@arguments empty?)
-              then: empty
-              else: parens(comma-delim(@arguments all-pretty))
-
+      with-block = [x]:
         condition:
-          @receiver kind-of?(Primitive) && @receiver value == #"self" ->
-            with-block [ident(@method-name) <> args]
+          @block is-a?(Block) -> do:
+            cs = from(#top): align(vcat(@block contents all-pretty))
+            if(from?(#top))
+              then: ((x <> colon) </> cs) hang(2)
+              else: align(((x <+> lbrace) </> cs) hang(2) </> rbrace)
+
+          --from?(#top) && @block is-a?(Block) && @block arguments empty? ->
+            --x </> block
 
           otherwise ->
-            with-block [
-              from(#send) { @receiver unamb } <+>
-                ident(@method-name) <> args
-            ]
+            x <+> block
+
+      args =
+        from(#list):
+          if(@arguments empty?)
+            then: empty
+            else: tupled(@arguments all-pretty)
+
+      condition:
+        @receiver kind-of?(Primitive) && @receiver value == #"self" ->
+          with-block [ident(@method-name) <> args]
+
+        otherwise ->
+          with-block [
+            (from(#send) { @receiver unamb } </>
+              ident(@method-name) <> args) hang(2)
+          ]
 
     Splice pretty :=
       from(#unary):
-        doc: text("~*") <> @expression unamb
+        text("~*") <> @expression unamb
 
-    String pretty := Doc text(@value inspect)
+    String pretty := text(@value inspect)
 
-    ToplevelConstant pretty := doc: text("::") <> text(@identifier)
+    ToplevelConstant pretty := text("::") <> text(@identifier)
 
     Unary pretty :=
       from(#unary):
-        doc: text(@operator) <> @receiver unamb
+        text(@operator) <> @receiver unamb
 
     Unquote pretty :=
       from(#unary):
-        doc: text("~") <> @expression unamb
+        text("~") <> @expression unamb
 
-    Variable pretty := doc: ident(@name)
+    Variable pretty := ident(@name)
 
-    InlinedBody pretty := doc:
-      if(^multiline?)
-        then:
-          from(#top): vcat(@expressions all-pretty)
-        else:
-          from(#list): comma-delim(@expressions all-pretty)
+    InlinedBody pretty :=
+      from(#top): align(vcat(@expressions all-pretty))
 
     Or pretty := `(~@a || ~@b) pretty
 
     And pretty := `(~@a && ~@b) pretty
 
-    Ensure pretty := doc:
+    Ensure pretty :=
       @body pretty <+> text("ensuring:") <+> @ensure pretty
 
-    Tree pretty := doc:
+    Tree pretty :=
       if(^multiline?)
         then:
           from(#top): vcat(@nodes all-pretty)
         else:
-          from(#list): comma-delim(@nodes all-pretty)
+          from(#list): comma separate(@nodes all-pretty)
 
 Array all-pretty := collect [x]: x pretty
 
-Doc colored(color) := do:
+Atomy::Pretty::Doc colored(color) := do:
   -- only makes sense to colorize if we're outputting to a terminal
   unless(^output-port tty? && ^colored?):
     return(self)
@@ -287,4 +282,4 @@ Doc colored(color) := do:
 
   hash = Hash [codes]
 
-  Doc text("\e[9" + hash [color] to-s + "m") <> self <> Doc text("\e[0m")
+  raw("\e[9" + hash [color] to-s + "m") <> self <> raw("\e[0m")
