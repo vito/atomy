@@ -5,6 +5,31 @@ module Atomy
       generate
 
       def bytecode(g)
+        Atomy::Namespace.register(
+          @pattern.namespace_symbol,
+          Atomy::Namespace.define_target
+        )
+
+        registerer =
+            Atomy::AST::Send.new(
+              0,
+              Atomy::AST::ScopedConstant.new(
+                0,
+                Atomy::AST::ToplevelConstant.new(
+                  0,
+                  "Atomy"
+                ),
+                "Namespace"
+              ),
+              [ @pattern.namespace_symbol.to_node,
+                Atomy::Namespace.define_target.to_node
+              ],
+              Atomy::AST::Variable.new(0, "register")
+            )
+
+        Atomy::CodeLoader.when_load << [registerer, true]
+        Atomy::CodeLoader.when_run << [registerer, true]
+
         # register macro during compilation too.
         @pattern.register_macro @body
 
