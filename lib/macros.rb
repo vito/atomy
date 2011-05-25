@@ -1,14 +1,3 @@
-class MethodFail < ArgumentError
-  def initialize(mn)
-    @method_name = mn
-  end
-
-  def message
-    "method #{@method_name.to_s} did not understand " +
-      "its arguments (non-exhaustive patterns)"
-  end
-end
-
 module Atomy
   OPERATORS = {}
   STATE = {}
@@ -177,7 +166,7 @@ module Atomy
           # just stopping
           nil
         end
-      rescue MethodFail, ArgumentError => e
+      rescue Atomy::MethodFail, ArgumentError => e
         # expand normally if the macro doesn't seem to be a match
         raise unless e.instance_variable_get("@method_name") == meth
         nil

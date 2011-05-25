@@ -193,6 +193,7 @@ module Atomy
     mismatch.set!
     g.push_self
     g.push_cpath_top
+    g.find_const :Atomy
     g.find_const :MethodFail
     g.push_literal name
     g.send :new, 1

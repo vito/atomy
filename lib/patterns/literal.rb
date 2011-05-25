@@ -1,5 +1,5 @@
 module Atomy::Patterns
-  class Particle < Pattern
+  class Literal < Pattern
     attr_reader :value
 
     def initialize(x)
@@ -13,12 +13,12 @@ module Atomy::Patterns
     end
 
     def ==(b)
-      b.kind_of?(Match) and \
+      b.kind_of?(Literal) and \
       @value == b.value
     end
 
     def target(g)
-      g.push_const :Symbol # TODO
+      Atomy.const_from_string(@value.class.name)
     end
 
     def matches?(g)

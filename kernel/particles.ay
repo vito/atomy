@@ -9,7 +9,7 @@ macro(#(x: Send)):
       ~(if(x private)
           then: '_undefined
           else: wildcard(x receiver))
-      ~(Atomy::AST::Particle new(0, x method-name))
+      ~(Atomy::AST::Literal new(0, x method-name to-sym))
       ~*(x arguments collect [c]: wildcard(c))
     ])
 
@@ -18,7 +18,7 @@ macro(#(x: BinarySend)):
       ~(if(x private)
           then: '_undefined
           else: wildcard(x lhs))
-      ~(Atomy::AST::Particle new(0, x operator))
+      ~(Atomy::AST::Literal new(0, x operator to-sym))
       ~(wildcard(x rhs))
     ])
 

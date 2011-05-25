@@ -28,17 +28,12 @@ module Atomy::Patterns
       when :self
         g.push_self
       else
-        g.push_const @value.class.name.to_sym
+        Atomy.const_from_string(@value.class.name)
       end
     end
 
     def matches?(g)
-      case @value
-      when :true, :false, :self, :nil, Integer
-        g.push @value
-      else
-        g.push_literal @value
-      end
+      g.push @value
       g.send :==, 1
     end
   end

@@ -265,6 +265,9 @@ module(Atomy::AST):
     Primitive pattern :=
       Atomy::Patterns::Match new(@value)
 
+    Literal pattern :=
+      Atomy::Patterns::Literal new(@value)
+
     List pattern :=
       Atomy::Patterns::List new $:
         @elements collect [e]: e to-pattern
@@ -284,9 +287,6 @@ module(Atomy::AST):
     Block pattern :=
       Atomy::Patterns::SingletonClass new(self)
 
-    Particle pattern :=
-      Atomy::Patterns::Particle new(@name to-sym)
-
     QuasiQuote pattern :=
       Atomy::Patterns::QuasiQuote new(self)
 
@@ -303,7 +303,10 @@ module(Atomy::AST):
             @arguments
 
     String pattern :=
-      Atomy::Patterns::Match new(@value)
+      Atomy::Patterns::Literal new(@value)
+
+    Symbol pattern := 
+      Atomy::Patterns::Literal new(@name to-sym)
 
     Node pattern :=
       raise("unknown pattern: " + self to-sexp inspect)

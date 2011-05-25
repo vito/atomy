@@ -11,9 +11,9 @@ export:
 
       [HeadTail]
 
-      [List, QuasiQuote, Particle]
+      [List, QuasiQuote]
 
-      [Match, Quote]
+      [Match, Literal, Quote]
     ] each-with-index [ps, i]:
         ps each [a]:
           a send(#define-method, #precision):
@@ -105,6 +105,9 @@ export:
     (a: Match) =~ (b: Match) :=
       a value == b value
 
+    (a: Literal) =~ (b: Literal) :=
+      a value == b value
+
     (a: SingletonClass) =~ (b: SingletonClass) :=
       a body == b body
 
@@ -113,9 +116,6 @@ export:
     NamedGlobal =~ NamedGlobal := true
 
     NamedInstance =~ NamedInstance := true
-
-    (a: Particle) =~ (b: Particle) :=
-      a value == b value
 
     (a: QuasiQuote) =~ (b: QuasiQuote) :=
       -- TODO: go through quotes.

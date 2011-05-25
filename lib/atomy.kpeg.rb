@@ -1526,7 +1526,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # number = (line:line < /[\+\-]?0[oO][\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\+\-]?0[xX][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > { Atomy::AST::Primitive.new(line, text.to_f) } | line:line < /[\+\-]?\d+\.\d+/ > { Atomy::AST::Primitive.new(line, text.to_f) } | line:line < /[\+\-]?\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })
+  # number = (line:line < /[\+\-]?0[oO][\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\+\-]?0[xX][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\+\-]?\d+\.\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\+\-]?\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })
   def _number
 
     _save = self.pos
@@ -1605,7 +1605,7 @@ class Atomy::Parser
           self.pos = _save3
           break
         end
-        @result = begin;  Atomy::AST::Primitive.new(line, text.to_f) ; end
+        @result = begin;  Atomy::AST::Literal.new(line, text.to_f) ; end
         _tmp = true
         unless _tmp
           self.pos = _save3
@@ -1633,7 +1633,7 @@ class Atomy::Parser
           self.pos = _save4
           break
         end
-        @result = begin;  Atomy::AST::Primitive.new(line, text.to_f) ; end
+        @result = begin;  Atomy::AST::Literal.new(line, text.to_f) ; end
         _tmp = true
         unless _tmp
           self.pos = _save4
@@ -4004,7 +4004,7 @@ class Atomy::Parser
   Rules[:_false] = rule_info("false", "line:line \"false\" !ident_letter { Atomy::AST::Primitive.new(line, :false) }")
   Rules[:_self] = rule_info("self", "line:line \"self\" !ident_letter { Atomy::AST::Primitive.new(line, :self) }")
   Rules[:_nil] = rule_info("nil", "line:line \"nil\" !ident_letter { Atomy::AST::Primitive.new(line, :nil) }")
-  Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Primitive.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
+  Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
   Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.block_body) }")
   Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
   Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")

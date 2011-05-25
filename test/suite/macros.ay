@@ -84,17 +84,17 @@ describe("macros"):
     it("expands through assignment patterns"):
       macro(m-foo-14): '42
       (m-foo-14 = 42) should-be(42)
-      { m-foo-14 = 41 } should-raise(PatternMismatch)
+      { m-foo-14 = 41 } should-raise(Atomy::PatternMismatch)
 
     it("expands through mutation patterns"):
       macro(m-foo-14): '42
       (m-foo-14 =! 42) should-be(42)
-      { m-foo-14 =! 41 } should-raise(PatternMismatch)
+      { m-foo-14 =! 41 } should-raise(Atomy::PatternMismatch)
 
     it("expands through block argument patterns"):
       macro(m-foo-15): '42
       [m-foo-15] { #ok } [42] should-be(#ok)
-      { [m-foo-15] { #ok } [41] } should-raise(PatternMismatch)
+      { [m-foo-15] { #ok } [41] } should-raise(Atomy::PatternMismatch)
 
     it("expands through #match patterns"):
       macro(m-foo-16): '42

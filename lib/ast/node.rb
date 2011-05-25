@@ -1,10 +1,4 @@
 module Atomy
-  def self.unquote_splice(n)
-    n.collect do |x|
-      Atomy::AST::Quote.new(x.line, x)
-    end.to_node
-  end
-
   module AST
     module SentientNode
       # hash from attribute to the type of child node it is
@@ -613,6 +607,12 @@ class Integer
   end
 end
 
+class Float
+  def to_node
+    Atomy::AST::Literal.new -1, self
+  end
+end
+
 class String
   def to_node
     Atomy::AST::String.new -1, self
@@ -633,6 +633,6 @@ end
 
 class Symbol
   def to_node
-    Atomy::AST::Particle.new -1, self
+    Atomy::AST::Literal.new -1, self
   end
 end

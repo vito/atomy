@@ -32,16 +32,16 @@ macro($(x: Variable)):
   Atomy::AST::GlobalVariable new(x line, x name)
 
 macro(#(x: Constant)):
-  Atomy::AST::Particle new(x line, x identifier)
+  Atomy::AST::Literal new(x line, x identifier to-sym)
 
 macro(#(x: Variable)):
-  Atomy::AST::Particle new(x line, x name)
+  Atomy::AST::Literal new(x line, x name to-sym)
 
 macro(#(x: String)):
-  Atomy::AST::Particle new(x line, x value)
+  Atomy::AST::Literal new(x line, x value to-sym)
 
 macro(#(x: Primitive)):
-  Atomy::AST::Particle new(x line, x value to-s)
+  Atomy::AST::Literal new(x line, x value to-s to-sym)
 
 macro(a .. b): `(Range new(~a, ~b))
 macro(a ... b): `(Range new(~a, ~b, true))
@@ -56,8 +56,5 @@ macro(x for(e) in(c) if(t)):
             ~tmp << ~x)
 
 module(Enumerable):
-  fold-left(i = _undefined, &block) :=
-    inject(i, &block)
-
-  fold-right(i = _undefined, &block) :=
+  inject-right(i = _undefined, &block) :=
     reverse inject(i) [x, y]: block [y, x]

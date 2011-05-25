@@ -1,7 +1,7 @@
-MethodFail message :=
+Atomy::MethodFail message :=
   "method '" + @method-name to-s + "' did not understand " +
     "its arguments (non-exhaustive patterns)"
 
-PatternMismatch message :=
+Atomy::PatternMismatch message :=
   "pattern of type `" + @pattern class name split("::") last +
     "' did not match value `" + @value show + "'"

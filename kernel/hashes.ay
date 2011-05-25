@@ -12,7 +12,7 @@ macro(#(l: List)):
 
       Atomy::AST::Send -> do:
         while(p respond-to?(#block) && p block):
-          keys << Atomy::AST::Particle new(p line, p method-name)
+          keys << `#~(p method-name)
           values << p block contents first
           p =! p receiver
 

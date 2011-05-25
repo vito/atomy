@@ -1,10 +1,3 @@
-class PatternMismatch < RuntimeError
-  def initialize(p, v)
-    @pattern = p
-    @value = v
-  end
-end
-
 module Atomy::Patterns
   class Pattern
     attr_accessor :variable
@@ -82,6 +75,7 @@ module Atomy::Patterns
       g.push_self
       g.swap
       g.push_cpath_top
+      g.find_const :Atomy
       g.find_const :PatternMismatch
       g.swap
       construct(g)
@@ -152,6 +146,12 @@ module Atomy::Patterns
   class Atomy::AST::Primitive
     def pattern
       Match.new(@value)
+    end
+  end
+
+  class Atomy::AST::Literal
+    def pattern
+      Atomy::Patterns::Literal.new(@value)
     end
   end
 
@@ -264,13 +264,7 @@ module Atomy::Patterns
 
   class Atomy::AST::String
     def pattern
-      Match.new(@value)
-    end
-  end
-
-  class Atomy::AST::Particle
-    def pattern
-      Particle.new(@name.to_sym) # TODO: other forms
+      Atomy::Patterns::Literal.new(@value)
     end
   end
 

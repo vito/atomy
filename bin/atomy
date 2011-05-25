@@ -8,6 +8,7 @@ require 'optparse'
 
 require base + "/macros"
 require base + "/method"
+require base + "/exceptions"
 require base + "/util"
 require base + "/namespace"
 require base + "/compiler/compiler"
