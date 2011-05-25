@@ -158,3 +158,11 @@ describe("macros"):
                 m-foo-24 = '[0, m-foo-23]):
         m-foo-23 should-be(1)
         m-foo-24 should-be([0, 1])
+
+    it("overrides non-let'd macros in the same namespace"):
+      macro(m-foo-25): '1
+
+      let-macro(m-foo-25 = '2):
+        m-foo-25 should-be(2)
+
+      m-foo-25 should-be(1)

@@ -14,7 +14,7 @@ module Atomy
     class Environment
       @@salt = 0
       @@macros = {}
-      @@let = Hash.new { |h, k| h[k] = [] }
+      @@let = {}
       @@quoters = {}
       @@line = 0
 
@@ -67,13 +67,20 @@ module Atomy
       end
     end
 
+    def self.intern(name, let_num = nil)
+      "atomy-macro#{let_num ? "-let-#{let_num}" : ""}:" + name
+    end
+
     def self.register(name, args, body, let = false)
       ns = Atomy::Namespace.get(Thread.current[:atomy_define_in])
-      meth = ns ? Atomy.namespaced(ns.name, name) : name
-      meth = (intern meth).to_sym
+      meth = !let && ns ? Atomy.namespaced(ns.name, name) : name
 
-      if let && Environment.respond_to?(meth)
-        Environment.let[name] << Environment.method(meth)
+      if let
+        Environment.let[name] ||= []
+        meth = (intern meth, Environment.let[name].size).to_sym
+        Environment.let[name] << meth
+      else
+        meth = (intern meth).to_sym
       end
 
       methods = Environment.macros
@@ -96,15 +103,19 @@ module Atomy
       meth
     end
 
-    def self.intern(name)
-      "atomy-macro:" + name
-    end
-
     # take a node and return its expansion
     def self.expand(node)
       name = node.method_name
 
       return node unless name
+
+      if lets = Environment.let[name]
+        lets.reverse_each do |m|
+          if expanded = expand_node(node, m)
+            return expanded
+          end
+        end
+      end
 
       methods = []
       if ns = Atomy::Namespace.get(node.namespace)
