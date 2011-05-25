@@ -55,12 +55,11 @@ for-macro:
       "    " + str-expr(e)
     } join("\n")
 
-export-to(atomy):
-  -- TODO: shoudln't need to export this; not being resolved in #section
-  macro(for-docs(&body)):
-    `(when(^documentation):
-        ^documentation << ~(body block-body))
+macro(for-docs(&body)):
+  `(when(^documentation):
+      ^documentation << ~(body block-body))
 
+export-to(atomy):
   macro-quoter(doc) [c]:
     for-docs:
       c + "\n\n"
