@@ -2,12 +2,18 @@ macro(namespace(n: Variable)):
   `(evaluate-when(compile, run, load):
       Atomy::Namespace ensure(#~n))
 
-macro(let-when(when, *bindings, &b)):
+macro(let-when(when-list, *bindings, &b)):
   tmps = names(bindings size)
   save = []
   set = []
   restore = []
 
+  when =
+    when-list match:
+      `[~*xs] -> xs
+      x -> [x]
+
+  -- TODO: clean this up; can't nest anything
   bindings zip(tmps) [[`(~n = ~v), tmp]]:
     save << `(Atomy::STATE [#~tmp] = ^~n)
     set << set-dynvar(n, v)
@@ -15,13 +21,13 @@ macro(let-when(when, *bindings, &b)):
 
   names [res]:
     `(let(~*bindings):
-        evaluate-when(~when):
+        evaluate-when(~*when):
           ~*save
           ~*set
 
         ~res = ~(b body)
 
-        evaluate-when(~when):
+        evaluate-when(~*when):
           ~restore
 
         ~res)
@@ -39,11 +45,11 @@ macro(no-namespace(&b)):
       ~(b body))
 
 macro(export(&b)):
-  `(let-when(compile, define-in = "_"):
+  `(let-when([compile, load, run], define-in = "_"):
       ~(b body))
 
 macro(export-to(n, &b)):
-  `(let-when(compile, define-in = ~(n name)):
+  `(let-when([compile, load, run], define-in = ~(n name)):
       ~(b body))
 
 macro(use(*ns)):
