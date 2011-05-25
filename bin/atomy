@@ -72,7 +72,7 @@ def run_atomy(options)
 
   if file = options[:load] || ARGV[0]
     $0 = file
-    Atomy.load(file, ARGV[0] ? :run : :load, options[:debug])
+    Atomy.import(file, ARGV[0] ? :run : :load, options[:debug])
     return if ARGV[0]
   end
 
