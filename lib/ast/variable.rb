@@ -22,8 +22,8 @@ module Atomy
         )
       end
 
-      def prepare
-        resolve.expand
+      def expandable?
+        true
       end
 
       def message_name

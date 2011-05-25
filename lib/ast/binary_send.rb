@@ -23,8 +23,8 @@ module Atomy
         Atomy.namespaced(@namespace, @operator)
       end
 
-      def prepare
-        resolve.expand
+      def expandable?
+        true
       end
 
       def bytecode(g)

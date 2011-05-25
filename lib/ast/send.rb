@@ -40,8 +40,8 @@ module Atomy
         self
       end
 
-      def prepare
-        resolve.expand
+      def expandable?
+        true
       end
 
       def bytecode(g)

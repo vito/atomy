@@ -456,7 +456,15 @@ EOF
       end
 
       def prepare
-        self
+        if expandable?
+          resolve.expand
+        else
+          self
+        end
+      end
+
+      def expandable?
+        false
       end
 
       def compile(g)
