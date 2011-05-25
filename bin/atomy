@@ -76,8 +76,13 @@ def run_atomy(options)
       options[:debug]
     )
 
+    write = Atomy.namespaced("atomy", "write").to_sym
     if options[:evaluate]
-      res.send(Atomy.namespaced("atomy", "write").to_sym)
+      if res.respond_to?(write)
+        res.send(write)
+      else
+        p(res)
+      end
       return
     end
   end
