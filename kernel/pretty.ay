@@ -119,10 +119,7 @@ export-to(atomy):
       args =
         if(@arguments empty?)
           then: empty
-          else:
-            brackets $:
-              from(#list):
-                hsep(comma punctuate(@arguments all-pretty))
+          else: list(@arguments all-pretty)
 
       contents =
         from(#list):
@@ -200,13 +197,15 @@ export-to(atomy):
       with-block = [x]:
         condition:
           @block is-a?(Block) -> do:
-            cs = from(#top): align(vcat(@block contents all-pretty))
-            if(from?(#top))
-              then: ((x <> colon) </> cs) hang(2)
-              else: align(((x <+> lbrace) </> cs) hang(2) </> rbrace)
+            args =
+              if(@block arguments empty?)
+                then: empty
+                else: list(@block arguments all-pretty)
 
-          --from?(#top) && @block is-a?(Block) && @block arguments empty? ->
-            --x </> block
+            align $:
+              ( (x <+> args <+> lbrace) </>
+                  comma separate(@block contents all-pretty)
+              ) hang(2) </> rbrace
 
           otherwise ->
             x <+> block
@@ -222,10 +221,8 @@ export-to(atomy):
           with-block [ident(@method-name) <> args]
 
         otherwise ->
-          with-block [
-            (from(#send) { @receiver unamb } </>
-              ident(@method-name) <> args) hang(2)
-          ]
+          (from(#send) { @receiver unamb } </>
+            with-block [ident(@method-name) <> args]) hang(2)
 
     Splice pretty :=
       from(#unary):
