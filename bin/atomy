@@ -43,7 +43,7 @@ end
 
 a = Time.now
 puts "loading kernel"
-require_atomy(kernel + "/boot.ay")
+Atomy.import(kernel + "/boot.ay")
 puts Time.now - a
 
 Atomy::Namespace.ensure(:user)
