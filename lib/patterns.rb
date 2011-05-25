@@ -13,8 +13,8 @@ module Atomy::Patterns
       raise Rubinius::CompileError, "no #matches? for #{self}"
     end
 
-    # TODO: a dynamic var would be better;
-    # this is annoying to handle recursively
+    # optimization for patterns such as With, so they can just
+    # push_self rather than evaluating exprs on some new self
     def matches_self?(g)
       matches?(g)
     end

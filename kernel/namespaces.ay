@@ -13,7 +13,6 @@ macro(let-when(when-list, *bindings, &b)):
       `[~*xs] -> xs
       x -> [x]
 
-  -- TODO: clean this up; can't nest anything
   bindings zip(tmps) [[`(~n = ~v), tmp]]:
     save << `(Atomy::STATE [#~tmp] = ^~n)
     set << set-dynvar(n, v)
