@@ -77,7 +77,7 @@ module Atomy
       end
 
       methods = Environment.macros
-      method = [[Patterns::Any.new, args], body.resolve]
+      method = [[Patterns::Any.new, args], body.recursively(&:resolve)]
       if ms = methods[meth]
         Atomy.insert_method(method, ms)
       else
@@ -107,7 +107,7 @@ module Atomy
       return node unless name
 
       methods = []
-      if name && ns = Atomy::Namespace.get
+      if ns = Atomy::Namespace.get(node.namespace)
         ([ns.name] + ns.using).each do |n|
           methods << intern(Atomy.namespaced(n, name)).to_sym
         end
