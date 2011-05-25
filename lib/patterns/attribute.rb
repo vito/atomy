@@ -27,8 +27,7 @@ module Atomy::Patterns
     end
 
     def target(g)
-      # this should be pretty rare, but seems sensible
-      @receiver.construct(g)
+      raise "tried to get target of Attribute pattern: #{self.inspect}"
     end
 
     def matches?(g)
