@@ -159,7 +159,7 @@
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
         op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
   op_assoc_prec = line:line "operator" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os
-                    { Atomy::Macro.set_op_info(os, assoc, prec)
+                    { Atomy.set_op_info(os, assoc, prec)
                       Atomy::AST::Operator.new(line, assoc, prec, os)
                     }
 

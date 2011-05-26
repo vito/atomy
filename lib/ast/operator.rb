@@ -6,8 +6,8 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-        g.push_const :Atomy
-        g.find_const :Macro
+        g.push_cpath_top
+        g.find_const :Atomy
         @operators.each do |o|
           g.push_literal o
         end

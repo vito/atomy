@@ -12,6 +12,20 @@ class Rubinius::Generator
 end
 
 module Atomy
+  # holds throwaway data used during compile time
+  STATE = {}
+
+  # operator precedence/associativity table
+  OPERATORS = {}
+
+  def self.set_op_info(ops, assoc, prec)
+    ops.each do |o|
+      info = OPERATORS[o] ||= {}
+      info[:assoc] = assoc
+      info[:prec] = prec
+    end
+  end
+
   def self.unquote_splice(n)
     n.collect do |x|
       x = x.to_node
