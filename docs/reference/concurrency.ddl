@@ -26,7 +26,7 @@
 
 \define{
   receive(&body)
-  | body contents all? [x]: x match \{ `(~_ -> ~_) -> true, _ -> false \}
+  | body contents all? [x]: x match: `(~_ -> ~_) -> true, _ -> false
   > any
 }{
     Receive a message sent to the current actor that matches any of the \
@@ -43,7 +43,7 @@
 
 \define{
   receive(&body) after(timeout)
-  | body contents all? [x]: x match \{ `(~_ -> ~_) -> true, _ -> false \}
+  | body contents all? [x]: x match: `(~_ -> ~_) -> true, _ -> false
   | timeout match: `(~_ -> ~_) -> true, _ -> false
   > any
 }{

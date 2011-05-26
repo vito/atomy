@@ -33,7 +33,7 @@ the following methods.
     printing the stats at the end and returning them.
   
   \examples{
-    theorize: describe("foo") \{ it("does x") \{ true should-be(false) \}, it("does x") \{ true should-be(true) \} \}
+    theorize: describe("foo"): it("does x") \{ true should-be(false) \}, it("does x"): true should-be(true)
   }
 }
 
@@ -45,7 +45,7 @@ the following methods.
     Prints out \hl{what}, with each test in \hl{body} indented afterward.
   
   \examples{
-    describe("foo"): it("does x") \{ true should-be(false) \}, it("does x") \{ true should-be(true) \}
+    describe("foo"): it("does x") \{ true should-be(false) \}, it("does x"): true should-be(true)
   }
 }
 

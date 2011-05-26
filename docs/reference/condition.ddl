@@ -52,13 +52,13 @@
     See \hl{with-restarts}.
   
   \examples{
-    \{ with-restarts(foo -> 42) \{ signal(#bar) \} \} bind: #bar -> restart(#foo)
+    \{ with-restarts(foo -> 42): signal(#bar) \} bind: #bar -> restart(#foo)
   }
 }
 
 \define{
   body bind(&y)
-  | y contents all? [x]: x match \{ `(~_ -> ~_) -> true, _ -> false \}
+  | y contents all? [x]: x match: `(~_ -> ~_) -> true, _ -> false
   > any
 }{
     Register handlers for various signals for the duration of \hl{x}'s \
@@ -72,7 +72,7 @@
   \examples{
     \{ signal(#a) \} bind: #a -> "got A!" print
     \{ signal(#b) \} bind: #a -> "got A!" print
-    \{ \{ signal(#a) \} bind \{ #a -> "inner" print \} \} bind: #a -> "outer" print
+    \{ \{ signal(#a) \} bind: #a -> "inner" print \} bind: #a -> "outer" print
   }
 }
 
@@ -88,9 +88,9 @@
     The result is the result of \hl{body}.
   
   \examples{
-    \{ with-restarts(x -> 1, y -> 2) \{ signal(#a) \} \} bind: #a -> restart(#x)
-    \{ with-restarts(x -> 1, y -> 2) \{ signal(#a) \} \} bind: #a -> restart(#y)
-    \{ with-restarts(x(a) -> (a * 7)) \{ signal(#a) \} \} bind: #a -> restart(#x, 6)
+    \{ with-restarts(x -> 1, y -> 2): signal(#a) \} bind: #a -> restart(#x)
+    \{ with-restarts(x -> 1, y -> 2): signal(#a) \} bind: #a -> restart(#y)
+    \{ with-restarts(x(a) -> (a * 7)): signal(#a) \} bind: #a -> restart(#x, 6)
   }
 }
 
