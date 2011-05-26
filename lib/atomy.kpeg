@@ -142,9 +142,9 @@
             nil = line:line "nil" !ident_letter
                     { Atomy::AST::Primitive.new(line, :nil) }
 
-         number = line:line < /[\+\-]?0[oO][\da-fA-F]+/ >
+         number = line:line < /[\+\-]?0[oO][0-7]+/ >
                     { Atomy::AST::Primitive.new(line, text.to_i(8)) }
-                | line:line < /[\+\-]?0[xX][0-7]+/ >
+                | line:line < /[\+\-]?0[xX][\da-fA-F]+/ >
                     { Atomy::AST::Primitive.new(line, text.to_i(16)) }
                 | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ >
                     { Atomy::AST::Literal.new(line, text.to_f) }
