@@ -57,7 +57,7 @@ export-to(atomy):
   NilClass pretty := super colored(#black)
   Object pretty := text(inspect)
 
-  Object show := pretty render
+  Object show := pretty flatten render
 
   Atomy::Pretty::Doc pretty := self
 
