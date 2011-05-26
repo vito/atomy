@@ -51,8 +51,10 @@ module(Atomy::Pretty):
   Empty <> y   := y
   Doc <> Empty := self
   Doc <> y     := Cat new(self, y)
+
   Proc <|> y := Union new(self, y)
   Doc  <|> y := Union new({ self }, { y })
+
   Doc nest(i) := Nest new(i, self)
 
   -- flatten a document
@@ -74,8 +76,8 @@ module(Atomy::Pretty):
   Doc indent(i) := (text(" " * i) <> self) hang(i)
 
   -- p punctuate([d1, d2, ..., dn]) => [d1 <> p, d2 <> p, ..., dn]
-  Doc punctuate([]) := []
-  Doc punctuate([d]) := [d]
+  Doc punctuate([])     := []
+  Doc punctuate([d])    := [d]
   Doc punctuate(d . ds) := [d <> self] + self punctuate(ds)
 
   -- sep + punctuate
@@ -172,11 +174,11 @@ text(s) := Atomy::Pretty::Text new(s to-s)
 raw(s) := Atomy::Pretty::Raw new(s to-s)
 line := Atomy::Pretty::Line new(true)
 linebreak := Atomy::Pretty::Line new(false)
+column(&f) := Atomy::Pretty::Column new(f)
+nesting(&f) := Atomy::Pretty::Nesting new(f)
 group(x) := { x flatten } <|> { x }
 softline := group(line)
 softbreak := group(linebreak)
-column(&f) := Atomy::Pretty::Column new(f)
-nesting(&f) := Atomy::Pretty::Nesting new(f)
 
 -- render x with the nesting level set to the current column
 align(x) :=
