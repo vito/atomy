@@ -153,6 +153,10 @@ module(Atomy::Pretty):
       Nest(e, x) -> Nest new(i + e, x) layout
       Union      -> Nest new(i, d y) layout
 
+  -- trivial emptiness check
+  Empty empty? := true
+  Doc   empty? := false
+
   -- pretty-printing with a maximum width
   Doc render(width = 70) := best(width, 0) layout
 
