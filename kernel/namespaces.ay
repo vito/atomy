@@ -1,6 +1,10 @@
+for-macro:
+  namespaced(n) :=
+    Atomy namespaced(n namespace, n name)
+
 macro(namespace(n: Variable)):
   `(evaluate-when(compile, run, load):
-      Atomy::Namespace ensure(#~n))
+      Atomy::Namespace ensure(#~namespaced(n)))
 
 macro(let-when(when-list, *bindings, &b)):
   tmps = names(bindings size)
@@ -34,9 +38,9 @@ macro(let-when(when-list, *bindings, &b)):
 macro(in-namespace(n, &b)):
   `(do:
       evaluate-when(load):
-        Atomy::Namespace create(#~n)
+        Atomy::Namespace create(#~namespaced(n))
 
-      let-when(compile, namespace = Atomy::Namespace ensure(#~n)):
+      let-when(compile, namespace = Atomy::Namespace ensure(#~namespaced(n))):
         ~(b body))
 
 macro(no-namespace(&b)):
@@ -48,7 +52,7 @@ macro(export(&b)):
       ~(b body))
 
 macro(export-to(n, &b)):
-  `(let-when([compile, load, run], define-in = ~(n name)):
+  `(let-when([compile, load, run], define-in = ~namespaced(n)):
       ~(b body))
 
 macro(use(*ns)):
@@ -57,7 +61,7 @@ macro(use(*ns)):
 
   `(evaluate-when(compile, run, load):
       ~*(ns collect [n]:
-          `(Atomy::Namespace get(~where) use(#~n))))
+          `(Atomy::Namespace get(~where) use(#~namespaced(n)))))
 
 macro(symbols(*ns)):
   current = Atomy::Namespace get
