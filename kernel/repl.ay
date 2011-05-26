@@ -113,11 +113,12 @@ doc"
 
     SANE_HISTORY = []
 
-    { let(debugger = ReplDebugger):
+    { let(debugger = ReplDebugger,
+          atomy/pretty/multiline? = true,
+          atomy/pretty/colored? = true):
         frame = 0
 
-        { let(atomy/pretty/colored? = true):
-            basic-repl(bnd)
+        { basic-repl(bnd)
         } bind:
           #prompt ->
             restart(#use-prompt, "[" + frame to-s + "]> ")
