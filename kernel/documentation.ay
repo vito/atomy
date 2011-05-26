@@ -1,7 +1,13 @@
 namespace(atomy/documentation)
 
+-- predeclare some methods
 in-namespace(atomy):
   symbols(pretty, show)
+
+in-namespace(atomy/doc):
+  symbols(render)
+
+use(atomy/doc)
 
 for-macro:
   escape(x) :=
@@ -19,23 +25,28 @@ for-macro:
 
   to-thumb(x: Atomy::AST::Macro) :=
     indent(escape(x pattern show))
+
   to-thumb(`(~meth := ~_)) :=
     indent(escape(meth show))
-  to-thumb(d: `(data())) :=
-    let(atomy/pretty/multiline? = true):
-      indent(escape(d block body show))
-  to-thumb(d: `(data(Object))) :=
-    let(atomy/pretty/multiline? = true):
-      indent(escape(d block body show))
+
   to-thumb(d: `(data(~r))) :=
     let(atomy/pretty/multiline? = true):
-      indent(escape(`(~r ~(d block)) show))
+      indent $: escape $:
+        if(r && r != 'Object)
+          then:
+            `(~r ~(d block)) pretty render(72)
+          else:
+            d block body pretty render(72)
+
   to-thumb(`(dynamic(~n, ~r))) :=
     indent(`^~n show + "\n> " + r show)
+
   to-thumb(`(class(~n))) :=
     indent(n show + "\n> Class")
+
   to-thumb(`(module(~n))) :=
     indent(n show + "\n> Module")
+
   to-thumb(x) := str-expr(x)
 
   to-spec([]) := ""
