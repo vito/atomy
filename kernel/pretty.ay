@@ -7,6 +7,10 @@ dynamic(colored?, false)
 
 ident(n) := text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
 
+body([]) := []
+body([x]) := [from(#top): x pretty]
+body(x . xs) := [from(#list) { x pretty }] + body(xs)
+
 module(Atomy::AST):
   Block unamb := pretty
   ClassVariable unamb := pretty
@@ -121,9 +125,7 @@ export-to(atomy):
           then: empty
           else: list(@arguments all-pretty)
 
-      contents =
-        from(#list):
-          align(sep(comma punctuate(@contents all-pretty)))
+      contents = comma separate(body(@contents))
 
       if(from?(#send-block) && from?(#top))
         then: args <> colon <+> contents
@@ -190,25 +192,39 @@ export-to(atomy):
         @parent unamb <> text("::") <> text(@identifier)
 
     Send pretty := do:
-      block =
-        from(#send-block, ^context):
-          if(@block) then: @block unamb; else: empty
-
       with-block = [x]:
-        condition:
-          @block is-a?(Block) -> do:
-            args =
-              if(@block arguments empty?)
-                then: empty
-                else: list(@block arguments all-pretty)
+        when(@block nil?):
+          break(x)
 
-            align $:
+        unless(@block is-a?(Block)):
+          break(x <+> from(#send-block, ^context): @block unamb)
+
+        args =
+          if(@block arguments empty?)
+            then: empty
+            else: list(@block arguments all-pretty)
+
+        align $:
+          condition:
+            ^multiline? && from?(#top) ->
+              ( ((x <+> args) <> colon) <$>
+                  vsep(@block contents all-pretty)
+              ) hang(2)
+
+            ^multiline? ->
+              ( (x <+> args <+> lbrace) <$>
+                  vsep(@block contents all-pretty)
+              ) hang(2) <$> rbrace
+
+            from?(#top) ->
+              ( ((x <+> args) <> colon) </>
+                  comma separate(body(@block contents))
+              ) hang(2)
+
+            otherwise ->
               ( (x <+> args <+> lbrace) </>
-                  comma separate(@block contents all-pretty)
+                  comma separate(body(@block contents))
               ) hang(2) </> rbrace
-
-          otherwise ->
-            x <+> block
 
       args =
         from(#list):
@@ -217,7 +233,7 @@ export-to(atomy):
             else: tupled(@arguments all-pretty)
 
       condition:
-        @receiver kind-of?(Primitive) && @receiver value == #"self" ->
+        @receiver kind-of?(Primitive) && @receiver value == #self ->
           with-block [ident(@method-name) <> args]
 
         otherwise ->
@@ -254,16 +270,14 @@ export-to(atomy):
 
     Tree pretty :=
       if(^multiline?)
-        then:
-          from(#top): vcat(@nodes all-pretty)
-        else:
-          from(#list): comma separate(@nodes all-pretty)
+        then: from(#top): vcat(@nodes all-pretty)
+        else: from(#list): comma separate(@nodes all-pretty)
 
 Array all-pretty := collect [x]: x pretty
 
 Atomy::Pretty::Doc colored(color) := do:
   -- only makes sense to colorize if we're outputting to a terminal
-  unless(^output-port tty? && ^colored?):
+  unless(^colored? && ^output-port tty?):
     return(self)
 
   codes =
