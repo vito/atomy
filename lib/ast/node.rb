@@ -510,6 +510,26 @@ EOF
         @name = :__script__
       end
 
+      def sprinkle_salt(g, by)
+        skip_salt = g.new_label
+
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :CodeLoader
+        g.send :compiled?, 0
+        g.git skip_salt
+
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :Macro
+        g.find_const :Environment
+        g.push by
+        g.send :salt!, 1
+        g.pop
+
+        skip_salt.set!
+      end
+
       def bytecode(g)
         super(g)
 
@@ -540,11 +560,18 @@ EOF
           g.send :==, 1
           g.git when_run
 
+          before = Atomy::Macro::Environment.salt
+
           start.set!
           @body.bytecode g
+
+          after = Atomy::Macro::Environment.salt
           g.goto done
 
           when_load.set!
+
+          sprinkle_salt(g, after - before) if after > before
+
           Atomy::CodeLoader.when_load.each do |e, c|
             if c
               skip = g.new_label
@@ -567,6 +594,9 @@ EOF
           g.goto done_loading
 
           when_run.set!
+
+          sprinkle_salt(g, after - before) if after > before
+
           Atomy::CodeLoader.when_run.each do |e, c|
             if c
               skip = g.new_label

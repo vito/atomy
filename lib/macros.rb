@@ -52,6 +52,14 @@ module Atomy::Macro
           as
         end
       end
+
+      def salt
+        @@salt
+      end
+
+      def salt!(n)
+        @@salt += n
+      end
     end
   end
 
