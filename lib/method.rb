@@ -32,7 +32,7 @@ module Atomy
     end
   end
 
-  def self.build_method(name, branches, is_macro = false, file = :dynamic, line = 1)
+  def self.build_method(name, branches, file = :dynamic, line = 1)
     g = Rubinius::Generator.new
     g.name = name.to_sym
     g.file = file.to_sym
@@ -44,8 +44,6 @@ module Atomy
     g.push_state Rubinius::AST::ClosedScope.new(line)
 
     g.state.push_name name
-
-    block_offset = is_macro ? 1 : 0
 
     total = 0
     min_reqs = nil
@@ -76,10 +74,8 @@ module Atomy
     names.uniq!
 
     if splatted
-      g.splat_index = block_offset + reqs + defs
+      g.splat_index = reqs + defs
     end
-
-    total += block_offset
 
     total.times do |n|
       names.unshift("arg:" + n.to_s)
@@ -101,7 +97,7 @@ module Atomy
       argmis = g.new_label
 
       if reqs.size > min_reqs
-        g.passed_arg((reqs.size + block_offset) - 1)
+        g.passed_arg(reqs.size - 1)
         g.gif skip
       end
 
@@ -122,19 +118,14 @@ module Atomy
       end
 
       if block
-        if is_macro
-          g.push_local(0)
-          block.pattern.deconstruct(g, locals)
-        else
-          g.push_block_arg
-          block.deconstruct(g, locals)
-        end
+        g.push_block_arg
+        block.deconstruct(g, locals)
       end
 
       reqs.each_with_index do |a, i|
         next if a.wildcard? && a.bindings == 0
 
-        g.push_local(i + block_offset)
+        g.push_local(i)
 
         if a.bindings > 0
           unless a.wildcard?
@@ -153,7 +144,7 @@ module Atomy
         passed = g.new_label
         decons = g.new_label
 
-        num = reqs.size + i + block_offset
+        num = reqs.size + i
         g.passed_arg num
         g.git passed
 
@@ -211,8 +202,8 @@ module Atomy
     g.package Rubinius::CompiledMethod
   end
 
-  def self.add_method(target, name, branches, static_scope, visibility = :public, is_macro = false)
-    cm = build_method(name, branches, is_macro)
+  def self.add_method(target, name, branches, static_scope, visibility = :public)
+    cm = build_method(name, branches)
 
     unless static_scope
       static_scope = Rubinius::StaticScope.new(
