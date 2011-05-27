@@ -6,16 +6,26 @@ module Atomy
       slots [:private, "false"], :namespace?
       generate
 
-      def macro_pattern
+      # treat the message as quoted by default so they don't have to do
+      #   macro(x 'foo): ...
+      # and allow an unquote to undo this
+      def macro_pattern(unquoted = false)
+        return super() if unquoted
+
         if @message.is_a?(Unquote)
-          @message = @message.expression
-          super
+          dup.unquoted_macro_pattern
         else
-          super.tap do |x|
+          super().tap do |x|
             x.quoted.expression.message =
               @message.macro_pattern.quoted.expression
           end
         end
+      end
+
+      # see above
+      def unquoted_macro_pattern
+        @message = @message.expression
+        macro_pattern(true)
       end
 
       def set_method_name
