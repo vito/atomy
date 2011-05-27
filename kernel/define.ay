@@ -50,16 +50,16 @@ macro(class(`(~name < ~sup), &body)):
 macro(module(name, &body)):
   Module new(name line, name, body block-body)
 
-macro(evaluate-when('compile, 'load, 'run, &x)):
+macro(evaluate-when('compile, &x)):
   x body evaluate
-  Atomy::CodeLoader when-load << [x block-body, true]
-  Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('compile, 'run, 'load, &x)):
-  x body evaluate
-  Atomy::CodeLoader when-load << [x block-body, true]
-  Atomy::CodeLoader when-run << [x block-body, true]
+macro(evaluate-when('load, &x)):
+  Atomy::CodeLoader when-load << [x block-body, false]
+  'nil
+
+macro(evaluate-when('run, &x)):
+  Atomy::CodeLoader when-run << [x block-body, false]
   'nil
 
 macro(evaluate-when('compile, 'load, &x)):
@@ -72,8 +72,36 @@ macro(evaluate-when('compile, 'run, &x)):
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('compile, &x)):
+macro(evaluate-when('load, 'compile, &x)):
   x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  'nil
+
+macro(evaluate-when('load, 'run, &x)):
+  Atomy::CodeLoader when-load << [x block-body, false]
+  Atomy::CodeLoader when-run << [x block-body, false]
+  'nil
+
+macro(evaluate-when('run, 'load, &x)):
+  Atomy::CodeLoader when-load << [x block-body, false]
+  Atomy::CodeLoader when-run << [x block-body, false]
+  'nil
+
+macro(evaluate-when('run, 'compile, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
+macro(evaluate-when('compile, 'load, 'run, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
+macro(evaluate-when('compile, 'run, 'load, &x)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
 macro(evaluate-when('load, 'compile, 'run, &x)):
@@ -88,20 +116,6 @@ macro(evaluate-when('load, 'run, 'compile, &x)):
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('load, 'compile, &x)):
-  x body evaluate
-  Atomy::CodeLoader when-load << [x block-body, true]
-  'nil
-
-macro(evaluate-when('load, 'run, &x)):
-  Atomy::CodeLoader when-load << [x block-body, false]
-  Atomy::CodeLoader when-run << [x block-body, false]
-  'nil
-
-macro(evaluate-when('load, &x)):
-  Atomy::CodeLoader when-load << [x block-body, false]
-  'nil
-
 macro(evaluate-when('run, 'load, 'compile, &x)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
@@ -112,20 +126,6 @@ macro(evaluate-when('run, 'compile, 'load, &x)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   Atomy::CodeLoader when-run << [x block-body, true]
-  'nil
-
-macro(evaluate-when('run, 'load, &x)):
-  Atomy::CodeLoader when-load << [x block-body, false]
-  Atomy::CodeLoader when-run << [x block-body, false]
-  'nil
-
-macro(evaluate-when('run, 'compile, &x)):
-  x body evaluate
-  Atomy::CodeLoader when-run << [x block-body, true]
-  'nil
-
-macro(evaluate-when('run, &x)):
-  Atomy::CodeLoader when-run << [x block-body, false]
   'nil
 
 macro(for-macro(&b)):
