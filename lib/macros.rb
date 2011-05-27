@@ -79,7 +79,12 @@ module Atomy::Macro
       target,
       :_expand,
       pattern,
-      body.recursively(&:resolve)
+      body.recursively(&:resolve),
+      [],
+      nil,
+      :public,
+      :macro,
+      pattern.expression.line
     )
   end
 
