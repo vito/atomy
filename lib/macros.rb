@@ -63,7 +63,7 @@ module Atomy::Macro
     "atomy-macro#{let_num ? "-let-#{let_num}" : ""}:" + name
   end
 
-  def self.register(target, pattern, body, let = false)
+  def self.register(target, pattern, body, file = :macro, let = false)
     #ns = Atomy::Namespace.get(Thread.current[:atomy_define_in])
     #meth = !let && ns ? Atomy.namespaced(ns.name, name) : name
 
@@ -83,7 +83,7 @@ module Atomy::Macro
       [],
       Rubinius::StaticScope.new(Atomy::AST),
       :public,
-      :macro,
+      file,
       pattern.expression.line
     )
   end

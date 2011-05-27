@@ -19,6 +19,14 @@ module Atomy
         @when_load = x
       end
 
+      def compiling
+        @compiling ||= nil
+      end
+
+      def compiling=(x)
+        @compiling = x
+      end
+
       def when_run
         @when_run ||= []
       end
@@ -133,12 +141,15 @@ module Atomy
         CodeLoader.when_run = []
         CodeLoader.reason = r
         CodeLoader.compiled! false
+        CodeLoader.compiling = fn
 
         cfn = compile_if_needed(file, debug)
         cl = Rubinius::CodeLoader.new(cfn)
         cm = cl.load_compiled_file(cfn, 0)
         script = cm.create_script(false)
         script.file_path = fn
+
+        CodeLoader.compiling = nil
 
         MAIN.__send__ :__script__
       end

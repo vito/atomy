@@ -38,7 +38,8 @@ module Atomy
         Atomy::Macro.register(
           @pattern.class,
           macro_pattern,
-          @body
+          @body,
+          Atomy::CodeLoader.compiling
         )
 
         done = g.new_label
@@ -67,7 +68,9 @@ module Atomy
         Atomy.const_from_string(g, @pattern.class.name)
         macro_pattern.construct(g)
         @body.construct(g)
-        g.send :register, 3
+        g.push_scope
+        g.send :active_path, 0
+        g.send :register, 4
       end
     end
   end
