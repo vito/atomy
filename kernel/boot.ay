@@ -40,7 +40,7 @@ macro(x [*ys]):
 macro(_LINE): line
 macro(_FILE): Atomy::AST::File new(line)
 
---macro(import(name)): `(Atomy import(~name, "load" to-sym))
+macro(import(name)): `(Atomy import(~name, "load" to-sym))
 
 --"operators define cosmetics data comparison dynamic control-flow namespaces
 --patterns precision data-delta documentation particles hashes node block
