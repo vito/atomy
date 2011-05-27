@@ -81,7 +81,7 @@ module Atomy::Macro
       pattern,
       body.recursively(&:resolve),
       [],
-      nil,
+      Rubinius::StaticScope.new(Atomy::AST),
       :public,
       :macro,
       pattern.expression.line
