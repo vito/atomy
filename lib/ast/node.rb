@@ -248,6 +248,29 @@ EOF
           end
 EOF
 
+        creq_cs =
+          @@children[:required].collect { |n|
+            ", f.call(@#{n})"
+          }.join
+
+        cmany_cs =
+          @@children[:many].collect { |n|
+            ", @#{n}.each_with_index.collect { |n, i| f.call(n) }"
+          }.join
+
+        copt_cs =
+          @@children[:optional].collect { |n, _|
+            ", @#{n} ? f.call(@#{n}) : nil"
+          }.join
+
+        class_eval <<EOF
+          def children(&f)
+            #{self.name}.new(
+              @line#{creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss}
+            )
+          end
+EOF
+
         class_eval <<EOF
           def bottom?
             #{@@children.values.flatten(1).empty?.inspect}
@@ -487,7 +510,7 @@ EOF
       end
 
       def macro_pattern
-        quoted = recursively(proc { |x| !x.equal?(self) }) do |x|
+        quoted = children do |x|
           if x.is_a?(Unary) and x.operator == "*"
             Atomy::AST::Splice.new(x.line, x.receiver)
           else
@@ -498,7 +521,7 @@ EOF
         Atomy::Patterns::QuasiQuote.new(
           Atomy::AST::QuasiQuote.new(
             @line,
-            quoted.expression
+            quoted
           )
         )
       end
