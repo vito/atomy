@@ -20,7 +20,7 @@ module Atomy
       end
 
       def compiling
-        @compiling ||= nil
+        @compiling ||= :macro
       end
 
       def compiling=(x)
