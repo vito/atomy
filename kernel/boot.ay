@@ -1,13 +1,13 @@
 -- a macro so we can actually, you know, send messages
 macro(x ~Variable): set-method-name
 
-macro(@x): Atomy::AST::InstanceVariable new(line, x name)
+macro(@x): InstanceVariable new(line, x name)
 
-macro(x = y): Atomy::AST::Assign new(line, x, y)
+macro(x = y): Assign new(line, x, y)
 
 -- foo { bar }
 macro(Variable ~Block):
-  Atomy::AST::Send new(
+  Send new(
     line
     @receiver
     'self
@@ -28,7 +28,7 @@ macro(Send ~Block):
 -- collect [x] { x + 1 }
 macro(`(~x ~(ys: List)) ~(z: Block)):
   z arguments = ys elements
-  Atomy::AST::Send new(
+  Send new(
     line
     x
     'self
@@ -49,7 +49,7 @@ macro(x [*ys]):
   self
 
 macro(_LINE): line
-macro(_FILE): Atomy::AST::File new(line)
+macro(_FILE): File new(line)
 
 macro(import(name)): `(Atomy import(~name, "load" to-sym))
 
