@@ -9,10 +9,6 @@ module Atomy::Macro
     class << self
       attr_accessor :quoters
 
-      def macros
-        @@macros
-      end
-
       def let
         @@let
       end
@@ -99,56 +95,6 @@ module Atomy::Macro
     x = d
     while x.kind_of?(Atomy::AST::Unary)
       if x.receiver.kind_of?(Atomy::AST::Unary)
-        y = x.receiver.dup
-        x.receiver = y
-        x = y
-      else
-        unless x.receiver.kind_of?(Atomy::AST::Primitive)
-          x.receiver = Atomy::AST::Unquote.new(
-            x.receiver.line,
-            x.receiver
-          )
-        end
-        break
-      end
-    end
-
-    Atomy::AST::QuasiQuote.new(d.line, d)
-  end
-
-  # x(a) y(b)
-  #  to:
-  # `(x(~a)) y(b)
-  #
-  # x(a) y(b) z(c)
-  #  to:
-  # `(x(~a) y(~b)) z(c)
-  #
-  # x(&a) b(c) should bind the proc-arg
-  def self.send_chain(n)
-    return n if n.block
-
-    d = n.dup
-    x = d
-    while x.kind_of?(Atomy::AST::Send)
-      as = []
-      x.arguments.each do |a|
-        if a.kind_of?(Atomy::AST::Unary) && a.operator == "&"
-          x.block = Atomy::AST::Unquote.new(
-            a.line,
-            a.receiver
-          )
-        else
-          as << Atomy::AST::Unquote.new(
-            a.line,
-            a
-          )
-        end
-      end
-
-      x.arguments = as
-
-      if x.receiver.kind_of?(Atomy::AST::Send) && !x.receiver.block
         y = x.receiver.dup
         x.receiver = y
         x = y

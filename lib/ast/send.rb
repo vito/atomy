@@ -34,9 +34,74 @@ module Atomy
                 :self
               )
             )
+        elsif @receiver.is_a?(Send)
+          x.quoted.expression.receiver =
+            Send.send_chain(@receiver)
+        end
+
+        # have do(&x) match the block portion
+        last = x.quoted.expression.arguments.last.expression
+        if last.is_a?(Unary) and last.operator == "&"
+          x.quoted.expression.block =
+            Atomy::AST::Unquote.new(
+              last.line,
+              last.receiver
+            )
+
+          x.quoted.expression.arguments.pop
         end
 
         x
+      end
+
+      # x(a)
+      #  to:
+      # `(x(~a))
+      #
+      # x(a) y(b)
+      #  to:
+      # `(x(~a) y(~b))
+      #
+      # x(&a) should bind the proc-arg
+      def self.send_chain(n)
+        return n if n.block
+
+        d = n.dup
+        x = d
+        while x.kind_of?(Atomy::AST::Send)
+          as = []
+          x.arguments.each do |a|
+            if a.kind_of?(Atomy::AST::Unary) && a.operator == "&"
+              x.block = Atomy::AST::Unquote.new(
+                a.line,
+                a.receiver
+              )
+            else
+              as << Atomy::AST::Unquote.new(
+                a.line,
+                a
+              )
+            end
+          end
+
+          x.arguments = as
+
+          if x.receiver.kind_of?(Atomy::AST::Send) && !x.receiver.block
+            y = x.receiver.dup
+            x.receiver = y
+            x = y
+          else
+            unless x.receiver.kind_of?(Atomy::AST::Primitive)
+              x.receiver = Atomy::AST::Unquote.new(
+                x.receiver.line,
+                x.receiver
+              )
+            end
+            break
+          end
+        end
+
+        d
       end
 
       # see above
