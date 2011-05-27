@@ -231,12 +231,12 @@ module Atomy
     methods = target.instance_variable_get(:"@atomy::#{name}")
 
     if methods
-      branches = insert_method(method, methods)
+      insert_method(method, methods)
     else
-      branches = target.instance_variable_set(:"@atomy::#{name}", [method])
+      methods = target.instance_variable_set(:"@atomy::#{name}", [method])
     end
 
-    add_method(target, name, branches, static_scope)
+    add_method(target, name, methods, static_scope)
   end
 
   def self.compare_heads(xs, ys)
@@ -261,6 +261,8 @@ module Atomy
     true
   end
 
+  # this should mutate branches, so I don't have to call
+  # instance_variable_set
   def self.insert_method(new, branches)
     (nr, na), nb = new
     if nr.respond_to?(:<=>)
@@ -276,6 +278,8 @@ module Atomy
           end
         end
       end
+    else
+      return branches.unshift(new)
     end
 
     branches << new
