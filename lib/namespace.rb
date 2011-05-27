@@ -4,6 +4,7 @@ module Atomy
 
   def self.namespaced(ns, name)
     return name.to_s if !ns or ns == "_"
+    raise "empty name" unless name && !name.empty?
     ns.to_s + NAMESPACE_DELIM + name.to_s
   end
 
