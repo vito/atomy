@@ -12,14 +12,25 @@ module Atomy
       def macro_pattern(unquoted = false)
         return super() if unquoted
 
-        if @message.is_a?(Unquote)
-          dup.unquoted_macro_pattern
-        else
-          super().tap do |x|
-            x.quoted.expression.message =
-              @message.macro_pattern.quoted.expression
+        x =
+          if unquoted
+            super()
+          elsif @message.is_a?(Unquote)
+            dup.unquoted_macro_pattern
+          else
+            super().tap do |x|
+              x.quoted.expression.message =
+                @message.macro_pattern.quoted.expression
+            end
           end
+
+        # match wildcard rather than self
+        if @private
+          x.quoted.expression.receiver.expression =
+            Atomy::AST::Variable.new(@line, "_")
         end
+
+        x
       end
 
       # see above
