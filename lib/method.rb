@@ -202,8 +202,8 @@ module Atomy
     g.package Rubinius::CompiledMethod
   end
 
-  def self.add_method(target, name, branches, static_scope, visibility = :public)
-    cm = build_method(name, branches)
+  def self.add_method(target, name, branches, static_scope, visibility = :public, file = :dynamic_add, line = 1)
+    cm = build_method(name, branches, file, line)
 
     unless static_scope
       static_scope = Rubinius::StaticScope.new(
@@ -217,7 +217,7 @@ module Atomy
     Rubinius.add_method name, cm, target, visibility
   end
 
-  def self.define_method(target, name, receiver, body, arguments = [], static_scope = nil)
+  def self.define_method(target, name, receiver, body, arguments = [], static_scope = nil, visibility = :public, file = :dynamic_define, line = 1)
     method = [[receiver, arguments], body]
     methods = target.instance_variable_get(:"@atomy::#{name}")
 
@@ -227,7 +227,7 @@ module Atomy
       methods = target.instance_variable_set(:"@atomy::#{name}", [method])
     end
 
-    add_method(target, name, methods, static_scope)
+    add_method(target, name, methods, static_scope, visibility, file, line)
   end
 
   def self.compare_heads(xs, ys)
