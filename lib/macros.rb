@@ -33,27 +33,11 @@ module Atomy::Macro
         end
       end
 
-      def names(num = 0, &block)
-        num = block.arity if block
-
-        as = []
-        num.times do
-          as << Atomy::AST::Variable.new(0, "s:" + @@salt.to_s)
-          @@salt += 1
-        end
-
-        if block
-          block.call(*as)
-        else
-          as
-        end
-      end
-
       def salt
         @@salt
       end
 
-      def salt!(n)
+      def salt!(n = 1)
         @@salt += n
       end
     end
