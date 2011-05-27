@@ -53,6 +53,10 @@ module Atomy
         block = @block
         splat = nil
 
+        if message_name && message_name.empty?
+          raise "message name not set for #{self.to_sexp.inspect}"
+        end
+
         unless @namespace == "_"
           g.push_literal message_name.to_sym
         end
