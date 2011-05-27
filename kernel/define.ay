@@ -1,10 +1,10 @@
 macro(do(&b)): b body
 
 macro(x = y):
-  Atomy::AST::Assign new(x line, x, y)
+  Assign new(x line, x, y)
 
 macro(x =! y):
-  Atomy::AST::Set new(x line, x, y)
+  Set new(x line, x, y)
 
 macro(x := y):
   where = Atomy::Namespace define-target
@@ -16,7 +16,7 @@ macro(x := y):
   Atomy::CodeLoader when-run <<
     [`(Atomy::Namespace register(~(x namespace-symbol), ~where)), true]
 
-  Atomy::AST::Define new(x line, x, y)
+  Define new(x line, x, y)
 
 macro(define(x, &y)):
   `(~x := ~(y block-body))
@@ -36,19 +36,19 @@ macro(x ^= y): `(~x =! (~x ^ ~y))
 macro(x %= y): `(~x =! (~x % ~y))
 
 macro(x match(&b)):
-  Atomy::AST::Match new(line, x, b)
+  Match new(line, x, b)
 
 macro(class(name, &body)):
-  Atomy::AST::Class new(name line, name, body block-body)
+  Class new(name line, name, body block-body)
 
 macro(class(`(<< ~obj), &body)):
-  Atomy::AST::SingletonClass new(obj line, obj, body block-body)
+  SingletonClass new(obj line, obj, body block-body)
 
 macro(class(`(~name < ~sup), &body)):
-  Atomy::AST::Class new(name line, name, body block-body, sup)
+  Class new(name line, name, body block-body, sup)
 
 macro(module(name, &body)):
-  Atomy::AST::Module new(name line, name, body block-body)
+  Module new(name line, name, body block-body)
 
 macro(evaluate-when('compile, 'load, 'run, &x)):
   x body evaluate
@@ -134,6 +134,6 @@ macro(for-macro(&b)):
 
 macro(let-macro(*ms, &body)):
   macros = ms collect [`(~p = ~b)]:
-    Atomy::AST::Macro new(p line, p, b)
+    Macro new(p line, p, b)
 
-  Atomy::AST::LetMacro new(line, body caller, macros)
+  LetMacro new(line, body caller, macros)
