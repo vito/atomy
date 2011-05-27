@@ -13,15 +13,6 @@ module Atomy
         x
       end
 
-      def register_macro(body, let = false)
-        Atomy::Macro.register(
-          method_name,
-          [],
-          body,
-          let
-        )
-      end
-
       def expandable?
         true
       end

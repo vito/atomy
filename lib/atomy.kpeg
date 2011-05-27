@@ -210,17 +210,17 @@
                     { Atomy::AST::List.new(line, Array(es)) }
 
      sends(pos) = line:line send:r cont(pos) level0:n args?:as
-                    { Atomy::AST::Send.new(line, r, Array(as), n) }
+                    { Atomy::AST::Send.new(line, n, r, Array(as)) }
                 | line:line level1:r cont(pos) level0:n args?:as
-                    { Atomy::AST::Send.new(line, r, Array(as), n) }
+                    { Atomy::AST::Send.new(line, n, r, Array(as)) }
            send = sends(current_position)
 
        headless = line:line level0:n args:as
                     { Atomy::AST::Send.new(
                         line,
+                        n,
                         Atomy::AST::Primitive.new(line, :self),
                         as,
-                        n,
                         nil,
                         nil,
                         true

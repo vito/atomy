@@ -7,15 +7,6 @@ module Atomy
       slots :namespace?
       generate
 
-      def register_macro(body, let = false)
-        Atomy::Macro.register(
-          @operator + "@",
-          [Atomy::Macro.macro_pattern(@receiver)],
-          body,
-          let
-        )
-      end
-
       def message_name
         Atomy.namespaced(@namespace, @operator)
       end

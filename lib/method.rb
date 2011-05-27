@@ -226,6 +226,20 @@ module Atomy
     Rubinius.add_method name, cm, target, visibility
   end
 
+  def self.define_method(target, name, receiver, body, arguments = [], static_scope = nil)
+    method = [[receiver, arguments], body]
+    methods = target.instance_variable_get(:"@atomy::#{name}")
+
+    if methods
+      branches = insert_method(method, methods)
+    else
+      branches = target.instance_variable_set(:"@atomy::#{name}", [method])
+    end
+
+    p [:add_method, target, name, branches, static_scope]
+    add_method(target, name, branches, static_scope)
+  end
+
   def self.compare_heads(xs, ys)
     return 1 if xs.size > ys.size
     return -1 if xs.size < ys.size

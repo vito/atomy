@@ -1,35 +1,28 @@
 module Atomy
   module AST
     class Send < Node
-      children :receiver, [:arguments], :message?, :block?
+      children :message, :receiver, [:arguments], :block?
       attributes :method_name?
       slots [:private, "false"], :namespace?
       generate
 
-      def self.new(*args)
-        super.resolve_message
-      end
-
-      def resolve_message
-        res = self
-
-        if res.message
-          res = res.message.as_message(self)
-          res.message = nil if res.method_name
+      def macro_pattern
+        super.tap do |x|
+          x.quoted.expression.message =
+            @message.macro_pattern.quoted.expression
         end
-
-        res
       end
 
-      def register_macro(body, let = false)
-        Atomy::Macro.register(
-          @method_name,
-          ([@receiver] + @arguments).collect do |n|
-            Atomy::Macro.macro_pattern n
-          end,
-          body,
-          let
-        )
+      def expand
+        case @message
+          # TODO: do this for things that don't define macros
+        when Variable
+          self.dup.tap do |x|
+            x.method_name = @message.name
+          end
+        else
+          super
+        end
       end
 
       def message_name

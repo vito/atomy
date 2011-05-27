@@ -67,36 +67,24 @@ module Atomy::Macro
     "atomy-macro#{let_num ? "-let-#{let_num}" : ""}:" + name
   end
 
-  def self.register(name, args, body, let = false)
-    ns = Atomy::Namespace.get(Thread.current[:atomy_define_in])
-    meth = !let && ns ? Atomy.namespaced(ns.name, name) : name
+  def self.register(target, pattern, body, let = false)
+    #ns = Atomy::Namespace.get(Thread.current[:atomy_define_in])
+    #meth = !let && ns ? Atomy.namespaced(ns.name, name) : name
 
-    if let
-      Environment.let[name] ||= []
-      meth = (intern meth, Environment.let[name].size).to_sym
-      Environment.let[name] << meth
-    else
-      meth = (intern meth).to_sym
-    end
+    #if let
+      #Environment.let[name] ||= []
+      #meth = (intern meth, Environment.let[name].size).to_sym
+      #Environment.let[name] << meth
+    #else
+      #meth = (intern meth).to_sym
+    #end
 
-    methods = Environment.macros
-    method = [[Atomy::Patterns::Any.new, args], body.recursively(&:resolve)]
-    if ms = methods[meth]
-      Atomy.insert_method(method, ms)
-    else
-      methods[meth] = [method]
-    end
-
-    Atomy.add_method(
-      Environment.singleton_class,
-      meth,
-      methods[meth],
-      nil,
-      :public,
-      true
+    Atomy.define_method(
+      target,
+      :_expand,
+      pattern,
+      body.recursively(&:resolve)
     )
-
-    meth
   end
 
   # take a node and return its expansion

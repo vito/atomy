@@ -390,9 +390,9 @@ EOF
       def to_send
         Send.new(
           @line,
+          self,
           Primitive.new(@line, :self),
           [],
-          self,
           nil,
           nil,
           true
@@ -412,18 +412,21 @@ EOF
       end
 
       def caller
-        Atomy::AST::Send.new(
+        Send.new(
           @line,
-          self,
-          [],
           Atomy::AST::Variable.new(@line, "call"),
-          nil,
-          nil
+          self,
+          []
         )
       end
 
+      # this is overridden by macro definitions
+      def _expand
+        self
+      end
+
       def expand
-        Atomy::Macro.expand(self)
+        _expand.to_node
       end
 
       def namespace
@@ -457,7 +460,7 @@ EOF
         if expandable?
           resolve.expand
         else
-          self
+          expand
         end
       end
 
@@ -475,6 +478,20 @@ EOF
 
       def to_pattern
         expand.pattern
+      end
+
+      def macro_pattern
+        quoted = recursively(proc { |x| !x.equal?(self) }) do |x|
+          p [:through, x.to_sexp]
+          Atomy::AST::Unquote.new(x.line, x)
+        end
+
+        Atomy::Patterns::QuasiQuote.new(
+          Atomy::AST::QuasiQuote.new(
+            @line,
+            quoted.expression
+          )
+        )
       end
 
       def as_message(send)
