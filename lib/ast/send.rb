@@ -40,8 +40,9 @@ module Atomy
         end
 
         # have do(&x) match the block portion
-        last = x.quoted.expression.arguments.last.expression
-        if last.is_a?(Unary) and last.operator == "&"
+        last = x.quoted.expression.arguments.last
+        if last and last.expression.is_a?(Unary) and \
+              last.expression.operator == "&"
           x.quoted.expression.block =
             Atomy::AST::Unquote.new(
               last.line,
