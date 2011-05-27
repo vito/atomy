@@ -420,15 +420,6 @@ EOF
         )
       end
 
-      # this is overridden by macro definitions
-      def _expand
-        self
-      end
-
-      def expand
-        _expand.to_node
-      end
-
       def namespace
         nil
       end
@@ -456,6 +447,7 @@ EOF
         end
       end
 
+      # TODO: resolve and expand everything, remove expandable?
       def prepare
         if expandable?
           resolve.expand
@@ -466,6 +458,20 @@ EOF
 
       def expandable?
         false
+      end
+
+      # this is overridden by macro definitions
+      def _expand
+        self
+      end
+
+      def expand
+        res = _expand.to_node
+        if !res.equal?(self)
+          res.expand
+        else
+          res
+        end
       end
 
       def compile(g)
