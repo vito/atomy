@@ -7,22 +7,20 @@ module Atomy
       generate
 
       def macro_pattern
-        super.tap do |x|
-          x.quoted.expression.message =
-            @message.macro_pattern.quoted.expression
+        if @message.is_a?(Unquote)
+          @message = @message.expression
+          super
+        else
+          super.tap do |x|
+            x.quoted.expression.message =
+              @message.macro_pattern.quoted.expression
+          end
         end
       end
 
-      def expand
-        case @message
-          # TODO: do this for things that don't define macros
-        when Variable
-          self.dup.tap do |x|
-            x.method_name = @message.name
-          end
-        else
-          super
-        end
+      def set_method_name
+        @method_name = @message.name
+        self
       end
 
       def message_name

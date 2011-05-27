@@ -1,3 +1,5 @@
+macro(x ~Atomy::AST::Variable): set-method-name
+
 macro(_LINE): line to-node
 macro(_FILE): Atomy::AST::File new(line)
 
