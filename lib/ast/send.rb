@@ -41,12 +41,12 @@ module Atomy
 
         # have do(&x) match the block portion
         last = x.quoted.expression.arguments.last
-        if last and last.expression.is_a?(Unary) and \
-              last.expression.operator == "&"
+        if last and blk = last.expression and blk.is_a?(Unary) and \
+              blk.operator == "&"
           x.quoted.expression.block =
             Atomy::AST::Unquote.new(
-              last.line,
-              last.receiver
+              blk.line,
+              blk.receiver
             )
 
           x.quoted.expression.arguments.pop
