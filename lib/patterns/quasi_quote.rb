@@ -103,6 +103,7 @@ module Atomy::Patterns
         ctx = where.last == :unquoted ? where[0..-2] : where
         g.push_stack_local them
         if splice
+          context(g, ctx[0..-2])
           g.send ctx.last[0], 0
           g.push_int ctx.last[1]
           g.send :drop, 1
@@ -148,6 +149,7 @@ module Atomy::Patterns
         ctx = where.last == :unquoted ? where[0..-2] : where
         g.push_stack_local them
         if splice
+          context(g, ctx[0..-2])
           g.send ctx.last[0], 0
           g.push_int ctx.last[1]
           g.send :drop, 1
