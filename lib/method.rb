@@ -32,7 +32,7 @@ module Atomy
     end
   end
 
-  def self.build_method(name, branches, file = :dynamic, line = 1)
+  def self.build_method(name, branches, file = :dynamic_build, line = 1)
     g = Rubinius::Generator.new
     g.name = name.to_sym
     g.file = file.to_sym
