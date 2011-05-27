@@ -146,10 +146,11 @@ module Atomy
           g.send :add_defn_method, 4
         else
           g.push_scope
+          g.push_literal :public
           g.push_scope
           g.send :active_path, 0
           g.push_int @line
-          g.send :add_method, 6
+          g.send :add_method, 7
         end
       end
 
