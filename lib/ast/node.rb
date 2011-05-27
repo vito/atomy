@@ -482,7 +482,6 @@ EOF
 
       def macro_pattern
         quoted = recursively(proc { |x| !x.equal?(self) }) do |x|
-          p [:through, x.to_sexp]
           Atomy::AST::Unquote.new(x.line, x)
         end
 

@@ -236,7 +236,6 @@ module Atomy
       branches = target.instance_variable_set(:"@atomy::#{name}", [method])
     end
 
-    p [:add_method, target, name, branches, static_scope]
     add_method(target, name, branches, static_scope)
   end
 
