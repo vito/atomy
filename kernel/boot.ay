@@ -1,6 +1,37 @@
+-- a macro so we can actually, you know, send messages
 macro(x ~Atomy::AST::Variable): set-method-name
 
-macro(_LINE): line to-node
+macro(@x): Atomy::AST::InstanceVariable new(line, x name)
+
+macro(x = y): Atomy::AST::Assign new(line, x, y)
+
+-- foo { bar }
+macro(Atomy::AST::Variable ~Atomy::AST::Block):
+  Atomy::AST::Send new(
+    line
+    @receiver
+    'self
+    []
+    @message
+  )
+
+-- [x, y] { x + y }
+macro(Atomy::AST::List ~Atomy::AST::Block):
+  @message arguments = @receiver elements
+  @message
+
+-- x foo { bar }
+macro(Atomy::AST::Send ~Atomy::AST::Block):
+  @receiver block = @message
+  @receiver
+
+-- collect [x] { x + 1 }
+macro(`(~x ~(ys: Atomy::AST::List)) ~(z: Atomy::AST::Block)):
+  z arguments = ys elements
+  x block = z
+  x
+
+macro(_LINE): line
 macro(_FILE): Atomy::AST::File new(line)
 
 --macro(import(name)): `(Atomy import(~name, "load" to-sym))
