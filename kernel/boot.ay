@@ -31,6 +31,12 @@ macro(`(~x ~(ys: Atomy::AST::List)) ~(z: Atomy::AST::Block)):
   x block = z
   x
 
+-- foo [bar, ...]
+macro(x [*ys]):
+  @method-name = "[]"
+  @arguments = ys + @arguments
+  self
+
 macro(_LINE): line
 macro(_FILE): Atomy::AST::File new(line)
 
