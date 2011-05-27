@@ -27,7 +27,13 @@ module Atomy
         # match wildcard rather than self
         if @private
           x.quoted.expression.receiver.expression =
-            Atomy::AST::Variable.new(@line, "_")
+            Atomy::AST::Quote.new(
+              @line,
+              Atomy::AST::Primitive.new(
+                @line,
+                :self
+              )
+            )
         end
 
         x
