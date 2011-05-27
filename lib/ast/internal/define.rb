@@ -136,11 +136,10 @@ module Atomy
         added.set!
 
         if defn
-          g.push_false
           g.push_scope
           g.send :active_path, 0
           g.push_int @line
-          g.send :build_method, 5
+          g.send :build_method, 4
           g.push_scope
           g.push_variables
           g.send :method_visibility, 0
