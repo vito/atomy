@@ -129,8 +129,9 @@ macro(evaluate-when('run, 'compile, 'load, &x)):
   'nil
 
 macro(for-macro(&b)):
-  `(evaluate-when(compile, load):
-      ~b block call-on-instance(Atomy::Macro::Environment singleton-class))
+  `(evaluate-when(compile, load, run):
+      module(Atomy::AST::NodeLike):
+        ~(b caller))
 
 macro(let-macro(*ms, &body)):
   macros = ms collect [`(~p = ~b)]:
