@@ -488,7 +488,11 @@ EOF
 
       def macro_pattern
         quoted = recursively(proc { |x| !x.equal?(self) }) do |x|
-          Atomy::AST::Unquote.new(x.line, x)
+          if x.is_a?(Unary) and x.operator == "*"
+            Atomy::AST::Splice.new(x.line, x.receiver)
+          else
+            Atomy::AST::Unquote.new(x.line, x)
+          end
         end
 
         Atomy::Patterns::QuasiQuote.new(
