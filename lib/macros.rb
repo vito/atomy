@@ -88,35 +88,6 @@ module Atomy::Macro
     )
   end
 
-  # @!x
-  #  to:
-  # @`(!~x)
-  #
-  # @!?x
-  #  to:
-  # @(`!?~x)
-  def self.unary_chain(n)
-    d = n.dup
-    x = d
-    while x.kind_of?(Atomy::AST::Unary)
-      if x.receiver.kind_of?(Atomy::AST::Unary)
-        y = x.receiver.dup
-        x.receiver = y
-        x = y
-      else
-        unless x.receiver.kind_of?(Atomy::AST::Primitive)
-          x.receiver = Atomy::AST::Unquote.new(
-            x.receiver.line,
-            x.receiver
-          )
-        end
-        break
-      end
-    end
-
-    Atomy::AST::QuasiQuote.new(d.line, d)
-  end
-
   def self.macro_pattern(n)
     if n.kind_of?(Atomy::AST::Send) && !n.block
       n = send_chain(n)
