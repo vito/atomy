@@ -38,14 +38,14 @@ macro(x %= y): `(~x =! (~x % ~y))
 macro(x match(&b)):
   Atomy::AST::Match new(line, x, b)
 
+macro(class(name, &body)):
+  Atomy::AST::Class new(name line, name, body block-body)
+
 macro(class(`(<< ~obj), &body)):
   Atomy::AST::SingletonClass new(obj line, obj, body block-body)
 
 macro(class(`(~name < ~sup), &body)):
   Atomy::AST::Class new(name line, name, body block-body, sup)
-
-macro(class(name, &body)):
-  Atomy::AST::Class new(name line, name, body block-body)
 
 macro(module(name, &body)):
   Atomy::AST::Module new(name line, name, body block-body)
