@@ -4,17 +4,21 @@ macro(#(l: List)):
   keys = []
   values = []
 
-  l elements each [p]:
-    p match:
+  pairs = l elements dup
+  until(pairs empty?):
+    pairs pop match:
       `(~k -> ~v) -> do:
         keys << k
         values << v
 
-      Atomy::AST::Send -> do:
-        while(p respond-to?(#block) && p block):
-          keys << `#~(p method-name)
-          values << p block contents first
-          p =! p receiver
+      (p: Send) -> do:
+        while(p is-a?(Send) && p message is-a?(Block)):
+          keys << `#~(p receiver name)
+          values << p message contents first
+          pairs += p message contents [1 .. -1]
+          if(p receiver is-a?(Send))
+            then: p =! p receiver receiver
+            else: break
 
   Atomy::AST::Hash new(line, keys, values)
 
