@@ -130,8 +130,8 @@ macro(evaluate-when('run, 'compile, 'load, &x)):
 
 macro(for-macro(&b)):
   `(evaluate-when(compile, load, run):
-      module(Atomy::AST::NodeLike):
-        ~(b caller))
+      module(Atomy::Macro::Helpers):
+        ~*(b contents))
 
 macro(let-macro(*ms, &body)):
   macros = ms collect [`(~p = ~b)]:

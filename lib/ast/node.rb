@@ -548,6 +548,7 @@ EOF
     end
 
     class Node < Rubinius::AST::Node
+      include Atomy::Macro::Helpers
       include NodeLike
       extend SentientNode
 

@@ -1,4 +1,7 @@
 module Atomy::Macro
+  module Helpers
+  end
+
   class Environment
     @@salt = 0
     @@macros = {}
