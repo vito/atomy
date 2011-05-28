@@ -1,6 +1,6 @@
 dynamic(labels, Hash new)
 
-macro(if(x) then(&y) else(&z)):
+macro(if(x) then ~(y: Block) else ~(z: Block)):
   Atomy::AST::IfThenElse new(line, x, y body, z body)
 
 macro(otherwise): 'true
@@ -15,7 +15,7 @@ macro(return(y)):
 macro(x rescue(&y)):
   Atomy::AST::Catch new(line, x caller, y contents)
 
-macro(x rescue(&y) else(&z)):
+macro(x rescue ~(y: Block) else ~(z: Block)):
   Atomy::AST::Catch new(line, x caller, y contents, z body)
 
 macro(x ensuring(&y)):
