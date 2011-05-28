@@ -120,6 +120,7 @@ module Atomy
       end
 
       def message_name
+        raise "no method name: #{to_sexp.inspect}" unless @method_name
         Atomy.namespaced(@namespace, @method_name)
       end
 
