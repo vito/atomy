@@ -128,10 +128,6 @@ module Atomy
         self
       end
 
-      def expandable?
-        true
-      end
-
       def bytecode(g)
         pos(g)
 

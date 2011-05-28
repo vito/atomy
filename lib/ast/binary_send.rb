@@ -12,10 +12,6 @@ module Atomy
         Atomy.namespaced(@namespace, @operator)
       end
 
-      def expandable?
-        true
-      end
-
       def bytecode(g)
         pos(g)
         @lhs.compile(g)

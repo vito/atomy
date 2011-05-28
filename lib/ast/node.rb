@@ -488,29 +488,20 @@ EOF
         case self
         when Atomy::AST::Send, Atomy::AST::Variable,
               Atomy::AST::BinarySend, Atomy::AST::Unary
-          y = dup
-          if n = ns.resolve(namespace_symbol)
-            y.namespace = n.to_s
-          else
-            y.namespace = "_"
+          dup.tap do |y|
+            if n = ns.resolve(namespace_symbol)
+              y.namespace = n.to_s
+            else
+              y.namespace = "_"
+            end
           end
-          y
         else
           self
         end
       end
 
-      # TODO: resolve and expand everything, remove expandable?
       def prepare
-        if expandable?
-          resolve.expand
-        else
-          expand
-        end
-      end
-
-      def expandable?
-        false
+        resolve.expand
       end
 
       # this is overridden by macro definitions

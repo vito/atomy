@@ -13,10 +13,6 @@ module Atomy
         x
       end
 
-      def expandable?
-        true
-      end
-
       def message_name
         Atomy.namespaced(@namespace, @name)
       end
