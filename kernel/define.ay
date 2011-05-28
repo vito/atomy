@@ -6,7 +6,9 @@ macro(x = y):
 macro(x =! y):
   Set new(x line, x, y)
 
-macro(x := y):
+macro(pattern := y):
+  x = pattern expand
+
   where = Atomy::Namespace define-target
   Atomy::Namespace register(x namespace-symbol, where)
 

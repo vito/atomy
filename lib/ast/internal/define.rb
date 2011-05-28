@@ -7,43 +7,39 @@ module Atomy
       def arguments
         return @arguments if @arguments
 
-        case thumb
+        case @pattern
         when BinarySend
-          args = [thumb.rhs]
+          args = [@pattern.rhs]
         when Variable, Unary
           args = []
         else
-          args = thumb.arguments
+          args = @pattern.arguments
         end
 
         @arguments = args.collect(&:to_pattern)
       end
 
-      def thumb
-        @thumb ||= @pattern.expand
-      end
-
       def receiver
         return @receiver if @receiver
 
-        case thumb
+        case @pattern
         when BinarySend
-          recv = thumb.lhs
+          recv = @pattern.lhs
         when Variable
-          recv = Primitive.new(thumb.line, :self)
+          recv = Primitive.new(@pattern.line, :self)
         else
-          recv = thumb.receiver
+          recv = @pattern.receiver
         end
 
         @receiver = recv.to_pattern
       end
 
       def method_name
-        case thumb
+        case @pattern
         when Variable
-          thumb.name
+          @pattern.name
         else
-          thumb.method_name
+          @pattern.method_name
         end
       end
 
