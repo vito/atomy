@@ -25,9 +25,9 @@ module Atomy::Macro
         @@quoters[name] = blk
       end
 
-      def quote(name, contents, flags, value = nil)
+      def quote(mq, name, contents, flags, value = nil)
         if a = @@quoters[name.to_sym]
-          a.call(contents, flags, value)
+          mq.instance_exec(contents, flags, value, &a)
         else
           raise "unknown quoter #{name.inspect}"
         end

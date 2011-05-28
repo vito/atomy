@@ -60,9 +60,18 @@ macro(data(root = 'Object, &children)):
       ~(define-class(nil, `(~root ~children)))
       nil)
 
-macro(macro-quoter(n, &x)):
+macro((x: Variable) ~(c: Atomy::AST::String)):
+  MacroQuote new(
+    line,
+    x name,
+    c raw || c value,
+    @arguments collect(&#name)
+    c value
+  )
+
+macro(macro-quoter(n) ~(as: List) ~(b: Block)):
   `(evaluate-when(compile, load):
-      Atomy::Macro::Environment quoter(#~n, &~x))
+      Atomy::Macro::Environment quoter(#~n, &(~as ~b)))
 
 for-macro:
   intp-segments(s) :=

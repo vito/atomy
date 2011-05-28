@@ -11,11 +11,12 @@ module Atomy
 
       def expand
         Atomy::Macro::Environment.quote(
+          self,
           @name,
           @contents,
           @flags,
           @value
-        ).to_node
+        ).to_node.expand
       end
 
       alias :prepare :expand

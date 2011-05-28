@@ -17,15 +17,5 @@ module Atomy::AST
       super
       g.string_dup
     end
-
-    def as_message(send)
-      MacroQuote.new(
-        @line,
-        send.receiver.name,
-        @raw || @value,
-        send.arguments.collect(&:name),
-        @value
-      )
-    end
   end
 end
