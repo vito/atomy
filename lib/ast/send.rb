@@ -65,7 +65,9 @@ module Atomy
       #
       # x(&a) should bind the proc-arg
       def self.send_chain(n)
-        return n if n.block
+        if n.message.kind_of?(Block)
+          return Atomy::AST::Unquote.new(n.line, n)
+        end
 
         d = n.dup
         x = d
@@ -87,7 +89,8 @@ module Atomy
 
           x.arguments = as
 
-          if x.receiver.kind_of?(Atomy::AST::Send) && !x.receiver.block
+          if x.receiver.kind_of?(Atomy::AST::Send) and \
+              !x.receiver.message.kind_of?(Block)
             y = x.receiver.dup
             x.receiver = y
             x = y
