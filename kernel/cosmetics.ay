@@ -1,3 +1,11 @@
-macro(x $(y: Atomy::AST::Block)):
+macro((x: Send) $(y: Block)):
   x arguments += y contents
   x
+
+macro((x: Variable) $(y: Block)):
+  Send new(
+    line
+    x
+    'self
+    y contents
+  )
