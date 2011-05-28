@@ -66,6 +66,7 @@ module Atomy
         g.swap
         g.send :__from_block__, 1
       end
+    end
 
     class InlinedBody < Node
       children [:expressions]
