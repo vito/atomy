@@ -26,8 +26,8 @@ macro(Send ~Block):
   @receiver
 
 -- collect [x] { x + 1 }
-macro(`(~x ~(ys: List)) ~(z: Block)):
-  z arguments = ys elements
+macro(x [~*ys] ~(z: Block)):
+  z arguments = ys
   Send new(
     line
     x
@@ -37,8 +37,8 @@ macro(`(~x ~(ys: List)) ~(z: Block)):
   )
 
 -- [1, 2, 3] collect [x] { x + 1 }
-macro(`(~(x: Send) ~(ys: List)) ~(z: Block)):
-  z arguments = ys elements
+macro((x: Send) [~*ys] ~(z: Block)):
+  z arguments = ys
   x block = z
   x
 
