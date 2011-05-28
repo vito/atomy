@@ -269,10 +269,8 @@ module Atomy
           end
         end
       end
-    else
-      return branches.unshift(new)
     end
 
-    branches << new
+    branches.unshift(new)
   end
 end
