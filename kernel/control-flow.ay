@@ -63,12 +63,12 @@ module(Atomy::AST):
 
       labels =
         @tags collect [t]:
-          tags [t method-name] = g new-label
+          tags [t receiver name] = g new-label
 
       let(labels = tags):
         labels zip(@tags) each [[l, t]]:
           l set!
-          t block body bytecode(g)
+          t message body bytecode(g)
           g pop
 
       g push-nil
