@@ -106,9 +106,8 @@ def run_atomy(options)
             puts "=> #{res.inspect}"
           end
         rescue StandardError => e
-          puts "ERROR!"
-          puts "#{e}:\n  #{e.message}"
-          puts e.backtrace
+          puts "#{e.class.name}: #{e.message}"
+          puts Rubinius::Backtrace.backtrace(e.locations).show
         end
       end
     ensure
