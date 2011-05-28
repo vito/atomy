@@ -489,12 +489,7 @@ EOF
       end
 
       def expand
-        res = _expand.to_node
-        if !res.equal?(self)
-          res.expand
-        else
-          res
-        end
+        _expand.to_node
       end
 
       def compile(g)

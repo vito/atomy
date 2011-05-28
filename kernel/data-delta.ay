@@ -154,7 +154,7 @@ export:
         pos(g)
 
         @segments each [s]:
-          s bytecode(g)
+          s compile(g)
 
         g string-build(@segments size)
 

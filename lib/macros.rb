@@ -63,7 +63,14 @@ module Atomy::Macro
       target,
       :_expand,
       pattern,
-      body.recursively(&:resolve),
+      Atomy::AST::Send.new(
+        body.line,
+        Atomy::AST::Variable.new(body.line, "expand"),
+        body.recursively(&:resolve),
+        [],
+        nil,
+        "expand"
+      ),
       [],
       Rubinius::StaticScope.new(Atomy::AST),
       :public,
