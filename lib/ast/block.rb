@@ -67,34 +67,6 @@ module Atomy
         g.send :__from_block__, 1
       end
 
-      def as_message(send)
-        case send.receiver
-        when Send
-          if send.receiver.method_name == "[]"
-            dup.tap do |b|
-              b.arguments = send.receiver.arguments
-            end.as_message(send.receiver)
-          else
-            send.receiver.dup.tap do |s|
-              s.block = self
-            end
-          end
-        when Variable, Unquote,
-             Constant, ScopedConstant, ToplevelConstant
-          send.receiver = send.receiver.to_send
-          as_message(send)
-        when List
-          dup.tap do |b|
-            b.arguments = send.receiver.elements
-          end
-        else
-          unless send.method_name
-            raise "unknown receiver for block: #{send.receiver.inspect}"
-          end
-        end
-      end
-    end
-
     class InlinedBody < Node
       children [:expressions]
       generate
