@@ -6,6 +6,10 @@ module Atomy
       slots [:private, "false"], :namespace?
       generate
 
+      def namespace_symbol
+        @message.namespace_symbol
+      end
+
       # treat the message as quoted by default so they don't have to do
       #   macro(x 'foo): ...
       # and allow an unquote to undo this
