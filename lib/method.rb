@@ -242,6 +242,16 @@ module Atomy
     0
   end
 
+  def self.compare(xs, ys)
+    total = 0
+
+    xs.zip(ys) do |x, y|
+      total += x <=> y unless y.nil?
+    end
+
+    total <=> 0
+  end
+
   def self.equivalent?(xs, ys)
     return false unless xs.size == ys.size
 
@@ -255,22 +265,14 @@ module Atomy
   # this should mutate branches, so I don't have to call
   # instance_variable_set
   def self.insert_method(new, branches)
-    (nr, na), nb = new
-    if nr.respond_to?(:<=>)
-      branches.each_with_index do |branch, i|
-        (r, a), b = branch
-        case compare_heads([nr] + na, [r] + a)
-        when 1
-          return branches.insert(i, new)
-        when 0
-          if equivalent?([nr] + na, [r] + a)
-            branches[i] = new
-            return branches
-          end
-        end
+    if new[0][0].respond_to?(:<=>)
+      # TODO: insertion-based; this is currently needed
+      # because we define methods before <=> is defined
+      branches.unshift(new).sort! do |b, a|
+        compare([a[0][0]] + a[0][1], [b[0][0]] + b[0][1])
       end
+    else
+      branches.unshift(new)
     end
-
-    branches.unshift(new)
   end
 end
