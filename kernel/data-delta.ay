@@ -60,6 +60,10 @@ macro(data(root = 'Object, &children)):
       ~(define-class(nil, `(~root ~children)))
       nil)
 
+class(Atomy::AST::MacroQuote):
+  export:
+    quote(*_) := raise("unknown quoter")
+
 macro((x: Variable) ~(c: Atomy::AST::String)):
   MacroQuote new(
     line,
@@ -70,8 +74,11 @@ macro((x: Variable) ~(c: Atomy::AST::String)):
   )
 
 macro(macro-quoter(n) ~(as: List) ~(b: Block)):
-  `(evaluate-when(compile, load):
-      Atomy::Macro::Environment quoter(#~n, &(~as ~b)))
+  `(evaluate-when(compile, load, run):
+      class(Atomy::AST::MacroQuote):
+        export:
+          define(quote(#~n, ~*(as elements))):
+            ~*(b contents))
 
 for-macro:
   intp-segments(s) :=

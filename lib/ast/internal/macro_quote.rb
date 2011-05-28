@@ -9,10 +9,13 @@ module Atomy
         g.push_literal :impossible
       end
 
+      def quote(n, c, fs = [], v = "")
+        raise "unknown quoter #{n.inspect}"
+      end
+
       def expand
-        Atomy::Macro::Environment.quote(
-          self,
-          @name,
+        quote(
+          @name.to_sym,
           @contents,
           @flags,
           @value

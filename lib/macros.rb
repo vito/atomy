@@ -6,12 +6,9 @@ module Atomy::Macro
     @@salt = 0
     @@macros = {}
     @@let = {}
-    @@quoters = {}
     @@line = 0
 
     class << self
-      attr_accessor :quoters
-
       def let
         @@let
       end
@@ -22,18 +19,6 @@ module Atomy::Macro
 
       def line=(x)
         @@line = x
-      end
-
-      def quoter(name, &blk)
-        @@quoters[name] = blk
-      end
-
-      def quote(mq, name, contents, flags, value = nil)
-        if a = @@quoters[name.to_sym]
-          mq.instance_exec(contents, flags, value, &a)
-        else
-          raise "unknown quoter #{name.inspect}"
-        end
       end
 
       def salt
