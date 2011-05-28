@@ -48,6 +48,23 @@ macro(x [*ys]):
   @arguments = ys + @arguments
   self
 
+-- Foo(...)
+macro(x ~Constant):
+  @method-name = @message identifier
+  self
+
+-- Bar::Foo(...)
+macro(x ~ScopedConstant):
+  @method-name = @message identifier
+  @receiver = @message parent
+  self
+
+-- ::Foo(...)
+-- note: this isn't valid Ruby
+macro(x ~ToplevelConstant):
+  @method-name = @message identifier
+  self
+
 macro(_LINE): line
 macro(_FILE): File new(line)
 
