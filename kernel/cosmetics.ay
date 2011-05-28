@@ -1,6 +1,6 @@
 macro((x: Send) $(y: Block)):
-  x arguments += y contents
-  x
+  x dup tap [z]:
+    z arguments += y contents
 
 macro((x: Variable) $(y: Block)):
   Send new(
