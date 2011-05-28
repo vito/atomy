@@ -263,11 +263,41 @@ EOF
             ", @#{n} ? f.call(@#{n}) : nil"
           }.join
 
+        all =
+          (@@children[:required] +
+            @@children[:many] +
+            @@children[:optional]).collect { |n| "@#{n}" }
+
         class_eval <<EOF
           def children(&f)
-            #{self.name}.new(
-              @line#{creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss}
-            )
+            if block_given?
+              #{self.name}.new(
+                @line#{creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss}
+              )
+            else
+              [#{all.join(", ")}]
+            end
+          end
+EOF
+
+        class_eval <<EOF
+          def walk_with(b, stop = nil, &f)
+            f.call(self, b)
+
+            return unless b.is_a?(#{self.name}) && (stop && !stop.call(self, b))
+
+            children.zip(b.children) do |x, y|
+              if x.is_a?(Array)
+                x.zip(y) do |x2, y2|
+                  x2.walk_with(y2, stop, &f)
+                end
+              elsif x
+                x.walk_with(y, stop, &f)
+              elsif y
+                # x is nil, y is not
+                f.call(x, y)
+              end
+            end
           end
 EOF
 
