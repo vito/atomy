@@ -39,17 +39,11 @@ module Atomy::Macro
     #ns = Atomy::Namespace.get(Thread.current[:atomy_define_in])
     #meth = !let && ns ? Atomy.namespaced(ns.name, name) : name
 
-    #if let
-      #Environment.let[name] ||= []
-      #meth = (intern meth, Environment.let[name].size).to_sym
-      #Environment.let[name] << meth
-    #else
-      #meth = (intern meth).to_sym
-    #end
+    name = let ? :"_let#{Environment.salt!}" : :_expand
 
     Atomy.define_method(
       target,
-      :_expand,
+      name,
       pattern,
       Atomy::AST::Send.new(
         body.line,
@@ -65,6 +59,13 @@ module Atomy::Macro
       file,
       pattern.expression.line
     )
+
+    if let
+      Environment.let[target] ||= []
+      Environment.let[target] << name
+    end
+
+    name
   end
 
   def self.macro_pattern(n)

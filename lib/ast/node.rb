@@ -347,25 +347,6 @@ EOF
     module NodeLike
       attr_accessor :line
 
-      # yield this node's subnodes to a block recursively, and then itself
-      # override this if for nodes with children, ie lists
-      #
-      # stop = predicate to determine whether to stop at a node before
-      # recursing into its children
-      def recursively(stop = nil, &f)
-        f.call(self)
-      end
-
-      # used to construct this expression in a quasiquote
-      # g = generator, d = depth
-      #
-      # quasiquotes should increase depth, unquotes should decrease
-      # an unquote at depth 0 should push the unquote's contents rather
-      # than itself
-      def construct(g, d)
-        raise Rubinius::CompileError, "no #construct for #{self}"
-      end
-
       def through_quotes(pre_ = nil, post_ = nil, &f)
         depth = 0
 
@@ -510,7 +491,19 @@ EOF
       end
 
       def expand
-        _expand.to_node
+        if lets = Atomy::Macro::Environment.let[self.class]
+          x = self
+          lets.reverse_each do |l|
+            begin
+              x = x.send(l)
+              break unless x.kind_of?(self.class)
+            rescue MethodFail
+            end
+          end
+          x._expand.to_node
+        else
+          _expand.to_node
+        end
       end
 
       def compile(g)

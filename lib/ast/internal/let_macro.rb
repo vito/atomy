@@ -9,23 +9,29 @@ module Atomy
 
         defined = {}
         @macros.each do |m|
-          defined[m.pattern.method_name] =
-            m.pattern.register_macro m.body, true
+          defined[m.pattern] =
+            Atomy::Macro.register(
+              m.pattern.class,
+              m.macro_pattern,
+              m.body,
+              Atomy::CodeLoader.compiling,
+              true
+            )
         end
 
         @body.compile(g)
 
         @macros.each do |m|
-          meth = m.pattern.method_name
-          name = defined[meth]
+          pat = m.pattern
+          name = defined[pat]
 
-          Atomy::Macro::Environment.singleton_class.remove_method(name)
+          pat.class.remove_method(name)
 
-          next unless lets = Atomy::Macro::Environment.let[meth]
+          next unless lets = Atomy::Macro::Environment.let[pat.class]
 
-          lets.pop
+          lets.delete(name)
 
-          Atomy::Macro::Environment.let.delete(meth) if lets.empty?
+          Atomy::Macro::Environment.let.delete(pat.class) if lets.empty?
         end
       end
     end
