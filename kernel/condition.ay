@@ -123,11 +123,11 @@ section("Handling"):
     macro(with-restarts(*restarts, &block)):
       rs = restarts collect [`(~n -> ~e)]:
         n match:
-          Atomy::AST::Variable ->
+          Variable ->
             `(Restart new(#~n, { ~e }))
 
-          Atomy::AST::Send -> do:
-            name = Atomy::AST::Variable new(0, n method-name)
+          Send -> do:
+            name = Variable new(0, n method-name)
             `(Restart new(#~name, [~*(n arguments)] { ~e }))
 
       body =

@@ -140,10 +140,10 @@ macro-quoter(raw) [r]: r
 macro-quoter(i) [_, _, v]: interpolated(v)
 
 macro(_undefined):
-  Atomy::AST::Undefined new(line)
+  Undefined new(line)
 
 macro($(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
-  Atomy::AST::NthRef new(line, x value)
+  NthRef new(line, x value)
 
 export:
   module(Atomy::AST):
