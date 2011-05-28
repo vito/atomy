@@ -29,6 +29,7 @@ module Atomy
     end
 
     def register(sym)
+      raise "cannot register blank name" unless sym
       @symbols << sym unless contains?(sym)
     end
 
