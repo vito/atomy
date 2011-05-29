@@ -1,5 +1,22 @@
 module Atomy::Macro
   module Helpers
+    # generate symbols
+    def names(num = 0, &block)
+      num = block.arity if block
+
+      as = []
+      num.times do
+        as << variable(
+          "s:" + Atomy::Macro::Environment.salt!.to_s
+        )
+      end
+
+      if block
+        block.call(*as)
+      else
+        as
+      end
+    end
   end
 
   class Environment

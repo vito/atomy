@@ -538,27 +538,6 @@ EOF
       def as_message(send)
         raise "unknown message name: #{self.to_sexp.inspect}"
       end
-
-      # generate symbols
-      def names(num = 0, &block)
-        num = block.arity if block
-
-        as = []
-        num.times do
-          as <<
-            Atomy::AST::Variable.new(
-              0,
-              "s:" + Atomy::Macro::Environment.salt.to_s
-            )
-          Atomy::Macro::Environment.salt!
-        end
-
-        if block
-          block.call(*as)
-        else
-          as
-        end
-      end
     end
 
     class Node < Rubinius::AST::Node
