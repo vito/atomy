@@ -534,10 +534,6 @@ EOF
           )
         )
       end
-
-      def as_message(send)
-        raise "unknown message name: #{self.to_sexp.inspect}"
-      end
     end
 
     class Node < Rubinius::AST::Node
