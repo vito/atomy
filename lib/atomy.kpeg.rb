@@ -1805,7 +1805,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # op_assoc_prec = line:line "operator" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, assoc, prec, os)                     }
+  # op_assoc_prec = line:line "operator" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, os, assoc, prec)                     }
   def _op_assoc_prec
 
     _save = self.pos
@@ -1888,7 +1888,7 @@ class Atomy::Parser
         break
       end
       @result = begin;  Atomy.set_op_info(os, assoc, prec)
-                      Atomy::AST::Operator.new(line, assoc, prec, os)
+                      Atomy::AST::Operator.new(line, os, assoc, prec)
                     ; end
       _tmp = true
       unless _tmp
@@ -4008,7 +4008,7 @@ class Atomy::Parser
   Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.block_body) }")
   Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
   Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
-  Rules[:_op_assoc_prec] = rule_info("op_assoc_prec", "line:line \"operator\" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, assoc, prec, os)                     }")
+  Rules[:_op_assoc_prec] = rule_info("op_assoc_prec", "line:line \"operator\" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, os, assoc, prec)                     }")
   Rules[:_quote] = rule_info("quote", "line:line \"'\" level1:e { Atomy::AST::Quote.new(line, e) }")
   Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level1:e { Atomy::AST::QuasiQuote.new(line, e) }")
   Rules[:_splice] = rule_info("splice", "line:line \"~*\" level1:e { Atomy::AST::Splice.new(line, e) }")
