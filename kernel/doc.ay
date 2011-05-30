@@ -165,7 +165,7 @@ module(Atomy::Pretty):
 
 -- quick access to the following helpers
 export-to(atomy):
-  macro(doc(&f)):
+  macro('doc ~(f: Block)):
     `(in-namespace(atomy/doc): ~*(f contents))
 
 -- trivial constructors

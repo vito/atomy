@@ -76,7 +76,7 @@ section("Output"):
     => any
   } for {
     with-output-to(io, &action) :=
-      let(output-port = io, &action)
+      let(output-port = io): action call
   } examples:
     require("stringio")
     x = StringIO new

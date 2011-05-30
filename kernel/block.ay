@@ -1,6 +1,6 @@
 namespace(atomy)
 
-macro(x onto(&b)):
+macro(x onto ~(b: Block)):
   names [ctx]:
     shadowed? = false
 

@@ -5,32 +5,32 @@ macro(if(x) then ~(y: Block) else ~(z: Block)):
 
 macro(otherwise): 'true
 
-macro(condition(&bs)):
+macro('condition ~(bs: Block)):
   bs contents reverse inject('nil) [acc, `(~x -> ~y)]:
     `(if(~x) then: ~y; else: ~acc)
 
 macro(return(y)):
   Return new(line, y)
 
-macro(x rescue(&y)):
+macro(x rescue ~(y: Block)):
   Catch new(line, x caller, y contents)
 
 macro(x rescue ~(y: Block) else ~(z: Block)):
   Catch new(line, x caller, y contents, z body)
 
-macro(x ensuring(&y)):
+macro(x ensuring ~(y: Block)):
   Ensure new(line, x caller, y body)
 
-macro(when(c, &b)):
+macro(when(c) ~(b: Block)):
   When new(line, c, b body)
 
-macro(unless(c, &b)):
+macro(unless(c) ~(b: Block)):
   When new(line, `!~c, b body)
 
 macro(super):
   ZSuper new(line)
 
-macro(super(*args, &blk)):
+macro(super(*args) ~(blk: Block)):
   Super new(line, args, blk)
 
 macro(yield):
@@ -178,11 +178,11 @@ module(Atomy::AST):
       @value compile(g)
       g ret
 
-macro(labels(&body)):
+macro('labels ~(body: Block)):
   `(let-macro(go(name) = GoTo new(line, name name)):
       ~(Labels new(line, body contents)))
 
-macro(while(test, &body)):
+macro(while(test) ~(body: Block)):
   names [loop, done]:
     `(let-macro(break = 'go(~done),
                 next = 'go(~loop)):
@@ -196,7 +196,7 @@ macro(while(test, &body)):
 
           ~done {})
 
-macro(until(test, &body)):
+macro(until(test) ~(body: Block)):
   names [loop, done]:
     `(let-macro(break = 'go(~done),
                 next = 'go(~loop)):
@@ -210,7 +210,7 @@ macro(until(test, &body)):
 
           ~done {})
 
-macro(loop(&body)):
+macro('loop ~(body: Block)):
   names [loop, done]:
     `(let-macro(break = 'go(~done),
                 next = 'go(~loop)):
