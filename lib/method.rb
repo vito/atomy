@@ -266,10 +266,32 @@ module Atomy
   # instance_variable_set
   def self.insert_method(new, branches)
     if new[0][0].respond_to?(:<=>)
-      # TODO: insertion-based; this is currently needed
-      # because we define methods before <=> is defined
-      branches.unshift(new).sort! do |b, a|
-        compare([a[0][0]] + a[0][1], [b[0][0]] + b[0][1])
+      if branches.instance_variable_get(:"@sorted")
+        (nr, na), nb = new
+        branches.each_with_index do |branch, i|
+          (r, a), b = branch
+          case compare([nr] + na, [r] + a)
+          when 1
+            return branches.insert(i, new)
+          when 0
+            if equivalent?([nr] + na, [r] + a)
+              branches[i] = new
+              return branches
+            end
+          end
+        end
+
+        branches << new
+      else
+        # this is needed because we define methods before <=> is
+        # defined, so sort it once we have that
+        branches.unshift(new).sort! do |b, a|
+          compare([a[0][0]] + a[0][1], [b[0][0]] + b[0][1])
+        end
+
+        branches.instance_variable_set(:"@sorted", true)
+
+        branches
       end
     else
       branches.unshift(new)
