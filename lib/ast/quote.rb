@@ -6,8 +6,7 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-        # TODO: fishy.
-        @expression.recursively(&:resolve).construct(g)
+        @expression.construct(g)
       end
     end
   end

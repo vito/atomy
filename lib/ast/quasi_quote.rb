@@ -13,7 +13,7 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-        @expression.recursively(&:resolve).construct(g, 1)
+        @expression.construct(g, 1)
       end
     end
   end
