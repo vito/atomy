@@ -290,17 +290,17 @@ module(Atomy::AST):
     QuasiQuote pattern :=
       Atomy::Patterns::QuasiQuote new(self)
 
-    Send pattern :=
-      if(@block)
-        then:
-          Atomy::Patterns::Named new $:
-            @method-name
-            @block contents [0] to-pattern
-        else:
-          Atomy::Patterns::Attribute new $:
-            @receiver
-            @method-name
-            @arguments
+    `(~x { ~y }) pattern := do:
+      unless(x is-a?(Atomy::AST::Variable)):
+        p(to-sexp)
+
+      Atomy::Patterns::Named new(x name, y to-pattern)
+
+    `(~x ~(y: Atomy::AST::Variable)(~*as)) pattern :=
+      Atomy::Patterns::Attribute new(x, y name, as)
+
+    `(~x [~*as]) pattern :=
+      Atomy::Patterns::Attribute new(x, "[]", as)
 
     String pattern :=
       Atomy::Patterns::Literal new(@value)
@@ -309,4 +309,4 @@ module(Atomy::AST):
       Atomy::Patterns::Literal new(@name to-sym)
 
     Node pattern :=
-      raise("unknown pattern: " + self to-sexp inspect)
+      raise("unknown pattern: " + to-sexp inspect)

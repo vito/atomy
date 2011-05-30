@@ -188,6 +188,8 @@ module Atomy::Patterns
         Default.new(@lhs.to_pattern, @rhs)
       when "?"
         Predicate.new(@private ? Any.new : @lhs.to_pattern, @rhs)
+      else
+        super
       end
     end
   end
@@ -252,6 +254,8 @@ module Atomy::Patterns
         BlockPass.new(@receiver.to_pattern)
       when "*"
         Splat.new(@receiver.to_pattern)
+      else
+        super
       end
     end
   end
@@ -270,10 +274,15 @@ module Atomy::Patterns
 
   class Atomy::AST::Send
     def pattern
-      if @block
-        Named.new(@method_name, @block.contents[0].to_pattern)
+      if @message.is_a?(Atomy::AST::Block) and \
+          @receiver.is_a?(Atomy::AST::Variable)
+        Named.new(@receiver.name, @message.contents[0].to_pattern)
+      elsif @message.is_a?(Atomy::AST::Variable)
+        Attribute.new(@receiver, @message.name, @arguments)
+      elsif @message.is_a?(Atomy::AST::List)
+        Attribute.new(@receiver, "[]", @message.elements + @arguments)
       else
-        Attribute.new(@receiver, @method_name, @arguments)
+        super
       end
     end
   end

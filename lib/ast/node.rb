@@ -517,7 +517,7 @@ EOF
       end
 
       def to_pattern
-        expand.pattern
+        pattern
       end
 
       def macro_pattern
