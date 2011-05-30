@@ -12,7 +12,7 @@ module Atomy
     split = resolved.to_s.split(NAMESPACE_DELIM)
     meth_name = split.pop
     ns_name = !split.empty? && split.join(NAMESPACE_DELIM)
-    [ns_name, meth_name]
+    [ns_name || nil, meth_name]
   end
 
   class Namespace
