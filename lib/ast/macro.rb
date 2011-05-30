@@ -14,56 +14,33 @@ module Atomy
             @pattern.namespace_symbol,
             Atomy::Namespace.define_target
           )
-
-          registerer =
-            Atomy::AST::Send.new(
-              0,
-              Atomy::AST::Variable.new(0, "register"),
-              Atomy::AST::ScopedConstant.new(
-                0,
-                Atomy::AST::ToplevelConstant.new(
-                  0,
-                  "Atomy"
-                ),
-                "Namespace"
-              ),
-              [ @pattern.namespace_symbol.to_node,
-                Atomy::Namespace.define_target.to_node
-              ]
-            )
-
-          Atomy::CodeLoader.when_load << [registerer, true]
-          Atomy::CodeLoader.when_run << [registerer, true]
         end
 
-        # register macro during compilation too.
         Atomy::Macro.register(
           @pattern.class,
           macro_pattern,
-          @body,
+          @body.recursively(&:resolve),
           Atomy::CodeLoader.compiling
         )
 
-        done = g.new_label
-        skip = g.new_label
+        Atomy::CodeLoader.when_load << [self, true]
+        Atomy::CodeLoader.when_run << [self, true]
 
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.find_const :CodeLoader
-        g.send :compiled?, 0
-        g.git skip
-
-        load_bytecode(g)
-        g.goto done
-
-        skip.set!
         g.push_nil
-
-        done.set!
       end
 
       def load_bytecode(g)
         pos(g)
+        if @pattern.namespace_symbol
+          g.push_cpath_top
+          g.find_const :Atomy
+          g.find_const :Namespace
+          g.push_literal @pattern.namespace_symbol
+          g.push_literal Atomy::Namespace.define_target
+          g.send :register, 2
+          g.pop
+        end
+
         g.push_cpath_top
         g.find_const :Atomy
         g.find_const :Macro
