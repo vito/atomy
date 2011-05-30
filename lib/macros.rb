@@ -68,10 +68,13 @@ module Atomy::Macro
       pattern,
       Atomy::AST::Send.new(
         body.line,
-        Atomy::AST::Variable.new(body.line, "expand"),
-        body.recursively(&:resolve),
+        Atomy::AST::Send.new(
+          body.line,
+          body,
+          [],
+          "to_node"
+        ),
         [],
-        nil,
         "expand"
       ),
       [],

@@ -6,7 +6,7 @@ for-macro:
 
 macro(#`(~r ~(x)(~*as))):
   `(Particle [
-      ~(if(@receiver private)
+      ~(if(@receiver headless)
           then: '_undefined
           else: wildcard(r))
       #~x

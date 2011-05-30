@@ -272,7 +272,7 @@ module Atomy::Patterns
     end
   end
 
-  class Atomy::AST::Send
+  class Atomy::AST::Compose
     def pattern
       if @message.is_a?(Atomy::AST::Block) and \
           @receiver.is_a?(Atomy::AST::Variable)

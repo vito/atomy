@@ -1,5 +1,5 @@
 -- a macro so we can actually, you know, send messages
-macro(x ~Variable): set-method-name
+macro(x ~Variable): to-send
 
 macro(@x): InstanceVariable new(line, x name)
 
@@ -7,13 +7,9 @@ macro(x = y): Assign new(line, x, y)
 
 -- foo { bar }
 macro(Variable ~Block):
-  Send new(
-    line
-    @receiver
-    'self
-    []
-    @message
-  )
+  x = `(~(@receiver)()) to-send
+  x block = @message
+  x
 
 -- [x, y] { x + y }
 macro(List ~Block):
@@ -21,49 +17,42 @@ macro(List ~Block):
   @message
 
 -- x foo { bar }
-macro(Send ~Block):
-  @receiver block = @message
-  @receiver
+macro(x ~(n: Variable) ~Block):
+  x = @receiver to-send
+  x block = @message
+  x
 
 -- collect [x] { x + 1 }
-macro(x [~*ys] ~(z: Block)):
+macro((x: Variable) [~*ys] ~(z: Block)):
   z arguments = ys
-  Send new(
-    line
-    x
-    'self
-    []
-    z
-  )
+  x = `(~(x)()) to-send
+  x block = z
+  x
 
 -- [1, 2, 3] collect [x] { x + 1 }
-macro((x: Send) [~*ys] ~(z: Block)):
+-- TODO: why do I need ~*ys here?
+macro(x ~(n: Variable) [~*ys] ~(z: Block)):
   z arguments = ys
+  x = @receiver receiver to-send
   x block = z
   x
 
 -- foo [bar, ...]
 macro(x [*ys]):
-  @method-name = "[]"
-  @arguments = ys + @arguments
-  self
+  to-send tap [x]:
+    x message-name = "[]"
+    x arguments = ys + x arguments
 
 -- Foo(...)
 macro(x ~Constant):
-  @method-name = @message identifier
-  self
+  to-send tap [x]:
+    x message-name = @message identifier
 
 -- Bar::Foo(...)
 macro(x ~ScopedConstant):
-  @method-name = @message identifier
-  @receiver = @message parent
-  self
-
--- ::Foo(...)
--- note: this isn't valid Ruby
-macro(x ~ToplevelConstant):
-  @method-name = @message identifier
-  self
+  to-send tap [x]:
+    x receiver = @message parent
+    x message-name = @message identifier
 
 macro(_LINE): line
 macro(_FILE): File new(line)
@@ -71,7 +60,8 @@ macro(_FILE): File new(line)
 macro(import(name)): `(Atomy import(~name, "load" to-sym))
 
 "operators define cosmetics data comparison dynamic control-flow namespaces
-patterns precision data-delta" split each [k]:
+patterns precision node data-delta particles hashes block documentation doc pretty errors
+format concurrency io condition therie repl" split each [k]:
   puts("loading " + k)
   import(File expand-path("../", _FILE) + "/" + k)
 

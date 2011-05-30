@@ -14,7 +14,7 @@ macro(x onto ~(b: Block)):
           shadowed? =! true
           ctx
 
-        Send ? @private ->
+        Compose ? @headless ->
           n dup tap [p]:
             p receiver = 'self
 

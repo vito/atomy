@@ -19,8 +19,8 @@ for-macro:
         Atomy::AST::Variable ->
           "restart:" + x name
 
-        Atomy::AST::Send ->
-          "restart:" + x method-name
+        Atomy::AST::Compose ->
+          "restart:" + x message name
 
 data(Restart(@name, @action))
 
@@ -126,9 +126,8 @@ section("Handling"):
           Variable ->
             `(Restart new(#~n, { ~e }))
 
-          Send -> do:
-            name = Variable new(0, n method-name)
-            `(Restart new(#~name, [~*(n arguments)] { ~e }))
+          `(~(n)(~*as)) -> do:
+            `(Restart new(#~n, [~*as] { ~e }))
 
       body =
         restarts reduce(

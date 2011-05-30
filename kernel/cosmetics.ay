@@ -1,11 +1,8 @@
-macro((x: Send) $(y: Block)):
-  x dup tap [z]:
+macro((x: Compose) $(y: Block)):
+  x expand dup tap [z]:
     z arguments += y contents
 
 macro((x: Variable) $(y: Block)):
-  Send new(
-    line
-    x
-    'self
-    y contents
-  )
+  x = `(~(x)()) to-send
+  x arguments = y contents
+  x

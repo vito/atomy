@@ -449,9 +449,9 @@ EOF
       def caller
         Send.new(
           @line,
-          Atomy::AST::Variable.new(@line, "call"),
           self,
-          []
+          [],
+          "call"
         )
       end
 
