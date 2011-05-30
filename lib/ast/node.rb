@@ -335,9 +335,13 @@ EOF
         a_many = @@attributes[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
         a_optional = @@attributes[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
 
+        s_required = @@slots[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        s_many = @@slots[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        s_optional = @@slots[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
+
         class_eval <<EOF
           def to_sexp
-            [:"#{self.name.split("::").last.downcase}"#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}]
+            [:"#{self.name.split("::").last.downcase}"#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}]
           end
 EOF
 
