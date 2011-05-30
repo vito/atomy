@@ -43,6 +43,31 @@ module Atomy::Patterns
       end
     end
 
+    def my_context(e, w)
+      x = e
+      w.each do |c|
+        if c.kind_of?(Array)
+          x = x.send(c[0])[c[1]]
+        else
+          x = x.send(c)
+        end
+      end
+      x
+    end
+
+    def required_size(ps)
+      req = 0
+      unq = false
+      ps.each do |x|
+        if x.is_a?(Atomy::AST::Splice)
+          unq = true
+        else
+          req += 1
+        end
+      end
+      [req, unq]
+    end
+
     def matches?(g)
       mismatch = g.new_label
       done = g.new_label
@@ -55,6 +80,17 @@ module Atomy::Patterns
       splice = false
 
       pre = proc { |e, c, d|
+        if c.kind_of?(Array) && c[1] == 0 &&
+            pats = my_context(@quoted.expression, (where + [c[0]]))
+          req, unq = required_size(pats)
+          g.push_stack_local them
+          context(g, where + [c[0]])
+          g.send :size, 0
+          g.push_int req
+          g.send(unq ? :>= : :==, 1)
+          g.gif mismatch
+        end
+
         where << c if c && where
 
         where = [] if !where and c == :expression
