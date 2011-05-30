@@ -75,34 +75,34 @@ export:
       p <=> n pattern
 
     (a: QuasiQuote) <=> (b: QuasiQuote) := do:
-      as = []
-      bs = []
+      total = 0
 
       a quoted walk-with(
         b quoted
         [a, b] { a unquote? && b unquote? }
       ) [x, y]:
         condition:
-          -- TODO: whichever is non-nil gets the precision point
-          x nil? || y nil? -> nil
+          x nil? || y nil? ->
+            if(x nil?)
+              then: total -= 1
+              else: total += 1
 
-          x unquote? && y unquote? -> do:
-            as << x expression to-pattern
-            bs << y expression to-pattern
+          x unquote? && y unquote? ->
+            (total +=
+              (x expression to-pattern <=>
+                y expression to-pattern))
 
-          x unquote? -> do:
-            as << x expression to-pattern
-            bs << `'~y to-pattern
+          x unquote? ->
+            (total +=
+              (x expression to-pattern <=>
+                `'~y to-pattern))
 
-          y unquote? -> do:
-            as << `'~x to-pattern
-            bs << y expression to-pattern
+          y unquote? ->
+            (total +=
+              (`'~x to-pattern <=>
+                y expression to-pattern))
 
-          -- the two exprs match entirely different things
-          (x bottom? || y bottom?) && x != y -> do:
-            return(0)
-
-      Atomy::Patterns compare(as, bs)
+      total <=> 0
 
 
     -- equivalence ignores named patterns
