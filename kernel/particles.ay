@@ -23,6 +23,15 @@ macro(#(x: BinarySend)):
     ])
 
 export:
+  `#(~r ~(x)(~*as)) pattern :=
+    Atomy::Patterns::List new $:
+      [ if(@receiver headless)
+          then: '_ pattern
+          else: r pattern
+        `#~x pattern
+      ] + as collect(&#pattern)
+
+export:
   class(Particle < Array):
     call(*args) := to-proc [*args]
 
