@@ -120,6 +120,15 @@ EOF
 
         class_eval <<EOF
           def initialize(line#{args})
+            raise "initialized with non-integer `line': \#{line}" unless line.is_a?(Integer)
+            #{@@children[:required].collect { |n| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(NodeLike)" }.join("; ")}
+            #{@@children[:many].collect { |n| "raise \"initialized with non-array `#{n}': \#{#{n}_.inspect}\" unless #{n}_.kind_of?(Array) and #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
+            #{@@children[:optional].collect { |n, _| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(NodeLike)" }.join("; ")}
+            #{@@attributes[:required].collect { |a| "raise \"initialized without `#{a}': \#{#{a}_.inspect}\" if #{a}_.nil?" }.join("; ")}
+            #{@@attributes[:many].collect { |a| "raise \"initialized with non-array `#{a}': \#{#{a}_.inspect}\" unless #{a}_.kind_of?(Array)" }.join("; ")}
+            #{@@slots[:required].collect { |s| "raise \"initialized without `#{s}': \#{#{s}_.inspect}\" if #{s}_.nil?" }.join("; ")}
+            #{@@slots[:many].collect { |s| "raise \"initialized with non-array `#{s}': \#{#{s}_.inspect}\" unless #{s}_.kind_of?(Array)" }.join("; ")}
+
             @line = line
             #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
           end

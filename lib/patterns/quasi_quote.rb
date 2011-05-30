@@ -203,6 +203,7 @@ module Atomy::Patterns
 
       @quoted.through_quotes(proc { true }) do |e|
         names += e.to_pattern.local_names
+        e
       end
 
       names
@@ -213,6 +214,7 @@ module Atomy::Patterns
 
       @quoted.through_quotes(proc { true }) do |e|
         bindings += e.to_pattern.bindings
+        e
       end
 
       bindings
