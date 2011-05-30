@@ -464,14 +464,15 @@ EOF
       end
 
       def resolve
+        return self if @namespace
+
         ns = Atomy::Namespace.get
-        return self if @namespace || !ns
 
         case self
-        when Atomy::AST::Send, Atomy::AST::Variable,
-              Atomy::AST::BinarySend, Atomy::AST::Unary
+        when Atomy::AST::Variable, Atomy::AST::BinarySend,
+              Atomy::AST::Unary, Atomy::AST::Send
           dup.tap do |y|
-            if n = ns.resolve(namespace_symbol)
+            if ns and n = ns.resolve(namespace_symbol)
               y.namespace = n.to_s
             else
               y.namespace = "_"
