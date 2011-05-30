@@ -232,7 +232,7 @@ module(Atomy::Patterns):
 
         done set!
 
-      deconstruct(g, locals = #[]) := do:
+      deconstruct(g, locals = Hash new) := do:
         b = g new-label
         done = g new-label
 
