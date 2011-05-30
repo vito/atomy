@@ -59,11 +59,11 @@ module Atomy
         else
           g.push_literal message_name.to_sym
           g.send :atomy_send, 1
-          #g.call_custom method_name.to_sym, 0
+          #g.call_custom message_name.to_sym, 0
         end
       end
 
-      def method_name
+      def message_name
         @operator + "@"
       end
     end

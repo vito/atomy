@@ -434,12 +434,12 @@ EOF
         self
       end
 
-      def method_name
+      def message_name
         nil
       end
 
       def namespace_symbol
-        method_name && method_name.to_sym
+        message_name && message_name.to_sym
       end
 
       def unquote?

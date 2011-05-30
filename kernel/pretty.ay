@@ -234,11 +234,11 @@ export-to(atomy):
 
       condition:
         @receiver kind-of?(Primitive) && @receiver value == #self ->
-          with-block [ident(@method-name) <> args]
+          with-block [ident(@message-name) <> args]
 
         otherwise ->
           (from(#send) { @receiver unamb } </>
-            with-block [ident(@method-name) <> args]) hang(2)
+            with-block [ident(@message-name) <> args]) hang(2)
 
     Splice pretty :=
       from(#unary):

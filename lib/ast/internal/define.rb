@@ -34,18 +34,18 @@ module Atomy
         @receiver = recv.to_pattern
       end
 
-      def method_name
+      def message_name
         case @pattern
         when Variable
           @pattern.name
         else
-          @pattern.method_name
+          @pattern.message_name
         end
       end
 
       # result must be a string on the stack
-      def ns_method_name(g)
-        if method_name == "initialize"
+      def ns_message_name(g)
+        if message_name == "initialize"
           g.push_literal "initialize"
           return
         end
@@ -62,14 +62,14 @@ module Atomy
         g.dup
         g.gif no_ns
 
-        g.push_literal method_name
+        g.push_literal message_name
         g.send :namespaced, 2
         g.goto done
 
         no_ns.set!
         g.pop
         g.pop
-        g.push_literal method_name
+        g.push_literal message_name
 
         done.set!
       end
@@ -81,7 +81,7 @@ module Atomy
 
         if defn
           g.push_rubinius
-          ns_method_name(g)
+          ns_message_name(g)
           g.send :to_sym, 0
           g.dup
           g.push_cpath_top
@@ -91,7 +91,7 @@ module Atomy
           g.push_cpath_top
           g.find_const :Atomy
           receiver.target(g)
-          ns_method_name(g)
+          ns_message_name(g)
           g.send :to_sym, 0
         end
 
@@ -108,7 +108,7 @@ module Atomy
 
         receiver.target(g)
         g.push_literal "@atomy::"
-        ns_method_name(g)
+        ns_message_name(g)
         g.string_build 2
         g.send :to_sym, 0
         g.send :instance_variable_get, 1
@@ -127,7 +127,7 @@ module Atomy
         receiver.target(g)
         g.swap
         g.push_literal "@atomy::"
-        ns_method_name(g)
+        ns_message_name(g)
         g.string_build 2
         g.send :to_sym, 0
         g.swap
