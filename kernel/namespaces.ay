@@ -6,7 +6,7 @@ macro(namespace(n: Variable)):
   `(evaluate-when(compile, run, load):
       Atomy::Namespace ensure(#~namespaced(n)))
 
-macro(let-when(when-list, *bindings, &b)):
+macro(let-when(when-list, *bindings) ~(b: Block)):
   tmps = names(bindings size)
   save = []
   set = []
@@ -35,7 +35,7 @@ macro(let-when(when-list, *bindings, &b)):
 
         ~res)
 
-macro(in-namespace(n, &b)):
+macro(in-namespace(n) ~(b: Block)):
   `(do:
       evaluate-when(load):
         Atomy::Namespace create(#~namespaced(n))
@@ -43,15 +43,15 @@ macro(in-namespace(n, &b)):
       let-when(compile, namespace = Atomy::Namespace ensure(#~namespaced(n))):
         ~(b body))
 
-macro(no-namespace(&b)):
+macro('no-namespace ~(b: Block)):
   `(let-when(compile, namespace = nil):
       ~(b body))
 
-macro(export(&b)):
+macro('export ~(b: Block)):
   `(let-when([compile, load, run], define-in = "_"):
       ~(b body))
 
-macro(export-to(n, &b)):
+macro(export-to(n) ~(b: Block)):
   `(let-when([compile, load, run], define-in = ~namespaced(n)):
       ~(b body))
 

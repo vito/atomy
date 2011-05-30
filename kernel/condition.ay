@@ -98,7 +98,7 @@ section("Handling"):
     y contents all? [x]: x match { `(~_ -> ~_) -> true, _ -> false }
     => any
   } for {
-    macro(body bind(&y)):
+    macro(body bind ~(y: Block)):
       names [a]:
         callback = `([~a]: ~a match: ~*(y contents))
         `(let(handlers = ^handlers + [~callback]):
@@ -120,7 +120,7 @@ section("Handling"):
   " spec {
     => any
   } for {
-    macro(with-restarts(*restarts, &block)):
+    macro(with-restarts(*restarts) ~(block: Block)):
       rs = restarts collect [`(~n -> ~e)]:
         n match:
           Variable ->
@@ -136,7 +136,7 @@ section("Handling"):
         ) [x, `(~name -> ~_)]:
           `{ catch(#~catcher(name), &~x) }
 
-      `(let(restarts = [~*rs] + ^restarts, &~body))
+      `(let(restarts = [~*rs] + ^restarts) ~body)
   } examples:
     { with-restarts(x -> 1, y -> 2):
         signal(#a)
