@@ -104,6 +104,11 @@ module Atomy
         g.make_array arguments.size
         g.make_array 2
         @body.construct(g)
+        g.push_cpath_top
+        g.find_const :Proc
+        g.push_literal :resolve
+        g.send :__from_block__, 1
+        g.send_with_block :recursively, 0
         g.make_array 2
 
         receiver.target(g)
