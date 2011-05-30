@@ -1,5 +1,9 @@
 module Atomy::Macro
   module Helpers
+    def variable(name, line = 0)
+      Atomy::AST::Variable.new(line, name.to_s)
+    end
+
     # generate symbols
     def names(num = 0, &block)
       num = block.arity if block
