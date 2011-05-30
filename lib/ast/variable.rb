@@ -31,11 +31,6 @@ module Atomy
         end
       end
 
-      # used in macroexpansion
-      def method_name
-        name + ":@"
-      end
-
       def namespace_symbol
         name.to_sym
       end
