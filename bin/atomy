@@ -101,7 +101,7 @@ def run_atomy(options)
         begin
           res = Atomy::Compiler.evaluate str, TOPLEVEL_BINDING
           if res.respond_to?(:pretty)
-            puts "=> #{res.pretty.render}"
+            puts "=> #{res.send(:pretty).send(Atomy.namespaced("atomy", Atomy.namespaced("doc", "render")))}"
           else
             puts "=> #{res.inspect}"
           end
