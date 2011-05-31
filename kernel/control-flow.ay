@@ -36,8 +36,14 @@ macro(unless(c) ~(b: Block)):
 macro(super):
   ZSuper new(line)
 
+macro('super ~(blk: Block)):
+  Super new(line, [], blk)
+
 macro(super(*args) ~(blk: Block)):
   Super new(line, args, blk)
+
+macro(super(*args)):
+  Super new(line, args, nil)
 
 macro(yield):
   Yield new(line, [])
