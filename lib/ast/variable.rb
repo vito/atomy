@@ -32,7 +32,7 @@ module Atomy
       end
 
       def namespace_symbol
-        name.to_sym
+        @name.to_sym
       end
     end
   end
