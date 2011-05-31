@@ -140,8 +140,7 @@ module Atomy
         if x != self
           x.prepare_all
         else
-          pp self.to_sexp
-          raise "wat"
+          raise "something's probably amiss; no expansion: #{to_sexp.inspect}"
         end
       end
     end
