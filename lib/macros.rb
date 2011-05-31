@@ -25,21 +25,11 @@ module Atomy::Macro
 
   class Environment
     @@salt = 0
-    @@macros = {}
     @@let = {}
-    @@line = 0
 
     class << self
       def let
         @@let
-      end
-
-      def line
-        @@line
-      end
-
-      def line=(x)
-        @@line = x
       end
 
       def salt
@@ -50,10 +40,6 @@ module Atomy::Macro
         @@salt += n
       end
     end
-  end
-
-  def self.intern(name, let_num = nil)
-    "atomy-macro#{let_num ? "-let-#{let_num}" : ""}:" + name
   end
 
   def self.register(target, pattern, body, file = :macro, let = false)
