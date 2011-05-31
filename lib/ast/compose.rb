@@ -86,6 +86,11 @@ module Atomy
 
           x.arguments = as
 
+          unless x.message.kind_of?(Atomy::AST::Unquote)
+            x.message =
+              x.message.macro_pattern.quoted.expression
+          end
+
           if x.receiver.kind_of?(Atomy::AST::Compose) and \
               !x.receiver.message.kind_of?(Block)
             y = x.receiver.dup
