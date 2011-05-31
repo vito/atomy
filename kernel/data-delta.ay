@@ -71,12 +71,12 @@ macro((x: Variable) ~(c: Atomy::AST::String)):
     c value
   )
 
-macro(macro-quoter(n) ~(as: List) ~(b: Block)):
+macro(macro-quoter(n) [*as] { *cs }):
   `(evaluate-when(compile, load, run):
       class(Atomy::AST::MacroQuote):
         export:
-          define(quote(#~n, ~*(as elements))):
-            ~*(b contents))
+          define(quote(#~n, ~*as)):
+            ~*cs)
 
 for-macro:
   intp-segments(s) :=

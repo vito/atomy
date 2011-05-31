@@ -31,7 +31,7 @@ macro(x ~(n: Variable) ~Block):
   x
 
 -- collect [x] { x + 1 }
-macro((x: Variable) [~*ys] ~(z: Block)):
+macro((x: Variable) [*ys] ~(z: Block)):
   z arguments = ys
   x = `(~(x)()) to-send
   x block = z
@@ -39,7 +39,7 @@ macro((x: Variable) [~*ys] ~(z: Block)):
 
 -- [1, 2, 3] collect [x] { x + 1 }
 -- TODO: why do I need ~*ys here?
-macro(x ~(n: Variable) [~*ys] ~(z: Block)):
+macro(x ~(n: Variable) [*ys] ~(z: Block)):
   z arguments = ys
   x = @receiver receiver to-send
   x block = z
