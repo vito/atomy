@@ -64,9 +64,3 @@ patterns precision node data-delta particles hashes block documentation doc pret
 format concurrency io condition therie repl" split each [k]:
   puts("loading " + k)
   import(File expand-path("../", _FILE) + "/" + k)
-
---"operators define cosmetics data comparison dynamic control-flow namespaces
---patterns precision data-delta documentation particles hashes node block
---doc pretty errors format concurrency io condition therie repl" split each [k]:
-  --puts("loading " + k)
-  --import(File expand-path("../", _FILE) + "/" + k)
