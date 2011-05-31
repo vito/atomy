@@ -9,6 +9,8 @@ module Atomy
       end
 
       def bytecode(g)
+        pos(g)
+
         if @pattern.namespace_symbol
           Atomy::Namespace.register(
             @pattern.namespace_symbol,
