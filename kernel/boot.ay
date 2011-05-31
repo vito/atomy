@@ -1,6 +1,14 @@
 -- a macro so we can actually, you know, send messages
 macro(x ~Variable): to-send
 
+macro(nil): Primitive new(line, "nil" to-sym)
+
+macro(self): Primitive new(line, "self" to-sym)
+
+macro(true): Primitive new(line, "true" to-sym)
+
+macro(false): Primitive new(line, "false" to-sym)
+
 macro(@x): InstanceVariable new(line, x name)
 
 macro(x = y): Assign new(line, x, y)

@@ -106,11 +106,7 @@
    interpolated = wsp expressions:es wsp "}"
                     { Atomy::AST::Tree.new(0, Array(es)) }
 
-         level0 = true
-                | false
-                | self
-                | nil
-                | number
+         level0 = number
                 | quote
                 | quasi_quote
                 | splice
@@ -130,17 +126,6 @@
                 | op_assoc_prec
                 | binary_send
                 | level2
-
-           true = line:line "true" !ident_letter
-                    { Atomy::AST::Primitive.new(line, :true) }
-          false = line:line "false" !ident_letter
-                    { Atomy::AST::Primitive.new(line, :false) }
-
-           self = line:line "self" !ident_letter
-                    { Atomy::AST::Primitive.new(line, :self) }
-
-            nil = line:line "nil" !ident_letter
-                    { Atomy::AST::Primitive.new(line, :nil) }
 
          number = line:line < /[\+\-]?0[oO][0-7]+/ >
                     { Atomy::AST::Primitive.new(line, text.to_i(8)) }

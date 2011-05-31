@@ -47,17 +47,17 @@ export:
     `*~x pattern :=
       Atomy::Patterns::Splat new(x to-pattern)
 
-    '#self pattern :=
-      Atomy::Patterns::Literal new(#self)
+    'self pattern :=
+      Atomy::Patterns::Match new(#self)
 
-    '#true pattern :=
-      Atomy::Patterns::Literal new(#true)
+    'true pattern :=
+      Atomy::Patterns::Match new(#true)
 
-    '#false pattern :=
-      Atomy::Patterns::Literal new(#false)
+    'false pattern :=
+      Atomy::Patterns::Match new(#false)
 
-    '#nil pattern :=
-      Atomy::Patterns::Literal new(#nil)
+    'nil pattern :=
+      Atomy::Patterns::Match new(#nil)
 
     `#~(x: Atomy::AST::Variable) pattern :=
       Atomy::Patterns::Literal new(x name to-sym)
