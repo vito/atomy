@@ -37,7 +37,7 @@ macro(let-when(when-list, *bindings) ~(b: Block)):
 
 macro(in-namespace(n) ~(b: Block)):
   `(do:
-      evaluate-when(load):
+      evaluate-when(load, run):
         Atomy::Namespace create(#~namespaced(n))
 
       let-when(compile, namespace = Atomy::Namespace ensure(#~namespaced(n))):
