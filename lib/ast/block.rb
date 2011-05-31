@@ -117,7 +117,7 @@ module Atomy
 
       def new_local(name)
         variables[name] =
-          @parent.new_local(name + ":" + @parent.allocate_slot.to_s)
+          @parent.new_local(name + "::" + @parent.allocate_slot.to_s)
       end
 
       def new_nested_local(name)
