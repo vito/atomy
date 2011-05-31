@@ -230,19 +230,10 @@ module Atomy
     add_method(target, name, methods, static_scope, visibility, file, line)
   end
 
-  def self.compare_heads(xs, ys)
+  def self.compare(xs, ys)
     return 1 if xs.size > ys.size
     return -1 if xs.size < ys.size
 
-    xs.zip(ys) do |x, y|
-      cmp = x <=> y
-      return cmp unless cmp == 0
-    end
-
-    0
-  end
-
-  def self.compare(xs, ys)
     total = 0
 
     xs.zip(ys) do |x, y|
