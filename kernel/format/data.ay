@@ -61,7 +61,7 @@ module(Atomy::Format):
     Conditional([#branches], [#flags], #default?)
 
   ast(Flag):
-    Number(@value)
+    Number(@value?)
     Symbol(@character)
     ZeroPad
     Precision(@value)
