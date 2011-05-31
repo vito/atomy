@@ -499,7 +499,7 @@ EOF
           lets.reverse_each do |l|
             begin
               x = x.send(l)
-              break unless x.kind_of?(self.class)
+              return x.expand unless x.kind_of?(self.class)
             rescue MethodFail
             end
           end
