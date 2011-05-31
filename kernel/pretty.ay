@@ -39,7 +39,7 @@ module(Atomy::AST):
   _ unamb := pretty
 
 from(*where, &y) :=
-  let(context = where flatten, &y)
+  let(context = where flatten) { y call }
 
 from?(*where) :=
   [^context, where] match:
