@@ -122,7 +122,8 @@ EOF
           def initialize(line#{args})
             raise "initialized with non-integer `line': \#{line}" unless line.is_a?(Integer)
             #{@@children[:required].collect { |n| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(NodeLike)" }.join("; ")}
-            #{@@children[:many].collect { |n| "raise \"initialized with non-array `#{n}': \#{#{n}_.inspect}\" unless #{n}_.kind_of?(Array) and #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
+            #{@@children[:many].collect { |n| "raise \"initialized with non-array `#{n}': \#{#{n}_.inspect}\" unless #{n}_.kind_of?(Array)" }.join("; ")}
+            #{@@children[:many].collect { |n| "raise \"initialized with non-homogenous array `#{n}': \#{#{n}_.collect(&:class).inspect}\" unless #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
             #{@@children[:optional].collect { |n, _| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(NodeLike)" }.join("; ")}
             #{@@attributes[:required].collect { |a| "raise \"initialized without `#{a}': \#{#{a}_.inspect}\" if #{a}_.nil?" }.join("; ")}
             #{@@attributes[:many].collect { |a| "raise \"initialized with non-array `#{a}': \#{#{a}_.inspect}\" unless #{a}_.kind_of?(Array)" }.join("; ")}
@@ -264,7 +265,7 @@ EOF
 
         cmany_cs =
           @@children[:many].collect { |n|
-            ", @#{n}.each_with_index.collect { |n, i| f.call(n) }"
+            ", @#{n}.each.collect { |n| f.call(n) }"
           }.join
 
         copt_cs =
