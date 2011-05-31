@@ -19,7 +19,7 @@ module Atomy
         Atomy::Macro.register(
           @pattern.class,
           macro_pattern,
-          @body.recursively(&:resolve),
+          @body,
           Atomy::CodeLoader.compiling
         )
 
@@ -47,14 +47,15 @@ module Atomy
         Atomy.const_from_string(g, @pattern.class.name)
         macro_pattern.construct(g)
         @body.construct(g)
-        g.push_cpath_top
-        g.find_const :Proc
-        g.push_literal :resolve
-        g.send :__from_block__, 1
-        g.send_with_block :recursively, 0
         g.push_scope
         g.send :active_path, 0
         g.send :register, 4
+      end
+
+      def prepare_all
+        dup.tap do |x|
+          x.body = x.body.prepare_all
+        end
       end
     end
   end

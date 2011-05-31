@@ -142,10 +142,10 @@ module Atomy
           # it.
           g.push_current_exception
 
-          @handlers.each_with_index do |p, i|
+          @handlers.each_with_index do |h, i|
             last = i + 1 == @handlers.size
             n = last ? nil : g.new_label
-            handler_bytecode(g, p.lhs.to_pattern, p.rhs, reraise, done, outer_exc_state, n)
+            h.bytecode(g, reraise, done, outer_exc_state, n)
             n.set! unless last
           end
 
@@ -174,11 +174,20 @@ module Atomy
           g.push_stack_local outer_exc_state
           g.restore_exception_state
         end
+
         g.pop_modifiers
       end
+    end
 
-      def handler_bytecode(g, pattern, expression, reraise, done, outer_exc_state, next_handler = nil)
+    class RescueHandler < Node
+      children :body
+      attributes :pattern
+      generate
+
+      def bytecode(g, reraise, done, outer_exc_state, next_handler = nil)
         body = g.new_label
+
+        pattern = @pattern.to_pattern
 
         g.dup
         pattern.matches?(g)
@@ -201,7 +210,7 @@ module Atomy
         g.next = g.new_label
 
         g.state.push_rescue(outer_exc_state)
-        expression.compile(g)
+        @body.compile(g)
         g.state.pop_rescue
 
         g.clear_exception

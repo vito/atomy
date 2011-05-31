@@ -124,6 +124,26 @@ module Atomy
           @message.namespace
         )
       end
+
+      def namespace_symbol
+        @message.namespace_symbol
+      end
+
+      def resolve
+        dup.tap do |y|
+          y.message = y.message.resolve
+        end
+      end
+
+      def prepare_all
+        x = prepare
+        if x != self
+          x.prepare_all
+        else
+          pp self.to_sexp
+          raise "wat"
+        end
+      end
     end
   end
 end

@@ -70,7 +70,7 @@ module Atomy::Macro
         body.line,
         Atomy::AST::Send.new(
           body.line,
-          body,
+          body.prepare_all,
           [],
           "to_node"
         ),

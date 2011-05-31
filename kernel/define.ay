@@ -1,7 +1,7 @@
 macro('do ~(b: Block)): b body
 
-macro(x = y):
-  Assign new(x line, x, y)
+--macro(x = y):
+  --Assign new(x line, x, y)
 
 macro(x =! y):
   Set new(x line, x, y)
@@ -18,7 +18,7 @@ macro(pattern := y):
   Atomy::CodeLoader when-run <<
     [`(Atomy::Namespace register(~(x namespace-symbol), ~where)), true]
 
-  Define new(x line, x, y)
+  Define new(line, x, y)
 
 macro(define(x) ~(y: Block)):
   `(~x := ~(y block-body))
@@ -38,7 +38,10 @@ macro(x ^= y): `(~x =! (~x ^ ~y))
 macro(x %= y): `(~x =! (~x % ~y))
 
 macro(x match ~(b: Block)):
-  Match new(line, x, b)
+  branches = b contents collect [`(~x -> ~y)]:
+    MatchBranch new(x line, y, x)
+
+  Match new(line, x, branches)
 
 macro(class(name) ~(b: Block)):
   Class new(name line, name, b block-body)

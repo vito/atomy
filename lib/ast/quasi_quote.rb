@@ -15,6 +15,10 @@ module Atomy
         pos(g)
         @expression.construct(g, 1)
       end
+
+      def prepare_all
+        through_quotes(proc { true }, &:prepare_all)
+      end
     end
   end
 end

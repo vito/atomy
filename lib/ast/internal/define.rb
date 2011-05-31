@@ -74,6 +74,12 @@ module Atomy
         done.set!
       end
 
+      def prepare_all
+        dup.tap do |x|
+          x.body = x.body.prepare_all
+        end
+      end
+
       def bytecode(g)
         pos(g)
 
@@ -104,11 +110,7 @@ module Atomy
         g.make_array arguments.size
         g.make_array 2
         @body.construct(g)
-        g.push_cpath_top
-        g.find_const :Proc
-        g.push_literal :resolve
-        g.send :__from_block__, 1
-        g.send_with_block :recursively, 0
+        g.send :prepare_all, 0
         g.make_array 2
 
         receiver.target(g)

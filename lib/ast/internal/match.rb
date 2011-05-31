@@ -1,7 +1,7 @@
 module Atomy
   module AST
     class Match < Node
-      children :target, :body
+      children :target, [:branches]
       generate
 
       def bytecode(g)
@@ -11,8 +11,8 @@ module Atomy
 
         @target.compile(g)
 
-        @body.contents.each do |e|
-          MatchBranch.new(e.line, e.lhs, e.rhs).bytecode(g, done)
+        @branches.each do |e|
+          e.bytecode(g, done)
         end
 
         g.pop
@@ -22,8 +22,19 @@ module Atomy
       end
     end
 
-    class MatchBranch < InlinedBody
-      children :pattern, :branch
+    class MatchBranch < Node
+      children :branch
+      attributes :pattern
+      generate
+
+      def bytecode(g, done)
+        HiddenMatchBranch.new(@line, @branch, @pattern).bytecode(g, done)
+      end
+    end
+
+    class HiddenMatchBranch < InlinedBody
+      children :branch
+      attributes :pattern
       generate
 
       def bytecode(g, done)

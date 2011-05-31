@@ -509,6 +509,15 @@ EOF
         end
       end
 
+      def prepare_all
+        x = prepare
+        if x == self
+          x.children(&:prepare_all)
+        else
+          x.prepare_all
+        end
+      end
+
       def compile(g)
         prepare.bytecode(g)
       end
