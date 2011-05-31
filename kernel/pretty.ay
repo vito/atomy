@@ -14,6 +14,10 @@ body(x . xs) := [from(#list) { x pretty }] + body(xs)
 module(Atomy::AST):
   Block unamb := pretty
   ClassVariable unamb := pretty
+  Compose unamb :=
+    if(from?(#binary, #compose))
+      then: pretty
+      else: parens(pretty)
   Constant unamb := pretty
   GlobalVariable unamb := pretty
   (InlinedBody ? @expressions size < 2) unamb := pretty
@@ -26,7 +30,7 @@ module(Atomy::AST):
   Quote unamb := pretty
   ScopedConstant unamb := pretty
   Send unamb :=
-    if(from?(#binary, #send))
+    if(from?(#binary, #compose))
       then: pretty
       else: parens(pretty)
   Splice unamb := pretty
@@ -152,6 +156,20 @@ export-to(atomy):
 
     ClassVariable pretty := ident(name to-s)
 
+    Compose pretty := do:
+      args =
+        from(#list):
+          if(@arguments empty?)
+            then: empty
+            else: tupled(@arguments all-pretty)
+
+      if(@headless)
+        then:
+          @message unamb <> args
+        else:
+          (from(#compose) { @receiver unamb } </>
+            @message unamb <> args) hang(2)
+
     Constant pretty := text(@identifier)
 
     Define pretty :=
@@ -237,7 +255,7 @@ export-to(atomy):
           with-block [ident(@message-name) <> args]
 
         otherwise ->
-          (from(#send) { @receiver unamb } </>
+          (from(#compose) { @receiver unamb } </>
             with-block [ident(@message-name) <> args]) hang(2)
 
     Splice pretty :=
