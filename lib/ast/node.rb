@@ -485,7 +485,7 @@ EOF
       end
 
       def prepare
-        resolve.expand
+        expand.resolve
       end
 
       # this is overridden by macro definitions
