@@ -12,9 +12,7 @@ module Atomy
         return super() if unquoted
 
         x =
-          if unquoted
-            super()
-          elsif @message.is_a?(Unquote)
+          if @message.is_a?(Unquote)
             dup.unquoted_macro_pattern
           else
             super().tap do |x|
@@ -23,7 +21,7 @@ module Atomy
             end
           end
 
-        # match wildcard rather than self
+        # match self wildcard rather than wildcard
         if @headless
           x.quoted.expression.receiver.expression =
             Atomy::AST::Quote.new(
