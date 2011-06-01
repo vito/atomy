@@ -138,8 +138,50 @@ macro('for-macro ~(b: Block)):
       module(Atomy::Macro::Helpers):
         ~*(b contents))
 
-macro(let-macro(*ms) ~(body: Block)):
-  macros = ms collect [`(~p = ~b)]:
-    Macro new(p line, p, b)
+-- TODO: compare let-when; make a more general macro for wrapping
+-- with evaluate-when
+macro(let-macro(*ms) ~(b: Block)):
+  define = []
+  unwind = []
 
-  LetMacro new(line, body caller, macros)
+  lets = names(ms size)
+  macs = names(ms size)
+  ms zip(lets, macs) [[`(~p = ~b), let, mac]]:
+    names [m]:
+      define <<
+        `(do:
+            Atomy::STATE [#~mac] =
+              (~m = Atomy::AST::Macro new(~(p line), '~p, '~b))
+
+            Atomy::STATE [#~let] =
+              Atomy::Macro register(
+                ~m pattern class
+                ~m macro-pattern
+                ~m prepared
+                Atomy::CodeLoader compiling
+                true
+              ))
+
+      unwind <<
+        `(do:
+            ~m = Atomy::STATE [#~mac] pattern
+
+            ~m class remove-method(Atomy::STATE [#~let])
+
+            when(lets = Atomy::Macro::Environment let [~m class]):
+              lets delete(Atomy::STATE [#~let])
+
+              when(lets empty?):
+                Atomy::Macro::Environment let delete(~m class))
+
+  names [res]:
+    `(do:
+        evaluate-when(compile):
+          ~*define
+
+        ~res = ~(b block-body)
+
+        evaluate-when(compile):
+          ~*unwind
+
+        ~res)
