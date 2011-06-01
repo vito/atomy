@@ -507,6 +507,14 @@ EOF
         else
           _expand.to_node
         end
+      rescue
+        if respond_to?(show = Atomy.namespaced("atomy", "show"))
+          puts "while expanding #{send(show)}"
+        else
+          puts "while expanding a #{self.class.name}"
+        end
+
+        raise
       end
 
       def prepare_all
