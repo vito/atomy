@@ -244,9 +244,15 @@ module Atomy::Patterns
       when "@"
         case @receiver
         when Atomy::AST::Unary
-          NamedClass.new(@receiver.receiver.name)
-        else
+          if @receiver.operator == "@"
+            NamedClass.new(@receiver.receiver.name)
+          else
+            super
+          end
+        when Atomy::AST::Variable
           NamedInstance.new(@receiver.name)
+        else
+          super
         end
       when "%"
         RuntimeClass.new(@receiver, nil)
