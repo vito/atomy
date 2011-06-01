@@ -14,13 +14,13 @@ macro(return(y)):
 
 macro(x rescue ~(y: Block)):
   branches = y contents collect [`(~p -> ~e)]:
-    RescueHandler new(p line, e, p)
+    RescueHandler new(p line, p, e)
 
   Catch new(line, x caller, branches)
 
 macro(x rescue ~(y: Block) else ~(z: Block)):
   branches = y contents collect [`(~p -> ~e)]:
-    RescueHandler new(p line, e, p)
+    RescueHandler new(p line, p, e)
 
   Catch new(line, x caller, branches, z body)
 

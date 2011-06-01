@@ -73,5 +73,9 @@ module Atomy::Patterns
       g.swap
       g.kind_of
     end
+
+    def assign(g, e, set = false)
+      @constant.assign(g, e)
+    end
   end
 end

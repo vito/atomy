@@ -11,7 +11,7 @@ macro(false): Primitive new(line, "false" to-sym)
 
 macro(@x): InstanceVariable new(line, x name)
 
-macro(x = y): Assign new(line, x, y)
+macro(x = y): Assign new(line, x to-pattern to-node, y)
 
 -- foo { bar }
 macro(Variable ~Block):

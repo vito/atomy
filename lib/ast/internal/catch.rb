@@ -180,8 +180,7 @@ module Atomy
     end
 
     class RescueHandler < Node
-      children :body
-      attributes :pattern
+      children :pattern, :body
       generate
 
       def bytecode(g, reraise, done, outer_exc_state, next_handler = nil)
@@ -250,6 +249,12 @@ module Atomy
         end
 
         g.next = current_next
+      end
+
+      def prepare_all
+        dup.tap do |x|
+          x.body = x.body.prepare_all
+        end
       end
     end
   end

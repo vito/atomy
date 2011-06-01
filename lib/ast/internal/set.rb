@@ -6,13 +6,7 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-
-        if @lhs.respond_to?(:assign)
-          @lhs.assign(g, @rhs)
-          return
-        end
-
-        @lhs.to_pattern.assign(g, @rhs, true)
+        @lhs.pattern.assign(g, @rhs, true)
       end
 
       def prepare_all

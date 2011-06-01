@@ -26,7 +26,8 @@ module(Atomy::Patterns):
         g kind-of
 
     class(Predicate < Pattern):
-      initialize(@pattern, @test) := #ok
+      initialize(@pattern, test) :=
+        @test = test prepare-all
 
       construct(g) := do:
         get(g)
@@ -69,7 +70,8 @@ module(Atomy::Patterns):
       bindings := @pattern bindings
 
     class(With < Pattern):
-      initialize(@pattern, @expression, @sub-pattern) := #ok
+      initialize(@pattern, expression, @sub-pattern) :=
+        @expression = expression prepare-all
 
       construct(g) := do:
         get(g)

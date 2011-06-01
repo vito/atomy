@@ -3,7 +3,9 @@ module Atomy::Patterns
     attr_reader :quoted
 
     def initialize(x)
-      @quoted = x
+      @quoted = x.through_quotes(proc { true }) do |e|
+        e.to_pattern.to_node
+      end
     end
 
     def construct(g)

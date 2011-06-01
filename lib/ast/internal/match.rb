@@ -23,18 +23,22 @@ module Atomy
     end
 
     class MatchBranch < Node
-      children :branch
-      attributes :pattern
+      children :pattern, :branch
       generate
 
       def bytecode(g, done)
-        HiddenMatchBranch.new(@line, @branch, @pattern).bytecode(g, done)
+        HiddenMatchBranch.new(@line, @pattern, @branch).bytecode(g, done)
+      end
+
+      def prepare_all
+        dup.tap do |x|
+          x.branch = x.branch.prepare_all
+        end
       end
     end
 
     class HiddenMatchBranch < InlinedBody
-      children :branch
-      attributes :pattern
+      children :pattern, :branch
       generate
 
       def bytecode(g, done)
