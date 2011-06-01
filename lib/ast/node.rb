@@ -526,6 +526,11 @@ EOF
         end
       end
 
+      def resolve_all
+        @namespace = nil if @namespace == "_"
+        resolve.children(&:resolve_all)
+      end
+
       def compile(g)
         prepare.bytecode(g)
       end
