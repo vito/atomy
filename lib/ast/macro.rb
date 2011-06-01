@@ -8,6 +8,10 @@ module Atomy
         @macro_pattern ||= @pattern.macro_pattern
       end
 
+      def prepared
+        @prepared ||= @body.prepare_all.resolve_all
+      end
+
       def bytecode(g)
         pos(g)
 
@@ -21,7 +25,7 @@ module Atomy
         Atomy::Macro.register(
           @pattern.class,
           macro_pattern,
-          @body,
+          prepared,
           Atomy::CodeLoader.compiling
         )
 
@@ -48,7 +52,7 @@ module Atomy
         g.find_const :Macro
         Atomy.const_from_string(g, @pattern.class.name)
         macro_pattern.construct(g)
-        @body.construct(g)
+        prepared.construct(g)
         g.push_scope
         g.send :active_path, 0
         g.send :register, 4

@@ -109,8 +109,8 @@ module Atomy
         end
         g.make_array arguments.size
         g.make_array 2
-        @body.construct(g)
-        g.send :prepare_all, 0
+        @body.prepare_all.construct(g)
+        g.send :resolve_all, 0
         g.make_array 2
 
         receiver.target(g)
