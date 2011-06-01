@@ -2,10 +2,13 @@ module Atomy
   NAMESPACES = {}
   NAMESPACE_DELIM = "_ns_"
 
-  def self.namespaced(ns, name)
-    return name.to_s if !ns or ns == "_"
+  def self.namespaced(*names)
+    names.collect!(&:to_s)
+    name = names.pop
+    ns = names.join(NAMESPACE_DELIM)
+    return name if ns.empty? or ns == "_"
     raise "empty name" unless name && !name.empty?
-    ns.to_s + NAMESPACE_DELIM + name.to_s
+    ns + NAMESPACE_DELIM + name
   end
 
   def self.from_namespaced(resolved)
