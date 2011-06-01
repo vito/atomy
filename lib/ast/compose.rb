@@ -8,22 +8,20 @@ module Atomy
       # treat the message as quoted by default so they don't have to do
       #   macro(x 'foo): ...
       # and allow an unquote to undo this
-      def macro_pattern(unquoted = false)
-        return super() if unquoted
-
+      def macro_pattern
         x =
           if @message.is_a?(Unquote)
             dup.unquoted_macro_pattern
           else
-            super().tap do |x|
-              x.quoted.expression.message =
-                @message.macro_pattern.quoted.expression
+            unquote_children.tap do |x|
+              x.message =
+                @message.unquote_children
             end
           end
 
         # match self wildcard rather than wildcard
         if @headless
-          x.quoted.expression.receiver.expression =
+          x.receiver.expression =
             Atomy::AST::Quote.new(
               @line,
               Atomy::AST::Primitive.new(
@@ -32,24 +30,22 @@ module Atomy
               )
             )
         elsif @receiver.is_a?(Compose)
-          x.quoted.expression.receiver =
+          x.receiver =
             Compose.send_chain(@receiver)
         end
 
-        ## have do(&x) match the block portion
-        #last = x.quoted.expression.arguments.last
-        #if last and blk = last.expression and blk.is_a?(Unary) and \
-              #blk.operator == "&"
-          #x.quoted.expression.block =
-            #Atomy::AST::Unquote.new(
-              #blk.line,
-              #blk.receiver
-            #)
+        Atomy::Patterns::QuasiQuote.new(
+          Atomy::AST::QuasiQuote.new(
+            @line,
+            x
+          )
+        )
+      end
 
-          #x.quoted.expression.arguments.pop
-        #end
-
-        x
+      # see above
+      def unquoted_macro_pattern
+        @message = @message.expression
+        unquote_children
       end
 
       # x(a)
@@ -63,7 +59,7 @@ module Atomy
       # x(&a) should bind the proc-arg
       def self.send_chain(n)
         if n.message.kind_of?(Block)
-          return Atomy::AST::Unquote.new(n.line, n)
+          return Atomy::AST::Unquote.new(n.line, n.to_pattern.to_node)
         end
 
         d = n.dup
@@ -74,12 +70,12 @@ module Atomy
             if a.kind_of?(Atomy::AST::Unary) && a.operator == "*"
               as << Atomy::AST::Splice.new(
                 a.line,
-                a.receiver
+                a.receiver.to_pattern.to_node
               )
             else
               as << Atomy::AST::Unquote.new(
                 a.line,
-                a
+                a.to_pattern.to_node
               )
             end
           end
@@ -100,7 +96,7 @@ module Atomy
             unless x.receiver.kind_of?(Atomy::AST::Primitive)
               x.receiver = Atomy::AST::Unquote.new(
                 x.receiver.line,
-                x.receiver
+                x.receiver.to_pattern.to_node
               )
             end
             break
@@ -108,12 +104,6 @@ module Atomy
         end
 
         d
-      end
-
-      # see above
-      def unquoted_macro_pattern
-        @message = @message.expression
-        macro_pattern(true)
       end
 
       def to_send

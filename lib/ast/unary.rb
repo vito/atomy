@@ -12,14 +12,19 @@ module Atomy
       end
 
       def macro_pattern
-        x = super
+        x = unquote_children
 
         if @receiver.is_a?(Unary)
-          x.quoted.expression.receiver =
+          x.receiver =
             Unary.unary_chain(@receiver)
         end
 
-        x
+        Atomy::Patterns::QuasiQuote.new(
+          Atomy::AST::QuasiQuote.new(
+            @line,
+            x
+          )
+        )
       end
 
       # !x

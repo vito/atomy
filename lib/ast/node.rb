@@ -530,19 +530,21 @@ EOF
         pattern
       end
 
-      def macro_pattern
-        quoted = children do |x|
+      def unquote_children
+        children do |x|
           if x.is_a?(Unary) and x.operator == "*"
             Atomy::AST::Splice.new(x.line, x.receiver)
           else
             Atomy::AST::Unquote.new(x.line, x)
           end
         end
+      end
 
+      def macro_pattern
         Atomy::Patterns::QuasiQuote.new(
           Atomy::AST::QuasiQuote.new(
             @line,
-            quoted
+            unquote_children
           )
         )
       end
