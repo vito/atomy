@@ -460,8 +460,8 @@ EOF
         nil
       end
 
-      def evaluate(onto = nil)
-        Atomy::Compiler.evaluate_node(self, onto, TOPLEVEL_BINDING)
+      def evaluate(onto = nil, bnd = TOPLEVEL_BINDING)
+        Atomy::Compiler.evaluate_node(self, onto, bnd)
       end
 
       def resolve
