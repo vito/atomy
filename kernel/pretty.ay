@@ -173,8 +173,8 @@ export-to(atomy):
     Constant pretty := text(@identifier)
 
     Define pretty :=
-      from(#define):
-        @lhs unamb <+> text(":=") <+> @body unamb
+      from(#binary):
+        @pattern unamb <+> text(":=") <+> @body unamb
 
     GlobalVariable pretty := ident(name to-s)
 
@@ -277,6 +277,9 @@ export-to(atomy):
     Variable pretty := ident(@name)
 
     InlinedBody pretty :=
+      from(#top): align(vcat(@expressions all-pretty))
+
+    BlockBody pretty :=
       from(#top): align(vcat(@expressions all-pretty))
 
     Or pretty := `(~@a || ~@b) pretty
