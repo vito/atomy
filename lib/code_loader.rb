@@ -145,7 +145,7 @@ module Atomy
 
         cfn = compile_if_needed(file, debug)
         cl = Rubinius::CodeLoader.new(cfn)
-        cm = cl.load_compiled_file(cfn, 0)
+        cm = cl.load_compiled_file(cfn, 0, 0)
         script = cm.create_script(false)
         script.file_path = fn
 

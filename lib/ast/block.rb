@@ -220,6 +220,10 @@ module Atomy
         end
         nil
       end
+
+      def post_args
+        0
+      end
     end
 
     class BlockBody < Node
