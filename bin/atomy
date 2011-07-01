@@ -1,4 +1,5 @@
 #!/usr/bin/env rbx
+# vim: ft=ruby
 
 base = File.expand_path "../../lib/", __FILE__
 kernel = File.expand_path "../../kernel/", __FILE__
@@ -34,6 +35,10 @@ unless ARGV.empty? || ARGV[0][0] != ?-
       Atomy::CodeLoader.documentation = v
     end
 
+    o.on("-x", "--skip-kernel", "don't load the kernel") do
+      options[:skip_kernel] = true
+    end
+
     o.on_tail("-h", "--help", "show this message") do
       puts o
       exit
@@ -41,10 +46,12 @@ unless ARGV.empty? || ARGV[0][0] != ?-
   end.parse!
 end
 
-a = Time.now
-puts "loading kernel"
-Atomy.import(kernel + "/boot.ay")
-puts Time.now - a
+unless options[:skip_kernel]
+  a = Time.now
+  puts "loading kernel"
+  Atomy.import(kernel + "/boot.ay")
+  puts Time.now - a
+end
 
 Atomy::Namespace.ensure(:user)
 
