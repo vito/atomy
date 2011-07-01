@@ -33,8 +33,6 @@ module Atomy::Patterns
 
     def context(g, w, defaults)
       w.each do |c|
-        # TODO: fail if out of bounds?
-        # e.g. `(foo(~bar, ~baz)) = '(foo(1))
         if c.kind_of?(Array)
           g.send c[0], 0
 
