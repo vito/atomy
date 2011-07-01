@@ -198,7 +198,7 @@
                     { Atomy::AST::Compose.new(line, n, r, Array(as)) }
                 | line:line level1:r cont(pos) level0:n args?:as
                     { Atomy::AST::Compose.new(line, n, r, Array(as)) }
-           send = sends(current_position)
+           send = @sends(current_position)
 
        headless = line:line level0:n args:as
                     { Atomy::AST::Compose.new(
