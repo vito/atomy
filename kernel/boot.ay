@@ -38,7 +38,6 @@ macro((x: Variable) [*ys] ~(z: Block)):
   x
 
 -- [1, 2, 3] collect [x] { x + 1 }
--- TODO: why do I need ~*ys here?
 macro(x ~(n: Variable) [*ys] ~(z: Block)):
   z arguments = ys
   x = @receiver receiver to-send
