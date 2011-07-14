@@ -1,66 +1,63 @@
-namespace(atomy)
+module(Atomy::AST):
+  '_ pattern :=
+    Atomy::Patterns::Any new
 
-export:
-  module(Atomy::AST):
-    '_ pattern :=
-      Atomy::Patterns::Any new
+  `(~h . ~t) pattern :=
+    Atomy::Patterns::HeadTail new(h to-pattern, t to-pattern)
 
-    `(~h . ~t) pattern :=
-      Atomy::Patterns::HeadTail new(h to-pattern, t to-pattern)
+  `(~p = ~d) pattern :=
+    Atomy::Patterns::Default new(p to-pattern, d)
 
-    `(~p = ~d) pattern :=
-      Atomy::Patterns::Default new(p to-pattern, d)
+  `(? ~t) pattern :=
+    Atomy::Patterns::Predicate new(Atomy::Patterns::Any new, t)
 
-    `(? ~t) pattern :=
-      Atomy::Patterns::Predicate new(Atomy::Patterns::Any new, t)
+  `(~p ? ~t) pattern :=
+    Atomy::Patterns::Predicate new(p to-pattern, t)
 
-    `(~p ? ~t) pattern :=
-      Atomy::Patterns::Predicate new(p to-pattern, t)
+  `(~a & ~b) pattern :=
+    Atomy::Patterns::And new(a to-pattern, b to-pattern)
 
-    `(~a & ~b) pattern :=
-      Atomy::Patterns::And new(a to-pattern, b to-pattern)
+  `(~a | ~b) pattern :=
+    Atomy::Patterns::Or new(a to-pattern, b to-pattern)
 
-    `(~a | ~b) pattern :=
-      Atomy::Patterns::Or new(a to-pattern, b to-pattern)
+  `(~x with(~e, ~y)) pattern :=
+    Atomy::Patterns::With new(x to-pattern, e, y to-pattern)
 
-    `(~x with(~e, ~y)) pattern :=
-      Atomy::Patterns::With new(x to-pattern, e, y to-pattern)
+  `(with(~e, ~y)) pattern :=
+    Atomy::Patterns::With new(Atomy::Patterns::Any new, e, y to-pattern)
 
-    `(with(~e, ~y)) pattern :=
-      Atomy::Patterns::With new(Atomy::Patterns::Any new, e, y to-pattern)
+  `@@~n pattern :=
+    Atomy::Patterns::NamedClass new(n name)
 
-    `@@~n pattern :=
-      Atomy::Patterns::NamedClass new(n name)
+  `$~n pattern :=
+    Atomy::Patterns::NamedGlobal new(n name)
 
-    `$~n pattern :=
-      Atomy::Patterns::NamedGlobal new(n name)
+  `@~n pattern :=
+    Atomy::Patterns::NamedInstance new(n name)
 
-    `@~n pattern :=
-      Atomy::Patterns::NamedInstance new(n name)
+  `%~x pattern :=
+    Atomy::Patterns::RuntimeClass new(x, nil)
 
-    `%~x pattern :=
-      Atomy::Patterns::RuntimeClass new(x, nil)
+  `&~x pattern :=
+    Atomy::Patterns::BlockPass new(x to-pattern)
 
-    `&~x pattern :=
-      Atomy::Patterns::BlockPass new(x to-pattern)
+  `*~x pattern :=
+    Atomy::Patterns::Splat new(x to-pattern)
 
-    `*~x pattern :=
-      Atomy::Patterns::Splat new(x to-pattern)
+  'self pattern :=
+    Atomy::Patterns::Match new(#self)
 
-    'self pattern :=
-      Atomy::Patterns::Match new(#self)
+  'true pattern :=
+    Atomy::Patterns::Match new(#true)
 
-    'true pattern :=
-      Atomy::Patterns::Match new(#true)
+  'false pattern :=
+    Atomy::Patterns::Match new(#false)
 
-    'false pattern :=
-      Atomy::Patterns::Match new(#false)
+  'nil pattern :=
+    Atomy::Patterns::Match new(#nil)
 
-    'nil pattern :=
-      Atomy::Patterns::Match new(#nil)
+  `#~(x: Atomy::AST::Variable) pattern :=
+    Atomy::Patterns::Literal new(x name to-sym)
 
-    `#~(x: Atomy::AST::Variable) pattern :=
-      Atomy::Patterns::Literal new(x name to-sym)
-
-    `(Particle [~*as]) pattern :=
-      Atomy::Patterns::List new(as collect [a]: a to-pattern)
+  `(Particle [~*as]) pattern :=
+    Atomy::Patterns::List new(as collect [a]: a to-pattern)

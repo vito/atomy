@@ -1,5 +1,3 @@
-namespace(atomy)
-
 for-macro:
   key-name(x: Atomy::AST::Compose) := key-name(x message)
   key-name(x: Atomy::AST::Variable) := x name
@@ -26,22 +24,21 @@ macro(#(l: List)):
 
   Atomy::AST::Hash new(line, keys, values)
 
-export:
-  class(Atomy::AST::Hash < Atomy::AST::Node):
-    children([#keys], [#values])
-    generate
+class(Atomy::AST::Hash < Atomy::AST::Node):
+  children([#keys], [#values])
+  generate
 
-    bytecode(g) := do:
-      pos(g)
+  bytecode(g) := do:
+    pos(g)
 
-      g push-cpath-top
-      g find-const(#Hash)
-      g push-int(@keys size)
-      g send(#new-from-literal, 1)
+    g push-cpath-top
+    g find-const(#Hash)
+    g push-int(@keys size)
+    g send(#new-from-literal, 1)
 
-      @keys each-with-index [n, i]:
-        g dup
-        n compile(g)
-        @values [i] compile(g)
-        g send("[]=" to-sym, 2)
-        g pop
+    @keys each-with-index [n, i]:
+      g dup
+      n compile(g)
+      @values [i] compile(g)
+      g send("[]=" to-sym, 2)
+      g pop

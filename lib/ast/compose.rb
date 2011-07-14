@@ -113,19 +113,8 @@ module Atomy
           @arguments,
           @message.is_a?(Variable) && @message.name,
           nil,
-          @headless,
-          @message.namespace
+          @headless
         )
-      end
-
-      def namespace_symbol
-        @message.namespace_symbol
-      end
-
-      def resolve
-        dup.tap do |y|
-          y.message = y.message.resolve
-        end
       end
 
       def prepare_all

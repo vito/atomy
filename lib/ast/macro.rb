@@ -9,18 +9,11 @@ module Atomy
       end
 
       def prepared
-        @prepared ||= @body.prepare_all.resolve_all
+        @prepared ||= @body.prepare_all
       end
 
       def bytecode(g)
         pos(g)
-
-        if @pattern.namespace_symbol
-          Atomy::Namespace.register(
-            @pattern.namespace_symbol,
-            Atomy::Namespace.define_target
-          )
-        end
 
         Atomy::Macro.register(
           @pattern.class,
@@ -37,16 +30,6 @@ module Atomy
 
       def load_bytecode(g)
         pos(g)
-        if @pattern.namespace_symbol
-          g.push_cpath_top
-          g.find_const :Atomy
-          g.find_const :Namespace
-          g.push_literal @pattern.namespace_symbol
-          g.push_literal Atomy::Namespace.define_target
-          g.send :register, 2
-          g.pop
-        end
-
         g.push_cpath_top
         g.find_const :Atomy
         g.find_const :Macro

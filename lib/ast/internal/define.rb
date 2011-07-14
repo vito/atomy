@@ -43,37 +43,6 @@ module Atomy
         end
       end
 
-      # result must be a string on the stack
-      def ns_message_name(g)
-        if message_name == "initialize"
-          g.push_literal "initialize"
-          return
-        end
-
-        no_ns = g.new_label
-        done = g.new_label
-
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.find_const :Namespace
-        g.send :define_target, 0
-        g.dup
-        g.gif no_ns
-
-        g.push_literal message_name
-        g.send :namespaced, 2
-        g.goto done
-
-        no_ns.set!
-        g.pop
-        g.pop
-        g.push_literal message_name
-
-        done.set!
-      end
-
       def prepare_all
         dup.tap do |x|
           x.body = x.body.prepare_all
@@ -87,7 +56,7 @@ module Atomy
 
         if defn
           g.push_rubinius
-          ns_message_name(g)
+          g.push_literal message_name
           g.send :to_sym, 0
           g.dup
           g.push_cpath_top
@@ -97,7 +66,7 @@ module Atomy
           g.push_cpath_top
           g.find_const :Atomy
           receiver.target(g)
-          ns_message_name(g)
+          g.push_literal message_name
           g.send :to_sym, 0
         end
 
@@ -110,12 +79,11 @@ module Atomy
         g.make_array arguments.size
         g.make_array 2
         @body.prepare_all.construct(g)
-        g.send :resolve_all, 0
         g.make_array 2
 
         receiver.target(g)
         g.push_literal "@atomy::"
-        ns_message_name(g)
+        g.push_literal message_name
         g.string_build 2
         g.send :to_sym, 0
         g.send :instance_variable_get, 1
@@ -134,7 +102,7 @@ module Atomy
         receiver.target(g)
         g.swap
         g.push_literal "@atomy::"
-        ns_message_name(g)
+        g.push_literal message_name
         g.string_build 2
         g.send :to_sym, 0
         g.swap
@@ -148,8 +116,9 @@ module Atomy
           g.push_int @line
           g.send :build_method, 4
           g.push_scope
-          g.push_variables
-          g.send :method_visibility, 0
+          # g.push_variables
+          # g.send :method_visibility, 0
+          g.push_literal :public
           g.send :add_defn_method, 4
         else
           g.push_scope

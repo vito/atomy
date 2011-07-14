@@ -439,10 +439,6 @@ EOF
         nil
       end
 
-      def namespace_symbol
-        message_name && message_name.to_sym
-      end
-
       def unquote?
         false
       end
@@ -456,36 +452,8 @@ EOF
         )
       end
 
-      def namespace
-        nil
-      end
-
       def evaluate(onto = nil, bnd = TOPLEVEL_BINDING)
         Atomy::Compiler.evaluate_node(self, onto, bnd)
-      end
-
-      def resolve
-        return self if @namespace
-
-        ns = Atomy::Namespace.get
-
-        case self
-        when Atomy::AST::Variable, Atomy::AST::BinarySend,
-              Atomy::AST::Unary, Atomy::AST::Send
-          dup.tap do |y|
-            if ns and n = ns.resolve(namespace_symbol)
-              y.namespace = n.to_s
-            else
-              y.namespace = "_"
-            end
-          end
-        else
-          self
-        end
-      end
-
-      def prepare
-        expand.resolve
       end
 
       # this is overridden by macro definitions
@@ -508,14 +476,16 @@ EOF
           _expand.to_node
         end
       rescue
-        if respond_to?(show = Atomy.namespaced("atomy", "show"))
-          puts "while expanding #{send(show)}"
+        if respond_to?(:show)
+          puts "while expanding #{show}"
         else
           puts "while expanding a #{self.class.name}"
         end
 
         raise
       end
+
+      alias :prepare :expand
 
       def prepare_all
         x = prepare
@@ -524,11 +494,6 @@ EOF
         else
           x.prepare_all
         end
-      end
-
-      def resolve_all
-        @namespace = nil if @namespace == "_"
-        resolve.children(&:resolve_all)
       end
 
       def compile(g)

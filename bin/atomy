@@ -53,8 +53,6 @@ unless options[:skip_kernel]
   puts Time.now - a
 end
 
-Atomy::Namespace.ensure(:user)
-
 def run_atomy(options)
   if str = options[:evaluate] || options[:start]
     $0 = "(eval)"
@@ -66,10 +64,9 @@ def run_atomy(options)
       options[:debug]
     )
 
-    write = Atomy.namespaced("atomy", "write").to_sym
     if options[:evaluate]
-      if res.respond_to?(write)
-        res.send(write)
+      if res.respond_to?(:write)
+        res.write
       else
         p(res)
       end
@@ -83,8 +80,8 @@ def run_atomy(options)
     return if ARGV[0]
   end
 
-  if respond_to?(Atomy.namespaced("atomy", "repl").to_sym, true)
-    send(Atomy.namespaced("atomy", "repl").to_sym, File.expand_path("~/.atomy_history"))
+  if respond_to?(:repl, true)
+    send(:repl, File.expand_path("~/.atomy_history"))
   else
     $stderr.puts("main REPL startup failed! here's a basic one:")
 
@@ -108,7 +105,7 @@ def run_atomy(options)
         begin
           res = Atomy::Compiler.evaluate str, TOPLEVEL_BINDING
           if res.respond_to?(:pretty)
-            puts "=> #{res.send(:pretty).send(Atomy.namespaced("atomy", Atomy.namespaced("doc", "render")))}"
+            puts "=> #{res.pretty.render}"
           else
             puts "=> #{res.inspect}"
           end

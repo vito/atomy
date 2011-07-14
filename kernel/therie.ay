@@ -1,15 +1,8 @@
-namespace(therie)
-
 title"Testing with Therie"
 
 doc"
 Therie is a small and simple behavioral-style testing suite that comes with \
-Atomy. To use it, you should use the \hl{therie} namespace, which provides \
-the following methods.
-
-\atomy{
-  use(therie)
-}
+Atomy.
 "
 
 dynamic(nesting-level, 0)
@@ -21,19 +14,16 @@ doc"
   class(Stats):
     attr-accessor(#passed, #failed)
 
-    export:
-      initialize := do:
-        @passed = 0
-        @failed = 0
+    initialize := do:
+      @passed = 0
+      @failed = 0
 
-      inspect := f"Stats(@passed = %d, @failed = %d)" [@passed, @failed]
+    inspect := f"Stats(@passed = %d, @failed = %d)" [@passed, @failed]
 
   dynamic(stats, nil)
 
 
 section("Structure"):
-  doc"\evaluate{use(therie)}"
-
   doc"
     Run \hl{tests} and keep track of how many passed and how many failed, \
     printing the stats at the end and returning them.
@@ -70,7 +60,7 @@ section("Structure"):
     Prints out \hl{what}, with each test in \hl{body} indented afterward.
   " for {
     describe(what, &body) := do:
-      f"- %s" [what] indented print
+      f"- %s" [what] indented println
 
       let(nesting-level = ^nesting-level + 1):
         body call
@@ -87,20 +77,20 @@ section("Structure"):
   " for {
     it(description, &tests) := do:
       { tests call
-        f"✓ %s" [description] indented colored(#green) print
+        f"✓ %s" [description] indented colored(#green) println
       } rescue {
         e -> do:
           when(^stats):
             ^stats failed += 1
 
-          f"✗ %s" [description] indented colored(#red) print
+          f"✗ %s" [description] indented colored(#red) println
           f"  ` %s: %s" [
             e class name
             e message
-          ] indented colored(#yellow) print
+          ] indented colored(#yellow) println
 
           e backtrace first(5) each [l]:
-            f"    %s" [l colored(#cyan)] indented print
+            f"    %s" [l colored(#cyan)] indented println
       } else:
         when(^stats):
           ^stats passed += 1
@@ -112,8 +102,6 @@ section("Structure"):
 
 
 section("Tests"):
-  doc"\evaluate{use(therie)}"
-
   doc"
     Test that \hl{predicate} is satisified by \hl{o} by evaluating it with \
     \hl{o} as \hl{self}.

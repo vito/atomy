@@ -7,18 +7,7 @@ macro(x =! y):
   Set new(x line, x to-pattern to-node, y)
 
 macro(pattern := y):
-  x = pattern expand
-
-  where = Atomy::Namespace define-target
-  Atomy::Namespace register(x namespace-symbol, where)
-
-  Atomy::CodeLoader when-load <<
-    [`(Atomy::Namespace register(~(x namespace-symbol), ~where)), true]
-
-  Atomy::CodeLoader when-run <<
-    [`(Atomy::Namespace register(~(x namespace-symbol), ~where)), true]
-
-  Define new(line, x, y)
+  Define new(line, pattern expand, y)
 
 macro(define(x) ~(y: Block)):
   `(~x := ~(y block-body))

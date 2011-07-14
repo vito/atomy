@@ -1,10 +1,7 @@
-namespace(atomy)
+Atomy::MethodFail message :=
+  "method '" + @method-name to-s + "' did not understand " +
+    "its arguments (non-exhaustive patterns)"
 
-export:
-  Atomy::MethodFail message :=
-    "method '" + @method-name to-s + "' did not understand " +
-      "its arguments (non-exhaustive patterns)"
-
-  Atomy::PatternMismatch message :=
-    "pattern of type `" + @pattern class name split("::") last +
-      "' did not match value `" + @value show + "'"
+Atomy::PatternMismatch message :=
+  "pattern of type `" + @pattern class name split("::") last +
+    "' did not match value `" + @value show + "'"

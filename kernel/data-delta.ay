@@ -1,5 +1,3 @@
-namespace(atomy)
-
 for-macro:
   define-class(nil, e: Atomy::AST::Constant) := `(class(~e) {})
   define-class(root, e: Atomy::AST::Constant) := `(class(~e < ~root) {})
@@ -35,7 +33,7 @@ for-macro:
         then: `(~name < ~root)
         else: name
 
-    `(export:
+    `(do:
         class(~class):
           attr-accessor $:
             ~*(attrs collect [a]:
@@ -59,8 +57,7 @@ macro(data(root = 'Object) ~(children: Block)):
       nil)
 
 class(Atomy::AST::MacroQuote):
-  export:
-    quote(n, *_) := raise("unknown quoter: " + n inspect)
+  quote(n, *_) := raise("unknown quoter: " + n inspect)
 
 macro((x: Variable) ~(c: Atomy::AST::String)):
   MacroQuote new(
@@ -74,9 +71,8 @@ macro((x: Variable) ~(c: Atomy::AST::String)):
 macro(macro-quoter(n) [*as] { *cs }):
   `(evaluate-when(compile, load, run):
       class(Atomy::AST::MacroQuote):
-        export:
-          define(quote(#~n, ~*as)):
-            ~*cs)
+        define(quote(#~n, ~*as)):
+          ~*cs)
 
 for-macro:
   intp-segments(s) :=
@@ -143,32 +139,31 @@ macro(_undefined):
 macro($(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
   NthRef new(line, x value)
 
-export:
-  module(Atomy::AST):
-    class(Undefined < Node):
-      generate
+module(Atomy::AST):
+  class(Undefined < Node):
+    generate
 
-      bytecode(g) := do:
-        pos(g)
-        g push-undef
+    bytecode(g) := do:
+      pos(g)
+      g push-undef
 
-      pattern := Atomy::Patterns::Any new
+    pattern := Atomy::Patterns::Any new
 
-    class(NthRef < Rubinius::AST::NthRef):
-      include(NodeLike)
-      extend(SentientNode)
-      attributes(#which)
-      generate
+  class(NthRef < Rubinius::AST::NthRef):
+    include(NodeLike)
+    extend(SentientNode)
+    attributes(#which)
+    generate
 
-    class(Interpolation < Node):
-      children([#segments])
-      generate
+  class(Interpolation < Node):
+    children([#segments])
+    generate
 
-      bytecode(g) := do:
-        pos(g)
+    bytecode(g) := do:
+      pos(g)
 
-        @segments each [s]:
-          s compile(g)
+      @segments each [s]:
+        s compile(g)
 
-        g string-build(@segments size)
+      g string-build(@segments size)
 
