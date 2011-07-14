@@ -4,13 +4,13 @@ for-macro:
   wildcard('_) := '_undefined
   wildcard(x) := x
 
-macro(#(x: Send)):
+macro(#`(~r ~(x)(~*as))):
   `(Particle [
-      ~(if(x private)
+      ~(if(@receiver headless)
           then: '_undefined
-          else: wildcard(x receiver))
-      ~(Atomy::AST::Literal new(0, x method-name to-sym))
-      ~*(x arguments collect [c]: wildcard(c))
+          else: wildcard(r))
+      #~x
+      ~*(as collect [c]: wildcard(c))
     ])
 
 macro(#(x: BinarySend)):
@@ -18,9 +18,18 @@ macro(#(x: BinarySend)):
       ~(if(x private)
           then: '_undefined
           else: wildcard(x lhs))
-      ~(Atomy::AST::Literal new(0, x operator to-sym))
+      #~(x operator)
       ~(wildcard(x rhs))
     ])
+
+export:
+  `#(~r ~(x)(~*as)) pattern :=
+    Atomy::Patterns::List new $:
+      [ if(@receiver headless)
+          then: '_ pattern
+          else: r pattern
+        `#~x pattern
+      ] + as collect(&#pattern)
 
 export:
   class(Particle < Array):

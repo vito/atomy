@@ -19,12 +19,6 @@ module Atomy
         v.compile(g)
         g.send :const_set, 2
       end
-
-      def as_message(send)
-        send.dup.tap do |s|
-          s.method_name = @identifier
-        end
-      end
     end
 
     class ToplevelConstant < Node
@@ -46,12 +40,6 @@ module Atomy
         g.push_literal name
         v.compile(g)
         g.send :const_set, 2
-      end
-
-      def as_message(send)
-        send.dup.tap do |s|
-          s.method_name = @identifier
-        end
       end
     end
 
@@ -75,13 +63,6 @@ module Atomy
         g.push_literal name
         v.compile(g)
         g.send :const_set, 2
-      end
-
-      def as_message(send)
-        send.dup.tap do |s|
-          s.method_name = @identifier
-          s.receiver = @parent
-        end
       end
     end
   end

@@ -1,7 +1,7 @@
 module Atomy
   module AST
     class Operator < Node
-      attributes [:operators], :associativity, :precedence
+      attributes [:operators], [:associativity, ":left"], [:precedence, 5]
       generate
 
       def bytecode(g)

@@ -1,13 +1,15 @@
 namespace(atomy)
 
 for-macro:
-  define-class(root, e) := `(class(~e < ~root) {})
-  define-class(root, e: Atomy::AST::Send) := do:
-    name =
-      Atomy::AST::Constant new(0, e method-name)
-
+  define-class(nil, e: Atomy::AST::Constant) := `(class(~e) {})
+  define-class(root, e: Atomy::AST::Constant) := `(class(~e < ~root) {})
+  define-class(root, `(~n { ~*cs })) :=
+    define-class(root, `(~(n)() { ~*cs }))
+  define-class(root, x: `(~(name)(~*as))) :=
+    define-class(root, `(~x {}))
+  define-class(root, `(~(name)(~*as): ~*cs)) := do:
     attrs = []
-    e arguments each [a]:
+    as each [a]:
       a through-quotes [x]:
         x match:
           `@~_ -> attrs << x
@@ -33,36 +35,48 @@ for-macro:
         then: `(~name < ~root)
         else: name
 
-    define =
-      `(export:
-          class(~class):
-            attr-accessor $:
-              ~*(attrs collect [a]:
-                  `#~(a receiver))
+    `(export:
+        class(~class):
+          attr-accessor $:
+            ~*(attrs collect [a]:
+                `#~(a receiver))
 
-            initialize(~*(e arguments)) := nil
+          initialize(~*as) := nil
 
-          ~pat-def)
+        ~pat-def
 
-    if(e block)
-      then:
-        `(do:
-            ~define
-            ~*(e block contents collect [c]:
-                 define-class(name, c)))
-      else:
-        define
+        ~*(cs collect [c]: define-class(name, c)))
 
-macro(data(root = 'Object, &children)):
-  children ||= '{}
+macro('data ~(children: Block)):
+  `(data(Object) ~children)
 
+macro(data(root)):
+  `(data(~root) {})
+
+macro(data(root = 'Object) ~(children: Block)):
   `(do:
-      ~(define-class(nil, `(~root ~children)))
+      ~(define-class(nil, `(~(root) ~children)))
       nil)
 
-macro(macro-quoter(n, &x)):
-  `(evaluate-when(compile, load):
-      Atomy::Macro::Environment quoter(#~n, &~x))
+class(Atomy::AST::MacroQuote):
+  export:
+    quote(n, *_) := raise("unknown quoter: " + n inspect)
+
+macro((x: Variable) ~(c: Atomy::AST::String)):
+  MacroQuote new(
+    line,
+    x name,
+    c raw || c value,
+    @arguments collect(&#name)
+    c value
+  )
+
+macro(macro-quoter(n) [*as] { *cs }):
+  `(evaluate-when(compile, load, run):
+      class(Atomy::AST::MacroQuote):
+        export:
+          define(quote(#~n, ~*as)):
+            ~*cs)
 
 for-macro:
   intp-segments(s) :=
@@ -124,10 +138,10 @@ macro-quoter(raw) [r]: r
 macro-quoter(i) [_, _, v]: interpolated(v)
 
 macro(_undefined):
-  Atomy::AST::Undefined new(line)
+  Undefined new(line)
 
 macro($(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
-  Atomy::AST::NthRef new(line, x value)
+  NthRef new(line, x value)
 
 export:
   module(Atomy::AST):
@@ -154,7 +168,7 @@ export:
         pos(g)
 
         @segments each [s]:
-          s bytecode(g)
+          s compile(g)
 
         g string-build(@segments size)
 

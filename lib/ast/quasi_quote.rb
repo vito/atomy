@@ -13,7 +13,11 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-        @expression.recursively(&:resolve).construct(g, 1)
+        @expression.construct(g, 1)
+      end
+
+      def prepare_all
+        through_quotes(proc { true }, &:prepare_all)
       end
     end
   end

@@ -1,3 +1,8 @@
-`($~(x: Atomy::AST::Block)) as-message(send) :=
-  send receiver to-send dup tap [s]:
-    s arguments += x contents
+macro((x: Compose) $(y: Block)):
+  x expand dup tap [z]:
+    z arguments += y contents
+
+macro((x: Variable) $(y: Block)):
+  x = `(~(x)()) to-send
+  x arguments = y contents
+  x

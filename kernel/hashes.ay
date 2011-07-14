@@ -1,20 +1,28 @@
 namespace(atomy)
 
+for-macro:
+  key-name(x: Atomy::AST::Compose) := key-name(x message)
+  key-name(x: Atomy::AST::Variable) := x name
+
 macro(#(l: List)):
   keys = []
   values = []
 
-  l elements each [p]:
-    p match:
+  pairs = l elements dup
+  until(pairs empty?):
+    pairs pop match:
       `(~k -> ~v) -> do:
         keys << k
         values << v
 
-      Atomy::AST::Send -> do:
-        while(p respond-to?(#block) && p block):
-          keys << `#~(p method-name)
-          values << p block contents first
-          p =! p receiver
+      (p: Compose) -> do:
+        while(p is-a?(Compose) && p message is-a?(Block)):
+          keys << `#~(key-name(p receiver))
+          values << p message contents first
+          pairs += p message contents [1 .. -1]
+          if(p receiver is-a?(Compose))
+            then: p =! p receiver receiver
+            else: break
 
   Atomy::AST::Hash new(line, keys, values)
 

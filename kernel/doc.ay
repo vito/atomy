@@ -37,8 +37,8 @@ module(Atomy::Pretty):
   Raw     to-sexp := [#raw, @value]
   Line    to-sexp := [#line, @space?]
   Union   to-sexp := [#union, x to-sexp, y to-sexp]
-  Column  to-sexp := column
-  Nesting to-sexp := nesting
+  Column  to-sexp := #column
+  Nesting to-sexp := #nesting
 
   -- lazy values
   Union x := @x ||= @x-thunk call
@@ -165,7 +165,7 @@ module(Atomy::Pretty):
 
 -- quick access to the following helpers
 export-to(atomy):
-  macro(doc(&f)):
+  macro('doc ~(f: Block)):
     `(in-namespace(atomy/doc): ~*(f contents))
 
 -- trivial constructors

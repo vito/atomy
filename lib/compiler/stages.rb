@@ -42,7 +42,7 @@ module Atomy
         @print = true
       end
 
-      def input(code, file = "(eval)", line = 1)
+      def input(code, file = "(parser:eval)", line = 1)
         @input = code
         @file = file
         @line = line

@@ -118,9 +118,9 @@ section("Tests"):
     Test that \hl{predicate} is satisified by \hl{o} by evaluating it with \
     \hl{o} as \hl{self}.
   " for {
-    o should(&check) :=
-      unless(o onto(&check)):
-        raise(f"assertion failed for %v" [o])
+    macro(x should ~(check: Block)):
+      `(unless(~x onto ~check):
+          raise(f"assertion failed for %v" ['~x pretty]))
   } examples:
     (2 + 2) should: even?
     (2 + 2) should: odd?

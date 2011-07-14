@@ -28,7 +28,7 @@ module Atomy::Patterns
       when :self
         g.push_self
       else
-        Atomy.const_from_string(@value.class.name)
+        Atomy.const_from_string(g, @value.class.name)
       end
     end
 

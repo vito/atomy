@@ -3,7 +3,9 @@ module Atomy::Patterns
     attr_reader :quoted
 
     def initialize(x)
-      @quoted = x
+      @quoted = x.through_quotes(proc { true }) do |e|
+        e.to_pattern.to_node
+      end
     end
 
     def construct(g)
@@ -29,18 +31,67 @@ module Atomy::Patterns
       end
     end
 
-    def context(g, w)
+    def context(g, w, defaults)
       w.each do |c|
-        # TODO: fail if out of bounds?
-        # e.g. `(foo(~bar, ~baz)) = '(foo(1))
         if c.kind_of?(Array)
           g.send c[0], 0
+
+          dflt = defaults[c[1]]
+
+          if dflt
+            valid = g.new_label
+            done = g.new_label
+
+            g.dup
+            g.send :size, 0
+            g.push_int(c[1] + 1)
+            g.send :>=, 1
+            g.git valid
+
+            g.pop
+            dflt.default.compile(g)
+            g.goto done
+
+            valid.set!
+          end
+
           g.push_int c[1]
           g.send :[], 1
+
+          done.set! if dflt
         else
           g.send c, 0
         end
       end
+    end
+
+    def my_context(e, w)
+      x = e
+      w.each do |c|
+        if c.kind_of?(Array)
+          x = x.send(c[0])[c[1]]
+        else
+          x = x.send(c)
+        end
+      end
+      x
+    end
+
+    def required_size(ps)
+      req = 0
+      vary = false
+      defaults = {}
+      ps.each_with_index do |x, i|
+        if x.is_a?(Atomy::AST::Splice)
+          vary = true
+        elsif x.is_a?(Atomy::AST::Unquote) and x.expression.pattern.is_a?(Atomy::Patterns::Default)
+          vary = true
+          defaults[i] = x.expression.pattern
+        else
+          req += 1 unless vary
+        end
+      end
+      [req, vary, defaults]
     end
 
     def matches?(g)
@@ -53,8 +104,20 @@ module Atomy::Patterns
 
       where = nil
       splice = false
+      defaults = {}
 
       pre = proc { |e, c, d|
+        if c.kind_of?(Array) && c[1] == 0 &&
+            pats = my_context(@quoted.expression, (where + [c[0]]))
+          req, vary, defaults = required_size(pats)
+          g.push_stack_local them
+          context(g, where + [c[0]], defaults)
+          g.send :size, 0
+          g.push_int req
+          g.send(vary ? :>= : :==, 1)
+          g.gif mismatch
+        end
+
         where << c if c && where
 
         where = [] if !where and c == :expression
@@ -64,7 +127,7 @@ module Atomy::Patterns
         if !(e.unquote? && d == 1) && where && c != :unquoted
           e.get(g)
           g.push_stack_local them
-          context(g, where)
+          context(g, where, defaults)
           g.kind_of
           g.gif mismatch
 
@@ -79,7 +142,7 @@ module Atomy::Patterns
               g.push_literal val
             end
             g.push_stack_local them
-            context(g, where)
+            context(g, where, defaults)
             g.send a, 0
             g.send :==, 1
             g.gif mismatch
@@ -88,7 +151,7 @@ module Atomy::Patterns
           if e.bottom?
             e.construct(g)
             g.push_stack_local them
-            context(g, where)
+            context(g, where, defaults)
             g.send :==, 1
             g.gif mismatch
           end
@@ -103,12 +166,13 @@ module Atomy::Patterns
         ctx = where.last == :unquoted ? where[0..-2] : where
         g.push_stack_local them
         if splice
+          context(g, ctx[0..-2], defaults)
           g.send ctx.last[0], 0
           g.push_int ctx.last[1]
           g.send :drop, 1
           splice = false
         else
-          context(g, ctx)
+          context(g, ctx, defaults)
         end
         e.to_pattern.matches?(g)
         g.gif mismatch
@@ -131,8 +195,14 @@ module Atomy::Patterns
 
       where = nil
       splice = false
+      defaults = {}
 
       pre = proc { |n, c|
+        if c.kind_of?(Array) && c[1] == 0 &&
+            pats = my_context(@quoted.expression, (where + [c[0]]))
+          _, _, defaults = required_size(pats)
+        end
+
         where << c if c && where
 
         where = [] if !where and c == :expression
@@ -147,13 +217,14 @@ module Atomy::Patterns
       @quoted.through_quotes(pre, post) do |e|
         ctx = where.last == :unquoted ? where[0..-2] : where
         g.push_stack_local them
-        if splice
+        if splice &&
+          context(g, ctx[0..-2], defaults)
           g.send ctx.last[0], 0
           g.push_int ctx.last[1]
           g.send :drop, 1
           splice = false
         else
-          context(g, ctx)
+          context(g, ctx, defaults)
         end
         e.to_pattern.deconstruct(g)
         e
@@ -165,6 +236,7 @@ module Atomy::Patterns
 
       @quoted.through_quotes(proc { true }) do |e|
         names += e.to_pattern.local_names
+        e
       end
 
       names
@@ -175,6 +247,7 @@ module Atomy::Patterns
 
       @quoted.through_quotes(proc { true }) do |e|
         bindings += e.to_pattern.bindings
+        e
       end
 
       bindings

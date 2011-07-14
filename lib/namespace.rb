@@ -2,16 +2,20 @@ module Atomy
   NAMESPACES = {}
   NAMESPACE_DELIM = "_ns_"
 
-  def self.namespaced(ns, name)
-    return name.to_s if !ns or ns == "_"
-    ns.to_s + NAMESPACE_DELIM + name.to_s
+  def self.namespaced(*names)
+    names.collect!(&:to_s)
+    name = names.pop
+    ns = names.join(NAMESPACE_DELIM)
+    return name if ns.empty? or ns == "_"
+    raise "empty name" unless name && !name.empty?
+    ns + NAMESPACE_DELIM + name
   end
 
   def self.from_namespaced(resolved)
     split = resolved.to_s.split(NAMESPACE_DELIM)
     meth_name = split.pop
     ns_name = !split.empty? && split.join(NAMESPACE_DELIM)
-    [ns_name, meth_name]
+    [ns_name || nil, meth_name]
   end
 
   class Namespace
@@ -28,6 +32,7 @@ module Atomy
     end
 
     def register(sym)
+      raise "cannot register blank name" unless sym
       @symbols << sym unless contains?(sym)
     end
 

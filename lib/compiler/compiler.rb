@@ -41,7 +41,7 @@ module Atomy
       compiler.run
     end
 
-    def self.compile_string(string, file = "(eval)", line = 1, debug = false)
+    def self.compile_string(string, file = "(compile_string:eval)", line = 1, debug = false)
       compiler = new :atomy_string, :compiled_method
 
       parser = compiler.parser
@@ -56,7 +56,7 @@ module Atomy
       compiler.run
     end
 
-    def self.compile_eval(string, scope = nil, file = "(eval)", line = 1, debug = false)
+    def self.compile_eval(string, scope = nil, file = "(compile_eval:eval)", line = 1, debug = false)
       compiler = new :atomy_string, :compiled_method
 
       parser = compiler.parser
@@ -73,7 +73,7 @@ module Atomy
       compiler.run
     end
 
-    def self.compile_node(node, scope = nil, file = "(eval)", line = 1, debug = false)
+    def self.compile_node(node, scope = nil, file = "(compile_node:eval)", line = 1, debug = false)
       compiler = new :atomy_bytecode, :compiled_method
 
       eval = Rubinius::AST::EvalExpression.new(AST::Tree.new(line, [node]))
@@ -90,7 +90,7 @@ module Atomy
       compiler.run
     end
 
-    def self.evaluate_node(node, instance = nil, bnd = nil, file = "(eval)", line = 1)
+    def self.evaluate_node(node, instance = nil, bnd = nil, file = "(evaluate_node:eval)", line = 1)
       if bnd.nil?
         bnd = Binding.setup(
           Rubinius::VariableScope.of_sender,
@@ -122,7 +122,7 @@ module Atomy
       end
     end
 
-    def self.evaluate(string, bnd = nil, file = "(eval)", line = 1, debug = false)
+    def self.evaluate(string, bnd = nil, file = "(evaluate:eval)", line = 1, debug = false)
       if bnd.nil?
         bnd = Binding.setup(
           Rubinius::VariableScope.of_sender,

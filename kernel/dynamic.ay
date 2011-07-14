@@ -24,7 +24,7 @@ macro(dynamic(n, root)):
 
 macro(^x): dynvar(x)
 
-macro(let(*bindings, &body)):
+macro(let(*bindings) ~(body: Block)):
   tmps = names(bindings size)
   save = []
   set = []

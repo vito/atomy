@@ -1,12 +1,12 @@
 namespace(atomy)
 
-macro(x onto(&b)):
+macro(x onto ~(b: Block)):
   names [ctx]:
     shadowed? = false
 
     blk = b through-quotes [n]:
       n match:
-        `@~(v: Atomy::AST::Variable) -> do:
+        `@~(v: Variable) -> do:
           shadowed? =! true
           `(~ctx instance-variable-get(#~("@" + v name)))
 
@@ -14,11 +14,11 @@ macro(x onto(&b)):
           shadowed? =! true
           ctx
 
-        Atomy::AST::Send ? @private ->
+        Compose ? @headless ->
           n dup tap [p]:
             p receiver = 'self
 
-        Atomy::AST::BinarySend ? @private ->
+        BinarySend ? @private ->
           n dup tap [p]:
             p lhs = 'self
 

@@ -1,10 +1,73 @@
+-- a macro so we can actually, you know, send messages
+macro(x ~Variable): to-send
+
+macro(nil): Primitive new(line, "nil" to-sym)
+
+macro(self): Primitive new(line, "self" to-sym)
+
+macro(true): Primitive new(line, "true" to-sym)
+
+macro(false): Primitive new(line, "false" to-sym)
+
+macro(@x): InstanceVariable new(line, x name)
+
+macro(x = y): Assign new(line, x to-pattern to-node, y)
+
+-- foo { bar }
+macro(Variable ~Block):
+  x = `(~(@receiver)()) to-send
+  x block = @message
+  x
+
+-- [x, y] { x + y }
+macro(List ~Block):
+  @message arguments = @receiver elements
+  @message
+
+-- x foo { bar }
+macro(x ~(n: Variable) ~Block):
+  x = @receiver to-send
+  x block = @message
+  x
+
+-- collect [x] { x + 1 }
+macro((x: Variable) [*ys] ~(z: Block)):
+  z arguments = ys
+  x = `(~(x)()) to-send
+  x block = z
+  x
+
+-- [1, 2, 3] collect [x] { x + 1 }
+macro(x ~(n: Variable) [*ys] ~(z: Block)):
+  z arguments = ys
+  x = @receiver receiver to-send
+  x block = z
+  x
+
+-- foo [bar, ...]
+macro(x [*ys]):
+  to-send tap [x]:
+    x message-name = "[]"
+    x arguments = ys + x arguments
+
+-- Foo(...)
+macro(x ~Constant):
+  to-send tap [x]:
+    x message-name = @message identifier
+
+-- Bar::Foo(...)
+macro(x ~ScopedConstant):
+  to-send tap [x]:
+    x receiver = @message parent
+    x message-name = @message identifier
+
 macro(_LINE): line
-macro(_FILE): Atomy::AST::File new(line)
+macro(_FILE): File new(line)
 
 macro(import(name)): `(Atomy import(~name, "load" to-sym))
 
 "operators define cosmetics data comparison dynamic control-flow namespaces
-patterns precision data-delta documentation particles hashes node block
-doc pretty errors format concurrency io condition therie repl" split each [k]:
+patterns precision node data-delta particles hashes block documentation doc
+pretty errors format concurrency io condition therie repl" split each [k]:
   puts("loading " + k)
   import(File expand-path("../", _FILE) + "/" + k)

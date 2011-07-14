@@ -1,16 +1,16 @@
 namespace(atomy/format)
 
-macro(ast(root, &nodes)):
-  parent = root || 'Atomy::AST::Node
+macro('ast ~(nodes: Block)):
+  `(ast(Atomy::AST::Node) ~nodes)
+
+macro(ast(root) ~(nodes: Block)):
   cs = nodes contents map [e]:
     e match:
-      Atomy::AST::Send -> do:
-        name = Atomy::AST::Constant new(0, e method-name)
-
+      `(~(name)(~*args)) -> do:
         children = []
         attributes = []
 
-        e arguments each [a]:
+        args each [a]:
           a match:
             `[@~name] ->
               attributes << `[#~name]
@@ -21,16 +21,16 @@ macro(ast(root, &nodes)):
             _ ->
               children << a
 
-        `(class(~name < ~parent):
+        `(class(~name < ~root):
             children(~*children)
             attributes(~*attributes)
             generate)
 
       _ ->
-        `(class(~e < ~parent):
+        `(class(~e < ~root):
             generate)
 
-  when(root):
+  when(root != 'Atomy::AST::Node):
     cs unshift(`(class(~root < Atomy::AST::Node) {}))
 
   `(do: ~*cs)
@@ -61,7 +61,7 @@ module(Atomy::Format):
     Conditional([#branches], [#flags], #default?)
 
   ast(Flag):
-    Number(@value)
+    Number(@value?)
     Symbol(@character)
     ZeroPad
     Precision(@value)
