@@ -2678,7 +2678,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # binary_c = (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { bs.flatten }
+  # binary_c = (cont(pos) operator:o &{ !o.end_with?("@") } sig_wsp level2:e { [o, e] })+:bs { bs.flatten }
   def _binary_c(pos)
 
     _save = self.pos
@@ -2695,6 +2695,13 @@ class Atomy::Parser
         end
         _tmp = apply(:_operator)
         o = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _save3 = self.pos
+        _tmp = begin;  !o.end_with?("@") ; end
+        self.pos = _save3
         unless _tmp
           self.pos = _save2
           break
@@ -2722,34 +2729,41 @@ class Atomy::Parser
         _ary << @result
         while true
 
-          _save3 = self.pos
+          _save4 = self.pos
           while true # sequence
             _tmp = apply_with_args(:_cont, pos)
             unless _tmp
-              self.pos = _save3
+              self.pos = _save4
               break
             end
             _tmp = apply(:_operator)
             o = @result
             unless _tmp
-              self.pos = _save3
+              self.pos = _save4
+              break
+            end
+            _save5 = self.pos
+            _tmp = begin;  !o.end_with?("@") ; end
+            self.pos = _save5
+            unless _tmp
+              self.pos = _save4
               break
             end
             _tmp = apply(:_sig_wsp)
             unless _tmp
-              self.pos = _save3
+              self.pos = _save4
               break
             end
             _tmp = apply(:_level2)
             e = @result
             unless _tmp
-              self.pos = _save3
+              self.pos = _save4
               break
             end
             @result = begin;  [o, e] ; end
             _tmp = true
             unless _tmp
-              self.pos = _save3
+              self.pos = _save4
             end
             break
           end # end sequence
@@ -2779,7 +2793,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # binary_send = (level2:l binary_c(current_position):c { resolve(nil, l, c).first } | line:line operator:o sig_wsp expression:r { Atomy::AST::BinarySend.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })
+  # binary_send = (level2:l binary_c(current_position):c { resolve(nil, l, c).first } | line:line operator:o &{ !o.end_with?("@") } sig_wsp expression:r { Atomy::AST::BinarySend.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })
   def _binary_send
 
     _save = self.pos
@@ -2820,6 +2834,13 @@ class Atomy::Parser
         end
         _tmp = apply(:_operator)
         o = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _save3 = self.pos
+        _tmp = begin;  !o.end_with?("@") ; end
+        self.pos = _save3
         unless _tmp
           self.pos = _save2
           break
@@ -3905,8 +3926,8 @@ class Atomy::Parser
   Rules[:_sends] = rule_info("sends", "(line:line send:r cont(pos) level0:n args?:as { Atomy::AST::Compose.new(line, n, r, Array(as)) } | line:line level1:r cont(pos) level0:n args?:as { Atomy::AST::Compose.new(line, n, r, Array(as)) })")
   Rules[:_send] = rule_info("send", "@sends(current_position)")
   Rules[:_headless] = rule_info("headless", "line:line level0:n args:as { Atomy::AST::Compose.new(                         line,                         n,                         Atomy::AST::Primitive.new(line, :self),                         as,                         true                       )                     }")
-  Rules[:_binary_c] = rule_info("binary_c", "(cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs { bs.flatten }")
-  Rules[:_binary_send] = rule_info("binary_send", "(level2:l binary_c(current_position):c { resolve(nil, l, c).first } | line:line operator:o sig_wsp expression:r { Atomy::AST::BinarySend.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")
+  Rules[:_binary_c] = rule_info("binary_c", "(cont(pos) operator:o &{ !o.end_with?(\"@\") } sig_wsp level2:e { [o, e] })+:bs { bs.flatten }")
+  Rules[:_binary_send] = rule_info("binary_send", "(level2:l binary_c(current_position):c { resolve(nil, l, c).first } | line:line operator:o &{ !o.end_with?(\"@\") } sig_wsp expression:r { Atomy::AST::BinarySend.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")
   Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack(\"U\") } | < /\\d{1,6}/ > { [text.to_i].pack(\"U\") } | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack(\"U\") } | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack(\"U\") })")
   Rules[:_root] = rule_info("root", "wsp expressions:es wsp !. { Array(es) }")

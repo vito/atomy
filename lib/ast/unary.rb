@@ -1,4 +1,3 @@
-# TODO: ensure binary sends do not end with @
 module Atomy
   module AST
     class Unary < Node
