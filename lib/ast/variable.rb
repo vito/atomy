@@ -4,6 +4,8 @@ module Atomy
       attributes :name
       generate
 
+      alias :message_name :name
+
       def bytecode(g)
         pos(g)
 
@@ -14,10 +16,6 @@ module Atomy
           g.push_self
           g.send message_name.to_sym, 0
         end
-      end
-
-      def message_name
-        @name
       end
     end
   end
