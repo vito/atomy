@@ -43,9 +43,6 @@ module Atomy::Macro
   end
 
   def self.register(target, pattern, body, file = :macro, let = false)
-    #ns = Atomy::Namespace.get(Thread.current[:atomy_define_in])
-    #meth = !let && ns ? Atomy.namespaced(ns.name, name) : name
-
     name = let ? :"_let#{Environment.salt!}" : :_expand
 
     Atomy.define_method(

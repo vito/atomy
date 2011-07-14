@@ -1,8 +1,3 @@
-namespace(atomy)
-
--- condition kernel not loaded yet; predeclare this
-symbols(error)
-
 title"Input & Output"
 
 doc"Where to write normal output." for:
@@ -20,20 +15,20 @@ section("Output"):
   " spec {
     => x
   } for {
-    x print := x tap: ^output-port puts(x to-s)
+    x println := x tap: ^output-port puts(x to-s)
   } examples:
-    1 print
-    "hello" print
+    1 println
+    "hello" println
 
   doc"
     Write \hl{x to-s} to \hl{^output-port}.
   " spec {
     => x
   } for {
-    x display := x tap: ^output-port send(#print, x to-s)
+    x dump := x tap: ^output-port print(x to-s)
   } examples:
-    1 display
-    "hello" display
+    1 dump
+    "hello" dump
 
   doc"
     Write \hl{x show} to \hl{^output-port}.
@@ -61,10 +56,10 @@ section("Output"):
           ^output-port close
   } examples:
     with-output-to("foo"):
-      42 print
+      42 println
 
     with-output-to("foo", "a"):
-      "hello" print
+      "hello" println
 
     File open("foo", &#read)
 

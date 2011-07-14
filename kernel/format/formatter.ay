@@ -1,16 +1,13 @@
-namespace(atomy/format)
-
 module(Atomy::Format):
   class(Formatter):
     attr-accessor(#position)
 
-    export:
-      initialize(@line, @segments) :=
-        reset!
+    initialize(@line, @segments) :=
+      reset!
 
-      bytecode(g) := do:
-        pos(g)
-        construct(g)
+    bytecode(g) := do:
+      pos(g)
+      construct(g)
 
     reset! := do:
       @input = []
@@ -35,14 +32,13 @@ module(Atomy::Format):
 
       @output
 
-    export-to(atomy):
-      format(*inputs) := do:
-        res = scan(*inputs)
-        reset!
-        res
+    format(*inputs) := do:
+      res = scan(*inputs)
+      reset!
+      res
 
-      -- TODO: use alias-method
-      self [*inputs] := format(*inputs)
+    -- TODO: use alias-method
+    self [*inputs] := format(*inputs)
 
     peek-input := @input [@position]
 

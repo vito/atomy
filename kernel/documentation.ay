@@ -1,14 +1,3 @@
-namespace(atomy/documentation)
-
--- predeclare some methods
-in-namespace(atomy):
-  symbols(pretty, show)
-
-in-namespace(atomy/doc):
-  symbols(render)
-
-use(atomy/doc)
-
 for-macro:
   escape(x) :=
     x gsub(r"[\{\}\\]", raw"\\\0")
@@ -30,7 +19,7 @@ for-macro:
     indent(escape(meth show))
 
   to-thumb(d: `(data(~r))) :=
-    let(atomy/pretty/multiline? = true):
+    let(atomy-pretty-multiline? = true):
       indent $: escape $:
         if(r && r != 'Object)
           then:
@@ -71,80 +60,79 @@ macro('for-docs ~(body: Block)):
   `(when(^documentation):
       ^documentation << ~(body block-body))
 
-export-to(atomy):
-  macro-quoter(doc) [c]:
-    for-docs:
-      c + "\n\n"
+macro-quoter(doc) [c]:
+  for-docs:
+    c + "\n\n"
 
-    c
+  c
 
-  macro-quoter(title) [c]:
-    for-docs:
-      "\\title{" + escape(c) + "}\n\n"
+macro-quoter(title) [c]:
+  for-docs:
+    "\\title{" + escape(c) + "}\n\n"
 
-    c
+  c
 
-  macro(section(name) ~(body: Block)):
-    names [res]:
-      `(do:
-          evaluate-when(compile):
-            for-docs: "\\section{" + ~name + "}{\n\\style{Atomy}\n\n"
+macro(section(name) ~(body: Block)):
+  names [res]:
+    `(do:
+        evaluate-when(compile):
+          for-docs: "\\section{" + ~name + "}{\n\\style{Atomy}\n\n"
 
-          ~res = ~(body caller)
+        ~res = ~(body caller)
 
-          evaluate-when(compile):
-            for-docs: "}"
+        evaluate-when(compile):
+          for-docs: "}"
 
-          ~res)
+        ~res)
 
-  macro(docs spec ~(s: Block) for ~(code: Block)):
-    for-docs:
-      [ "\\define{"
-        "\n" + to-thumb(code contents first)
-        to-spec(s contents)
-        "\n}{"
-        docs contents
-        "}\n\n"
-      ] join
+macro(docs spec ~(s: Block) for ~(code: Block)):
+  for-docs:
+    [ "\\define{"
+      "\n" + to-thumb(code contents first)
+      to-spec(s contents)
+      "\n}{"
+      docs contents
+      "}\n\n"
+    ] join
 
-    code block-body
+  code block-body
 
-  macro(docs for ~(code: Block)):
-    for-docs:
-      [ "\\define{"
-        "\n" + to-thumb(code contents first)
-        "\n}{"
-        docs contents
-        "}\n\n"
-      ] join
+macro(docs for ~(code: Block)):
+  for-docs:
+    [ "\\define{"
+      "\n" + to-thumb(code contents first)
+      "\n}{"
+      docs contents
+      "}\n\n"
+    ] join
 
-    code block-body
+  code block-body
 
-  macro(docs spec ~(s: Block) for ~(code: Block) examples ~(es: Block)):
-    for-docs:
-      [ "\\define{"
-        "\n" + to-thumb(code contents first)
-        to-spec(s contents)
-        "\n}{"
-        docs contents
-        "\n  \\examples{"
-        "\n" + to-examples(es contents)
-        "\n  }"
-        "\n}\n\n"
-      ] join
+macro(docs spec ~(s: Block) for ~(code: Block) examples ~(es: Block)):
+  for-docs:
+    [ "\\define{"
+      "\n" + to-thumb(code contents first)
+      to-spec(s contents)
+      "\n}{"
+      docs contents
+      "\n  \\examples{"
+      "\n" + to-examples(es contents)
+      "\n  }"
+      "\n}\n\n"
+    ] join
 
-    code block-body
+  code block-body
 
-  macro(docs for ~(code: Block) examples ~(es: Block)):
-    for-docs:
-      [ "\\define{"
-        "\n" + to-thumb(code contents first)
-        "\n}{"
-        docs contents
-        "\n  \\examples{"
-        "\n" + to-examples(es contents)
-        "\n  }"
-        "\n}\n\n"
-      ] join
+macro(docs for ~(code: Block) examples ~(es: Block)):
+  for-docs:
+    [ "\\define{"
+      "\n" + to-thumb(code contents first)
+      "\n}{"
+      docs contents
+      "\n  \\examples{"
+      "\n" + to-examples(es contents)
+      "\n  }"
+      "\n}\n\n"
+    ] join
 
-    code block-body
+  code block-body

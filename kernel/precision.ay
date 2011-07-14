@@ -1,176 +1,173 @@
-namespace(atomy)
+module(Atomy::Patterns):
+  -- pattern precision hierarchy, from least precise to most
+  [ [ Any, BlockPass, Splat, Attribute,
+      NamedClass, NamedGlobal, NamedInstance
+    ]
 
-export:
-  module(Atomy::Patterns):
-    -- pattern precision hierarchy, from least precise to most
-    [ [ Any, BlockPass, Splat, Attribute,
-        NamedClass, NamedGlobal, NamedInstance
-      ]
+    [Constant, SingletonClass, RuntimeClass]
 
-      [Constant, SingletonClass, RuntimeClass]
+    [HeadTail]
 
-      [HeadTail]
+    [List, QuasiQuote]
 
-      [List, QuasiQuote]
+    [Match, Literal, Quote]
+  ] each-with-index [ps, i]:
+      ps each [a]:
+        a send(#define-method, #precision):
+          i
 
-      [Match, Literal, Quote]
-    ] each-with-index [ps, i]:
-        ps each [a]:
-          a send(#define-method, #precision):
-            i
+  Pattern precision := 0
 
-    Pattern precision := 0
+  Named precision := @pattern precision
 
-    Named precision := @pattern precision
+  Predicate precision :=
+    @pattern precision + 1
 
-    Predicate precision :=
-      @pattern precision + 1
+  (a: Pattern) <=> (b: Pattern) :=
+    a precision <=> b precision
 
-    (a: Pattern) <=> (b: Pattern) :=
-      a precision <=> b precision
+  (a: BlockPass) <=> (b: BlockPass) :=
+    a pattern <=> b pattern
 
-    (a: BlockPass) <=> (b: BlockPass) :=
-      a pattern <=> b pattern
+  -- if one constant is a subclass of another, it is
+  -- higher precision.
+  (a: Constant) <=> (b: Constant) :=
+    condition:
+      (a ancestors nil? || b ancestors nil?) ->
+        0
 
-    -- if one constant is a subclass of another, it is
-    -- higher precision.
-    (a: Constant) <=> (b: Constant) :=
+      (a ancestors first == b ancestors first) ->
+        0
+
+      b ancestors include?(a ancestors first) ->
+        -1
+
+      a ancestors include?(b ancestors first) ->
+        1
+
+      otherwise ->
+        0
+
+  (a: HeadTail) <=> (b: HeadTail) :=
+    Atomy::Patterns
+      compare([a head, a tail], [b head, b tail])
+
+  (a: List) <=> (b: List) :=
+    Atomy::Patterns
+      compare(a patterns, b patterns)
+
+  (a: Splat) <=> (b: Splat) :=
+    a pattern <=> b pattern
+
+  (a: Default) <=> (b: Default) :=
+    a pattern <=> b pattern
+  (d: Default) <=> (p: Pattern) := d pattern <=> p
+  (p: Pattern) <=> (d: Default) := p <=> d pattern
+
+  (a: Named) <=> (b: Named) :=
+    a pattern <=> b pattern
+  (n: Named) <=> (p: Pattern) :=
+    n pattern <=> p
+  (p: Pattern) <=> (n: Named) :=
+    p <=> n pattern
+
+  (a: QuasiQuote) <=> (b: QuasiQuote) := do:
+    total = 0
+
+    a quoted walk-with(
+      b quoted
+      [a, b] { a unquote? && b unquote? }
+    ) [x, y]:
       condition:
-        (a ancestors nil? || b ancestors nil?) ->
-          0
+        x nil? || y nil? ->
+          if(x nil?)
+            then: total -= 1
+            else: total += 1
 
-        (a ancestors first == b ancestors first) ->
-          0
+        x unquote? && y unquote? ->
+          (total +=
+            (x expression to-pattern <=>
+              y expression to-pattern))
 
-        b ancestors include?(a ancestors first) ->
-          -1
+        x unquote? ->
+          (total +=
+            (x expression to-pattern <=>
+              `'~y to-pattern))
 
-        a ancestors include?(b ancestors first) ->
-          1
+        y unquote? ->
+          (total +=
+            (`'~x to-pattern <=>
+              y expression to-pattern))
 
-        otherwise ->
-          0
-
-    (a: HeadTail) <=> (b: HeadTail) :=
-      Atomy::Patterns
-        compare([a head, a tail], [b head, b tail])
-
-    (a: List) <=> (b: List) :=
-      Atomy::Patterns
-        compare(a patterns, b patterns)
-
-    (a: Splat) <=> (b: Splat) :=
-      a pattern <=> b pattern
-
-    (a: Default) <=> (b: Default) :=
-      a pattern <=> b pattern
-    (d: Default) <=> (p: Pattern) := d pattern <=> p
-    (p: Pattern) <=> (d: Default) := p <=> d pattern
-
-    (a: Named) <=> (b: Named) :=
-      a pattern <=> b pattern
-    (n: Named) <=> (p: Pattern) :=
-      n pattern <=> p
-    (p: Pattern) <=> (n: Named) :=
-      p <=> n pattern
-
-    (a: QuasiQuote) <=> (b: QuasiQuote) := do:
-      total = 0
-
-      a quoted walk-with(
-        b quoted
-        [a, b] { a unquote? && b unquote? }
-      ) [x, y]:
-        condition:
-          x nil? || y nil? ->
-            if(x nil?)
-              then: total -= 1
-              else: total += 1
-
-          x unquote? && y unquote? ->
-            (total +=
-              (x expression to-pattern <=>
-                y expression to-pattern))
-
-          x unquote? ->
-            (total +=
-              (x expression to-pattern <=>
-                `'~y to-pattern))
-
-          y unquote? ->
-            (total +=
-              (`'~x to-pattern <=>
-                y expression to-pattern))
-
-      total <=> 0
+    total <=> 0
 
 
-    -- equivalence ignores named patterns
-    (a: Named) =~ (b: Named) :=
-      a pattern =~ b pattern
-    Named =~ (p: Pattern) := pattern =~ p
-    Pattern =~ (n: Named) := (=~ n pattern)
+  -- equivalence ignores named patterns
+  (a: Named) =~ (b: Named) :=
+    a pattern =~ b pattern
+  Named =~ (p: Pattern) := pattern =~ p
+  Pattern =~ (n: Named) := (=~ n pattern)
 
-    Any =~ Any := true
+  Any =~ Any := true
 
-    (a: BlockPass) =~ (b: BlockPass) :=
-      a pattern =~ b pattern
+  (a: BlockPass) =~ (b: BlockPass) :=
+    a pattern =~ b pattern
 
-    (a: Constant) =~ (b: Constant) :=
-      a constant =~ b constant
+  (a: Constant) =~ (b: Constant) :=
+    a constant =~ b constant
 
-    (a: Default) =~ (b: Default) :=
-      a pattern =~ b pattern
-    Default =~ (p: Pattern) := pattern =~ p
-    Pattern =~ (n: Default) := (=~ n pattern)
+  (a: Default) =~ (b: Default) :=
+    a pattern =~ b pattern
+  Default =~ (p: Pattern) := pattern =~ p
+  Pattern =~ (n: Default) := (=~ n pattern)
 
-    (a: HeadTail) =~ (b: HeadTail) :=
-      a head =~ b head && a tail =~ b tail
+  (a: HeadTail) =~ (b: HeadTail) :=
+    a head =~ b head && a tail =~ b tail
 
-    (a: List) =~ (b: List) :=
-      a patterns size == b patterns size &&
-        a patterns zip(b patterns) all? [[a, b]]:
-          a =~ b
+  (a: List) =~ (b: List) :=
+    a patterns size == b patterns size &&
+      a patterns zip(b patterns) all? [[a, b]]:
+        a =~ b
 
-    (a: Match) =~ (b: Match) :=
-      a value == b value
+  (a: Match) =~ (b: Match) :=
+    a value == b value
 
-    (a: Literal) =~ (b: Literal) :=
-      a value == b value
+  (a: Literal) =~ (b: Literal) :=
+    a value == b value
 
-    (a: SingletonClass) =~ (b: SingletonClass) :=
-      a body == b body
+  (a: SingletonClass) =~ (b: SingletonClass) :=
+    a body == b body
 
-    NamedClass =~ NamedClass := true
+  NamedClass =~ NamedClass := true
 
-    NamedGlobal =~ NamedGlobal := true
+  NamedGlobal =~ NamedGlobal := true
 
-    NamedInstance =~ NamedInstance := true
+  NamedInstance =~ NamedInstance := true
 
-    (a: QuasiQuote) =~ (b: QuasiQuote) :=
-      -- TODO: go through quotes.
-      a expression == b expression
+  (a: QuasiQuote) =~ (b: QuasiQuote) :=
+    -- TODO: go through quotes.
+    a expression == b expression
 
-    (a: Quote) =~ (b: Quote) :=
-      a expression == b expression
+  (a: Quote) =~ (b: Quote) :=
+    a expression == b expression
 
-    (a: Splat) =~ (b: Splat) :=
-      a pattern =~ b pattern
+  (a: Splat) =~ (b: Splat) :=
+    a pattern =~ b pattern
 
-    (a: Attribute) =~ (b: Attribute) :=
-      a receiver == b receiver &&
-        a name == b name &&
-        a arguments == b arguments
+  (a: Attribute) =~ (b: Attribute) :=
+    a receiver == b receiver &&
+      a name == b name &&
+      a arguments == b arguments
 
-    Pattern =~ Pattern := false
+  Pattern =~ Pattern := false
 
 
-    -- helper for comparing aggregate patterns like lists
-    { self } compare(xs, ys) := do:
-      total = 0
+  -- helper for comparing aggregate patterns like lists
+  { self } compare(xs, ys) := do:
+    total = 0
 
-      xs zip(ys) [[x, y]]:
-        unless(y nil?):
-          total += x <=> y
+    xs zip(ys) [[x, y]]:
+      unless(y nil?):
+        total += x <=> y
 
-      total <=> 0
+    total <=> 0

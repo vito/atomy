@@ -1,5 +1,3 @@
-namespace(atomy)
-
 title"The REPL"
 
 require("readline")
@@ -73,7 +71,7 @@ doc"
   class(ReplDebugger):
     class(<< self):
       show-backtrace(e) := do:
-        Rubinius::Backtrace backtrace(e backtrace) _/show print
+        Rubinius::Backtrace backtrace(e backtrace) show println
         debug(e)
 
       run(e) := do:
@@ -85,7 +83,7 @@ doc"
       debug(e) := do:
         DefaultDebugger show-options-for(e)
 
-        { basic-repl } bind:
+        { send(#basic-repl) } bind:
           #prompt -> restart(#use-prompt, "[!]> ")
 
           #special(n ? (=~ r"\d+")) ->
@@ -114,8 +112,8 @@ doc"
     SANE_HISTORY = []
 
     { let(debugger = ReplDebugger,
-          atomy/pretty/multiline? = true,
-          atomy/pretty/colored? = true):
+          atomy-pretty-multiline? = true,
+          atomy-pretty-colored? = true):
         frame = 0
 
         { basic-repl(bnd)
@@ -131,10 +129,10 @@ doc"
           #input(str) -> (SANE_HISTORY << str)
 
           #special("h") ->
-            ":h\thelp" print
+            ":h\thelp" println
 
           #evaluated(r) -> doc:
-            (text(" =>") <+> r pretty) render(76) print
+            (text(" =>") <+> r pretty) render(76) println
     } ensuring:
       when(history):
         File open(history, "a") [f]:

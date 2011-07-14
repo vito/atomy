@@ -4,12 +4,7 @@ module Atomy
     class Unary < Node
       children :receiver
       attributes :operator
-      slots :namespace?
       generate
-
-      def message_name
-        Atomy.namespaced(@namespace, @operator)
-      end
 
       def macro_pattern
         x = unquote_children
@@ -59,13 +54,7 @@ module Atomy
       def bytecode(g)
         pos(g)
         @receiver.compile(g)
-        if @namespace == "_"
-          g.send @operator.to_sym, 0
-        else
-          g.push_literal message_name.to_sym
-          g.send :atomy_send, 1
-          #g.call_custom message_name.to_sym, 0
-        end
+        g.send message_name.to_sym, 0
       end
 
       def message_name

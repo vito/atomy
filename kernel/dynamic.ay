@@ -4,7 +4,7 @@ for-macro:
   key(n) :=
     Atomy::AST::Variable new $:
       n line
-      "atomy_" + n resolve message-name
+      "atomy_" + n message-name
 
   dynvar(x) :=
     `(Thread current [#~key(x)] || Atomy::DYNAMIC_ROOTS [#~x])
@@ -13,13 +13,6 @@ for-macro:
     `(Thread current [#~key(n)] = ~v)
 
 macro(dynamic(n, root)):
-  where = Atomy::Namespace define-target
-
-  Atomy::Namespace register(n namespace-symbol, where)
-
-  Atomy::CodeLoader when-load <<
-    [`(Atomy::Namespace register(~(n namespace-symbol), ~where)), true]
-
   `(Atomy::DYNAMIC_ROOTS [#~n] = ~root)
 
 macro(^x): dynvar(x)
