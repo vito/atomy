@@ -1,33 +1,26 @@
 $main = me
 
-start: token :=
-  { h = Range new(2, 503) to_a reverse inject(me) { pid id |
-      spawn { roundtrip: id next: pid }
-    }
+start(token) := do:
+  h = (2 .. 503) to-a reverse inject(me) [pid, id]:
+    spawn: roundtrip(id, pid)
 
-    h <- token
+  h <- token
 
-    roundtrip: 1 next: h
-  } call
+  roundtrip(1, h)
 
-True not := False
-False not := True
+roundtrip(id, pid) :=
+  loop:
+    receive:
+      #done ->
+        return(nil)
 
-roundtrip: id next: pid :=
-  loop {
-    receive {
-      #done -> return(nil)
-
-      1 ->
-        { p(id)
-          $main <- #done
-        } call
+      1 -> do:
+        id println
+        $main <- #done
 
       token ->
         (pid <- (token - 1))
-    }
-  }
 
 started = Time now
-start: 498
+start(498)
 p(Time now - started)
