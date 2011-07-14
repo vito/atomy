@@ -1,55 +1,67 @@
 dynamic(labels, Hash new)
 
-macro(if(x) then(&y) else(&z)):
-  Atomy::AST::IfThenElse new(line, x, y body, z body)
+macro(if(x) then ~(y: Block) else ~(z: Block)):
+  IfThenElse new(line, x, y body, z body)
 
 macro(otherwise): 'true
 
-macro(condition(&bs)):
+macro('condition ~(bs: Block)):
   bs contents reverse inject('nil) [acc, `(~x -> ~y)]:
     `(if(~x) then: ~y; else: ~acc)
 
 macro(return(y)):
-  Atomy::AST::Return new(line, y)
+  Return new(line, y)
 
-macro(x rescue(&y)):
-  Atomy::AST::Catch new(line, x caller, y contents)
+macro(x rescue ~(y: Block)):
+  branches = y contents collect [`(~p -> ~e)]:
+    RescueHandler new(p line, p, e)
 
-macro(x rescue(&y) else(&z)):
-  Atomy::AST::Catch new(line, x caller, y contents, z body)
+  Catch new(line, x caller, branches)
 
-macro(x ensuring(&y)):
-  Atomy::AST::Ensure new(line, x caller, y body)
+macro(x rescue ~(y: Block) else ~(z: Block)):
+  branches = y contents collect [`(~p -> ~e)]:
+    RescueHandler new(p line, p, e)
 
-macro(when(c, &b)):
-  Atomy::AST::When new(line, c, b body)
+  Catch new(line, x caller, branches, z body)
 
-macro(unless(c, &b)):
-  Atomy::AST::When new(line, `!~c, b body)
+macro(x ensuring ~(y: Block)):
+  Ensure new(line, x caller, y body)
+
+macro(when(c) ~(b: Block)):
+  When new(line, c, b body)
+
+macro(unless(c) ~(b: Block)):
+  When new(line, `!~c, b body)
 
 macro(super):
-  Atomy::AST::ZSuper new(line)
+  ZSuper new(line)
 
-macro(super(*args, &blk)):
-  Atomy::AST::Super new(line, args, blk)
+macro('super ~(blk: Block)):
+  Super new(line, [], blk)
+
+macro(super(*args) ~(blk: Block)):
+  Super new(line, args, blk)
+
+macro(super(*args)):
+  Super new(line, args, nil)
 
 macro(yield):
-  Atomy::AST::Yield new(line, [])
+  Yield new(line, [])
 
 macro(yield(*args)):
-  Atomy::AST::Yield new(line, args)
+  Yield new(line, args)
 
 macro(break):
-  Atomy::AST::Break new(line, 'nil)
+  Break new(line, 'nil)
 
 macro(break(x)):
-  Atomy::AST::Break new(line, x)
+  Break new(line, x)
 
 macro(next):
-  Atomy::AST::Next new(line, 'nil)
+  Next new(line, 'nil)
 
 macro(next(x)):
-  Atomy::AST::Next new(line, x)
+  Next new(line, x)
 
 module(Atomy::AST):
   class(Labels < Node):
@@ -63,15 +75,20 @@ module(Atomy::AST):
 
       labels =
         @tags collect [t]:
-          tags [t method-name] = g new-label
+          tags [t name] = g new-label
 
       let(labels = tags):
         labels zip(@tags) each [[l, t]]:
           l set!
-          t block body bytecode(g)
+          t body compile(g)
           g pop
 
       g push-nil
+
+  class(LabelBranch < Node):
+    children(#body)
+    attributes(#name)
+    generate
 
   class(GoTo < Node):
     attributes(#name)
@@ -178,45 +195,51 @@ module(Atomy::AST):
       @value compile(g)
       g ret
 
-macro(labels(&body)):
-  `(let-macro(go(name) = Atomy::AST::GoTo new(line, name name)):
-      ~(Atomy::AST::Labels new(line, body contents)))
+macro('labels ~(body: Block)):
+  branches = body contents collect [`(~(n) ~(b))]:
+    LabelBranch new(n line, b body, n name)
 
-macro(while(test, &body)):
+  `(let-macro(go(name) = GoTo new(line, name name)):
+      ~(Labels new(line, branches)))
+
+macro(while(test) ~(body: Block)):
   names [loop, done]:
-    `(let-macro(break = 'go(~done),
-                next = 'go(~loop)):
-        labels:
-          ~loop:
-            unless(~test):
-              go(~done)
+    `(labels:
+        ~loop:
+          unless(~test):
+            go(~done)
 
+          let-macro(break = 'go(~done),
+                    next = 'go(~loop)):
             ~(body caller)
-            go(~loop)
 
-          ~done {})
+          go(~loop)
 
-macro(until(test, &body)):
+        ~done {})
+
+macro(until(test) ~(body: Block)):
   names [loop, done]:
-    `(let-macro(break = 'go(~done),
-                next = 'go(~loop)):
-        labels:
-          ~loop:
-            when(~test):
-              go(~done)
+    `(labels:
+        ~loop:
+          when(~test):
+            go(~done)
 
+          let-macro(break = 'go(~done),
+                    next = 'go(~loop)):
             ~(body caller)
-            go(~loop)
 
-          ~done {})
+          go(~loop)
 
-macro(loop(&body)):
+        ~done {})
+
+macro('loop ~(body: Block)):
   names [loop, done]:
-    `(let-macro(break = 'go(~done),
-                next = 'go(~loop)):
-        labels:
-          ~loop:
+    `(labels:
+        ~loop:
+          let-macro(break = 'go(~done),
+                    next = 'go(~loop)):
             ~(body caller)
-            go(~loop)
 
-          ~done {})
+          go(~loop)
+
+        ~done {})

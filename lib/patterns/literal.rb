@@ -18,7 +18,7 @@ module Atomy::Patterns
     end
 
     def target(g)
-      Atomy.const_from_string(@value.class.name)
+      Atomy.const_from_string(g, @value.class.name)
     end
 
     def matches?(g)

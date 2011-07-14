@@ -13,5 +13,9 @@ module Atomy::AST
     def bytecode(g)
       @pattern.construct(g)
     end
+
+    def to_pattern
+      @pattern
+    end
   end
 end

@@ -23,11 +23,11 @@ export:
     `(~a | ~b) pattern :=
       Atomy::Patterns::Or new(a to-pattern, b to-pattern)
 
-    `(with(~e, ~y)) pattern :=
-      Atomy::Patterns::With new(Atomy::Patterns::Any new, e, y to-pattern)
-
     `(~x with(~e, ~y)) pattern :=
       Atomy::Patterns::With new(x to-pattern, e, y to-pattern)
+
+    `(with(~e, ~y)) pattern :=
+      Atomy::Patterns::With new(Atomy::Patterns::Any new, e, y to-pattern)
 
     `@@~n pattern :=
       Atomy::Patterns::NamedClass new(n name)
@@ -46,6 +46,21 @@ export:
 
     `*~x pattern :=
       Atomy::Patterns::Splat new(x to-pattern)
+
+    'self pattern :=
+      Atomy::Patterns::Match new(#self)
+
+    'true pattern :=
+      Atomy::Patterns::Match new(#true)
+
+    'false pattern :=
+      Atomy::Patterns::Match new(#false)
+
+    'nil pattern :=
+      Atomy::Patterns::Match new(#nil)
+
+    `#~(x: Atomy::AST::Variable) pattern :=
+      Atomy::Patterns::Literal new(x name to-sym)
 
     `(Particle [~*as]) pattern :=
       Atomy::Patterns::List new(as collect [a]: a to-pattern)

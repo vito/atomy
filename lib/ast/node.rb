@@ -120,6 +120,16 @@ EOF
 
         class_eval <<EOF
           def initialize(line#{args})
+            raise "initialized with non-integer `line': \#{line}" unless line.is_a?(Integer)
+            #{@@children[:required].collect { |n| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(NodeLike)" }.join("; ")}
+            #{@@children[:many].collect { |n| "raise \"initialized with non-array `#{n}': \#{#{n}_.inspect}\" unless #{n}_.kind_of?(Array)" }.join("; ")}
+            #{@@children[:many].collect { |n| "raise \"initialized with non-homogenous array `#{n}': \#{#{n}_.collect(&:class).inspect}\" unless #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
+            #{@@children[:optional].collect { |n, _| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(NodeLike)" }.join("; ")}
+            #{@@attributes[:required].collect { |a| "raise \"initialized without `#{a}': \#{#{a}_.inspect}\" if #{a}_.nil?" }.join("; ")}
+            #{@@attributes[:many].collect { |a| "raise \"initialized with non-array `#{a}': \#{#{a}_.inspect}\" unless #{a}_.kind_of?(Array)" }.join("; ")}
+            #{@@slots[:required].collect { |s| "raise \"initialized without `#{s}': \#{#{s}_.inspect}\" if #{s}_.nil?" }.join("; ")}
+            #{@@slots[:many].collect { |s| "raise \"initialized with non-array `#{s}': \#{#{s}_.inspect}\" unless #{s}_.kind_of?(Array)" }.join("; ")}
+
             @line = line
             #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
           end
@@ -248,6 +258,59 @@ EOF
           end
 EOF
 
+        creq_cs =
+          @@children[:required].collect { |n|
+            ", f.call(@#{n})"
+          }.join
+
+        cmany_cs =
+          @@children[:many].collect { |n|
+            ", @#{n}.each.collect { |n| f.call(n) }"
+          }.join
+
+        copt_cs =
+          @@children[:optional].collect { |n, _|
+            ", @#{n} ? f.call(@#{n}) : nil"
+          }.join
+
+        all =
+          (@@children[:required] +
+            @@children[:many] +
+            @@children[:optional]).collect { |n| "@#{n}" }
+
+        class_eval <<EOF
+          def children(&f)
+            if block_given?
+              #{self.name}.new(
+                @line#{creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss}
+              )
+            else
+              [#{all.join(", ")}]
+            end
+          end
+EOF
+
+        class_eval <<EOF
+          def walk_with(b, stop = nil, &f)
+            f.call(self, b)
+
+            return unless b.is_a?(#{self.name}) && (stop && !stop.call(self, b))
+
+            children.zip(b.children) do |x, y|
+              if x.is_a?(Array)
+                x.zip(y) do |x2, y2|
+                  x2.walk_with(y2, stop, &f)
+                end
+              elsif x
+                x.walk_with(y, stop, &f)
+              elsif y
+                # x is nil, y is not
+                f.call(x, y)
+              end
+            end
+          end
+EOF
+
         class_eval <<EOF
           def bottom?
             #{@@children.values.flatten(1).empty?.inspect}
@@ -282,9 +345,13 @@ EOF
         a_many = @@attributes[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
         a_optional = @@attributes[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
 
+        s_required = @@slots[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        s_many = @@slots[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        s_optional = @@slots[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
+
         class_eval <<EOF
           def to_sexp
-            [:"#{self.name.split("::").last.downcase}"#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}]
+            [:"#{self.name.split("::").last.downcase}"#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}]
           end
 EOF
 
@@ -293,25 +360,6 @@ EOF
 
     module NodeLike
       attr_accessor :line
-
-      # yield this node's subnodes to a block recursively, and then itself
-      # override this if for nodes with children, ie lists
-      #
-      # stop = predicate to determine whether to stop at a node before
-      # recursing into its children
-      def recursively(stop = nil, &f)
-        f.call(self)
-      end
-
-      # used to construct this expression in a quasiquote
-      # g = generator, d = depth
-      #
-      # quasiquotes should increase depth, unquotes should decrease
-      # an unquote at depth 0 should push the unquote's contents rather
-      # than itself
-      def construct(g, d)
-        raise Rubinius::CompileError, "no #construct for #{self}"
-      end
 
       def through_quotes(pre_ = nil, post_ = nil, &f)
         depth = 0
@@ -387,24 +435,12 @@ EOF
         self
       end
 
-      def to_send
-        Send.new(
-          @line,
-          Primitive.new(@line, :self),
-          [],
-          self,
-          nil,
-          nil,
-          true
-        )
-      end
-
-      def method_name
+      def message_name
         nil
       end
 
       def namespace_symbol
-        method_name && method_name.to_sym
+        message_name && message_name.to_sym
       end
 
       def unquote?
@@ -412,57 +448,87 @@ EOF
       end
 
       def caller
-        Atomy::AST::Send.new(
+        Send.new(
           @line,
           self,
           [],
-          Atomy::AST::Variable.new(@line, "call"),
-          nil,
-          nil
+          "call"
         )
-      end
-
-      def expand
-        Atomy::Macro.expand(self)
       end
 
       def namespace
         nil
       end
 
-      def evaluate(onto = nil)
-        Atomy::Compiler.evaluate_node(self, onto, TOPLEVEL_BINDING)
+      def evaluate(onto = nil, bnd = TOPLEVEL_BINDING)
+        Atomy::Compiler.evaluate_node(self, onto, bnd)
       end
 
       def resolve
+        return self if @namespace
+
         ns = Atomy::Namespace.get
-        return self if @namespace || !ns
 
         case self
-        when Atomy::AST::Send, Atomy::AST::Variable,
-              Atomy::AST::BinarySend, Atomy::AST::Unary
-          y = dup
-          if n = ns.resolve(namespace_symbol)
-            y.namespace = n.to_s
-          else
-            y.namespace = "_"
+        when Atomy::AST::Variable, Atomy::AST::BinarySend,
+              Atomy::AST::Unary, Atomy::AST::Send
+          dup.tap do |y|
+            if ns and n = ns.resolve(namespace_symbol)
+              y.namespace = n.to_s
+            else
+              y.namespace = "_"
+            end
           end
-          y
         else
           self
         end
       end
 
       def prepare
-        if expandable?
-          resolve.expand
+        expand.resolve
+      end
+
+      # this is overridden by macro definitions
+      def _expand
+        self
+      end
+
+      def expand
+        if lets = Atomy::Macro::Environment.let[self.class]
+          x = self
+          lets.reverse_each do |l|
+            begin
+              x = x.send(l)
+              return x.expand unless x.kind_of?(self.class)
+            rescue MethodFail
+            end
+          end
+          x._expand.to_node
         else
-          self
+          _expand.to_node
+        end
+      rescue
+        if respond_to?(show = Atomy.namespaced("atomy", "show"))
+          puts "while expanding #{send(show)}"
+        else
+          puts "while expanding a #{self.class.name}"
+        end
+
+        raise
+      end
+
+      def prepare_all
+        x = prepare
+        if x == self
+          x.children(&:prepare_all)
+        else
+          x.prepare_all
         end
       end
 
-      def expandable?
-        false
+      def resolve_all
+        @namespace = nil if @namespace == "_"
+        resolve.children(&:resolve_all)
       end
 
       def compile(g)
@@ -474,15 +540,31 @@ EOF
       end
 
       def to_pattern
-        expand.pattern
+        pattern
       end
 
-      def as_message(send)
-        raise "unknown message name: #{self.to_sexp.inspect}"
+      def unquote_children
+        children do |x|
+          if x.is_a?(Unary) and x.operator == "*"
+            Atomy::AST::Splice.new(x.line, x.receiver)
+          else
+            Atomy::AST::Unquote.new(x.line, x)
+          end
+        end
+      end
+
+      def macro_pattern
+        Atomy::Patterns::QuasiQuote.new(
+          Atomy::AST::QuasiQuote.new(
+            @line,
+            unquote_children
+          )
+        )
       end
     end
 
     class Node < Rubinius::AST::Node
+      include Atomy::Macro::Helpers
       include NodeLike
       extend SentientNode
 

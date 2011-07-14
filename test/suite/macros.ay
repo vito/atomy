@@ -78,37 +78,7 @@ describe("macros"):
     it("can use for-macro in their expansion"):
       macro(x m-foo-13): `(for-macro: abc := ~x)
       10 m-foo-13
-      Atomy::Macro::Environment abc should-be(10)
-
-  describe("pattern-matching"):
-    it("expands through assignment patterns"):
-      macro(m-foo-14): '42
-      (m-foo-14 = 42) should-be(42)
-      { m-foo-14 = 41 } should-raise(Atomy::PatternMismatch)
-
-    it("expands through mutation patterns"):
-      macro(m-foo-14): '42
-      (m-foo-14 =! 42) should-be(42)
-      { m-foo-14 =! 41 } should-raise(Atomy::PatternMismatch)
-
-    it("expands through block argument patterns"):
-      macro(m-foo-15): '42
-      [m-foo-15] { #ok } [42] should-be(#ok)
-      { [m-foo-15] { #ok } [41] } should-raise(Atomy::PatternMismatch)
-
-    it("expands through #match patterns"):
-      macro(m-foo-16): '42
-      42 match { m-foo-16 -> #ok, _ -> #not-ok } should-be(#ok)
-      41 match { m-foo-16 -> #ok, _ -> #not-ok } should-be(#not-ok)
-
-    it("expands through method definition patterns"):
-      macro(m-foo-17): '42
-
-      foo-17(m-foo-17) := #is-42
-      foo-17(_) := #not-42
-
-      foo-17(42) should-be(#is-42)
-      foo-17(41) should-be(#not-42)
+      'foo abc should-be(10)
 
     describe("varying argument lengths"):
       it("tries higher required argument counts first"):

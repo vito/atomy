@@ -6,7 +6,11 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-        @expression.recursively(&:resolve).construct(g)
+        @expression.construct(g)
+      end
+
+      def prepare_all
+        self
       end
     end
   end

@@ -74,6 +74,36 @@ export:
     (p: Pattern) <=> (n: Named) :=
       p <=> n pattern
 
+    (a: QuasiQuote) <=> (b: QuasiQuote) := do:
+      total = 0
+
+      a quoted walk-with(
+        b quoted
+        [a, b] { a unquote? && b unquote? }
+      ) [x, y]:
+        condition:
+          x nil? || y nil? ->
+            if(x nil?)
+              then: total -= 1
+              else: total += 1
+
+          x unquote? && y unquote? ->
+            (total +=
+              (x expression to-pattern <=>
+                y expression to-pattern))
+
+          x unquote? ->
+            (total +=
+              (x expression to-pattern <=>
+                `'~y to-pattern))
+
+          y unquote? ->
+            (total +=
+              (`'~x to-pattern <=>
+                y expression to-pattern))
+
+      total <=> 0
+
 
     -- equivalence ignores named patterns
     (a: Named) =~ (b: Named) :=

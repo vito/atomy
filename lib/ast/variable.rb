@@ -13,19 +13,6 @@ module Atomy
         x
       end
 
-      def register_macro(body, let = false)
-        Atomy::Macro.register(
-          method_name,
-          [],
-          body,
-          let
-        )
-      end
-
-      def expandable?
-        true
-      end
-
       def message_name
         Atomy.namespaced(@namespace, @name)
       end
@@ -44,20 +31,8 @@ module Atomy
         end
       end
 
-      # used in macroexpansion
-      def method_name
-        name + ":@"
-      end
-
       def namespace_symbol
-        name.to_sym
-      end
-
-      def as_message(send)
-        send.dup.tap do |s|
-          s.method_name = @name
-          s.namespace = @namespace
-        end
+        @name.to_sym
       end
     end
   end

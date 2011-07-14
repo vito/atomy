@@ -32,7 +32,7 @@ module Atomy
     end
   end
 
-  def self.build_method(name, branches, is_macro = false, file = :dynamic, line = 1)
+  def self.build_method(name, branches, file = :dynamic_build, line = 1)
     g = Rubinius::Generator.new
     g.name = name.to_sym
     g.file = file.to_sym
@@ -44,8 +44,6 @@ module Atomy
     g.push_state Rubinius::AST::ClosedScope.new(line)
 
     g.state.push_name name
-
-    block_offset = is_macro ? 1 : 0
 
     total = 0
     min_reqs = nil
@@ -76,10 +74,8 @@ module Atomy
     names.uniq!
 
     if splatted
-      g.splat_index = block_offset + reqs + defs
+      g.splat_index = reqs + defs
     end
-
-    total += block_offset
 
     total.times do |n|
       names.unshift("arg:" + n.to_s)
@@ -101,7 +97,7 @@ module Atomy
       argmis = g.new_label
 
       if reqs.size > min_reqs
-        g.passed_arg((reqs.size + block_offset) - 1)
+        g.passed_arg(reqs.size - 1)
         g.gif skip
       end
 
@@ -122,19 +118,14 @@ module Atomy
       end
 
       if block
-        if is_macro
-          g.push_local(0)
-          block.pattern.deconstruct(g, locals)
-        else
-          g.push_block_arg
-          block.deconstruct(g, locals)
-        end
+        g.push_block_arg
+        block.deconstruct(g, locals)
       end
 
       reqs.each_with_index do |a, i|
         next if a.wildcard? && a.bindings == 0
 
-        g.push_local(i + block_offset)
+        g.push_local(i)
 
         if a.bindings > 0
           unless a.wildcard?
@@ -153,7 +144,7 @@ module Atomy
         passed = g.new_label
         decons = g.new_label
 
-        num = reqs.size + i + block_offset
+        num = reqs.size + i
         g.passed_arg num
         g.git passed
 
@@ -211,8 +202,8 @@ module Atomy
     g.package Rubinius::CompiledMethod
   end
 
-  def self.add_method(target, name, branches, static_scope, visibility = :public, is_macro = false)
-    cm = build_method(name, branches, is_macro)
+  def self.add_method(target, name, branches, static_scope, visibility = :public, file = :dynamic_add, line = 1)
+    cm = build_method(name, branches, file, line)
 
     unless static_scope
       static_scope = Rubinius::StaticScope.new(
@@ -226,16 +217,30 @@ module Atomy
     Rubinius.add_method name, cm, target, visibility
   end
 
-  def self.compare_heads(xs, ys)
+  def self.define_method(target, name, receiver, body, arguments = [], static_scope = nil, visibility = :public, file = :dynamic_define, line = 1)
+    method = [[receiver, arguments], body]
+    methods = target.instance_variable_get(:"@atomy::#{name}")
+
+    if methods
+      insert_method(method, methods)
+    else
+      methods = target.instance_variable_set(:"@atomy::#{name}", [method])
+    end
+
+    add_method(target, name, methods, static_scope, visibility, file, line)
+  end
+
+  def self.compare(xs, ys)
     return 1 if xs.size > ys.size
     return -1 if xs.size < ys.size
 
+    total = 0
+
     xs.zip(ys) do |x, y|
-      cmp = x <=> y
-      return cmp unless cmp == 0
+      total += x <=> y unless y.nil?
     end
 
-    0
+    total <=> 0
   end
 
   def self.equivalent?(xs, ys)
@@ -248,23 +253,39 @@ module Atomy
     true
   end
 
+  # this should mutate branches, so I don't have to call
+  # instance_variable_set
   def self.insert_method(new, branches)
-    (nr, na), nb = new
-    if nr.respond_to?(:<=>)
-      branches.each_with_index do |branch, i|
-        (r, a), b = branch
-        case compare_heads([nr] + na, [r] + a)
-        when 1
-          return branches.insert(i, new)
-        when 0
-          if equivalent?([nr] + na, [r] + a)
-            branches[i] = new
-            return branches
+    if new[0][0].respond_to?(:<=>)
+      if branches.instance_variable_get(:"@sorted")
+        (nr, na), nb = new
+        branches.each_with_index do |branch, i|
+          (r, a), b = branch
+          case compare([nr] + na, [r] + a)
+          when 1
+            return branches.insert(i, new)
+          when 0
+            if equivalent?([nr] + na, [r] + a)
+              branches[i] = new
+              return branches
+            end
           end
         end
-      end
-    end
 
-    branches << new
+        branches << new
+      else
+        # this is needed because we define methods before <=> is
+        # defined, so sort it once we have that
+        branches.unshift(new).sort! do |b, a|
+          compare([a[0][0]] + a[0][1], [b[0][0]] + b[0][1])
+        end
+
+        branches.instance_variable_set(:"@sorted", true)
+
+        branches
+      end
+    else
+      branches.unshift(new)
+    end
   end
 end

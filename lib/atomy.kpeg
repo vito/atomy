@@ -106,11 +106,7 @@
    interpolated = wsp expressions:es wsp "}"
                     { Atomy::AST::Tree.new(0, Array(es)) }
 
-         level0 = true
-                | false
-                | self
-                | nil
-                | number
+         level0 = number
                 | quote
                 | quasi_quote
                 | splice
@@ -131,17 +127,6 @@
                 | binary_send
                 | level2
 
-           true = line:line "true" !ident_letter
-                    { Atomy::AST::Primitive.new(line, :true) }
-          false = line:line "false" !ident_letter
-                    { Atomy::AST::Primitive.new(line, :false) }
-
-           self = line:line "self" !ident_letter
-                    { Atomy::AST::Primitive.new(line, :self) }
-
-            nil = line:line "nil" !ident_letter
-                    { Atomy::AST::Primitive.new(line, :nil) }
-
          number = line:line < /[\+\-]?0[oO][0-7]+/ >
                     { Atomy::AST::Primitive.new(line, text.to_i(8)) }
                 | line:line < /[\+\-]?0[xX][\da-fA-F]+/ >
@@ -160,7 +145,7 @@
         op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
   op_assoc_prec = line:line "operator" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os
                     { Atomy.set_op_info(os, assoc, prec)
-                      Atomy::AST::Operator.new(line, assoc, prec, os)
+                      Atomy::AST::Operator.new(line, os, assoc, prec)
                     }
 
           quote = line:line "'" level1:e
@@ -210,19 +195,17 @@
                     { Atomy::AST::List.new(line, Array(es)) }
 
      sends(pos) = line:line send:r cont(pos) level0:n args?:as
-                    { Atomy::AST::Send.new(line, r, Array(as), n) }
+                    { Atomy::AST::Compose.new(line, n, r, Array(as)) }
                 | line:line level1:r cont(pos) level0:n args?:as
-                    { Atomy::AST::Send.new(line, r, Array(as), n) }
-           send = sends(current_position)
+                    { Atomy::AST::Compose.new(line, n, r, Array(as)) }
+           send = @sends(current_position)
 
        headless = line:line level0:n args:as
-                    { Atomy::AST::Send.new(
+                    { Atomy::AST::Compose.new(
                         line,
+                        n,
                         Atomy::AST::Primitive.new(line, :self),
                         as,
-                        n,
-                        nil,
-                        nil,
                         true
                       )
                     }

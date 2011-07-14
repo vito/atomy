@@ -81,6 +81,7 @@ describe("definitions"):
         d7(1) should-be(1)
         d7(1, 2) should-be(2)
 
+      it("does the same when defined in reverse order"):
         d8(_, _) := 2
         d8(_) := 1
 

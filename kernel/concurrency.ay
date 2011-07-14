@@ -31,7 +31,7 @@ section("Sending & Receiving"):
     body contents all? [x]: x match { `(~_ -> ~_) -> true, _ -> false }
     => any
   } for {
-    macro(receive(&body)):
+    macro('receive ~(body: Block)):
       names [e]:
         bs = body contents collect [`(~pat -> ~exp)]:
           `(~e when('~pat to-pattern) [~pat]: ~exp)
@@ -51,7 +51,7 @@ section("Sending & Receiving"):
     timeout match: `(~_ -> ~_) -> true, _ -> false
     => any
   } for {
-    macro(receive(&body) after(timeout)):
+    macro('receive ~(body: Block) after(timeout)):
       names [e]:
         bs = body contents collect [`(~pat -> ~exp)]:
           `(~e when('~pat to-pattern) [~pat]: ~exp)

@@ -66,7 +66,8 @@ for-macro:
       "    " + str-expr(e)
     } join("\n")
 
-macro(for-docs(&body)):
+
+macro('for-docs ~(body: Block)):
   `(when(^documentation):
       ^documentation << ~(body block-body))
 
@@ -83,19 +84,20 @@ export-to(atomy):
 
     c
 
-  macro(section(name, &body)):
-    `(do:
-        evaluate-when(compile):
-          for-docs: "\\section{" + ~name + "}{\n\\style{Atomy}\n\n"
+  macro(section(name) ~(body: Block)):
+    names [res]:
+      `(do:
+          evaluate-when(compile):
+            for-docs: "\\section{" + ~name + "}{\n\\style{Atomy}\n\n"
 
-        res = ~(body caller)
+          ~res = ~(body caller)
 
-        evaluate-when(compile):
-          for-docs: "}"
+          evaluate-when(compile):
+            for-docs: "}"
 
-        res)
+          ~res)
 
-  macro(docs spec(&s) for(&code)):
+  macro(docs spec ~(s: Block) for ~(code: Block)):
     for-docs:
       [ "\\define{"
         "\n" + to-thumb(code contents first)
@@ -107,7 +109,7 @@ export-to(atomy):
 
     code block-body
 
-  macro(docs for(&code)):
+  macro(docs for ~(code: Block)):
     for-docs:
       [ "\\define{"
         "\n" + to-thumb(code contents first)
@@ -118,7 +120,7 @@ export-to(atomy):
 
     code block-body
 
-  macro(docs spec(&s) for(&code) examples(&es)):
+  macro(docs spec ~(s: Block) for ~(code: Block) examples ~(es: Block)):
     for-docs:
       [ "\\define{"
         "\n" + to-thumb(code contents first)
@@ -133,7 +135,7 @@ export-to(atomy):
 
     code block-body
 
-  macro(docs for(&code) examples(&es)):
+  macro(docs for ~(code: Block) examples ~(es: Block)):
     for-docs:
       [ "\\define{"
         "\n" + to-thumb(code contents first)

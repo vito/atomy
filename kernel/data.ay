@@ -1,47 +1,48 @@
 macro(&x):
-  Atomy::AST::BlockPass new(x line, x)
+  BlockPass new(line, x)
 
 macro(*x):
-  Atomy::AST::Splat new(x line, x)
+  Splat new(line, x)
 
-macro(@(x: Variable)):
-  Atomy::AST::InstanceVariable new(x line, x name)
+-- now in boot
+--macro(@(x: Variable)):
+  --InstanceVariable new(x line, x name)
 
 macro(@@(x: Variable)):
-  Atomy::AST::ClassVariable new(x line, x name)
-
-macro($'exception):
-  Atomy::AST::GlobalVariable new(line, "!")
-
-macro($'path):
-  Atomy::AST::GlobalVariable new(line, ":")
-
-macro($'separator):
-  Atomy::AST::GlobalVariable new(line, "/")
+  ClassVariable new(line, x name)
 
 macro($'0):
-  Atomy::AST::GlobalVariable new(line, "0")
+  GlobalVariable new(line, "0")
 
 macro($(x: String)):
-  Atomy::AST::GlobalVariable new(line, x value)
+  GlobalVariable new(line, x value)
 
 macro($(x: Constant)):
-  Atomy::AST::GlobalVariable new(x line, x identifier)
+  GlobalVariable new(line, x identifier)
 
 macro($(x: Variable)):
-  Atomy::AST::GlobalVariable new(x line, x name)
+  GlobalVariable new(line, x name)
+
+macro($'exception):
+  GlobalVariable new(line, "!")
+
+macro($'path):
+  GlobalVariable new(line, ":")
+
+macro($'separator):
+  GlobalVariable new(line, "/")
 
 macro(#(x: Constant)):
-  Atomy::AST::Literal new(x line, x identifier to-sym)
+  Literal new(line, x identifier to-sym)
 
 macro(#(x: Variable)):
-  Atomy::AST::Literal new(x line, x name to-sym)
+  Literal new(line, x name to-sym)
 
 macro(#(x: String)):
-  Atomy::AST::Literal new(x line, x value to-sym)
+  Literal new(line, x value to-sym)
 
 macro(#(x: Primitive)):
-  Atomy::AST::Literal new(x line, x value to-s to-sym)
+  Literal new(line, x value to-s to-sym)
 
 macro(a .. b): `(Range new(~a, ~b))
 macro(a ... b): `(Range new(~a, ~b, true))

@@ -14,6 +14,10 @@ body(x . xs) := [from(#list) { x pretty }] + body(xs)
 module(Atomy::AST):
   Block unamb := pretty
   ClassVariable unamb := pretty
+  Compose unamb :=
+    if(from?(#binary, #compose))
+      then: pretty
+      else: parens(pretty)
   Constant unamb := pretty
   GlobalVariable unamb := pretty
   (InlinedBody ? @expressions size < 2) unamb := pretty
@@ -26,7 +30,7 @@ module(Atomy::AST):
   Quote unamb := pretty
   ScopedConstant unamb := pretty
   Send unamb :=
-    if(from?(#binary, #send))
+    if(from?(#binary, #compose))
       then: pretty
       else: parens(pretty)
   Splice unamb := pretty
@@ -39,7 +43,7 @@ module(Atomy::AST):
   _ unamb := pretty
 
 from(*where, &y) :=
-  let(context = where flatten, &y)
+  let(context = where flatten) { y call }
 
 from?(*where) :=
   [^context, where] match:
@@ -152,11 +156,25 @@ export-to(atomy):
 
     ClassVariable pretty := ident(name to-s)
 
+    Compose pretty := do:
+      args =
+        from(#list):
+          if(@arguments empty?)
+            then: empty
+            else: tupled(@arguments all-pretty)
+
+      if(@headless)
+        then:
+          @message unamb <> args
+        else:
+          (from(#compose) { @receiver unamb } </>
+            @message unamb <> args) hang(2)
+
     Constant pretty := text(@identifier)
 
     Define pretty :=
-      from(#define):
-        @lhs unamb <+> text(":=") <+> @body unamb
+      from(#binary):
+        @pattern unamb <+> text(":=") <+> @body unamb
 
     GlobalVariable pretty := ident(name to-s)
 
@@ -234,11 +252,11 @@ export-to(atomy):
 
       condition:
         @receiver kind-of?(Primitive) && @receiver value == #self ->
-          with-block [ident(@method-name) <> args]
+          with-block [ident(@message-name) <> args]
 
         otherwise ->
-          (from(#send) { @receiver unamb } </>
-            with-block [ident(@method-name) <> args]) hang(2)
+          (from(#compose) { @receiver unamb } </>
+            with-block [ident(@message-name) <> args]) hang(2)
 
     Splice pretty :=
       from(#unary):
@@ -259,6 +277,9 @@ export-to(atomy):
     Variable pretty := ident(@name)
 
     InlinedBody pretty :=
+      from(#top): align(vcat(@expressions all-pretty))
+
+    BlockBody pretty :=
       from(#top): align(vcat(@expressions all-pretty))
 
     Or pretty := `(~@a || ~@b) pretty

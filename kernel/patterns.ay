@@ -26,7 +26,8 @@ module(Atomy::Patterns):
         g kind-of
 
     class(Predicate < Pattern):
-      initialize(@pattern, @test) := #ok
+      initialize(@pattern, test) :=
+        @test = test prepare-all
 
       construct(g) := do:
         get(g)
@@ -69,7 +70,8 @@ module(Atomy::Patterns):
       bindings := @pattern bindings
 
     class(With < Pattern):
-      initialize(@pattern, @expression, @sub-pattern) := #ok
+      initialize(@pattern, expression, @sub-pattern) :=
+        @expression = expression prepare-all
 
       construct(g) := do:
         get(g)
@@ -232,7 +234,7 @@ module(Atomy::Patterns):
 
         done set!
 
-      deconstruct(g, locals = #[]) := do:
+      deconstruct(g, locals = Hash new) := do:
         b = g new-label
         done = g new-label
 
@@ -290,17 +292,17 @@ module(Atomy::AST):
     QuasiQuote pattern :=
       Atomy::Patterns::QuasiQuote new(self)
 
-    Send pattern :=
-      if(@block)
-        then:
-          Atomy::Patterns::Named new $:
-            @method-name
-            @block contents [0] to-pattern
-        else:
-          Atomy::Patterns::Attribute new $:
-            @receiver
-            @method-name
-            @arguments
+    `(~x { ~y }) pattern := do:
+      unless(x is-a?(Atomy::AST::Variable)):
+        p(to-sexp)
+
+      Atomy::Patterns::Named new(x name, y to-pattern)
+
+    `(~x ~(y: Atomy::AST::Variable)(~*as)) pattern :=
+      Atomy::Patterns::Attribute new(x, y name, as)
+
+    `(~x [~*as]) pattern :=
+      Atomy::Patterns::Attribute new(x, "[]", as)
 
     String pattern :=
       Atomy::Patterns::Literal new(@value)
@@ -309,4 +311,4 @@ module(Atomy::AST):
       Atomy::Patterns::Literal new(@name to-sym)
 
     Node pattern :=
-      raise("unknown pattern: " + self to-sexp inspect)
+      raise("unknown pattern: " + to-sexp inspect)

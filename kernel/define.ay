@@ -1,12 +1,14 @@
-macro(do(&b)): b body
+macro('do ~(b: Block)): b body
 
-macro(x = y):
-  Atomy::AST::Assign new(x line, x, y)
+--macro(x = y):
+  --Assign new(x line, x, y)
 
 macro(x =! y):
-  Atomy::AST::Set new(x line, x, y)
+  Set new(x line, x to-pattern to-node, y)
 
-macro(x := y):
+macro(pattern := y):
+  x = pattern expand
+
   where = Atomy::Namespace define-target
   Atomy::Namespace register(x namespace-symbol, where)
 
@@ -16,9 +18,9 @@ macro(x := y):
   Atomy::CodeLoader when-run <<
     [`(Atomy::Namespace register(~(x namespace-symbol), ~where)), true]
 
-  Atomy::AST::Define new(x line, x, y)
+  Define new(line, x, y)
 
-macro(define(x, &y)):
+macro(define(x) ~(y: Block)):
   `(~x := ~(y block-body))
 
 macro(x **= y): `(~x =! (~x ** ~y))
@@ -35,105 +37,151 @@ macro(x /= y): `(~x =! (~x / ~y))
 macro(x ^= y): `(~x =! (~x ^ ~y))
 macro(x %= y): `(~x =! (~x % ~y))
 
-macro(x match(&b)):
-  Atomy::AST::Match new(line, x, b)
+macro(x match ~(b: Block)):
+  branches = b contents collect [`(~x -> ~y)]:
+    MatchBranch new(x line, x to-pattern to-node, y)
 
-macro(class(`(<< ~obj), &body)):
-  Atomy::AST::SingletonClass new(obj line, obj, body block-body)
+  Match new(line, x, branches)
 
-macro(class(`(~name < ~sup), &body)):
-  Atomy::AST::Class new(name line, name, body block-body, sup)
+macro(class(name) ~(b: Block)):
+  Class new(name line, name, b block-body)
 
-macro(class(name, &body)):
-  Atomy::AST::Class new(name line, name, body block-body)
+macro(class(`(<< ~obj)) ~(b: Block)):
+  SingletonClass new(obj line, obj, b block-body)
 
-macro(module(name, &body)):
-  Atomy::AST::Module new(name line, name, body block-body)
+macro(class(`(~name < ~sup)) ~(b: Block)):
+  Class new(name line, name, b block-body, sup)
 
-macro(evaluate-when('compile, 'load, 'run, &x)):
+macro(module(name) ~(b: Block)):
+  Module new(name line, name, b block-body)
+
+macro(evaluate-when('compile) ~(x: Block)):
+  x body evaluate
+  'nil
+
+macro(evaluate-when('load) ~(x: Block)):
+  Atomy::CodeLoader when-load << [x block-body, false]
+  'nil
+
+macro(evaluate-when('run) ~(x: Block)):
+  Atomy::CodeLoader when-run << [x block-body, false]
+  'nil
+
+macro(evaluate-when('compile, 'load) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
+  'nil
+
+macro(evaluate-when('compile, 'run) ~(x: Block)):
+  x body evaluate
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('compile, 'run, 'load, &x)):
-  x body evaluate
-  Atomy::CodeLoader when-load << [x block-body, true]
-  Atomy::CodeLoader when-run << [x block-body, true]
-  'nil
-
-macro(evaluate-when('compile, 'load, &x)):
+macro(evaluate-when('load, 'compile) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   'nil
 
-macro(evaluate-when('compile, 'run, &x)):
-  x body evaluate
-  Atomy::CodeLoader when-run << [x block-body, true]
-  'nil
-
-macro(evaluate-when('compile, &x)):
-  x body evaluate
-  'nil
-
-macro(evaluate-when('load, 'compile, 'run, &x)):
-  x body evaluate
-  Atomy::CodeLoader when-load << [x block-body, true]
-  Atomy::CodeLoader when-run << [x block-body, true]
-  'nil
-
-macro(evaluate-when('load, 'run, 'compile, &x)):
-  x body evaluate
-  Atomy::CodeLoader when-load << [x block-body, true]
-  Atomy::CodeLoader when-run << [x block-body, true]
-  'nil
-
-macro(evaluate-when('load, 'compile, &x)):
-  x body evaluate
-  Atomy::CodeLoader when-load << [x block-body, true]
-  'nil
-
-macro(evaluate-when('load, 'run, &x)):
+macro(evaluate-when('load, 'run) ~(x: Block)):
   Atomy::CodeLoader when-load << [x block-body, false]
   Atomy::CodeLoader when-run << [x block-body, false]
   'nil
 
-macro(evaluate-when('load, &x)):
+macro(evaluate-when('run, 'load) ~(x: Block)):
   Atomy::CodeLoader when-load << [x block-body, false]
+  Atomy::CodeLoader when-run << [x block-body, false]
   'nil
 
-macro(evaluate-when('run, 'load, 'compile, &x)):
+macro(evaluate-when('run, 'compile) ~(x: Block)):
+  x body evaluate
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
+macro(evaluate-when('compile, 'load, 'run) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('run, 'compile, 'load, &x)):
+macro(evaluate-when('compile, 'run, 'load) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('run, 'load, &x)):
-  Atomy::CodeLoader when-load << [x block-body, false]
-  Atomy::CodeLoader when-run << [x block-body, false]
-  'nil
-
-macro(evaluate-when('run, 'compile, &x)):
+macro(evaluate-when('load, 'compile, 'run) ~(x: Block)):
   x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('run, &x)):
-  Atomy::CodeLoader when-run << [x block-body, false]
+macro(evaluate-when('load, 'run, 'compile) ~(x: Block)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(for-macro(&b)):
-  `(evaluate-when(compile, load):
-      ~b block call-on-instance(Atomy::Macro::Environment singleton-class))
+macro(evaluate-when('run, 'load, 'compile) ~(x: Block)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
 
-macro(let-macro(*ms, &body)):
-  macros = ms collect [`(~p = ~b)]:
-    Atomy::AST::Macro new(p line, p, b)
+macro(evaluate-when('run, 'compile, 'load) ~(x: Block)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
 
-  Atomy::AST::LetMacro new(line, body caller, macros)
+macro('for-macro ~(b: Block)):
+  `(evaluate-when(compile, load, run):
+      module(Atomy::Macro::Helpers):
+        ~*(b contents))
+
+-- TODO: compare let-when; make a more general macro for wrapping
+-- with evaluate-when
+macro(let-macro(*ms) ~(b: Block)):
+  define = []
+  unwind = []
+
+  lets = names(ms size)
+  macs = names(ms size)
+  ms zip(lets, macs) [[`(~p = ~b), let, mac]]:
+    names [m]:
+      define <<
+        `(do:
+            Atomy::STATE [#~mac] =
+              (~m = Atomy::AST::Macro new(~(p line), '~p, '~b))
+
+            Atomy::STATE [#~let] =
+              Atomy::Macro register(
+                ~m pattern class
+                ~m macro-pattern
+                ~m prepared
+                Atomy::CodeLoader compiling
+                true
+              ))
+
+      unwind <<
+        `(do:
+            ~m = Atomy::STATE [#~mac] pattern
+
+            ~m class remove-method(Atomy::STATE [#~let])
+
+            when(lets = Atomy::Macro::Environment let [~m class]):
+              lets delete(Atomy::STATE [#~let])
+
+              when(lets empty?):
+                Atomy::Macro::Environment let delete(~m class))
+
+  names [res]:
+    `(do:
+        evaluate-when(compile):
+          ~*define
+
+        ~res = ~(b block-body)
+
+        evaluate-when(compile):
+          ~*unwind
+
+        ~res)

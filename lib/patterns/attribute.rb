@@ -3,9 +3,9 @@ module Atomy::Patterns
     attr_reader :receiver, :name, :arguments
 
     def initialize(r, n, as = [])
-      @receiver = r
+      @receiver = r.prepare_all
       @name = n
-      @arguments = as
+      @arguments = as.collect(&:prepare_all)
     end
 
     def construct(g)

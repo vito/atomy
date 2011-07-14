@@ -56,10 +56,6 @@ module Atomy
       def unquote?
         true
       end
-
-      def as_message(send)
-        send
-      end
     end
 
     class Splice < Unquote

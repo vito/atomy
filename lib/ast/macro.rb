@@ -4,58 +4,64 @@ module Atomy
       children :pattern, :body
       generate
 
+      def macro_pattern
+        @macro_pattern ||= @pattern.macro_pattern
+      end
+
+      def prepared
+        @prepared ||= @body.prepare_all.resolve_all
+      end
+
       def bytecode(g)
-        Atomy::Namespace.register(
-          @pattern.namespace_symbol,
-          Atomy::Namespace.define_target
+        pos(g)
+
+        if @pattern.namespace_symbol
+          Atomy::Namespace.register(
+            @pattern.namespace_symbol,
+            Atomy::Namespace.define_target
+          )
+        end
+
+        Atomy::Macro.register(
+          @pattern.class,
+          macro_pattern,
+          prepared,
+          Atomy::CodeLoader.compiling
         )
 
-        registerer =
-            Atomy::AST::Send.new(
-              0,
-              Atomy::AST::ScopedConstant.new(
-                0,
-                Atomy::AST::ToplevelConstant.new(
-                  0,
-                  "Atomy"
-                ),
-                "Namespace"
-              ),
-              [ @pattern.namespace_symbol.to_node,
-                Atomy::Namespace.define_target.to_node
-              ],
-              Atomy::AST::Variable.new(0, "register")
-            )
+        Atomy::CodeLoader.when_load << [self, true]
+        Atomy::CodeLoader.when_run << [self, true]
 
-        Atomy::CodeLoader.when_load << [registerer, true]
-        Atomy::CodeLoader.when_run << [registerer, true]
-
-        # register macro during compilation too.
-        @pattern.register_macro @body
-
-        done = g.new_label
-        skip = g.new_label
-
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.find_const :CodeLoader
-        g.send :compiled?, 0
-        g.git skip
-
-        load_bytecode(g)
-        g.goto done
-
-        skip.set!
         g.push_nil
-
-        done.set!
       end
 
       def load_bytecode(g)
         pos(g)
-        @pattern.construct(g)
-        @body.construct(g)
-        g.send :register_macro, 1
+        if @pattern.namespace_symbol
+          g.push_cpath_top
+          g.find_const :Atomy
+          g.find_const :Namespace
+          g.push_literal @pattern.namespace_symbol
+          g.push_literal Atomy::Namespace.define_target
+          g.send :register, 2
+          g.pop
+        end
+
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :Macro
+        Atomy.const_from_string(g, @pattern.class.name)
+        macro_pattern.construct(g)
+        prepared.construct(g)
+        g.push_scope
+        g.send :active_path, 0
+        g.send :register, 4
+      end
+
+      def prepare_all
+        dup.tap do |x|
+          x.body = x.body.prepare_all
+        end
       end
     end
   end
