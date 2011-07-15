@@ -11,6 +11,15 @@ macro(#`(~r ~(x)(~*as))):
       ~*(as collect [c]: wildcard(c))
     ])
 
+macro(#`(~r [~*as])):
+  `(Particle [
+      ~(if(@receiver headless)
+          then: '_undefined
+          else: wildcard(r))
+      #"[]"
+      ~*(as collect [c]: wildcard(c))
+    ])
+
 macro(#(x: BinarySend)):
   `(Particle [
       ~(if(x private)
