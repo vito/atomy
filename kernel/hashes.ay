@@ -2,26 +2,12 @@ for-macro:
   key-name(x: Atomy::AST::Compose) := key-name(x message)
   key-name(x: Atomy::AST::Variable) := x name
 
+
 macro(#(l: List)):
-  keys = []
-  values = []
-
-  pairs = l elements dup
-  until(pairs empty?):
-    pairs pop match:
-      `(~k -> ~v) -> do:
-        keys << k
-        values << v
-
-      (p: Compose) -> do:
-        while(p is-a?(Compose) && p message is-a?(Block)):
-          keys << `#~(key-name(p receiver))
-          values << p message contents first
-          pairs += p message contents [1 .. -1]
-          if(p receiver is-a?(Compose))
-            then: p =! p receiver receiver
-            else: break
-
+  p([#hash, l, '#(l: List) macro-pattern, self])
+  pairs = pairs-from(l elements)
+  keys = pairs collect [[k, _]]: `#~key-name(k)
+  values = pairs collect [[_, v]]: v
   Atomy::AST::Hash new(line, keys, values)
 
 class(Atomy::AST::Hash < Atomy::AST::Node):

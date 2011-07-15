@@ -5,10 +5,6 @@ macro(if(x) then ~(y: Block) else ~(z: Block)):
 
 macro(otherwise): 'true
 
-macro('condition ~(bs: Block)):
-  bs contents reverse inject('nil) [acc, `(~x -> ~y)]:
-    `(if(~x) then: ~y; else: ~acc)
-
 macro(return(y)):
   Return new(line, y)
 
@@ -63,137 +59,59 @@ macro(next):
 macro(next(x)):
   Next new(line, x)
 
-module(Atomy::AST):
-  class(Labels < Node):
-    children([#tags])
-    generate
+evaluate-when(compile, run, load):
+  module(Atomy::AST):
+    class(Labels < Node):
+      children([#tags])
+      generate
 
-    bytecode(g) := do:
-      pos(g)
+      bytecode(g) := do:
+        pos(g)
 
-      tags = ::Hash new
+        tags = ::Hash new
 
-      labels =
-        @tags collect [t]:
-          tags [t name] = g new-label
+        labels =
+          @tags collect [t]:
+            tags [t name] = g new-label
 
-      let(labels = tags):
-        labels zip(@tags) each [[l, t]]:
-          l set!
-          t body compile(g)
-          g pop
+        let(labels = tags):
+          labels zip(@tags) each [[l, t]]:
+            l set!
+            t body compile(g)
+            g pop
 
-      g push-nil
+        g push-nil
 
-  class(LabelBranch < Node):
-    children(#body)
-    attributes(#name)
-    generate
+    class(LabelBranch < Node):
+      children(#body)
+      attributes(#name)
+      generate
 
-  class(GoTo < Node):
-    attributes(#name)
-    generate
+    class(GoTo < Node):
+      attributes(#name)
+      generate
 
-    bytecode(g) := do:
-      pos(g)
-      g goto(^labels fetch(@name))
+      bytecode(g) := do:
+        pos(g)
+        g goto(^labels fetch(@name))
 
-  class(ZSuper < Node):
-    generate
+    class(Break < Node):
+      children(#value)
+      generate
 
-    bytecode(g) := do:
-      pos(g)
+      bytecode(g) := do:
+        pos(g)
+        @value compile(g)
+        g raise-break
 
-      g push-block
+    class(Next < Node):
+      children(#value)
+      generate
 
-      if(g state super?)
-        then:
-          g zsuper(g state super name)
-        else:
-          g zsuper(nil)
-
-  class(Super < Node):
-    children([#arguments], #block?)
-    generate
-
-    bytecode(g) := do:
-      pos(g)
-
-      block = @block
-      splat = nil
-
-      args = 0
-      @arguments each [a]:
-        e = a prepare
-        e match:
-          BlockPass -> do:
-            block =! e
-            -- break
-
-          Splat -> do:
-            splat =! e
-            -- break
-
-          _ -> do:
-            e bytecode(g)
-            args += 1
-
-      when(splat):
-        splat compile(g)
-        g cast-array
-
-      if(block)
-        then: block compile(g)
-        else: g push-nil
-
-      g send-super(nil, args, splat)
-
-  class(Yield < Node):
-    children([#arguments])
-    generate
-
-    bytecode(g) := do:
-      pos(g)
-
-      splat = nil
-
-      args = 0
-      @arguments each [a]:
-        e = a prepare
-        e match:
-          Splat -> do:
-            splat =! e
-            -- break
-
-          _ -> do:
-            e bytecode(g)
-            args += 1
-
-      if(splat)
-        then:
-          splat compile(g)
-          g cast-array
-          g yield-splat(args)
-        else:
-          g yield-stack(args)
-
-  class(Break < Node):
-    children(#value)
-    generate
-
-    bytecode(g) := do:
-      pos(g)
-      @value compile(g)
-      g raise-break
-
-  class(Next < Node):
-    children(#value)
-    generate
-
-    bytecode(g) := do:
-      pos(g)
-      @value compile(g)
-      g ret
+      bytecode(g) := do:
+        pos(g)
+        @value compile(g)
+        g ret
 
 macro('labels ~(body: Block)):
   branches = body contents collect [`(~(n) ~(b))]:
@@ -243,3 +161,125 @@ macro('loop ~(body: Block)):
           go(~loop)
 
         ~done {})
+
+for-macro:
+  key-from(x) := x
+  key-from(x: Atomy::AST::Compose) := x message
+
+  pair-from(x, _, _) := do:
+    puts("warning: unknown pair `" + x inspect + "'")
+    nil
+  
+  pair-from(`(~k -> ~v), pairs, _) :=
+    pairs << [k, v]
+
+  pair-from(p { Atomy::AST::Compose }, pairs, exprs) := do:
+    chain = []
+    while(p is-a?(Atomy::AST::Compose) && p message is-a?(Atomy::AST::Block)):
+      chain << [key-from(p receiver), p message block-body]
+      exprs += p message contents [1 .. -1]
+      if(p receiver is-a?(Atomy::AST::Compose))
+        then: p =! p receiver receiver
+        else: break
+    
+    pairs push(*(chain reverse))
+
+
+  pairs-from(es) := do:
+    pairs = []
+    exprs = es dup
+
+    until(exprs empty?):
+      pair-from(exprs shift, pairs, exprs)
+    
+    pairs
+
+macro('condition ~(b: Block)):
+  pairs-from(b contents) reverse inject('nil) [acc, [x, y]]:
+    `(if(~x) then: ~y; else: ~acc)
+
+macro(x match ~(b: Block)):
+  branches = pairs-from(b contents) collect [[x, y]]:
+    MatchBranch new(x line, x to-pattern to-node, y)
+
+  Match new(line, x, branches)
+
+module(Atomy::AST):
+  class(Super < Node):
+    children([#arguments], #block?)
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+
+      block = @block
+      splat = nil
+
+      args = 0
+      @arguments each [a]:
+        e = a prepare
+        e match:
+          BlockPass -> do:
+            block =! e
+            -- break
+
+          Splat -> do:
+            splat =! e
+            -- break
+
+          _ -> do:
+            e bytecode(g)
+            args += 1
+
+      when(splat):
+        splat compile(g)
+        g cast-array
+
+      if(block)
+        then: block compile(g)
+        else: g push-nil
+
+      g send-super(nil, args, splat)
+
+  class(ZSuper < Node):
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+
+      g push-block
+
+      if(g state super?)
+        then:
+          g zsuper(g state super name)
+        else:
+          g zsuper(nil)
+
+  class(Yield < Node):
+    children([#arguments])
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+
+      splat = nil
+
+      args = 0
+      @arguments each [a]:
+        e = a prepare
+        e match:
+          Splat -> do:
+            splat =! e
+            -- break
+
+          _ -> do:
+            e bytecode(g)
+            args += 1
+
+      if(splat)
+        then:
+          splat compile(g)
+          g cast-array
+          g yield-splat(args)
+        else:
+          g yield-stack(args)

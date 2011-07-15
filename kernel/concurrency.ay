@@ -31,7 +31,7 @@ section("Sending & Receiving"):
   } for {
     macro('receive ~(body: Block)):
       names [e]:
-        bs = body contents collect [`(~pat -> ~exp)]:
+        bs = pairs-from(body contents) collect [[pat, exp]]:
           `(~e when('~pat to-pattern) [~pat]: ~exp)
 
         `(Actor receive [~e]: ~*bs)
