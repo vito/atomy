@@ -49,16 +49,16 @@ section("Sending & Receiving"):
     timeout match: `(~_ -> ~_) -> true, _ -> false
     => any
   } for {
-    macro('receive ~(body: Block) after(timeout)):
+    macro('receive ~(body: Block) after(timeout) ~(action: Block)):
       names [e]:
-        bs = body contents collect [`(~pat -> ~exp)]:
+        bs = pairs-from(body contents) collect [[pat, exp]]:
           `(~e when('~pat to-pattern) [~pat]: ~exp)
 
-        bs << `(~e after(~(timeout lhs)): ~(timeout rhs))
+        bs << `(~e after(~timeout) ~action)
 
         `(Actor receive [~e]: ~*bs)
   } examples:
-    receive { 1 -> #ok } after(1 -> #too-slow)
+    receive { 1 -> #ok } after(1): #too-slow
 
 
 section("Spawning"):
