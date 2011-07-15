@@ -4,9 +4,9 @@ dynamic(atomy-pretty-colored?, false)
 
 ident(n) := text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
 
-body([]) := []
-body([x]) := [from(#top): x pretty]
-body(x . xs) := [from(#list) { x pretty }] + body(xs)
+pretty-body([]) := []
+pretty-body([x]) := [from(#top): x pretty]
+pretty-body(x . xs) := [from(#list) { x pretty }] + pretty-body(xs)
 
 module(Atomy::AST):
   Block unamb := pretty
@@ -125,7 +125,7 @@ module(Atomy::AST):
         then: empty
         else: list(@arguments all-pretty)
 
-    contents = comma separate(body(@contents))
+    contents = comma separate(pretty-body(@contents))
 
     if(from?(#send-block) && from?(#top))
       then: args <> colon <+> contents
@@ -232,12 +232,12 @@ module(Atomy::AST):
 
           from?(#top) ->
             ( ((x <+> args) <> colon) </>
-                comma separate(body(@block contents))
+                comma separate(pretty-body(@block contents))
             ) hang(2)
 
           otherwise ->
             ( (x <+> args <+> lbrace) </>
-                comma separate(body(@block contents))
+                comma separate(pretty-body(@block contents))
             ) hang(2) </> rbrace
 
     args =
