@@ -47,7 +47,24 @@ module Atomy
         blk.redo = blk.new_label
         blk.redo.set!
 
+        too_few = blk.new_label
+        done = blk.new_label
+
+        blk.passed_arg(block_arguments.required_args - 1)
+        blk.gif too_few
+
         block_body.compile(blk)
+        blk.goto done
+
+        too_few.set!
+        blk.push_self
+        blk.push_cpath_top
+        blk.find_const :ArgumentError
+        blk.push_literal "wrong number of arguments"
+        blk.send :new, 1
+        blk.send :raise, 1, true
+
+        done.set!
 
         blk.pop_modifiers
         blk.state.pop_block
@@ -176,13 +193,15 @@ module Atomy
       def bytecode(g)
         return if @arguments.empty?
 
-        if @arguments.last.kind_of?(Patterns::BlockPass)
+        args = @arguments.dup
+
+        if args.last.kind_of?(Patterns::BlockPass)
           g.push_block_arg
-          @arguments.pop.deconstruct(g)
+          args.pop.deconstruct(g)
         end
 
         g.cast_for_splat_block_arg
-        @arguments.each do |a|
+        args.each do |a|
           if a.kind_of?(Patterns::Splat)
             a.pattern.deconstruct(g)
             return
@@ -207,9 +226,13 @@ module Atomy
       end
 
       def required_args
-        size
+        @arguments.reject { |a|
+          a.is_a?(Patterns::Default) || a.is_a?(Patterns::Splat) ||
+            a.is_a?(Patterns::BlockPass)
+        }.size
       end
 
+      # TODO
       def total_args
         size
       end
