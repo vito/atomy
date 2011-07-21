@@ -34,7 +34,7 @@ section("Conditions"):
       Error(@backtrace):
         SimpleError(@value)
         ExceptionError(@exception)
-        NoRestartError(@name)
+        NoRestartError(@restart)
         PortError(@port):
           EndOfFile
 
@@ -57,7 +57,7 @@ section("Conditions"):
     SimpleError message := @value to-s
     ExceptionError message := @exception message
     SimpleWarning message := @value to-s
-    NoRestartError message := "unknown restart " + @name show
+    NoRestartError message := "unknown restart " + @restart show
     EndOfFile message := "unexpected end-of-file for " + @port show
 
 
@@ -91,7 +91,6 @@ section("Handling"):
 
     The result is the result of \hl{body}.
   " spec {
-    y contents all? [x]: x match { `(~_ -> ~_) -> true, _ -> false }
     => any
   } for {
     macro(body bind ~(y: Block)):
@@ -117,7 +116,9 @@ section("Handling"):
     => any
   } for {
     macro(with-restarts(*restarts) ~(block: Block)):
-      rs = restarts collect [`(~n -> ~e)]:
+      pairs = pairs-from(restarts)
+
+      rs = pairs collect [[n, e]]:
         n match:
           Variable ->
             `(Restart new(#~n, { ~e }))
@@ -126,9 +127,9 @@ section("Handling"):
             `(Restart new(#~n, [~*as] { ~e }))
 
       body =
-        restarts reduce(
+        pairs reduce(
           `{ ~block rescue: (e: StandardError) -> error(e) }
-        ) [x, `(~name -> ~_)]:
+        ) [x, [name, _]]:
           `{ catch(#~catcher(name), &~x) }
 
       `(let(restarts = [~*rs] + ^restarts) ~body)
