@@ -79,7 +79,7 @@ section("Structure"):
       { tests call
         f"✓ %s" [description] indented colored(#green) println
       } rescue {
-        e -> do:
+        e:
           when(^stats):
             ^stats failed += 1
 
@@ -157,7 +157,7 @@ section("Tests"):
         (e: ExceptionError) ->
           raise(e exception)
 
-        (e: Error) -> do:
+        (e: Error):
           when(e kind-of?(y)):
             restart(#errored)
 

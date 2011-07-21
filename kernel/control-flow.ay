@@ -8,18 +8,6 @@ macro(otherwise): 'true
 macro(return(y)):
   Return new(line, y)
 
-macro(x rescue ~(y: Block)):
-  branches = y contents collect [`(~p -> ~e)]:
-    RescueHandler new(p line, p, e)
-
-  Catch new(line, x caller, branches)
-
-macro(x rescue ~(y: Block) else ~(z: Block)):
-  branches = y contents collect [`(~p -> ~e)]:
-    RescueHandler new(p line, p, e)
-
-  Catch new(line, x caller, branches, z body)
-
 macro(x ensuring ~(y: Block)):
   Ensure new(line, x caller, y body)
 
@@ -204,6 +192,18 @@ macro(x match ~(b: Block)):
 
   Match new(line, x, branches)
 
+macro(x rescue ~(y: Block)):
+  branches = pairs-from(y contents) collect [[p, e]]:
+    RescueHandler new(p line, p, e)
+
+  Catch new(line, x caller, branches)
+
+macro(x rescue ~(y: Block) else ~(z: Block)):
+  branches = pairs-from(y contents) collect [[p, e]]:
+    RescueHandler new(p line, p, e)
+
+  Catch new(line, x caller, branches, z body)
+
 module(Atomy::AST):
   class(Super < Node):
     children([#arguments], #block?)
@@ -219,15 +219,15 @@ module(Atomy::AST):
       @arguments each [a]:
         e = a prepare
         e match:
-          BlockPass -> do:
+          BlockPass:
             block =! e
-            -- break
+            break
 
-          Splat -> do:
+          Splat:
             splat =! e
-            -- break
+            break
 
-          _ -> do:
+          _:
             e bytecode(g)
             args += 1
 
@@ -268,11 +268,11 @@ module(Atomy::AST):
       @arguments each [a]:
         e = a prepare
         e match:
-          Splat -> do:
+          Splat:
             splat =! e
-            -- break
+            break
 
-          _ -> do:
+          _:
             e bytecode(g)
             args += 1
 

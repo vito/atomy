@@ -81,7 +81,7 @@ for-macro:
 
       [x] -> [x to-node]
 
-      [pre, chunk] -> do:
+      [pre, chunk]:
         p = Atomy::Parser new(chunk)
 
         unless(p parse("interpolated")):

@@ -4,7 +4,7 @@ macro('ast ~(nodes: Block)):
 macro(ast(root) ~(nodes: Block)):
   cs = nodes contents map [e]:
     e match:
-      `(~(name)(~*args)) -> do:
+      `(~(name)(~*args)):
         children = []
         attributes = []
 

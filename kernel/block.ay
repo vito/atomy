@@ -4,11 +4,11 @@ macro(x onto ~(b: Block)):
 
     blk = b through-quotes [n]:
       n match:
-        `@~(v: Variable) -> do:
+        `@~(v: Variable):
           shadowed? =! true
           `(~ctx instance-variable-get(#~("@" + v name)))
 
-        'self -> do:
+        'self:
           shadowed? =! true
           ctx
 

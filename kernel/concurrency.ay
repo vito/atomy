@@ -26,7 +26,6 @@ section("Sending & Receiving"):
     patterns listed in \hl{body}. Blocks until a matching message is \
     received. Non-matching messages are consumed and ignored.
   " spec {
-    body contents all? [x]: x match { `(~_ -> ~_) -> true, _ -> false }
     => any
   } for {
     macro('receive ~(body: Block)):
@@ -45,8 +44,6 @@ section("Sending & Receiving"):
     Similar to \code{receive}, but with a timeout and an action to \
     perform if it times out.
   " spec {
-    body contents all? [x]: x match { `(~_ -> ~_) -> true, _ -> false }
-    timeout match: `(~_ -> ~_) -> true, _ -> false
     => any
   } for {
     macro('receive ~(body: Block) after(timeout) ~(action: Block)):

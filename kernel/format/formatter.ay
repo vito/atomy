@@ -19,7 +19,7 @@ module(Atomy::Format):
     scan(*@input) := do:
       @segments each [s]:
         s match:
-          Break ? symbol?(".") -> do:
+          Break ? symbol?(".") ->
             when(@iterating empty?):
               @stop? = true
               break
@@ -160,7 +160,7 @@ module(Atomy::Format):
               @input = inputs
               @position = 0
               iterate(i content)
-        n -> do:
+        n:
           @input = inputs
           @position = 0
           iterate-max(n, i content)
@@ -178,7 +178,7 @@ module(Atomy::Format):
           when(next-input):
             @output << sub-format(t)
 
-        _ -> do:
+        _:
           n = next-number(c)
           if(n >= c branches size)
             then:
@@ -271,7 +271,8 @@ module(Atomy::Format):
     justified(j, s, left? = false) :=
       number(j, nil) match:
         nil -> s
-        w -> do:
+
+        w:
           padding = if(j zero-pad?) then: "0"; else: " "
 
           condition:

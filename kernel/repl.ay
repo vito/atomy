@@ -38,7 +38,7 @@ doc"
       in =
         { Readline readline(prompt)
         } rescue:
-          Interrupt -> do { signal(#quit), "" }
+          Interrupt: signal(#quit), ""
 
       in match:
         nil -> signal(#quit)
@@ -48,7 +48,7 @@ doc"
         String ? (=~ r"^:[[:alnum:]]") ->
           signal(#special(in [1 .. -1]))
 
-        source -> do:
+        source:
           signal(#input(source))
 
           try = {

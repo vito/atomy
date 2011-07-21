@@ -122,7 +122,7 @@ section("Handling"):
           Variable ->
             `(Restart new(#~n, { ~e }))
 
-          `(~(n)(~*as)) -> do:
+          `(~(n)(~*as)) ->
             `(Restart new(#~n, [~*as] { ~e }))
 
       body =
