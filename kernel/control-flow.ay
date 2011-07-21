@@ -152,21 +152,26 @@ macro('loop ~(body: Block)):
 
 for-macro:
   key-from(x) := x
-  key-from(x: Atomy::AST::Compose) := x message
+  key-from(x: Atomy::AST::Compose) :=
+    if(x message is-a?(Atomy::AST::Block))
+      then: x
+      else: x message
 
-  pair-from(x, _, _) := do:
+  pair-from(x, _) := do:
     puts("warning: unknown pair `" + x inspect + "'")
     nil
   
-  pair-from(`(~k -> ~v), pairs, _) :=
+  pair-from(`(~k -> ~v), pairs) :=
     pairs << [k, v]
 
-  pair-from(p { Atomy::AST::Compose }, pairs, exprs) := do:
+  pair-from(p { Atomy::AST::Compose }, pairs) := do:
     chain = []
     while(p is-a?(Atomy::AST::Compose) && p message is-a?(Atomy::AST::Block)):
       chain << [key-from(p receiver), p message block-body]
-      exprs += p message contents [1 .. -1]
-      if(p receiver is-a?(Atomy::AST::Compose))
+
+      if(p receiver is-a?(Atomy::AST::Compose) &&
+          -- don't consume `(x: Y): z`
+          !(p receiver message is-a?(Atomy::AST::Block)))
         then: p =! p receiver receiver
         else: break
     
@@ -177,8 +182,8 @@ for-macro:
     pairs = []
     exprs = es dup
 
-    until(exprs empty?):
-      pair-from(exprs shift, pairs, exprs)
+    exprs each [e]:
+      pair-from(e, pairs)
     
     pairs
 
