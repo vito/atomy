@@ -4,7 +4,6 @@ for-macro:
 
 
 macro(#(l: List)):
-  p([#hash, l, '#(l: List) macro-pattern, self])
   pairs = pairs-from(l elements)
   keys = pairs collect [[k, _]]: `#~key-name(k)
   values = pairs collect [[_, v]]: v
