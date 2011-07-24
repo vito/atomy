@@ -14,6 +14,10 @@ module Atomy
         @rhs.compile(g)
         g.send @operator.to_sym, 1
       end
+
+      def macro_name
+        :"atomy_macro::#{@operator}"
+      end
     end
   end
 end

@@ -15,12 +15,7 @@ module Atomy
       def bytecode(g)
         pos(g)
 
-        Atomy::Macro.register(
-          @pattern.class,
-          macro_pattern,
-          prepared,
-          Atomy::CodeLoader.compiling
-        )
+        @pattern.define_macro(@body)
 
         Atomy::CodeLoader.when_load << [self, true]
         Atomy::CodeLoader.when_run << [self, true]
@@ -30,15 +25,11 @@ module Atomy
 
       def load_bytecode(g)
         pos(g)
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.find_const :Macro
-        Atomy.const_from_string(g, @pattern.class.name)
-        macro_pattern.construct(g)
-        prepared.construct(g)
+        @pattern.construct(g)
+        @body.construct(g)
         g.push_scope
         g.send :active_path, 0
-        g.send :register, 4
+        g.send :define_macro, 2
       end
 
       def prepare_all

@@ -59,6 +59,10 @@ module Atomy
       def message_name
         @operator + "@"
       end
+
+      def macro_name
+        :"atomy_macro::#{@operator}@"
+      end
     end
   end
 end

@@ -125,6 +125,12 @@ module Atomy
           raise "something's probably amiss; no expansion: #{to_sexp.inspect}"
         end
       end
+
+      def macro_name
+        return :"atomy_macro::#{@message.name}" if @message.is_a? Variable
+        return @receiver.macro_name if @receiver.is_a? Compose
+        nil
+      end
     end
   end
 end

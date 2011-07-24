@@ -461,7 +461,7 @@ EOF
         self
       end
 
-      def expand
+      def do_expand
         if lets = Atomy::Macro::Environment.let[self.class]
           x = self
           lets.reverse_each do |l|
@@ -485,7 +485,59 @@ EOF
         raise
       end
 
+      def expand
+        return do_expand unless macro_name and respond_to?(macro_name)
+        send(macro_name)
+      rescue MethodFail
+        do_expand
+      end
+
       alias :prepare :expand
+
+      def define_macro(body, file = :macro)
+        unless macro_name
+          @@stats ||= {}
+          @@stats[self.class] ||= []
+          @@stats[self.class] << macro_pattern.quoted
+
+          Atomy::Macro.register(
+            self.class,
+            macro_pattern,
+            body.prepare_all,
+            Atomy::CodeLoader.compiling
+          )
+
+          return
+        end
+
+        pattern = macro_pattern
+
+        Atomy.define_method(
+          self.class,
+          macro_name,
+          pattern,
+          Atomy::AST::Send.new(
+            body.line,
+            Atomy::AST::Send.new(
+              body.line,
+              body,
+              [],
+              "to_node"
+            ),
+            [],
+            "expand"
+          ),
+          [],
+          Rubinius::StaticScope.new(Atomy::AST),
+          :public,
+          file,
+          pattern.expression.line
+        )
+      end
+
+      def macro_name
+        nil
+      end
 
       def prepare_all
         x = prepare

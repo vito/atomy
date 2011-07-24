@@ -17,6 +17,11 @@ module Atomy
           g.send message_name.to_sym, 0
         end
       end
+
+      # TODO: this causes segfault when loading control-flow kernel
+      # def macro_name
+        # :"atomy_macro::@#{@name}"
+      # end
     end
   end
 end
