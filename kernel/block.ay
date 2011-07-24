@@ -16,7 +16,7 @@ macro(x onto ~(b: Block)):
           n dup tap [p]:
             p receiver = 'self
 
-        BinarySend ? @private ->
+        Binary ? @private ->
           n dup tap [p]:
             p lhs = 'self
 

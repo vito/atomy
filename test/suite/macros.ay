@@ -47,9 +47,9 @@ describe("macros"):
 
     it("matches destructuring before constants"):
       macro(`(~x + 1) m-foo-9): `1
-      macro(BinarySend m-foo-9): `2
+      macro(Binary m-foo-9): `2
 
-      macro(BinarySend m-foo-10): `2
+      macro(Binary m-foo-10): `2
       macro(`(~x + 1) m-foo-10): `1
 
       (2 + 1) m-foo-9 should-be(1)

@@ -115,7 +115,7 @@ module(Atomy::AST):
     from(#assign):
       @lhs unamb <+> text("=") <+> @rhs unamb
 
-  BinarySend pretty :=
+  Binary pretty :=
     from(#binary):
       ((@lhs unamb <+> text(@operator)) </> @rhs unamb) hang(2)
 

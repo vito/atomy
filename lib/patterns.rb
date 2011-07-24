@@ -179,7 +179,7 @@ module Atomy::Patterns
     end
   end
 
-  class Atomy::AST::BinarySend
+  class Atomy::AST::Binary
     def pattern
       case @operator
       when "."

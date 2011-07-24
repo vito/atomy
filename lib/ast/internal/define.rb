@@ -8,7 +8,7 @@ module Atomy
         return @arguments if @arguments
 
         case @pattern
-        when BinarySend
+        when Binary
           args = [@pattern.rhs]
         when Variable, Unary
           args = []
@@ -23,7 +23,7 @@ module Atomy
         return @receiver if @receiver
 
         case @pattern
-        when BinarySend
+        when Binary
           recv = @pattern.lhs
         when Variable
           recv = Primitive.new(@pattern.line, :self)
