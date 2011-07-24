@@ -15,7 +15,7 @@ module Atomy
       def bytecode(g)
         pos(g)
 
-        @pattern.define_macro(@body)
+        @pattern.define_macro(prepared)
 
         Atomy::CodeLoader.when_load << [self, true]
         Atomy::CodeLoader.when_run << [self, true]
@@ -26,7 +26,7 @@ module Atomy
       def load_bytecode(g)
         pos(g)
         @pattern.construct(g)
-        @body.construct(g)
+        prepared.construct(g)
         g.push_scope
         g.send :active_path, 0
         g.send :define_macro, 2
