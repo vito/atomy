@@ -93,9 +93,9 @@ section("Handling"):
   " spec {
     => any
   } for {
-    macro(body bind ~(y: Block)):
+    macro(body bind { *handlers }):
       names [a]:
-        callback = `([~a]: ~a match: ~*(y contents))
+        callback = `([~a]: ~a match: ~*handlers)
         `(let(handlers = ^handlers + [~callback]):
             ~body rescue:
               (e: StandardError) -> error(e))
@@ -156,7 +156,8 @@ section("Signalling"):
   } for {
     signal(c) := do:
       ^handlers reverse-each [callback]:
-        callback [c]
+        let(handlers = ^handlers - [callback]):
+          callback [c]
 
       nil
   } examples:

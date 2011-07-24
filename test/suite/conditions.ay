@@ -19,6 +19,16 @@ describe("condition"):
 
       x should-be([1, 2])
 
+    it("does not trigger active handlers"):
+      a = 0
+      { signal(#foo) } bind:
+        _:
+          a += 1
+          when(a < 2):
+            signal(#bar)
+
+      a should-be(1)
+
   describe(#restart):
     it("calls a named restart"):
       { with-restarts(ok -> 1):
