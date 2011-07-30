@@ -189,4 +189,4 @@ String colored(color) := do:
 
   hash = Hash [codes]
 
-  "\e[9" + hash [color] to-s + "m" + self + "\e[0m"
+  "\e[3" + hash [color] to-s + "m" + self + "\e[0m"
