@@ -1,5 +1,9 @@
 theories = ARGV at(1) || "*"
 
-theorize:
-  Dir glob("test/suite/" + theories + ".ay") each [t]:
-    import(t)
+result =
+  theorize:
+    Dir glob("test/suite/" + theories + ".ay") each [t]:
+      import(t)
+
+unless(result failed == 0):
+  exit(1)
