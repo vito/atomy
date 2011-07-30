@@ -1,3 +1,5 @@
+task :default => :test
+
 task :parser do
   sh "kpeg -f -s lib/atomy.kpeg"
 end
