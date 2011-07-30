@@ -37,8 +37,7 @@ module(Atomy::Format):
       reset!
       res
 
-    -- TODO: use alias-method
-    self [*inputs] := format(*inputs)
+    alias-method(#"[]", #format)
 
     peek-input := @input [@position]
 

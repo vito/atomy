@@ -125,7 +125,6 @@ module(Atomy::Pretty):
   -- find the best configuration to fit document X in width w
   Doc best(w, k) := [[0, self]] be(w, k)
 
-
   -- test that a document can fit in a given width
   SText fits?(w) := w >= 0 && rest fits?(w - @value size)
   SDoc  fits?(w) := w >= 0
