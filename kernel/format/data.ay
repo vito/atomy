@@ -1,8 +1,8 @@
-macro('ast ~(nodes: Block)):
-  `(ast(Atomy::AST::Node) ~nodes)
+macro('ast { *nodes }):
+  `(ast(Atomy::AST::Node) { ~*nodes })
 
-macro(ast(root) ~(nodes: Block)):
-  cs = nodes contents map [e]:
+macro(ast(root) { *nodes }):
+  cs = nodes map [e]:
     e match:
       `(~(name)(~*args)):
         children = []
