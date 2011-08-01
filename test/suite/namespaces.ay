@@ -83,3 +83,22 @@ describe("namespaces"):
 
       in-b should-be(1)
       in-a should-be(1)
+
+  it("does not perform local rebinding"):
+    class(LocalRebindingClass):
+      bar := "Foo#bar"
+      baz := bar
+
+    namespace(LocalRebinder):
+      LocalRebindingClass bar := "LocalRebinder#bar"
+
+    lrc = LocalRebindingClass new
+    lrc bar should-be("Foo#bar")
+    lrc baz should-be("Foo#bar")
+
+    module(LocalRebinderUser):
+      using(LocalRebinder)
+
+      lrc = LocalRebindingClass new
+      lrc bar should-be("LocalRebinder#bar")
+      lrc baz should-be("Foo#bar")
