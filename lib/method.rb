@@ -294,7 +294,8 @@ module Atomy
     total <=> 0
   end
 
-  def self.equivalent?(xs, ys)
+  def self.equivalent?(xs, ys, xp, yp)
+    return false unless xp == yp
     return false unless xs.size == ys.size
 
     xs.zip(ys) do |x, y|
@@ -317,7 +318,7 @@ module Atomy
           when 1
             return branches.insert(i, new)
           when 0
-            if equivalent?([nr] + na, [r] + a)
+            if equivalent?([nr] + na, [r] + a, np, p)
               branches[i] = new
               return branches
             end
