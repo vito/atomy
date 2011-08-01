@@ -13,8 +13,14 @@ provide :=
   let(check-scope = self):
     yield
 
-using(which) :=
-  Rubinius::StaticScope of-sender module using-modules << which
+-- TODO: thread-safety, when a block is provided
+using(which, &blk) := do:
+  mods = Rubinius::StaticScope of-sender module using-modules
+
+  mods << which
+  when(blk):
+    { yield } ensuring:
+      mods delete(which)
 
 macro(namespace(name) { *body }):
   `(module(~name):
