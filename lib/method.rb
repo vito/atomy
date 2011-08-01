@@ -199,6 +199,7 @@ module Atomy
       skip.set!
     end
 
+    # TODO: if all methods tried are in namespaces and we fail, raise NoMethodError instead
     unless name == :initialize
       g.invoke_primitive :vm_check_super_callable, 0
       g.gif mismatch
