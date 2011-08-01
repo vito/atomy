@@ -59,7 +59,7 @@ Float pretty := super colored(#blue)
 TrueClass pretty := super colored(#green)
 FalseClass pretty := super colored(#red)
 NilClass pretty := super colored(#black)
-Object pretty := text(inspect)
+Object pretty := doc: text(inspect)
 
 Object show := pretty flatten render
 

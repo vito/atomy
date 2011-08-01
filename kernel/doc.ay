@@ -159,107 +159,108 @@ module(Atomy::Pretty):
   -- pretty-printing with a maximum width
   Doc render(width = 70) := best(width, 0) layout
 
+  provide:
+    -- trivial constructors
+    empty := Atomy::Pretty::Empty new
+    text(s) := Atomy::Pretty::Text new(s to-s)
+    raw(s) := Atomy::Pretty::Raw new(s to-s)
+    line := Atomy::Pretty::Line new(true)
+    linebreak := Atomy::Pretty::Line new(false)
+    column(&f) := Atomy::Pretty::Column new(f)
+    nesting(&f) := Atomy::Pretty::Nesting new(f)
+    group(x) := { x flatten } <|> { x }
+    softline := group(line)
+    softbreak := group(linebreak)
 
--- quick access to the following helpers
+    -- render x with the nesting level set to the current column
+    align(x) :=
+      column [k]:
+        nesting [i]:
+          x nest(k - i)
+
+    -- wrap `x' in `left' and `right'
+    enclose(left, right, x) := left <> x <> right
+
+    -- punctuate `xs' with `delim', separating with a space, and wrapping with
+    -- `left` and `right`
+    enclose-sep(left, right, delim, xs) :=
+      enclose(left, right, align(sep(delim punctuate(xs))))
+
+    -- punctuate `xs' with `delim', and wrapping with `left` and `right`
+    enclose-cat(left, right, delim, xs) :=
+      enclose(left, right, align(cat(delim punctuate(xs))))
+
+    -- separating lists
+    hsep(xs) := xs inject-right(empty) [x, y]: x <+> y
+    vsep(xs) := xs inject-right(empty) [x, y]: x <$> y
+    sep(xs) := group(vsep(xs))
+    fill-sep(xs) := xs inject-right(empty) [x, y]: x </> y
+
+    -- concatenating lists
+    hcat(xs) := xs inject-right(empty) [x, y]: x <> y
+    vcat(xs) := xs inject-right(empty) [x, y]: x <$$> y
+    cat(xs) := group(vcat(xs))
+    fill-cat(xs) := xs inject-right(empty) [x, y]: x <//> y
+
+    -- fill a document with whitespace to width `i'
+    fill(i, d) :=
+      width(d) [w]:
+        if(w >= i)
+          then: empty
+          else: text(" " * (i - w))
+
+    -- fill a document with whitespace to width `i', breaking onto a new line if
+    -- the document gets too long
+    fill-break(i, d) :=
+      width(d) [w]:
+        if(w > i)
+          then: linebreak nest(i)
+          else: text(" " * (i - w))
+
+    -- call `f' with the width of the passed document, and render the result
+    -- after it
+    width(d, &f) :=
+      column [c1]: d <> column [c2]: f [c2 - c1]
+
+    -- helper documents
+    lparen := text("(")
+    rparen := text(")")
+    langle := text("<")
+    rangle := text(">")
+    lbrace := text("{")
+    rbrace := text("}")
+    lbracket := text("[")
+    rbracket := text("]")
+    squote := text("'")
+    dquote := text("\"")
+    semi := text(";")
+    colon := text(":")
+    comma := text(",")
+    space := text(" ")
+    dot := text(".")
+    backslash := text("\\")
+    equals := text("=")
+
+    -- helper for creating text from a string that may contain newlines
+    string(s) := hcat(line punctuate(s split("\n") collect [x]: text(x)))
+
+    -- wrappers
+    parens(x) := lparen <> x <> rparen
+    angles(x) := langle <> x <> rangle
+    braces(x) := lbrace <> x <> rbrace
+    brackets(x) := lbracket <> x <> rbracket
+    squotes(x) := squote <> x <> squote
+    dquotes(x) := dquote <> x <> dquote
+
+    -- helpers for common syntax
+    list(xs) :=
+      enclose(lbracket, rbracket, align(fill-sep(comma punctuate(xs))))
+    tupled(xs) :=
+      enclose(lparen, rparen, align(fill-sep(comma punctuate(xs))))
+    semi-braces(xs) :=
+      enclose-sep(lbrace, rbrace, semi, xs)
+
+
+-- quick access to the above helpers
 macro('doc ~(f: Block)):
-  `(do ~f)
-
--- trivial constructors
-empty := Atomy::Pretty::Empty new
-text(s) := Atomy::Pretty::Text new(s to-s)
-raw(s) := Atomy::Pretty::Raw new(s to-s)
-line := Atomy::Pretty::Line new(true)
-linebreak := Atomy::Pretty::Line new(false)
-column(&f) := Atomy::Pretty::Column new(f)
-nesting(&f) := Atomy::Pretty::Nesting new(f)
-group(x) := { x flatten } <|> { x }
-softline := group(line)
-softbreak := group(linebreak)
-
--- render x with the nesting level set to the current column
-align(x) :=
-  column [k]:
-    nesting [i]:
-      x nest(k - i)
-
--- wrap `x' in `left' and `right'
-enclose(left, right, x) := left <> x <> right
-
--- punctuate `xs' with `delim', separating with a space, and wrapping with
--- `left` and `right`
-enclose-sep(left, right, delim, xs) :=
-  enclose(left, right, align(sep(delim punctuate(xs))))
-
--- punctuate `xs' with `delim', and wrapping with `left` and `right`
-enclose-cat(left, right, delim, xs) :=
-  enclose(left, right, align(cat(delim punctuate(xs))))
-
--- separating lists
-hsep(xs) := xs inject-right(empty) [x, y]: x <+> y
-vsep(xs) := xs inject-right(empty) [x, y]: x <$> y
-sep(xs) := group(vsep(xs))
-fill-sep(xs) := xs inject-right(empty) [x, y]: x </> y
-
--- concatenating lists
-hcat(xs) := xs inject-right(empty) [x, y]: x <> y
-vcat(xs) := xs inject-right(empty) [x, y]: x <$$> y
-cat(xs) := group(vcat(xs))
-fill-cat(xs) := xs inject-right(empty) [x, y]: x <//> y
-
--- fill a document with whitespace to width `i'
-fill(i, d) :=
-  width(d) [w]:
-    if(w >= i)
-      then: empty
-      else: text(" " * (i - w))
-
--- fill a document with whitespace to width `i', breaking onto a new line if
--- the document gets too long
-fill-break(i, d) :=
-  width(d) [w]:
-    if(w > i)
-      then: linebreak nest(i)
-      else: text(" " * (i - w))
-
--- call `f' with the width of the passed document, and render the result
--- after it
-width(d, &f) :=
-  column [c1]: d <> column [c2]: f [c2 - c1]
-
--- helper documents
-lparen := text("(")
-rparen := text(")")
-langle := text("<")
-rangle := text(">")
-lbrace := text("{")
-rbrace := text("}")
-lbracket := text("[")
-rbracket := text("]")
-squote := text("'")
-dquote := text("\"")
-semi := text(";")
-colon := text(":")
-comma := text(",")
-space := text(" ")
-dot := text(".")
-backslash := text("\\")
-equals := text("=")
-
--- helper for creating text from a string that may contain newlines
-string(s) := hcat(line punctuate(s split("\n") collect [x]: text(x)))
-
--- wrappers
-parens(x) := lparen <> x <> rparen
-angles(x) := langle <> x <> rangle
-braces(x) := lbrace <> x <> rbrace
-brackets(x) := lbracket <> x <> rbracket
-squotes(x) := squote <> x <> squote
-dquotes(x) := dquote <> x <> dquote
-
--- helpers for common syntax
-list(xs) :=
-  enclose(lbracket, rbracket, align(fill-sep(comma punctuate(xs))))
-tupled(xs) :=
-  enclose(lparen, rparen, align(fill-sep(comma punctuate(xs))))
-semi-braces(xs) :=
-  enclose-sep(lbrace, rbrace, semi, xs)
+  `(using(::Atomy::Pretty) ~f)
