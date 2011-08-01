@@ -130,6 +130,9 @@ module Atomy
         g.send :using?, 2
         # g.debug "[#{name}] using?"
         g.gif skip
+
+        g.push_literal provided
+        g.add_scope
       end
 
       if should_match_self?(recv)
@@ -257,6 +260,8 @@ module Atomy
       )
     end
 
+    # this is broken; different branches should retain their static scopes, not
+    # have the last one win.
     cm.scope = static_scope
 
     if defn and not Thread.current[:atomy_provide_in]
