@@ -1,4 +1,4 @@
-dynamic(check-scope, nil)
+dynamic(provide-in, nil)
 
 class(Module):
   using-modules :=
@@ -9,18 +9,22 @@ module(Atomy):
     x == y || x using-modules any? [u]:
       using?(u, y)
 
-provide :=
-  let(check-scope = self):
+Module provide :=
+  let(provide-in = self):
     yield
 
--- TODO: thread-safety, when a block is provided
 using(which, &blk) := do:
   mods = Rubinius::StaticScope of-sender module using-modules
 
   mods << which
+
   when(blk):
     { yield } ensuring:
-      mods delete(which)
+      -- delete only the first entry
+      mods each with-index [x, i]:
+        when(x == which):
+          mods delete-at(i)
+          break
 
 macro(namespace(name) { *body }):
   `(module(~name):

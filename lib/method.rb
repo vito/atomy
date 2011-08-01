@@ -259,7 +259,7 @@ module Atomy
 
     cm.scope = static_scope
 
-    if defn and not Thread.current[:atomy_check_scope]
+    if defn and not Thread.current[:atomy_provide_in]
       Rubinius.add_defn_method name, cm, static_scope, visibility
     else
       Rubinius.add_method name, cm, defn ? Object : target, visibility

@@ -72,7 +72,7 @@ module Atomy
         g.push_cpath_top
         g.find_const :Thread
         g.send :current, 0
-        g.push_literal :atomy_check_scope
+        g.push_literal :atomy_provide_in
         g.send :[], 1
         g.make_array 3
 
