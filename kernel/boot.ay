@@ -68,6 +68,6 @@ macro(import(name)): `(Atomy import(~name, "load" to-sym))
 
 "operators define cosmetics data comparison dynamic control-flow patterns
 precision node data-delta particles hashes block documentation doc pretty
-errors format concurrency io condition therie repl" split each [k]:
+errors format concurrency io condition therie repl namespaces" split each [k]:
   puts("loading " + k)
   import(File expand-path("../", _FILE) + "/" + k)

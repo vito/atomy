@@ -54,21 +54,11 @@ module Atomy
 
         defn = receiver.kind_of?(Patterns::Match) && receiver.value == :self
 
-        if defn
-          g.push_rubinius
-          g.push_literal message_name
-          g.send :to_sym, 0
-          g.dup
-          g.push_cpath_top
-          g.find_const :Atomy
-          g.swap
-        else
-          g.push_cpath_top
-          g.find_const :Atomy
-          receiver.target(g)
-          g.push_literal message_name
-          g.send :to_sym, 0
-        end
+        g.push_cpath_top
+        g.find_const :Atomy
+        receiver.target(g)
+        g.push_literal message_name
+        g.send :to_sym, 0
 
         create = g.new_label
         added = g.new_label
@@ -79,7 +69,12 @@ module Atomy
         g.make_array arguments.size
         g.make_array 2
         @body.prepare_all.construct(g)
-        g.make_array 2
+        g.push_cpath_top
+        g.find_const :Thread
+        g.send :current, 0
+        g.push_literal :atomy_check_scope
+        g.send :[], 1
+        g.make_array 3
 
         receiver.target(g)
         g.push_literal "@atomy::"
@@ -110,24 +105,13 @@ module Atomy
 
         added.set!
 
-        if defn
-          g.push_scope
-          g.send :active_path, 0
-          g.push_int @line
-          g.send :build_method, 4
-          g.push_scope
-          # g.push_variables
-          # g.send :method_visibility, 0
-          g.push_literal :public
-          g.send :add_defn_method, 4
-        else
-          g.push_scope
-          g.push_literal :public
-          g.push_scope
-          g.send :active_path, 0
-          g.push_int @line
-          g.send :add_method, 7
-        end
+        g.push_scope
+        g.push_literal :public
+        g.push_scope
+        g.send :active_path, 0
+        g.push_int @line
+        g.push_literal defn
+        g.send :add_method, 8
       end
 
       def local_count

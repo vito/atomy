@@ -1,0 +1,22 @@
+dynamic(check-scope, nil)
+
+class(Module):
+  using-modules :=
+    @using-modules ||= []
+
+module(Atomy):
+  { self } using?(x, y) :=
+    x == y || x using-modules any? [u]:
+      using?(u, y)
+
+provide :=
+  let(check-scope = self):
+    yield
+
+using(which) :=
+  Rubinius::StaticScope of-sender module using-modules << which
+
+macro(namespace(name) { *body }):
+  `(module(~name):
+      provide:
+        ~*body)  
