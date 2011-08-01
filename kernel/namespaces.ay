@@ -4,10 +4,12 @@ class(Module):
   using-modules :=
     @using-modules ||= []
 
-module(Atomy):
-  { self } using?(x, y) :=
-    x == y || x using-modules any? [u]:
-      using?(u, y)
+Module using?(y) :=
+  self == y || using-modules any? [u]:
+    u using?(y)
+
+Class using?(y) :=
+  super || superclass && superclass using?(y)
 
 Module provide :=
   let(provide-in = self):

@@ -119,15 +119,14 @@ module Atomy
         g.gif skip
       end
 
+      # TODO: have only one namespace guard
       if provided
-        g.push_cpath_top
-        g.find_const :Atomy
         get_sender_scope(g)
         # g.debug "[#{name}] sender"
         g.send :module, 0
         g.push_literal provided
         # g.debug "[#{name}] provided from"
-        g.send :using?, 2
+        g.send :using?, 1
         # g.debug "[#{name}] using?"
         g.gif skip
 
