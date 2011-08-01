@@ -2,7 +2,7 @@ dynamic(atomy-pretty-multiline?, false)
 dynamic(atomy-pretty-context, #top)
 dynamic(atomy-pretty-colored?, false)
 
-ident(n) := text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
+ident(n) := doc: text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
 
 pretty-body([]) := []
 pretty-body([x]) := [from(#top): x pretty]
@@ -26,7 +26,7 @@ module(Atomy::AST):
   QuasiQuote unamb := pretty
   Quote unamb := pretty
   ScopedConstant unamb := pretty
-  Send unamb :=
+  Send unamb := doc:
     if(from?(#binary, #compose))
       then: pretty
       else: parens(pretty)
@@ -36,7 +36,7 @@ module(Atomy::AST):
   Unary unamb := pretty
   Unquote unamb := pretty
   Variable unamb := pretty
-  Node unamb := parens(pretty)
+  Node unamb := doc: parens(pretty)
   _ unamb := pretty
 
 from(*where, &y) :=
@@ -65,9 +65,9 @@ Object show := pretty flatten render
 
 Atomy::Pretty::Doc pretty := self
 
-Array pretty := list(all-pretty)
+Array pretty := doc: list(all-pretty)
 
-Particle pretty := do:
+Particle pretty := doc:
   wildcard = [c]:
     if(c equal?(_undefined))
       then: '_
@@ -97,13 +97,13 @@ Particle pretty := do:
 
 Particle to-s := show
 
-Symbol pretty := do:
+Symbol pretty := doc:
   s = to-s
   if(s =~ r"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-_\\:.\/\?])*$"(u))
     then: text("#") <> ident(s)
     else: text("#") <> s pretty
 
-Hash pretty := do:
+Hash pretty := doc:
   text("#") <>
     brackets $:
       comma separate $:
@@ -111,15 +111,15 @@ Hash pretty := do:
           k unamb <+> text("->") <+> v unamb
 
 module(Atomy::AST):
-  Assign pretty :=
+  Assign pretty := doc:
     from(#assign):
       @lhs unamb <+> text("=") <+> @rhs unamb
 
-  Binary pretty :=
+  Binary pretty := doc:
     from(#binary):
       ((@lhs unamb <+> text(@operator)) </> @rhs unamb) hang(2)
 
-  Block pretty := do:
+  Block pretty := doc:
     args =
       if(@arguments empty?)
         then: empty
@@ -131,11 +131,11 @@ module(Atomy::AST):
       then: args <> colon <+> contents
       else: align(args <+> (lbrace </> contents) nest(2) </> rbrace)
 
-  BlockPass pretty :=
+  BlockPass pretty := doc:
     from(#unary):
       text("&") <> @body unamb
 
-  Class pretty := do:
+  Class pretty := doc:
     sub =
       if(@superclass kind-of?(Primitive) && @superclass value == #nil)
         then: empty
@@ -152,7 +152,7 @@ module(Atomy::AST):
 
   ClassVariable pretty := ident(name to-s)
 
-  Compose pretty := do:
+  Compose pretty := doc:
     args =
       from(#list):
         if(@arguments empty?)
@@ -166,9 +166,9 @@ module(Atomy::AST):
         (from(#compose) { @receiver unamb } </>
           @message unamb <> args) hang(2)
 
-  Constant pretty := text(@identifier)
+  Constant pretty := doc: text(@identifier)
 
-  Define pretty :=
+  Define pretty := doc:
     from(#binary):
       @pattern unamb <+> text(":=") <+> @body unamb
 
@@ -176,16 +176,14 @@ module(Atomy::AST):
 
   InstanceVariable pretty := ident(name to-s)
 
-  List pretty :=
+  List pretty := doc:
     from(#list):
       list(@elements all-pretty)
 
-  Macro pretty :=
+  Macro pretty := doc:
     text("macro") <+> parens(@pattern pretty) <+> @body pretty
 
-  Particle pretty := text("#") <> ident(@name)
-
-  Primitive pretty :=
+  Primitive pretty := doc:
     @value match:
       #self -> text("self")
       #true -> text("true")
@@ -193,19 +191,19 @@ module(Atomy::AST):
       #nil -> text("nil")
       x -> text(x inspect)
 
-  QuasiQuote pretty :=
+  QuasiQuote pretty := doc:
     from(#unary):
       text("`") <> @expression unamb
 
-  Quote pretty :=
+  Quote pretty := doc:
     from(#unary):
       text("'") <> @expression unamb
 
-  ScopedConstant pretty :=
+  ScopedConstant pretty := doc:
     from(#scoped-constant):
       @parent unamb <> text("::") <> text(@identifier)
 
-  Send pretty := do:
+  Send pretty := doc:
     with-block = [x]:
       when(@block nil?):
         break(x)
@@ -254,45 +252,45 @@ module(Atomy::AST):
         (from(#compose) { @receiver unamb } </>
           with-block [ident(@message-name) <> args]) hang(2)
 
-  Splice pretty :=
+  Splice pretty := doc:
     from(#unary):
       text("~*") <> @expression unamb
 
-  String pretty := text(@value inspect)
+  String pretty := doc: text(@value inspect)
 
-  ToplevelConstant pretty := text("::") <> text(@identifier)
+  ToplevelConstant pretty := doc: text("::") <> text(@identifier)
 
-  Unary pretty :=
+  Unary pretty := doc:
     from(#unary):
       text(@operator) <> @receiver unamb
 
-  Unquote pretty :=
+  Unquote pretty := doc:
     from(#unary):
       text("~") <> @expression unamb
 
   Variable pretty := ident(@name)
 
-  InlinedBody pretty :=
+  InlinedBody pretty := doc:
     from(#top): align(vcat(@expressions all-pretty))
 
-  BlockBody pretty :=
+  BlockBody pretty := doc:
     from(#top): align(vcat(@expressions all-pretty))
 
   Or pretty := `(~@a || ~@b) pretty
 
   And pretty := `(~@a && ~@b) pretty
 
-  Ensure pretty :=
+  Ensure pretty := doc:
     @body pretty <+> text("ensuring:") <+> @ensure pretty
 
-  Tree pretty :=
+  Tree pretty := doc:
     if(^atomy-pretty-multiline?)
       then: from(#top): vcat(@nodes all-pretty)
       else: from(#list): comma separate(@nodes all-pretty)
 
 Array all-pretty := collect [x]: x pretty
 
-Atomy::Pretty::Doc colored(color) := do:
+Atomy::Pretty::Doc colored(color) := doc:
   -- only makes sense to colorize if we're outputting to a terminal
   unless(^atomy-pretty-colored? && ^output-port tty?):
     return(self)
