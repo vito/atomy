@@ -13,18 +13,20 @@ Module provide :=
   let(provide-in = self):
     yield
 
-using(which, &blk) := do:
-  mods = Rubinius::StaticScope of-sender module using-modules
+using(which) := do:
+  Rubinius::StaticScope of-sender module using-modules << which
+  nil
 
-  mods << which
+with-static-scope(mod, &blk) :=
+  blk block call-under $:
+    self
+    Rubinius::StaticScope new $:
+      mod
+      Rubinius::StaticScope of-sender
 
-  when(blk):
-    { yield } ensuring:
-      -- delete only the first entry
-      mods each with-index [x, i]:
-        when(x == which):
-          mods delete-at(i)
-          break
+macro(using(which) { *body }):
+  `(with-static-scope(~which):
+      ~*body)
 
 macro(namespace(name) { *body }):
   `(module(~name):
