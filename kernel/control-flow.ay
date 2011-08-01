@@ -160,7 +160,7 @@ for-macro:
   pair-from(x, _) := do:
     puts("warning: unknown pair `" + x inspect + "'")
     nil
-  
+
   pair-from(`(~k -> ~v), pairs) :=
     pairs << [k, v]
 
@@ -174,7 +174,7 @@ for-macro:
           !(p receiver message is-a?(Atomy::AST::Block)))
         then: p =! p receiver receiver
         else: break
-    
+
     pairs push(*(chain reverse))
 
 
@@ -184,7 +184,7 @@ for-macro:
 
     exprs each [e]:
       pair-from(e, pairs)
-    
+
     pairs
 
 macro('condition ~(b: Block)):

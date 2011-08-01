@@ -2,13 +2,13 @@ describe("namespaces"):
   it("doesn't provide methods to static scopes that don't use it"):
     namespace(NotUsed):
       not-used := 1
-      
+
     { not-used } should-raise(Atomy::MethodFail)
-    
+
   it("lets scopes use methods after `using' the module"):
     namespace(Used):
       used := 1
-      
+
     module(User):
       using(Used)
       used should-be(1)
@@ -19,7 +19,7 @@ describe("namespaces"):
       1 recursive := 1
       Fixnum recursive :=
         (- 2) recursive + (- 1) recursive
-      
+
     module(RecursiveUser):
       using(Recursive)
       3 recursive should-be(2)
@@ -29,12 +29,12 @@ describe("namespaces"):
       self-user-a := self-user-b
       self-user-b := self-user-c
       self-user-c := 42
-      
+
     module(SelfUserUser):
       using(SelfUser)
       self-user-a should-be(42)
-      
-  it("respects class hierarchy"):    
+
+  it("respects class hierarchy"):
     data:
       Parent:
         Child1
@@ -49,21 +49,21 @@ describe("namespaces"):
 
     namespace(Child1Overrider):
       Parent a := 2
-      
+
     module(Child1OverriderUser):
       using(Child1Overrider)
 
       Parent new a should-be(2)
       Child1 new a should-be(1)
       Child2 new a should-be(2)
-      
+
   it("does not bypass sender static scope when matching with zsuper"):
     namespace(SuperMatcher):
       1 super-matcher := 1
       Object super-matcher := 2
-      
+
     { 2 super-matcher } should-raise(Atomy::MethodFail)
-    
+
     module(SuperMatcherUser):
       using(SuperMatcher)
 
