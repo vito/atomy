@@ -1,17 +1,38 @@
 describe("namespaces"):
-  it("doesn't provide methods to static scopes that don't use it"):
+  it("doesn't provide methods to static scopes that aren't `using' the module"):
     namespace(NotUsed):
       not-used := 1
 
     { not-used } should-raise(Atomy::MethodFail)
 
-  it("lets scopes use methods after `using' the module"):
+  it("provides methods for static scopes that are `using' the module"):
     namespace(Used):
       used := 1
 
     module(User):
       using(Used)
       used should-be(1)
+
+  it("persists used namespaces in a reopened module"):
+    module(User):
+      used should-be(1)
+
+  it("allows using namespaces in a class definition"):
+    class(ClassUser):
+      using(Used)
+      used should-be(1)
+
+  it("persists used namespaces in a reopened class"):
+    class(ClassUser):
+      used should-be(1)
+
+  it("persists used namespaces through to a subclass"):
+    class(ClassUserSub < ClassUser):
+      used should-be(1)
+
+  it("does not persist through #module-eval"):
+    User module-eval:
+      { used } should-raise(Atomy::MethodFail)
 
   it("allows providing recursive methods"):
     namespace(Recursive):
