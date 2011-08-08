@@ -19,6 +19,7 @@ module Atomy
         InlinedBody.new @line, @contents
       end
 
+      # TODO: remove #caller
       alias :caller :body
 
       def bytecode(g)
@@ -193,16 +194,18 @@ module Atomy
       def bytecode(g)
         return if @arguments.empty?
 
-        args = @arguments.dup
+        args = @arguments
 
         if args.last.kind_of?(Patterns::BlockPass)
           g.push_block_arg
-          args.pop.deconstruct(g)
+          args.last.deconstruct(g)
+          args = args.init
         end
 
         g.cast_for_splat_block_arg
         args.each do |a|
           if a.kind_of?(Patterns::Splat)
+            g.send :to_list, 0
             a.pattern.deconstruct(g)
             return
           else

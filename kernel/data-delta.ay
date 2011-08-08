@@ -6,7 +6,7 @@ for-macro:
   define-class(root, x: `(~(name)(~*as))) :=
     define-class(root, `(~x {}))
   define-class(root, `(~(name)(~*as): ~*cs)) := do:
-    attrs = []
+    attrs = Array[]
     as each [a]:
       a through-quotes [x]:
         x match:
@@ -138,6 +138,12 @@ macro(_undefined):
 
 macro($(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
   NthRef new(line, x value)
+
+macro(a .. b): `(Hamster range(~a, ~b))
+macro(a ... b): `(Hamster exclusive-range(~a, ~b))
+
+macro(a [`(~x .. ~y)]): `(~a [Range new(~x, ~y)])
+macro(a [`(~x ... ~y)]): `(~a [Range new(~x, ~y, true)])
 
 module(Atomy::AST):
   class(Undefined < Node):

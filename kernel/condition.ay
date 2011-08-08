@@ -96,7 +96,7 @@ section("Handling"):
     macro(body bind { *handlers }):
       names [a]:
         callback = `([~a]: ~a match: ~*handlers)
-        `(let(handlers = ^handlers + [~callback]):
+        `(let(handlers = ^handlers cons(~callback)):
             ~body rescue:
               (e: StandardError) -> error(e))
   } examples:
@@ -130,7 +130,7 @@ section("Handling"):
         pairs reduce(
           `{ ~block rescue: (e: StandardError) -> error(e) }
         ) [x, [name, _]]:
-          `{ catch(#~catcher(name), &~x) }
+          `{ catch(#~catcher(name)) ~x }
 
       `(let(restarts = [~*rs] + ^restarts) ~body)
   } examples:
@@ -155,8 +155,8 @@ section("Signalling"):
     => nil
   } for {
     signal(c) := do:
-      ^handlers reverse-each [callback]:
-        let(handlers = ^handlers - [callback]):
+      ^handlers tails init each [(callback . rest)]:
+        let(handlers = rest):
           callback [c]
 
       nil

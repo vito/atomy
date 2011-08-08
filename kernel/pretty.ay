@@ -11,7 +11,7 @@ pretty-body(x . xs) := [from(#list) { x pretty }] + pretty-body(xs)
 module(Atomy::AST):
   Block unamb := pretty
   ClassVariable unamb := pretty
-  Compose unamb :=
+  Compose unamb := doc:
     if(from?(#binary, #compose))
       then: pretty
       else: parens(pretty)
@@ -44,11 +44,11 @@ from(*where, &y) :=
 
 from?(*where) :=
   [^atomy-pretty-context, where] match:
-    [(a: Array), (b: Array)] ->
+    [(a: Hamster::List), (b: Hamster::List)] ->
       a any? [x]: b include?(x)
-    [(a: Array), b] ->
+    [(a: Hamster::List), b] ->
       a include?(b)
-    [a, (b: Array)] ->
+    [a, (b: Hamster::List)] ->
       b include?(a)
     [a, b] ->
       a == b
@@ -66,6 +66,7 @@ Object show := pretty flatten render
 Atomy::Pretty::Doc pretty := self
 
 Array pretty := doc: list(all-pretty)
+Hamster::List pretty := doc: list(all-pretty)
 
 Particle pretty := doc:
   wildcard = [c]:
@@ -289,6 +290,7 @@ module(Atomy::AST):
       else: from(#list): comma separate(@nodes all-pretty)
 
 Array all-pretty := collect [x]: x pretty
+Hamster::List all-pretty := collect [x]: x pretty
 
 Atomy::Pretty::Doc colored(color) := doc:
   -- only makes sense to colorize if we're outputting to a terminal
@@ -304,7 +306,7 @@ Atomy::Pretty::Doc colored(color) := doc:
       #magenta
       #cyan
       #white
-    ] zip((0 .. 7) to-a)
+    ] to-a zip((0 .. 7) to-a)
 
   hash = Hash [codes]
 

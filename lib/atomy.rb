@@ -10,6 +10,9 @@ module Atomy
   end
 end
 
+require "rubygems"
+require "hamster"
+
 require base + "/macros"
 require base + "/method"
 require base + "/exceptions"

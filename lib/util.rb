@@ -30,7 +30,7 @@ module Atomy
     n.collect do |x|
       x = x.to_node
       Atomy::AST::Quote.new(x.line, x)
-    end.to_node
+    end.to_list.to_node
   end
 
   def self.const_from_string(g, name)
@@ -55,4 +55,14 @@ module Atomy
       g.state.scope.new_local(name).reference
     end
   end
+end
+
+class Array
+  alias :head :first
+
+  def tail
+    self[1..-1]
+  end
+
+  alias :rest :tail
 end

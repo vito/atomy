@@ -59,11 +59,11 @@ evaluate-when(compile, run, load):
         tags = ::Hash new
 
         labels =
-          @tags collect [t]:
+          @tags to-a collect [t]:
             tags [t name] = g new-label
 
         let(labels = tags):
-          labels zip(@tags) each [[l, t]]:
+          labels zip(@tags to-a) each [[l, t]]:
             l set!
             t body compile(g)
             g pop
@@ -157,35 +157,21 @@ for-macro:
       then: x
       else: x message
 
-  pair-from(x, _) := do:
-    puts("warning: unknown pair `" + x inspect + "'")
-    nil
+  pair-from(x) :=
+    raise("unknown pair `" + x inspect + "'")
 
-  pair-from(`(~k -> ~v), pairs) :=
-    pairs << [k, v]
+  pair-from(`(~k -> ~v)) :=
+    [[k, v]]
 
-  pair-from(p { Atomy::AST::Compose }, pairs) := do:
-    chain = []
-    while(p is-a?(Atomy::AST::Compose) && p message is-a?(Atomy::AST::Block)):
-      chain << [key-from(p receiver), p message block-body]
+  pair-from(p: `(~x { ~*ys })) := do:
+    this = [[key-from(x), `(do: ~*ys)]]
 
-      if(p receiver is-a?(Atomy::AST::Compose) &&
-          -- don't consume `(x: Y): z`
-          !(p receiver message is-a?(Atomy::AST::Block)))
-        then: p =! p receiver receiver
-        else: break
+    if(x is-a?(Atomy::AST::Compose) && !(x message is-a?(Atomy::AST::Block)))
+      then: pair-from(x receiver) + this
+      else: this
 
-    pairs push(*(chain reverse))
-
-
-  pairs-from(es) := do:
-    pairs = []
-    exprs = es dup
-
-    exprs each [e]:
-      pair-from(e, pairs)
-
-    pairs
+  pairs-from(es) :=
+    pair-from(e) for(e) in(es) flatten
 
 macro('condition ~(b: Block)):
   pairs-from(b contents) reverse inject('nil) [acc, [x, y]]:

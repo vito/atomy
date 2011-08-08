@@ -21,7 +21,9 @@ module Atomy::Patterns
     end
 
     def target(g)
-      g.push_const :Array
+      g.push_cpath_top
+      g.find_const :Hamster
+      g.find_const :List
     end
 
     def matches?(g)
@@ -32,10 +34,12 @@ module Atomy::Patterns
       g.send :empty?, 0
       g.git mismatch
 
-      g.shift_array
+      g.dup
+      g.send :head, 0
       @head.matches?(g)
       g.gif mismatch
 
+      g.send :tail, 0
       @tail.matches?(g)
       g.goto matched
 
@@ -47,8 +51,10 @@ module Atomy::Patterns
     end
 
     def deconstruct(g, locals = {})
-      g.shift_array
+      g.dup
+      g.send :head, 0
       @head.deconstruct(g, locals)
+      g.send :tail, 0
       @tail.deconstruct(g, locals)
     end
 

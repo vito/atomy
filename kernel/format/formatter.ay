@@ -46,7 +46,7 @@ module(Atomy::Format):
       @position += 1
       v
 
-    next-inputs := @input [@position .. -1] || []
+    next-inputs := @input drop(@position) || []
 
     process(c: Chunk) :=
       @output << c text
@@ -292,7 +292,7 @@ module(Atomy::Format):
 
     justify-to(_, _, []) := ""
     justify-to(j, to, all: s . ss) := do:
-      needed = to - all collect(&#size) inject(*#"+")
+      needed = to - all collect(&#size) inject(&#"+")
 
       spacings =
         condition:

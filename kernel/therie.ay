@@ -89,7 +89,7 @@ section("Structure"):
             e message
           ] indented colored(#yellow) println
 
-          e backtrace first(5) each [l]:
+          e backtrace first((ENV["THERIE_BT_LIMIT"] || 5) to-i) each [l]:
             f"    %s" [l colored(#cyan)] indented println
       } else:
         when(^stats):
@@ -185,7 +185,7 @@ String colored(color) := do:
       #magenta
       #cyan
       #white
-    ] zip((0 .. 7) to-a)
+    ] to-a zip((0 .. 7) to-a)
 
   hash = Hash [codes]
 

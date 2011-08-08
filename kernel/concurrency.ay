@@ -30,8 +30,9 @@ section("Sending & Receiving"):
   } for {
     macro('receive ~(body: Block)):
       names [e]:
-        bs = pairs-from(body contents) collect [[pat, exp]]:
+        bs =
           `(~e when('~pat to-pattern) [~pat]: ~exp)
+            for([pat, exp]) in(pairs-from(body contents))
 
         `(Actor receive [~e]: ~*bs)
   } examples:
@@ -48,10 +49,10 @@ section("Sending & Receiving"):
   } for {
     macro('receive ~(body: Block) after(timeout) ~(action: Block)):
       names [e]:
-        bs = pairs-from(body contents) collect [[pat, exp]]:
+        bs =
           `(~e when('~pat to-pattern) [~pat]: ~exp)
-
-        bs << `(~e after(~timeout) ~action)
+            for([pat, exp]) in(pairs-from(body contents)) +
+              [`(~e after(~timeout) ~action)]
 
         `(Actor receive [~e]: ~*bs)
   } examples:

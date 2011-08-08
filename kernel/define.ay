@@ -124,38 +124,35 @@ macro('for-macro ~(b: Block)):
 -- TODO: compare let-when; make a more general macro for wrapping
 -- with evaluate-when
 macro(let-macro(*ms) ~(b: Block)):
-  define = []
-  unwind = []
+  tripled = ms zip(names(ms size) zip(names(ms size)))
 
-  lets = names(ms size)
-  macs = names(ms size)
-  ms zip(lets, macs) [[`(~p = ~b), let, mac]]:
-    names [m]:
-      define <<
-        `(do:
-            Atomy::STATE [#~mac] =
-              (~m = Atomy::AST::Macro new(~(p line), '~p, '~b))
+  define =
+    tripled collect [[`(~p = ~b), [let, mac]]]:
+      `(do:
+          Atomy::STATE [#~mac] =
+            (~mac = Atomy::AST::Macro new(~(p line), '~p, '~b))
 
-            Atomy::STATE [#~let] =
-              Atomy::Macro register(
-                ~m pattern class
-                ~m macro-pattern
-                ~m prepared
-                Atomy::CodeLoader compiling
-                true
-              ))
+          Atomy::STATE [#~let] =
+            Atomy::Macro register(
+              ~mac pattern class
+              ~mac macro-pattern
+              ~mac prepared
+              Atomy::CodeLoader compiling
+              true
+            ))
 
-      unwind <<
-        `(do:
-            ~m = Atomy::STATE [#~mac] pattern
+  unwind =
+    tripled collect [[_, [let, mac]]]:
+      `(do:
+          ~mac = Atomy::STATE [#~mac] pattern
 
-            ~m class remove-method(Atomy::STATE [#~let])
+          ~mac class remove-method(Atomy::STATE [#~let])
 
-            when(lets = Atomy::Macro::Environment let [~m class]):
-              lets delete(Atomy::STATE [#~let])
+          when(lets = Atomy::Macro::Environment let [~mac class]):
+            lets delete(Atomy::STATE [#~let])
 
-              when(lets empty?):
-                Atomy::Macro::Environment let delete(~m class))
+            when(lets empty?):
+              Atomy::Macro::Environment let delete(~mac class))
 
   names [res]:
     `(do:

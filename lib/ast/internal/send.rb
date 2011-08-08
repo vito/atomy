@@ -31,6 +31,7 @@ module Atomy
 
         if splat
           splat.compile(g)
+          g.send :to_a, 0
           if block
             block.compile(g)
           else

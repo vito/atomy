@@ -3,7 +3,7 @@ module Atomy
     module SentientNode
       # hash from attribute to the type of child node it is
       # :normal = normal, required subnode
-      # :many = an array of subnodes
+      # :many = a list of subnodes
       # :optional = optional (might be nil)
       def reset_children
         @@children = {
@@ -43,7 +43,7 @@ module Atomy
 
       def spec(into, specs)
         specs.each do |s|
-          if s.kind_of?(Array)
+          if s.respond_to?(:[]) and s.respond_to?(:size)
             if s.size == 2
               into[:optional] << s
             else
@@ -71,12 +71,19 @@ module Atomy
 
       def many_construct(n)
         x = <<END
+
           spliced = false
           size = 0
           @#{n}.each do |e|
             if e.kind_of?(::Atomy::AST::Splice) && d == 1
-              g.make_array size if size > 0
+              if size > 0
+                g.push_cpath_top
+                g.find_const :Hamster
+                g.move_down size
+                g.send :list, size
+              end
               e.construct(g, d)
+              g.send :to_list, 0
               g.send :+, 1 if size > 0 || spliced
               spliced = true
               size = 0
@@ -86,7 +93,10 @@ module Atomy
             end
           end
 
-          g.make_array size
+          g.push_cpath_top
+          g.find_const :Hamster
+          g.move_down size
+          g.send :list, size
 
           g.send :+, 1 if spliced
 END
@@ -102,6 +112,8 @@ END
           all << x.to_s
           args << ", #{x}_"
         end
+
+        lists = @@children[:many] + @@attributes[:many] + @@slots[:many]
 
         (@@children[:optional] + @@attributes[:optional]).each do |x, d|
           all << x.to_s
@@ -122,16 +134,14 @@ EOF
           def initialize(line#{args})
             raise "initialized with non-integer `line': \#{line}" unless line.is_a?(Integer)
             #{@@children[:required].collect { |n| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(NodeLike)" }.join("; ")}
-            #{@@children[:many].collect { |n| "raise \"initialized with non-array `#{n}': \#{#{n}_.inspect}\" unless #{n}_.kind_of?(Array)" }.join("; ")}
-            #{@@children[:many].collect { |n| "raise \"initialized with non-homogenous array `#{n}': \#{#{n}_.collect(&:class).inspect}\" unless #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
+            #{@@children[:many].collect { |n| "raise \"initialized with non-homogenous list `#{n}': \#{#{n}_.inspect}\" unless #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
             #{@@children[:optional].collect { |n, _| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(NodeLike)" }.join("; ")}
             #{@@attributes[:required].collect { |a| "raise \"initialized without `#{a}': \#{#{a}_.inspect}\" if #{a}_.nil?" }.join("; ")}
-            #{@@attributes[:many].collect { |a| "raise \"initialized with non-array `#{a}': \#{#{a}_.inspect}\" unless #{a}_.kind_of?(Array)" }.join("; ")}
             #{@@slots[:required].collect { |s| "raise \"initialized without `#{s}': \#{#{s}_.inspect}\" if #{s}_.nil?" }.join("; ")}
-            #{@@slots[:many].collect { |s| "raise \"initialized with non-array `#{s}': \#{#{s}_.inspect}\" unless #{s}_.kind_of?(Array)" }.join("; ")}
 
             @line = line
-            #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
+            #{(all - lists).collect { |a| "@#{a} = #{a}_" }.join("; ")}
+            #{lists.collect { |a| "@#{a} = #{a}_.to_list" }.join("; ")}
           end
 EOF
 
@@ -153,7 +163,7 @@ EOF
               }.join("; ")}
 
             #{@@attributes[:many].collect { |a|
-                "@#{a}.each { |n| g.push_literal n }; g.make_array(@#{a}.size)"
+                "g.push_cpath_top; g.find_const :Hamster; @#{a}.each { |n| g.push_literal n }; g.send(:list, @#{a}.size)"
               }.join("; ")}
 
             #{@@slots[:required].collect { |a|
@@ -161,7 +171,7 @@ EOF
               }.join("; ")}
 
             #{@@slots[:many].collect { |a|
-                "@#{a}.each { |n| g.push_literal n }; g.make_array(@#{a}.size)"
+                "g.push_cpath_top; g.find_const :Hamster; @#{a}.each { |n| g.push_literal n }; g.send(:list, @#{a}.size)"
               }.join("; ")}
 
             #{@@children[:optional].collect { |n, _|
@@ -181,10 +191,12 @@ EOF
 EOF
 
         class_eval <<EOF
-          def ==(b)
+          def eql?(b)
             b.kind_of?(#{self.name}) \\
-            #{non_slots.collect { |a| " and @#{a} == b.#{a}" }.join}
+            #{non_slots.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
           end
+
+          alias :== :eql?
 EOF
 
         req_cs =
@@ -194,7 +206,7 @@ EOF
 
         many_cs =
           @@children[:many].collect { |n|
-            ", @#{n}.each_with_index.collect { |n, i| n.recursively(pre, post, [:#{n}, i], &f) }"
+            ", @#{n}.zip(Hamster.interval(0, @#{n}.size - 1)).collect { |n, i| n.recursively(pre, post, [:#{n}, i], &f) }"
           }.join
 
         opt_cs =
@@ -285,7 +297,7 @@ EOF
                 @line#{creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss}
               )
             else
-              [#{all.join(", ")}]
+              Hamster.list(#{all.join(", ")})
             end
           end
 EOF
@@ -294,12 +306,16 @@ EOF
           def walk_with(b, stop = nil, &f)
             f.call(self, b)
 
-            return unless b.is_a?(#{self.name}) && (stop && !stop.call(self, b))
+            return if !b.is_a?(#{self.name}) || (stop && stop.call(self, b))
 
-            children.zip(b.children) do |x, y|
-              if x.is_a?(Array)
-                x.zip(y) do |x2, y2|
-                  x2.walk_with(y2, stop, &f)
+            children.zip(b.children).each do |x, y|
+              if x.respond_to?(:zip)
+                x.zip(y).each do |x2, y2|
+                  if x2
+                    x2.walk_with(y2, stop, &f)
+                  elsif y2
+                    f.call(x2, y2)
+                  end
                 end
               elsif x
                 x.walk_with(y, stop, &f)
@@ -447,7 +463,7 @@ EOF
         Send.new(
           @line,
           self,
-          [],
+          Hamster.list,
           "call"
         )
       end
@@ -521,13 +537,13 @@ EOF
             Atomy::AST::Send.new(
               body.line,
               body,
-              [],
+              Hamster.list,
               "to_node"
             ),
-            [],
+            Hamster.list,
             "expand"
           ),
-          [],
+          Hamster.list,
           Rubinius::StaticScope.new(Atomy::AST),
           :public,
           file,
@@ -754,7 +770,15 @@ end
 
 class Array
   def to_node
-    Atomy::AST::List.new -1, collect(&:to_node)
+    Atomy::AST::Compose.new(
+      -1,
+      Atomy::AST::List.new(-1, collect(&:to_node)),
+      Atomy::AST::ToplevelConstant.new(
+        -1,
+        "Array"
+      ),
+      Hamster.list
+    )
   end
 end
 
@@ -767,5 +791,11 @@ end
 class Symbol
   def to_node
     Atomy::AST::Literal.new -1, self
+  end
+end
+
+module Hamster::List
+  def to_node
+    Atomy::AST::List.new -1, collect(&:to_node)
   end
 end

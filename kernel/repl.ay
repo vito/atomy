@@ -109,7 +109,7 @@ doc"
         f readlines each [l]:
           Readline::HISTORY << l strip
 
-    SANE_HISTORY = []
+    sane-history = Array[]
 
     { let(debugger = ReplDebugger,
           atomy-pretty-multiline? = true,
@@ -126,7 +126,7 @@ doc"
 
           #quit -> exit(0)
 
-          #input(str) -> (SANE_HISTORY << str)
+          #input(str) -> (sane-history << str)
 
           #special("h") ->
             ":h\thelp" println
@@ -136,4 +136,4 @@ doc"
     } ensuring:
       when(history):
         File open(history, "a") [f]:
-          f puts(*SANE_HISTORY)
+          f puts(*sane-history)

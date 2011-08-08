@@ -5,8 +5,8 @@ macro(ast(root) { *nodes }):
   cs = nodes map [e]:
     e match:
       `(~(name)(~*args)):
-        children = []
-        attributes = []
+        children = Array[]
+        attributes = Array[]
 
         args each [a]:
           a match:
@@ -28,10 +28,12 @@ macro(ast(root) { *nodes }):
         `(class(~e < ~root):
             generate)
 
-  when(root != 'Atomy::AST::Node):
-    cs unshift(`(class(~root < Atomy::AST::Node) {}))
+  all =
+    if(root != 'Atomy::AST::Node)
+      then: cs cons(`(class(~root < Atomy::AST::Node) {}))
+      else: cs
 
-  `(do: ~*cs)
+  `(do: ~*all)
 
 module(Atomy::Format):
   ast(Segment):

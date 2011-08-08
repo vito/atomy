@@ -142,6 +142,7 @@ module Atomy
 
       if splat
         g.push_local(g.splat_index)
+        g.send :to_list, 0
         splat.pattern.deconstruct(g)
       end
 

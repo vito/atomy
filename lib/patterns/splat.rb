@@ -43,6 +43,7 @@ module Atomy::Patterns
       g.make_array 1
 
       done.set!
+      g.send :to_list, 0
       @pattern.deconstruct(g, locals)
     end
 

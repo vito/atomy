@@ -44,18 +44,12 @@ macro(#(x: String)):
 macro(#(x: Primitive)):
   Literal new(line, x value to-s to-sym)
 
-macro(a .. b): `(Range new(~a, ~b))
-macro(a ... b): `(Range new(~a, ~b, true))
-
-macro(x for(e) in(c)): `(~c collect [~e]: ~x)
+macro(x for(e) in(c)):
+  `(~c collect [~e]: ~x)
 
 macro(x for(e) in(c) if(t)):
-  names [tmp]:
-    `([] tap [~tmp]:
-        ~c each [~e]:
-          when(~t):
-            ~tmp << ~x)
+  `(~c collect [~e] { ~x } select [~e] { ~t })
 
-module(Enumerable):
+module(Hamster::Enumerable):
   inject-right(i = _undefined, &block) :=
     reverse inject(i) [x, y]: block [y, x]

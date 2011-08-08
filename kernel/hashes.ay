@@ -9,6 +9,7 @@ macro(#(l: List)):
   values = pairs collect [[_, v]]: v
   Atomy::AST::Hash new(line, keys, values)
 
+
 class(Atomy::AST::Hash < Atomy::AST::Node):
   children([#keys], [#values])
   generate

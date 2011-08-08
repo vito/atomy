@@ -2,7 +2,7 @@ dynamic(provide-in, nil)
 
 class(Module):
   using-modules :=
-    @using-modules ||= []
+    @using-modules ||= Array[]
 
 Module using?(y) :=
   self == y || using-modules any? [u]:

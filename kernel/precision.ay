@@ -80,9 +80,12 @@ module(Atomy::Patterns):
     ) [x, y]:
       condition:
         x nil? || y nil? ->
-          if(x nil?)
-            then: total -= 1
-            else: total += 1
+          -- consider splice unquotes to be the same precision as if they
+          -- were not there
+          unless(x is-a?(Atomy::AST::Splice) || y is-a?(Atomy::AST::Splice)):
+            if(x nil?)
+              then: total -= 1
+              else: total += 1
 
         x unquote? && y unquote? ->
           (total +=
