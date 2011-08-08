@@ -44,11 +44,11 @@ from(*where, &y) :=
 
 from?(*where) :=
   [^atomy-pretty-context, where] match:
-    [(a: Hamster::List), (b: Hamster::List)] ->
+    [(a: List), (b: List)] ->
       a any? [x]: b include?(x)
-    [(a: Hamster::List), b] ->
+    [(a: List), b] ->
       a include?(b)
-    [a, (b: Hamster::List)] ->
+    [a, (b: List)] ->
       b include?(a)
     [a, b] ->
       a == b
@@ -65,8 +65,7 @@ Object show := pretty flatten render
 
 Atomy::Pretty::Doc pretty := self
 
-Array pretty := doc: list(all-pretty)
-Hamster::List pretty := doc: list(all-pretty)
+List pretty := doc: list(all-pretty)
 
 Particle pretty := doc:
   wildcard = [c]:
@@ -289,8 +288,7 @@ module(Atomy::AST):
       then: from(#top): vcat(@nodes all-pretty)
       else: from(#list): comma separate(@nodes all-pretty)
 
-Array all-pretty := collect [x]: x pretty
-Hamster::List all-pretty := collect [x]: x pretty
+List all-pretty := collect [x]: x pretty
 
 Atomy::Pretty::Doc colored(color) := doc:
   -- only makes sense to colorize if we're outputting to a terminal

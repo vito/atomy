@@ -61,7 +61,7 @@ class Array
   alias :head :first
 
   def tail
-    self[1..-1]
+    drop(1)
   end
 
   alias :rest :tail
