@@ -1,0 +1,9 @@
+GEM
+  specs:
+    hamster (0.4.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  hamster (~> 0.4.2)
