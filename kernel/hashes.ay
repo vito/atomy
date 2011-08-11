@@ -18,6 +18,9 @@ class(Atomy::AST::Hash < Atomy::AST::Node):
     pos(g)
 
     g push-cpath-top
+    g find-const(#Hamster)
+
+    g push-cpath-top
     g find-const(#Hash)
     g push-int(@keys size)
     g send(#new-from-literal, 1)
@@ -28,3 +31,5 @@ class(Atomy::AST::Hash < Atomy::AST::Node):
       @values [i] compile(g)
       g send("[]=" to-sym, 2)
       g pop
+
+    g send(#hash, 1)

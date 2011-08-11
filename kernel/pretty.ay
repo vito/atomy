@@ -110,6 +110,13 @@ Hash pretty := doc:
         to-a collect [[k, v]]:
           k unamb <+> text("->") <+> v unamb
 
+Map pretty := doc:
+  text("#") <>
+    brackets $:
+      comma separate $:
+        reduce([]) [a, k, v]:
+          a + [k unamb <+> text("->") <+> v unamb]
+
 module(Atomy::AST):
   Assign pretty := doc:
     from(#assign):
