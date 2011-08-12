@@ -110,7 +110,7 @@ Hash pretty := doc:
         to-a collect [[k, v]]:
           k unamb <+> text("->") <+> v unamb
 
-Map pretty := doc:
+Atomy::Map pretty := doc:
   text("#") <>
     brackets $:
       comma separate $:

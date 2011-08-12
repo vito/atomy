@@ -7,10 +7,10 @@ macro(#(l: List)):
   pairs = pairs-from(l elements)
   keys = pairs collect [[k, _]]: `#~key-name(k)
   values = pairs collect [[_, v]]: v
-  Atomy::AST::Hash new(line, keys, values)
+  Atomy::AST::Map new(line, keys, values)
 
 
-class(Atomy::AST::Hash < Atomy::AST::Node):
+class(Atomy::AST::Map < Atomy::AST::Node):
   children([#keys], [#values])
   generate
 
@@ -18,7 +18,8 @@ class(Atomy::AST::Hash < Atomy::AST::Node):
     pos(g)
 
     g push-cpath-top
-    g find-const(#Hamster)
+    g find-const(#Atomy)
+    g find-const(#Map)
 
     g push-cpath-top
     g find-const(#Hash)
@@ -32,4 +33,16 @@ class(Atomy::AST::Hash < Atomy::AST::Node):
       g send("[]=" to-sym, 2)
       g pop
 
-    g send(#hash, 1)
+    g send(#create, 1)
+
+class(Atomy::Map < Hamster::Hash):
+  class(<< self):
+    create(pairs = ::Hash new, &blk) := do:
+      base =
+        if(blk)
+          then: Map new(&blk)
+          else: Atomy::EmptyMap
+
+      pairs reduce(base) [hash, pair]: hash put(pair first, pair last)
+
+Atomy::EmptyMap = Atomy::Map new
