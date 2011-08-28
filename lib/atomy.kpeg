@@ -117,14 +117,14 @@
                 | block
                 | list
                 | unary
-         level1 = headless
+         level1 = call
                 | grouped
                 | level0
-         level2 = send
+         level2 = compose
                 | level1
-         level3 = macro
+         level3 = syntax
                 | op_assoc_prec
-                | binary_send
+                | binary
                 | level2
 
          number = line:line < /[\+\-]?0[oO][0-7]+/ >
@@ -138,8 +138,8 @@
                 | line:line < /[\+\-]?\d+/ >
                     { Atomy::AST::Primitive.new(line, text.to_i) }
 
-          macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b
-                    { Atomy::AST::Macro.new(line, p, b.block_body) }
+         syntax = line:line "syntax" "(" wsp expression:p wsp ")" wsp block:b
+                    { Atomy::AST::Syntax.new(line, p, b.block_body) }
 
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
         op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
@@ -191,27 +191,20 @@
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomy::AST::List.new(line, Array(es).to_list) }
 
+  composes(pos) = line:line compose:l cont(pos) level1:r
+                    { Atomy::AST::Compose.new(line, l, r) }
+                | line:line level1:l cont(pos) level1:r
+                    { Atomy::AST::Compose.new(line, l, r) }
+        compose = @composes(current_position)
+
            args = "(" wsp expressions?:as wsp ")" { Array(as).to_list }
 
-     sends(pos) = line:line send:r cont(pos) level0:n args?:as
-                    { Atomy::AST::Compose.new(line, n, r, Array(as).to_list) }
-                | line:line level1:r cont(pos) level0:n args?:as
-                    { Atomy::AST::Compose.new(line, n, r, Array(as).to_list) }
-           send = @sends(current_position)
-
-       headless = line:line level0:n args:as
-                    { Atomy::AST::Compose.new(
-                        line,
-                        n,
-                        Atomy::AST::Primitive.new(line, :self),
-                        as,
-                        true
-                      )
-                    }
+           call = line:line level0:n args:as
+                    { Atomy::AST::Call.new(line, n, as) }
 
   binary_c(pos) = (cont(pos) operator:o &{ !o.end_with?("@") } sig_wsp level2:e { [o, e] })+:bs
                     { bs.flatten }
-    binary_send = level2:l binary_c(current_position):c
+         binary = level2:l binary_c(current_position):c
                     { resolve(nil, l, c).first }
                 | line:line operator:o &{ !o.end_with?("@") } sig_wsp expression:r
                     { Atomy::AST::Binary.new(

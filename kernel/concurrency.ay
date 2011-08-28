@@ -28,7 +28,7 @@ section("Sending & Receiving"):
   " spec {
     => any
   } for {
-    macro('receive ~(body: Block)):
+    macro(receive ~(body: Block)):
       names [e]:
         bs =
           `(~e when('~pat to-pattern) [~pat]: ~exp)
@@ -47,7 +47,7 @@ section("Sending & Receiving"):
   " spec {
     => any
   } for {
-    macro('receive ~(body: Block) after(timeout) ~(action: Block)):
+    macro(receive ~(body: Block) after(~timeout) ~(action: Block)):
       names [e]:
         bs =
           `(~e when('~pat to-pattern) [~pat]: ~exp)

@@ -18,7 +18,10 @@ for-macro:
           "restart:" + x name
 
         Atomy::AST::Compose ->
-          "restart:" + x message name
+          "restart:" + x left name
+
+        Atomy::AST::Call ->
+          "restart:" + x name name
 
 data(Restart(@name, @action))
 
@@ -93,7 +96,7 @@ section("Handling"):
   " spec {
     => any
   } for {
-    macro(body bind { *handlers }):
+    macro(~body bind { ~*handlers }):
       names [a]:
         callback = `([~a]: ~a match: ~*handlers)
         `(let(handlers = ^handlers cons(~callback)):
@@ -115,7 +118,7 @@ section("Handling"):
   " spec {
     => any
   } for {
-    macro(with-restarts(*restarts) ~(block: Block)):
+    macro(with-restarts(~*restarts) ~(block: Block)):
       pairs = pairs-from(restarts)
 
       rs = pairs collect [[n, e]]:

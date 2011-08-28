@@ -1,141 +1,140 @@
-macro('do ~(b: Block)): b body
+macro(do ~(b: Block)): b body
 
---macro(x = y):
-  --Assign new(x line, x, y)
-
-macro(x =! y):
+syntax(x =! y):
   Set new(x line, x to-pattern to-node, y)
 
-macro(pattern := y):
-  Define new(line, pattern expand, y)
+-- TODO: shouldn't need to expand here
+syntax(x := y):
+  Define new(line, x expand, y)
 
-macro(define(x) ~(y: Block)):
+macro(define(~x) ~(y: Block)):
   `(~x := ~(y block-body))
 
-macro(x **= y): `(~x =! (~x ** ~y))
-macro(x *= y): `(~x =! (~x * ~y))
-macro(x <<= y): `(~x =! (~x << ~y))
-macro(x >>= y): `(~x =! (~x >> ~y))
-macro(x &&= y): `(~x =! (~x && ~y))
-macro(x &= y): `(~x =! (~x & ~y))
-macro(x ||= y): `(~x =! (~x || ~y))
-macro(x |= y): `(~x =! (~x | ~y))
-macro(x += y): `(~x =! (~x + ~y))
-macro(x -= y): `(~x =! (~x - ~y))
-macro(x /= y): `(~x =! (~x / ~y))
-macro(x ^= y): `(~x =! (~x ^ ~y))
-macro(x %= y): `(~x =! (~x % ~y))
+syntax(x **= y): `(~x =! (~x ** ~y))
+syntax(x *= y): `(~x =! (~x * ~y))
+syntax(x <<= y): `(~x =! (~x << ~y))
+syntax(x >>= y): `(~x =! (~x >> ~y))
+syntax(x &&= y): `(~x =! (~x && ~y))
+syntax(x &= y): `(~x =! (~x & ~y))
+syntax(x ||= y): `(~x =! (~x || ~y))
+syntax(x |= y): `(~x =! (~x | ~y))
+syntax(x += y): `(~x =! (~x + ~y))
+syntax(x -= y): `(~x =! (~x - ~y))
+syntax(x /= y): `(~x =! (~x / ~y))
+syntax(x ^= y): `(~x =! (~x ^ ~y))
+syntax(x %= y): `(~x =! (~x % ~y))
 
-macro(class(name) ~(b: Block)):
+macro(class(~name) ~(b: Block)):
   Class new(name line, name, b block-body)
 
-macro(class(`(<< ~obj)) ~(b: Block)):
+macro(class(<< ~obj) ~(b: Block)):
   SingletonClass new(obj line, obj, b block-body)
 
-macro(class(`(~name < ~sup)) ~(b: Block)):
+macro(class(~name < ~sup) ~(b: Block)):
   Class new(name line, name, b block-body, sup)
 
-macro(module(name) ~(b: Block)):
+macro(module(~name) ~(b: Block)):
   Module new(name line, name, b block-body)
 
-macro(evaluate-when('compile) ~(x: Block)):
+-- TODO: splat the args and check contains
+macro(evaluate-when(compile) ~(x: Block)):
   x body evaluate
   'nil
 
-macro(evaluate-when('load) ~(x: Block)):
+macro(evaluate-when(load) ~(x: Block)):
   Atomy::CodeLoader when-load << [x block-body, false]
   'nil
 
-macro(evaluate-when('run) ~(x: Block)):
+macro(evaluate-when(run) ~(x: Block)):
   Atomy::CodeLoader when-run << [x block-body, false]
   'nil
 
-macro(evaluate-when('compile, 'load) ~(x: Block)):
+macro(evaluate-when(compile, load) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   'nil
 
-macro(evaluate-when('compile, 'run) ~(x: Block)):
+macro(evaluate-when(compile, run) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('load, 'compile) ~(x: Block)):
+macro(evaluate-when(load, compile) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   'nil
 
-macro(evaluate-when('load, 'run) ~(x: Block)):
-  Atomy::CodeLoader when-load << [x block-body, false]
-  Atomy::CodeLoader when-run << [x block-body, false]
-  'nil
-
-macro(evaluate-when('run, 'load) ~(x: Block)):
+macro(evaluate-when(load, run) ~(x: Block)):
   Atomy::CodeLoader when-load << [x block-body, false]
   Atomy::CodeLoader when-run << [x block-body, false]
   'nil
 
-macro(evaluate-when('run, 'compile) ~(x: Block)):
+macro(evaluate-when(run, load) ~(x: Block)):
+  Atomy::CodeLoader when-load << [x block-body, false]
+  Atomy::CodeLoader when-run << [x block-body, false]
+  'nil
+
+macro(evaluate-when(run, compile) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('compile, 'load, 'run) ~(x: Block)):
-  x body evaluate
-  Atomy::CodeLoader when-load << [x block-body, true]
-  Atomy::CodeLoader when-run << [x block-body, true]
-  'nil
-
-macro(evaluate-when('compile, 'run, 'load) ~(x: Block)):
-  x body evaluate
-  Atomy::CodeLoader when-load << [x block-body, true]
-  Atomy::CodeLoader when-run << [x block-body, true]
-  'nil
-
-macro(evaluate-when('load, 'compile, 'run) ~(x: Block)):
+macro(evaluate-when(compile, load, run) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('load, 'run, 'compile) ~(x: Block)):
+macro(evaluate-when(compile, run, load) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('run, 'load, 'compile) ~(x: Block)):
+macro(evaluate-when(load, compile, run) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro(evaluate-when('run, 'compile, 'load) ~(x: Block)):
+macro(evaluate-when(load, run, compile) ~(x: Block)):
   x body evaluate
   Atomy::CodeLoader when-load << [x block-body, true]
   Atomy::CodeLoader when-run << [x block-body, true]
   'nil
 
-macro('for-macro ~(b: Block)):
+macro(evaluate-when(run, load, compile) ~(x: Block)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
+macro(evaluate-when(run, compile, load) ~(x: Block)):
+  x body evaluate
+  Atomy::CodeLoader when-load << [x block-body, true]
+  Atomy::CodeLoader when-run << [x block-body, true]
+  'nil
+
+macro(for-macro ~(b: Block)):
   `(evaluate-when(compile, load, run):
       module(Atomy::Macro::Helpers):
         ~*(b contents))
 
 -- TODO: compare let-when; make a more general macro for wrapping
 -- with evaluate-when
-macro(let-macro(*ms) ~(b: Block)):
+macro(let-macro(~*ms) ~(b: Block)):
   tripled = ms zip(names(ms size) zip(names(ms size)))
 
   define =
     tripled collect [[`(~p = ~b), [let, mac]]]:
       `(do:
           Atomy::STATE [#~mac] =
-            (~mac = Atomy::AST::Macro new(~(p line), '~p, '~b))
+            (~mac = Atomy::AST::Syntax new(~(p line), '~(p macro-pattern), '~b))
 
           Atomy::STATE [#~let] =
             Atomy::Macro register(
               ~mac pattern class
-              ~mac macro-pattern
+              ~mac syntax-pattern
               ~mac prepared
               Atomy::CodeLoader compiling
               true

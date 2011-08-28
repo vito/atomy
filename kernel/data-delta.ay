@@ -45,13 +45,13 @@ for-macro:
 
         ~*(cs collect [c]: define-class(name, c)))
 
-macro('data ~(children: Block)):
+macro(data ~(children: Block)):
   `(data(Object) ~children)
 
-macro(data(root)):
+macro(data(~root)):
   `(data(~root) {})
 
-macro(data(root = 'Object) ~(children: Block)):
+macro(data(~(root = 'Object)) ~(children: Block)):
   `(do:
       ~(define-class(nil, `(~(root) ~children)))
       nil)
@@ -59,16 +59,25 @@ macro(data(root = 'Object) ~(children: Block)):
 class(Atomy::AST::MacroQuote):
   quote(n, *_) := raise("unknown quoter: " + n inspect)
 
-macro((x: Variable) ~(c: Atomy::AST::String)):
+syntax(Variable Atomy::AST::String):
   MacroQuote new(
     line,
-    x name,
-    c raw || c value,
-    @arguments collect(&#name)
-    c value
+    @left name,
+    @right raw || @right value,
+    []
+    @right value
   )
 
-macro(macro-quoter(n) [*as] { *cs }):
+syntax(Variable `(~(s: Atomy::AST::String)(~*args))):
+  MacroQuote new(
+    line,
+    @left name,
+    s raw || s value,
+    args collect(&#name)
+    s value
+  )
+
+macro(macro-quoter(~n) [~*as] { ~*cs }):
   `(evaluate-when(compile, load, run):
       class(Atomy::AST::MacroQuote):
         define(quote(#~n, ~*as)):
@@ -136,14 +145,14 @@ macro-quoter(i) [_, _, v]: interpolated(v)
 macro(_undefined):
   Undefined new(line)
 
-macro($(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
+syntax($(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
   NthRef new(line, x value)
 
-macro(a .. b): `(Hamster range(~a, ~b))
-macro(a ... b): `(Hamster exclusive-range(~a, ~b))
+syntax(a .. b): `(Hamster range(~a, ~b))
+syntax(a ... b): `(Hamster exclusive-range(~a, ~b))
 
-macro(a [`(~x .. ~y)]): `(~a [Range new(~x, ~y)])
-macro(a [`(~x ... ~y)]): `(~a [Range new(~x, ~y, true)])
+macro(~a [~x .. ~y]): `(~a [Range new(~x, ~y)])
+macro(~a [~x ... ~y]): `(~a [Range new(~x, ~y, true)])
 
 module(Atomy::AST):
   class(Undefined < Node):

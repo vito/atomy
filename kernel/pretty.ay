@@ -159,19 +159,9 @@ module(Atomy::AST):
 
   ClassVariable pretty := ident(name to-s)
 
-  Compose pretty := doc:
-    args =
-      from(#list):
-        if(@arguments empty?)
-          then: empty
-          else: tupled(@arguments all-pretty)
+  Call pretty := doc: @name pretty <> tupled(@arguments all-pretty)
 
-    if(@headless)
-      then:
-        @message unamb <> args
-      else:
-        (from(#compose) { @receiver unamb } </>
-          @message unamb <> args) hang(2)
+  Compose pretty := @left pretty <+> @right pretty
 
   Constant pretty := doc: text(@identifier)
 
@@ -187,8 +177,8 @@ module(Atomy::AST):
     from(#list):
       list(@elements all-pretty)
 
-  Macro pretty := doc:
-    text("macro") <+> parens(@pattern pretty) <+> @body pretty
+  Syntax pretty := doc:
+    text("syntax") <+> parens(@pattern pretty) <+> @body pretty
 
   Primitive pretty := doc:
     @value match:

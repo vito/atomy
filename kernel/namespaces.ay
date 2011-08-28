@@ -26,11 +26,11 @@ with-static-scope(mod, &blk) :=
       mod
       Rubinius::StaticScope of-sender
 
-macro(using(which) { *body }):
+macro(using(~which) { ~*body }):
   `(with-static-scope(~which):
       ~*body)
 
-macro(namespace(name) { *body }):
+macro(namespace(~name) { ~*body }):
   `(module(~name):
       provide:
         ~*body)  

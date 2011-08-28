@@ -280,13 +280,16 @@ module Atomy::Patterns
 
   class Atomy::AST::Compose
     def pattern
-      if @message.is_a?(Atomy::AST::Block) and \
-          @receiver.is_a?(Atomy::AST::Variable)
-        Named.new(@receiver.name, @message.contents[0].to_pattern)
-      elsif @message.is_a?(Atomy::AST::Variable)
-        Attribute.new(@receiver, @message.name, @arguments)
-      elsif @message.is_a?(Atomy::AST::List)
-        Attribute.new(@receiver, "[]", @message.elements + @arguments)
+      if @right.is_a?(Atomy::AST::Block) and \
+          @left.is_a?(Atomy::AST::Variable)
+        Named.new(@left.name, @right.contents[0].to_pattern)
+      elsif @right.is_a?(Atomy::AST::Variable)
+        Attribute.new(@left, @right.name, [])
+      elsif @right.is_a?(Atomy::AST::Call) and \
+              @right.name.is_a?(Atomy::AST::Variable)
+        Attribute.new(@left, @right.name.name, @right.arguments)
+      elsif @right.is_a?(Atomy::AST::List)
+        Attribute.new(@left, "[]", @right.elements)
       else
         super
       end

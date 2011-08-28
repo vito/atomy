@@ -262,5 +262,5 @@ module(Atomy::Pretty):
 
 
 -- quick access to the above helpers
-macro('doc ~(f: Block)):
+macro(doc ~(f: Block)):
   `(using(::Atomy::Pretty) ~f)

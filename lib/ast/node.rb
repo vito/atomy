@@ -136,7 +136,7 @@ EOF
             #{@@children[:required].collect { |n| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(NodeLike)" }.join("; ")}
             #{@@children[:many].collect { |n| "raise \"initialized with non-homogenous list `#{n}': \#{#{n}_.inspect}\" unless #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
             #{@@children[:optional].collect { |n, _| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(NodeLike)" }.join("; ")}
-            #{@@attributes[:required].collect { |a| "raise \"initialized without `#{a}': \#{#{a}_.inspect}\" if #{a}_.nil?" }.join("; ")}
+            #{@@attributes[:required].collect { |a| "raise \"initialized without `#{a}': \#{self.inspect}\" if #{a}_.nil?" }.join("; ")}
             #{@@slots[:required].collect { |s| "raise \"initialized without `#{s}': \#{#{s}_.inspect}\" if #{s}_.nil?" }.join("; ")}
 
             @line = line
@@ -510,15 +510,15 @@ EOF
 
       alias :prepare :expand
 
-      def define_macro(body, file = :macro)
+      def define_syntax(body, file = :syntax)
         unless macro_name
           @@stats ||= {}
           @@stats[self.class] ||= []
-          @@stats[self.class] << macro_pattern.quoted
+          @@stats[self.class] << syntax_pattern.quoted
 
           Atomy::Macro.register(
             self.class,
-            macro_pattern,
+            syntax_pattern,
             body.prepare_all,
             Atomy::CodeLoader.compiling
           )
@@ -526,7 +526,7 @@ EOF
           return
         end
 
-        pattern = macro_pattern
+        pattern = syntax_pattern
 
         Atomy.define_method(
           self.class,
@@ -578,7 +578,9 @@ EOF
 
       def unquote_children
         children do |x|
-          if x.is_a?(Unary) and x.operator == "*"
+          if x.is_a?(Quote)
+            x.expression
+          elsif x.is_a?(Unary) and x.operator == "*"
             Atomy::AST::Splice.new(x.line, x.receiver)
           else
             Atomy::AST::Unquote.new(x.line, x)
@@ -586,13 +588,25 @@ EOF
         end
       end
 
-      def macro_pattern
+      def syntax_pattern
         Atomy::Patterns::QuasiQuote.new(
           Atomy::AST::QuasiQuote.new(
             @line,
             unquote_children
           )
         )
+      end
+
+      def macro_pattern
+        children do |x|
+          if x.is_a?(Splice)
+            Unary.new(x.line, x.expression, "*")
+          elsif x.is_a?(Unquote)
+            x.expression
+          else
+            QuasiQuote.new(x.line, x)
+          end
+        end
       end
     end
 

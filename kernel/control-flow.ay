@@ -1,50 +1,50 @@
 dynamic(labels, Hash new)
 
-macro(if(x) then ~(y: Block) else ~(z: Block)):
+macro(if(~x) then ~(y: Block) else ~(z: Block)):
   IfThenElse new(line, x, y body, z body)
 
 macro(otherwise): 'true
 
-macro(return(y)):
+macro(return(~y)):
   Return new(line, y)
 
-macro(x ensuring ~(y: Block)):
+macro(~x ensuring ~(y: Block)):
   Ensure new(line, x caller, y body)
 
-macro(when(c) ~(b: Block)):
+macro(when(~c) ~(b: Block)):
   When new(line, c, b body)
 
-macro(unless(c) ~(b: Block)):
+macro(unless(~c) ~(b: Block)):
   When new(line, `!~c, b body)
 
 macro(super):
   ZSuper new(line)
 
-macro('super ~(blk: Block)):
+macro(super ~(blk: Block)):
   Super new(line, [], blk)
 
-macro(super(*args) ~(blk: Block)):
+macro(super(~*args) ~(blk: Block)):
   Super new(line, args, blk)
 
-macro(super(*args)):
+macro(super(~*args)):
   Super new(line, args, nil)
 
 macro(yield):
   Yield new(line, [])
 
-macro(yield(*args)):
+macro(yield(~*args)):
   Yield new(line, args)
 
 macro(break):
   Break new(line, 'nil)
 
-macro(break(x)):
+macro(break(~x)):
   Break new(line, x)
 
 macro(next):
   Next new(line, 'nil)
 
-macro(next(x)):
+macro(next(~x)):
   Next new(line, x)
 
 evaluate-when(compile, run, load):
@@ -101,14 +101,14 @@ evaluate-when(compile, run, load):
         @value compile(g)
         g ret
 
-macro('labels ~(body: Block)):
+macro(labels ~(body: Block)):
   branches = body contents collect [`(~(n) ~(b))]:
     LabelBranch new(n line, b body, n name)
 
-  `(let-macro(go(name) = GoTo new(line, name name)):
+  `(let-macro(go(~'~name) = GoTo new(line, name name)):
       ~(Labels new(line, branches)))
 
-macro(while(test) ~(body: Block)):
+macro(while(~test) ~(body: Block)):
   names [loop, done]:
     `(labels:
         ~loop:
@@ -123,7 +123,7 @@ macro(while(test) ~(body: Block)):
 
         ~done {})
 
-macro(until(test) ~(body: Block)):
+macro(until(~test) ~(body: Block)):
   names [loop, done]:
     `(labels:
         ~loop:
@@ -138,7 +138,7 @@ macro(until(test) ~(body: Block)):
 
         ~done {})
 
-macro('loop ~(body: Block)):
+macro(loop ~(body: Block)):
   names [loop, done]:
     `(labels:
         ~loop:
@@ -153,9 +153,9 @@ macro('loop ~(body: Block)):
 for-macro:
   key-from(x) := x
   key-from(x: Atomy::AST::Compose) :=
-    if(x message is-a?(Atomy::AST::Block))
+    if(x right is-a?(Atomy::AST::Block))
       then: x
-      else: x message
+      else: x right
 
   pair-from(x) :=
     raise("unknown pair `" + x inspect + "'")
@@ -166,30 +166,30 @@ for-macro:
   pair-from(p: `(~x { ~*ys })) := do:
     this = [[key-from(x), `(do: ~*ys)]]
 
-    if(x is-a?(Atomy::AST::Compose) && !(x message is-a?(Atomy::AST::Block)))
-      then: pair-from(x receiver) + this
+    if(x is-a?(Atomy::AST::Compose) && !(x right is-a?(Atomy::AST::Block)))
+      then: pair-from(x left) + this
       else: this
 
   pairs-from(es) :=
     pair-from(e) for(e) in(es) flatten
 
-macro('condition ~(b: Block)):
+macro(condition ~(b: Block)):
   pairs-from(b contents) reverse inject('nil) [acc, [x, y]]:
     `(if(~x) then: ~y; else: ~acc)
 
-macro(x match ~(b: Block)):
+macro(~x match ~(b: Block)):
   branches = pairs-from(b contents) collect [[x, y]]:
     MatchBranch new(x line, x to-pattern to-node, y)
 
   Match new(line, x, branches)
 
-macro(x rescue ~(y: Block)):
+macro(~x rescue ~(y: Block)):
   branches = pairs-from(y contents) collect [[p, e]]:
     RescueHandler new(p line, p, e)
 
   Catch new(line, x caller, branches)
 
-macro(x rescue ~(y: Block) else ~(z: Block)):
+macro(~x rescue ~(y: Block) else ~(z: Block)):
   branches = pairs-from(y contents) collect [[p, e]]:
     RescueHandler new(p line, p, e)
 

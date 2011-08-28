@@ -294,6 +294,9 @@ module(Atomy::AST):
 
     Atomy::Patterns::Named new(x name, y to-pattern)
 
+  `(~x ~(y: Atomy::AST::Variable)) pattern :=
+    Atomy::Patterns::Attribute new(x, y name, [])
+
   `(~x ~(y: Atomy::AST::Variable)(~*as)) pattern :=
     Atomy::Patterns::Attribute new(x, y name, as)
 

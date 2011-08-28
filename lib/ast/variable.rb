@@ -22,6 +22,10 @@ module Atomy
       # def macro_name
         # :"atomy_macro::@#{@name}"
       # end
+
+      def to_send
+        Send.new(@line, Primitive.new(@line, :self), [], @name, nil, true)
+      end
     end
   end
 end

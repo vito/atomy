@@ -2,25 +2,28 @@ for-macro:
   wildcard('_) := '_undefined
   wildcard(x) := x
 
-macro(#`(~r ~(x)(~*as))):
+macro(#(~(x)(~*as))):
   `(Particle [
-      ~(if(@receiver headless)
-          then: '_undefined
-          else: wildcard(r))
+      _undefined
       #~x
       ~*(as collect [c]: wildcard(c))
     ])
 
-macro(#`(~r [~*as])):
+macro(#(~r ~(x)(~*as))):
   `(Particle [
-      ~(if(@receiver headless)
-          then: '_undefined
-          else: wildcard(r))
+      ~(wildcard(r))
+      #~x
+      ~*(as collect [c]: wildcard(c))
+    ])
+
+macro(#(~r [~*as])):
+  `(Particle [
+      ~(wildcard(r))
       #"[]"
       ~*(as collect [c]: wildcard(c))
     ])
 
-macro(#(x: Binary)):
+macro(#~(x: Binary)):
   `(Particle [
       ~(if(x private)
           then: '_undefined
@@ -29,11 +32,30 @@ macro(#(x: Binary)):
       ~(wildcard(x rhs))
     ])
 
+`#(~r [~*as]) pattern :=
+  Atomy::Patterns::List new $:
+    [ r pattern
+      `#"[]" pattern
+    ] + as collect(&#pattern)
+
+`#~(x: Atomy::AST::Binary) pattern :=
+  Atomy::Patterns::List new $:
+    [ if(x private)
+        then: '_ pattern
+        else: x lhs pattern
+      `#~(x operator) pattern
+      x rhs pattern
+    ]
+
+`#(~(x)(~*as)) pattern :=
+  Atomy::Patterns::List new $:
+    [ '_ pattern
+      `#~x pattern
+    ] + as collect(&#pattern)
+
 `#(~r ~(x)(~*as)) pattern :=
   Atomy::Patterns::List new $:
-    [ if(@receiver headless)
-        then: '_ pattern
-        else: r pattern
+    [ r pattern
       `#~x pattern
     ] + as collect(&#pattern)
 

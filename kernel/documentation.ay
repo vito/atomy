@@ -12,7 +12,7 @@ for-macro:
         Atomy::AST::String -> e value
         _ -> e show
 
-  to-thumb(x: Atomy::AST::Macro) :=
+  to-thumb(x: Atomy::AST::Syntax) :=
     indent(escape(x pattern show))
 
   to-thumb(`(~meth := ~_)) :=
@@ -56,7 +56,7 @@ for-macro:
     } join("\n")
 
 
-macro('for-docs ~(body: Block)):
+macro(for-docs ~(body: Block)):
   `(when(^documentation):
       ^documentation << ~(body block-body))
 
@@ -72,7 +72,7 @@ macro-quoter(title) [c]:
 
   c
 
-macro(section(name) ~(body: Block)):
+macro(section(~name) ~(body: Block)):
   names [res]:
     `(do:
         evaluate-when(compile):
@@ -85,7 +85,7 @@ macro(section(name) ~(body: Block)):
 
         ~res)
 
-macro(docs spec ~(s: Block) for ~(code: Block)):
+macro(~docs spec ~(s: Block) for ~(code: Block)):
   for-docs:
     [ "\\define{"
       "\n" + to-thumb(code contents first)
@@ -97,7 +97,7 @@ macro(docs spec ~(s: Block) for ~(code: Block)):
 
   code block-body
 
-macro(docs for ~(code: Block)):
+macro(~docs for ~(code: Block)):
   for-docs:
     [ "\\define{"
       "\n" + to-thumb(code contents first)
@@ -108,7 +108,7 @@ macro(docs for ~(code: Block)):
 
   code block-body
 
-macro(docs spec ~(s: Block) for ~(code: Block) examples ~(es: Block)):
+macro(~docs spec ~(s: Block) for ~(code: Block) examples ~(es: Block)):
   for-docs:
     [ "\\define{"
       "\n" + to-thumb(code contents first)
@@ -123,7 +123,7 @@ macro(docs spec ~(s: Block) for ~(code: Block) examples ~(es: Block)):
 
   code block-body
 
-macro(docs for ~(code: Block) examples ~(es: Block)):
+macro(~docs for ~(code: Block) examples ~(es: Block)):
   for-docs:
     [ "\\define{"
       "\n" + to-thumb(code contents first)

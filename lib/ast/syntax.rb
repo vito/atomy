@@ -1,11 +1,11 @@
 module Atomy
   module AST
-    class Macro < Node
+    class Syntax < Node
       children :pattern, :body
       generate
 
-      def macro_pattern
-        @macro_pattern ||= @pattern.macro_pattern
+      def syntax_pattern
+        @syntax_pattern ||= @pattern.syntax_pattern
       end
 
       def prepared
@@ -15,7 +15,7 @@ module Atomy
       def bytecode(g)
         pos(g)
 
-        @pattern.define_macro(prepared)
+        @pattern.define_syntax(prepared)
 
         Atomy::CodeLoader.when_load << [self, true]
         Atomy::CodeLoader.when_run << [self, true]
@@ -29,7 +29,7 @@ module Atomy
         prepared.construct(g)
         g.push_scope
         g.send :active_path, 0
-        g.send :define_macro, 2
+        g.send :define_syntax, 2
       end
 
       def prepare_all

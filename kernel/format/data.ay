@@ -1,7 +1,7 @@
-macro('ast { *nodes }):
+macro(ast { ~*nodes }):
   `(ast(Atomy::AST::Node) { ~*nodes })
 
-macro(ast(root) { *nodes }):
+macro(ast(~root) { ~*nodes }):
   cs = nodes map [e]:
     e match:
       `(~(name)(~*args)):

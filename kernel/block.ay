@@ -1,4 +1,4 @@
-macro(x onto ~(b: Block)):
+macro(~x onto ~(b: Block)):
   names [ctx]:
     shadowed? = false
 
@@ -12,8 +12,8 @@ macro(x onto ~(b: Block)):
           shadowed? =! true
           ctx
 
-        Compose ? @headless ->
-          n dup tap [p]:
+        Call ->
+          n to-send tap [p]:
             p receiver = 'self
 
         Binary ? @private ->

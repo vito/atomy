@@ -106,7 +106,7 @@ section("Tests"):
     Test that \hl{predicate} is satisified by \hl{o} by evaluating it with \
     \hl{o} as \hl{self}.
   " for {
-    macro(x should ~(check: Block)):
+    macro(~x should ~(check: Block)):
       `(unless(~x onto ~check):
           raise(f"assertion failed for %v" ['~x pretty]))
   } examples:

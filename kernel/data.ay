@@ -1,53 +1,53 @@
-macro(&x):
+macro(&~x):
   BlockPass new(line, x)
 
-macro(*x):
+macro(*~x):
   Splat new(line, x)
 
 -- now in boot
 --macro(@(x: Variable)):
   --InstanceVariable new(x line, x name)
 
-macro(@@(x: Variable)):
+macro(@@~(x: Variable)):
   ClassVariable new(line, x name)
 
-macro($'0):
+macro($0):
   GlobalVariable new(line, "0")
 
-macro($(x: String)):
+macro($~(x: String)):
   GlobalVariable new(line, x value)
 
-macro($(x: Constant)):
+macro($~(x: Constant)):
   GlobalVariable new(line, x identifier)
 
-macro($(x: Variable)):
+macro($~(x: Variable)):
   GlobalVariable new(line, x name)
 
-macro($'exception):
+macro($exception):
   GlobalVariable new(line, "!")
 
-macro($'path):
+macro($path):
   GlobalVariable new(line, ":")
 
-macro($'separator):
+macro($separator):
   GlobalVariable new(line, "/")
 
-macro(#(x: Constant)):
+macro(#~(x: Constant)):
   Literal new(line, x identifier to-sym)
 
-macro(#(x: Variable)):
+macro(#~(x: Variable)):
   Literal new(line, x name to-sym)
 
-macro(#(x: String)):
+macro(#~(x: String)):
   Literal new(line, x value to-sym)
 
-macro(#(x: Primitive)):
+macro(#~(x: Primitive)):
   Literal new(line, x value to-s to-sym)
 
-macro(x for(e) in(c)):
+macro(~x for(~e) in(~c)):
   `(~c collect [~e]: ~x)
 
-macro(x for(e) in(c) if(t)):
+macro(~x for(~e) in(~c) if(~t)):
   `(~c collect [~e] { ~x } select [~e] { ~t })
 
 List = Hamster::List
