@@ -13,5 +13,10 @@ module Atomy::AST
         true
       )
     end
+
+    def macro_name
+      return :"atomy_macro::#{@name.name}" if @name.is_a? Variable
+      @name.macro_name
+    end
   end
 end

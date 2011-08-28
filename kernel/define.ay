@@ -1,28 +1,28 @@
 macro(do ~(b: Block)): b body
 
-syntax(x =! y):
+macro(~x =! ~y):
   Set new(x line, x to-pattern to-node, y)
 
 -- TODO: shouldn't need to expand here
-syntax(x := y):
+macro(~x := ~y):
   Define new(line, x expand, y)
 
 macro(define(~x) ~(y: Block)):
   `(~x := ~(y block-body))
 
-syntax(x **= y): `(~x =! (~x ** ~y))
-syntax(x *= y): `(~x =! (~x * ~y))
-syntax(x <<= y): `(~x =! (~x << ~y))
-syntax(x >>= y): `(~x =! (~x >> ~y))
-syntax(x &&= y): `(~x =! (~x && ~y))
-syntax(x &= y): `(~x =! (~x & ~y))
-syntax(x ||= y): `(~x =! (~x || ~y))
-syntax(x |= y): `(~x =! (~x | ~y))
-syntax(x += y): `(~x =! (~x + ~y))
-syntax(x -= y): `(~x =! (~x - ~y))
-syntax(x /= y): `(~x =! (~x / ~y))
-syntax(x ^= y): `(~x =! (~x ^ ~y))
-syntax(x %= y): `(~x =! (~x % ~y))
+macro(~x **= ~y): `(~x =! (~x ** ~y))
+macro(~x *= ~y): `(~x =! (~x * ~y))
+macro(~x <<= ~y): `(~x =! (~x << ~y))
+macro(~x >>= ~y): `(~x =! (~x >> ~y))
+macro(~x &&= ~y): `(~x =! (~x && ~y))
+macro(~x &= ~y): `(~x =! (~x & ~y))
+macro(~x ||= ~y): `(~x =! (~x || ~y))
+macro(~x |= ~y): `(~x =! (~x | ~y))
+macro(~x += ~y): `(~x =! (~x + ~y))
+macro(~x -= ~y): `(~x =! (~x - ~y))
+macro(~x /= ~y): `(~x =! (~x / ~y))
+macro(~x ^= ~y): `(~x =! (~x ^ ~y))
+macro(~x %= ~y): `(~x =! (~x % ~y))
 
 macro(class(~name) ~(b: Block)):
   Class new(name line, name, b block-body)
@@ -128,13 +128,12 @@ macro(let-macro(~*ms) ~(b: Block)):
   define =
     tripled collect [[`(~p = ~b), [let, mac]]]:
       `(do:
-          Atomy::STATE [#~mac] =
-            (~mac = Atomy::AST::Syntax new(~(p line), '~(p macro-pattern), '~b))
+          Atomy::STATE [#~mac] = ~mac = '(macro(~p): ~b)
 
           Atomy::STATE [#~let] =
             Atomy::Macro register(
               ~mac pattern class
-              ~mac syntax-pattern
+              ~mac pattern macro-pattern
               ~mac prepared
               Atomy::CodeLoader compiling
               true

@@ -3,7 +3,7 @@ for-macro:
   key-name(x: Atomy::AST::Variable) := x name
 
 
-syntax(#(l: List)):
+macro(#~(l: List)):
   pairs = pairs-from(l elements)
   keys = pairs collect [[k, _]]: `#~key-name(k)
   values = pairs collect [[_, v]]: v

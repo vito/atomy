@@ -122,7 +122,7 @@
                 | level0
          level2 = compose
                 | level1
-         level3 = syntax
+         level3 = macro
                 | op_assoc_prec
                 | binary
                 | level2
@@ -138,8 +138,8 @@
                 | line:line < /[\+\-]?\d+/ >
                     { Atomy::AST::Primitive.new(line, text.to_i) }
 
-         syntax = line:line "syntax" "(" wsp expression:p wsp ")" wsp block:b
-                    { Atomy::AST::Syntax.new(line, p, b.block_body) }
+          macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b
+                    { Atomy::AST::Macro.new(line, p, b.block_body) }
 
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
         op_prec = sig_wsp < /[0-9]+/ > { text.to_i }

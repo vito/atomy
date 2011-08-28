@@ -12,7 +12,7 @@ for-macro:
         Atomy::AST::String -> e value
         _ -> e show
 
-  to-thumb(x: Atomy::AST::Syntax) :=
+  to-thumb(x: Atomy::AST::Macro) :=
     indent(escape(x pattern show))
 
   to-thumb(`(~meth := ~_)) :=

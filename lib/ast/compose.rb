@@ -34,8 +34,7 @@ module Atomy
 
       def macro_name
         return :"atomy_macro::#{@right.name}" if @right.is_a? Variable
-        return @left.macro_name if @left.is_a? Compose
-        nil
+        @right.macro_name || @left.macro_name
       end
     end
   end

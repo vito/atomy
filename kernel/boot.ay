@@ -1,101 +1,98 @@
 -- a macro so we can actually, you know, send messages
-syntax(_ Variable): to-send
+macro(~_ ~Variable): to-send
 
-syntax(_ `(~(Variable)(~*_))): to-send
+macro(~_ ~(Variable)(~*_)): to-send
 
-syntax(Variable(*_)): to-send
+macro(~(Variable)(~*_)): to-send
 
-syntax(nil): Primitive new(line, "nil" to-sym)
+macro(nil): Primitive new(line, "nil" to-sym)
 
-syntax(self): Primitive new(line, "self" to-sym)
+macro(self): Primitive new(line, "self" to-sym)
 
-syntax(true): Primitive new(line, "true" to-sym)
+macro(true): Primitive new(line, "true" to-sym)
 
-syntax(false): Primitive new(line, "false" to-sym)
+macro(false): Primitive new(line, "false" to-sym)
 
-syntax(@(x: Variable)): InstanceVariable new(line, x name)
+macro(@~(x: Variable)): InstanceVariable new(line, x name)
 
-syntax(x = y): Assign new(line, x to-pattern to-node, y)
+macro(~x = ~y): Assign new(line, x to-pattern to-node, y)
 
 -- [x, y] { x + y }
-syntax(List Block):
+macro(~List ~Block):
   @right arguments = @left elements
   @right
 
 -- foo { bar }
-syntax(Variable Block):
-  x = `(~(@left)()) to-send
+macro(~Variable ~Block):
+  x = @left to-send
   x block = @right
   x
 
 -- foo(a) { bar }
-syntax(`(~(Variable)(~*args)) Block):
+macro(~(Variable)(~*args) ~Block):
   x = @left to-send
   x block = @right
   x
 
 -- x foo { bar }
-syntax(`(~_ ~Variable) Block):
+macro(~_ ~Variable ~Block):
   x = @left to-send
   x block = @right
   x
 
 -- x foo(a) { bar }
-syntax(`(~_ ~(Variable)(~*args)) Block):
+macro(~_ ~(Variable)(~*args) ~Block):
   x = @left to-send
   x block = @right
   x
 
 -- collect [x] { x + 1 }
-syntax(`(~Variable [~*ys]) (z: Block)):
+macro(~Variable [~*ys] ~(z: Block)):
   z arguments = ys
   x = @left left to-send
   x block = z
   x
 
 -- collect(a) [x] { x + 1 }
-syntax(`(~(Variable)(~*args) [~*ys]) (z: Block)):
+macro(~(Variable)(~*args) [~*ys] ~(z: Block)):
   z arguments = ys
   x = @left left to-send
   x block = z
   x
 
 -- [1, 2, 3] collect [x] { x + 1 }
-syntax(`(~x ~Variable [~*ys]) (z: Block)):
+macro(~_ ~Variable [~*ys] ~(z: Block)):
   z arguments = ys
   x = @left left to-send
   x block = z
   x
 
 -- [1, 2, 3] collect(a) [x] { x + 1 }
-syntax(`(~_ ~(Variable)(~*args) [~*ys]) (z: Block)):
+macro(~_ ~(Variable)(~*args) [~*ys] ~(z: Block)):
   z arguments = ys
   x = @left left to-send
   x block = z
   x
 
 -- foo [bar, ...]
-syntax(x `[~*ys]):
+macro(~x [~*ys]):
   to-send tap [x]:
     x message-name = "[]"
     x arguments = ys + x arguments
 
 -- Foo(...)
-syntax(Constant(*args)):
+macro(~(Constant)(~*args)):
   to-send tap [x]:
     x message-name = @name identifier
 
 -- Bar::Foo(...)
-syntax(ScopedConstant(*args)):
+macro(~(ScopedConstant)(~*args)):
   to-send tap [x]:
     x receiver = @name parent
     x message-name = @name identifier
 
-syntax(_LINE): line
-syntax(_FILE): File new(line)
-
-syntax(`(macro(~pattern)) `{ ~*body }):
-  `(syntax(~(pattern macro-pattern)): ~*body)
+macro(_LINE): line
+macro(_FILE): File new(line)
 
 macro(import(~name)): `(Atomy import(~name, "load" to-sym))
 

@@ -15,7 +15,7 @@ for-macro:
 macro(dynamic(~n, ~root)):
   `(Atomy::DYNAMIC_ROOTS [#~n] = ~root)
 
-syntax(^x): dynvar(x)
+macro(^~x): dynvar(x)
 
 macro(let(~*bindings) { ~*body }):
   tmps = bindings zip(names(bindings size))

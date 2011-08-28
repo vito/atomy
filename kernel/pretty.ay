@@ -177,8 +177,8 @@ module(Atomy::AST):
     from(#list):
       list(@elements all-pretty)
 
-  Syntax pretty := doc:
-    text("syntax") <+> parens(@pattern pretty) <+> @body pretty
+  Macro pretty := doc:
+    text("macro") <+> parens(@pattern pretty) <+> @body pretty
 
   Primitive pretty := doc:
     @value match:

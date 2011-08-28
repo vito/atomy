@@ -59,7 +59,7 @@ macro(data(~(root = 'Object)) ~(children: Block)):
 class(Atomy::AST::MacroQuote):
   quote(n, *_) := raise("unknown quoter: " + n inspect)
 
-syntax(Variable Atomy::AST::String):
+macro(~Variable ~Atomy::AST::String):
   MacroQuote new(
     line,
     @left name,
@@ -68,7 +68,7 @@ syntax(Variable Atomy::AST::String):
     @right value
   )
 
-syntax(Variable `(~(s: Atomy::AST::String)(~*args))):
+macro(~Variable ~(s: Atomy::AST::String)(~*args)):
   MacroQuote new(
     line,
     @left name,
@@ -145,11 +145,11 @@ macro-quoter(i) [_, _, v]: interpolated(v)
 macro(_undefined):
   Undefined new(line)
 
-syntax($(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
+macro($~(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
   NthRef new(line, x value)
 
-syntax(a .. b): `(Hamster range(~a, ~b))
-syntax(a ... b): `(Hamster exclusive-range(~a, ~b))
+macro(~a .. ~b): `(Hamster range(~a, ~b))
+macro(~a ... ~b): `(Hamster exclusive-range(~a, ~b))
 
 macro(~a [~x .. ~y]): `(~a [Range new(~x, ~y)])
 macro(~a [~x ... ~y]): `(~a [Range new(~x, ~y, true)])

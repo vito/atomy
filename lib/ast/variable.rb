@@ -18,10 +18,9 @@ module Atomy
         end
       end
 
-      # TODO: this causes segfault when loading control-flow kernel
-      # def macro_name
-        # :"atomy_macro::@#{@name}"
-      # end
+      def macro_name
+        :"atomy_macro::@#{@name}"
+      end
 
       def to_send
         Send.new(@line, Primitive.new(@line, :self), [], @name, nil, true)

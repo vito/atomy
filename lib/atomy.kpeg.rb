@@ -1387,12 +1387,12 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level3 = (syntax | op_assoc_prec | binary | level2)
+  # level3 = (macro | op_assoc_prec | binary | level2)
   def _level3
 
     _save = self.pos
     while true # choice
-      _tmp = apply(:_syntax)
+      _tmp = apply(:_macro)
       break if _tmp
       self.pos = _save
       _tmp = apply(:_op_assoc_prec)
@@ -1563,8 +1563,8 @@ class Atomy::Parser
     return _tmp
   end
 
-  # syntax = line:line "syntax" "(" wsp expression:p wsp ")" wsp block:b { Atomy::AST::Syntax.new(line, p, b.block_body) }
-  def _syntax
+  # macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b { Atomy::AST::Macro.new(line, p, b.block_body) }
+  def _macro
 
     _save = self.pos
     while true # sequence
@@ -1574,7 +1574,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = match_string("syntax")
+      _tmp = match_string("macro")
       unless _tmp
         self.pos = _save
         break
@@ -1616,7 +1616,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::Syntax.new(line, p, b.block_body) ; end
+      @result = begin;  Atomy::AST::Macro.new(line, p, b.block_body) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1624,7 +1624,7 @@ class Atomy::Parser
       break
     end # end sequence
 
-    set_failed_rule :_syntax unless _tmp
+    set_failed_rule :_macro unless _tmp
     return _tmp
   end
 
@@ -3872,9 +3872,9 @@ class Atomy::Parser
   Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | splice | unquote | string | constant | variable | block | list | unary)")
   Rules[:_level1] = rule_info("level1", "(call | grouped | level0)")
   Rules[:_level2] = rule_info("level2", "(compose | level1)")
-  Rules[:_level3] = rule_info("level3", "(syntax | op_assoc_prec | binary | level2)")
+  Rules[:_level3] = rule_info("level3", "(macro | op_assoc_prec | binary | level2)")
   Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
-  Rules[:_syntax] = rule_info("syntax", "line:line \"syntax\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Syntax.new(line, p, b.block_body) }")
+  Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.block_body) }")
   Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
   Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
   Rules[:_op_assoc_prec] = rule_info("op_assoc_prec", "line:line \"operator\" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, os, assoc, prec)                     }")

@@ -54,8 +54,8 @@ module(Atomy::AST):
 
       done set!
 
-syntax(a && b): And new(line, a, b)
-syntax(a || b): Or new(line, a, b)
-syntax(!a): Negate new(line, a)
-syntax(a != b): `!(~a == ~b)
-syntax(a !~ b): `!(~a =~ ~b)
+macro(~a && ~b): And new(line, a, b)
+macro(~a || ~b): Or new(line, a, b)
+macro(!~a): Negate new(line, a)
+macro(~a != ~b): `!(~a == ~b)
+macro(~a !~ ~b): `!(~a =~ ~b)

@@ -478,6 +478,17 @@ EOF
       end
 
       def do_expand
+        _expand.to_node
+      end
+
+      def msg_expand
+        return do_expand unless macro_name and respond_to?(macro_name)
+        send(macro_name)
+      rescue MethodFail
+        do_expand
+      end
+
+      def expand
         if lets = Atomy::Macro::Environment.let[self.class]
           x = self
           lets.reverse_each do |l|
@@ -487,9 +498,9 @@ EOF
             rescue MethodFail
             end
           end
-          x._expand.to_node
+          x.msg_expand.to_node
         else
-          _expand.to_node
+          msg_expand.to_node
         end
       rescue
         if respond_to?(:show)
@@ -501,32 +512,25 @@ EOF
         raise
       end
 
-      def expand
-        return do_expand unless macro_name and respond_to?(macro_name)
-        send(macro_name)
-      rescue MethodFail
-        do_expand
-      end
-
       alias :prepare :expand
 
-      def define_syntax(body, file = :syntax)
+      def define_macro(body, file = :macro)
+        pattern = macro_pattern
+
         unless macro_name
           @@stats ||= {}
           @@stats[self.class] ||= []
-          @@stats[self.class] << syntax_pattern.quoted
+          @@stats[self.class] << self
 
           Atomy::Macro.register(
             self.class,
-            syntax_pattern,
+            pattern,
             body.prepare_all,
             Atomy::CodeLoader.compiling
           )
 
           return
         end
-
-        pattern = syntax_pattern
 
         Atomy.define_method(
           self.class,
@@ -576,37 +580,13 @@ EOF
         pattern
       end
 
-      def unquote_children
-        children do |x|
-          if x.is_a?(Quote)
-            x.expression
-          elsif x.is_a?(Unary) and x.operator == "*"
-            Atomy::AST::Splice.new(x.line, x.receiver)
-          else
-            Atomy::AST::Unquote.new(x.line, x)
-          end
-        end
-      end
-
-      def syntax_pattern
+      def macro_pattern
         Atomy::Patterns::QuasiQuote.new(
           Atomy::AST::QuasiQuote.new(
             @line,
-            unquote_children
+            self
           )
         )
-      end
-
-      def macro_pattern
-        children do |x|
-          if x.is_a?(Splice)
-            Unary.new(x.line, x.expression, "*")
-          elsif x.is_a?(Unquote)
-            x.expression
-          else
-            QuasiQuote.new(x.line, x)
-          end
-        end
       end
     end
 
