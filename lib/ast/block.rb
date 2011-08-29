@@ -7,6 +7,12 @@ module Atomy
       children [:contents], [:arguments]
       generate
 
+      def prepare_all
+        dup.tap do |x|
+          x.contents = x.contents.collect(&:prepare_all)
+        end
+      end
+
       def block_arguments
         BlockArguments.new @arguments
       end
