@@ -8,6 +8,8 @@ pretty-body([]) := []
 pretty-body([x]) := [from(#top): x pretty]
 pretty-body(x . xs) := [from(#list) { x pretty }] + pretty-body(xs)
 
+Atomy::Particle unamb := pretty
+
 module(Atomy::AST):
   Block unamb := pretty
   ClassVariable unamb := pretty
@@ -21,7 +23,6 @@ module(Atomy::AST):
   (Tree ? @nodes size < 2) unamb := pretty
   InstanceVariable unamb := pretty
   List unamb := pretty
-  Particle unamb := pretty
   Primitive unamb := pretty
   QuasiQuote unamb := pretty
   Quote unamb := pretty
@@ -67,35 +68,35 @@ Atomy::Pretty::Doc pretty := self
 
 List pretty := doc: list(all-pretty)
 
-Particle pretty := doc:
+Atomy::Particle pretty := doc:
   wildcard = [c]:
     if(c equal?(_undefined))
       then: '_
       else: c
 
-  operator? = message to-s !~ r"^[a-z_]"
+  operator? = @message to-s !~ r"^[a-z_]"
 
-  args = arguments collect(&#(wildcard [_]))
+  args = @arguments collect(&#(wildcard [_]))
 
   msg+args =
     if(operator?)
       then:
-        text(message to-s) <+> args first unamb
+        text(@message to-s) <+> args first unamb
       else:
-        ident(message to-s) <>
+        ident(@message to-s) <>
           tupled(args all-pretty)
 
   partial =
-    if(receiver equal?(_undefined))
+    if(@receiver equal?(_undefined))
       then:
         if(operator?)
           then: parens(msg+args)
           else: msg+args
-      else: parens(receiver unamb <+> msg+args)
+      else: parens(@receiver unamb <+> msg+args)
 
   text("#") <> partial
 
-Particle to-s := show
+Atomy::Particle to-s := show
 
 Symbol pretty := doc:
   s = to-s

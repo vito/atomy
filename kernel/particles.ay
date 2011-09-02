@@ -1,89 +1,150 @@
+module(Atomy):
+  data(Particle(@receiver, @message, @arguments))
+
+  Particle call(*args) := to-proc [*args]
+
+  Particle to-proc := [*args]:
+    [recv, cur] =
+      if(@receiver equal?(_undefined))
+        then: [args[0], 1]
+        else: [@receiver, 0]
+
+    filled =
+      @arguments collect [v]:
+        if(v equal?(_undefined))
+          then:
+            cur += 1
+            args[cur - 1]
+          else:
+            v
+
+    recv send(@message, *filled)
+
+  Particle arity :=
+    @arguments cons(@receiver) select(&#equal?(_undefined)) size
+
+Symbol call(*args) := to-proc [*args]
+
+Symbol arity := 1
+
 for-macro:
   wildcard('_) := '_undefined
   wildcard(x) := x
 
 macro(#(~(x)(~*as))):
-  `(Particle [
+  `(Atomy::Particle new(
       _undefined
       #~x
-      ~*(as collect [c]: wildcard(c))
-    ])
+      ~(as collect [c]: wildcard(c))
+    ))
 
 macro(#(~r ~(x)(~*as))):
-  `(Particle [
+  `(Atomy::Particle new(
       ~(wildcard(r))
       #~x
-      ~*(as collect [c]: wildcard(c))
-    ])
+      ~(as collect [c]: wildcard(c))
+    ))
 
 macro(#(~r [~*as])):
-  `(Particle [
+  `(Atomy::Particle new(
       ~(wildcard(r))
       #"[]"
-      ~*(as collect [c]: wildcard(c))
-    ])
+      ~(as collect [c]: wildcard(c))
+    ))
 
 macro(#~(x: Binary)):
-  `(Particle [
+  `(Atomy::Particle new(
       ~(if(x private)
           then: '_undefined
           else: wildcard(x lhs))
       #~(x operator)
-      ~(wildcard(x rhs))
-    ])
+      [~(wildcard(x rhs))]
+    ))
+
+module(Atomy::Patterns):
+  class(Particle < Pattern):
+    initialize(@receiver, @message, @arguments) := #ok
+
+    construct(g) := do:
+      get(g)
+      @receiver construct(g)
+      g push-literal(@message)
+      @arguments construct(g)
+      g send(#new, 3)
+
+    (== b) :=
+      b kind-of?(Particle) &&
+        @receiver == b receiver &&
+        @message == b message &&
+        @arguments == b arguments
+
+    target(g) := do:
+      g push-cpath-top
+      g find-const(#Atomy)
+      g find-const(#Particle)
+
+    matches?(g) := do:
+      mismatch = g new-label
+      done = g new-label
+
+      g dup
+      target(g)
+      g swap
+      g kind-of
+      g gif(mismatch)
+
+      g dup
+      g send(#message, 0)
+      g push-literal(@message)
+      g send(#"==", 1)
+      g gif(mismatch)
+
+      g dup
+      g send(#receiver, 0)
+      @receiver matches?(g)
+      g gif(mismatch)
+
+      g send(#arguments, 0)
+      @arguments matches?(g)
+      g dup
+      g git(done)
+
+      mismatch set!
+      g pop
+      g push-false
+
+      done set!
+
+    deconstruct(g, locals = Hash new) := do:
+      g dup
+      g send(#receiver, 0)
+      @receiver deconstruct(g, locals)
+
+      g send(#arguments, 0)
+      @arguments deconstruct(g, locals)
 
 `#(~r [~*as]) pattern :=
-  Atomy::Patterns::List new $:
-    [ r pattern
-      `#"[]" pattern
-    ] + as collect(&#pattern)
+  Atomy::Patterns::Particle new $:
+    r pattern
+    #"[]"
+    `[~*as] pattern
 
 `#~(x: Atomy::AST::Binary) pattern :=
-  Atomy::Patterns::List new $:
-    [ if(x private)
-        then: '_ pattern
-        else: x lhs pattern
-      `#~(x operator) pattern
-      x rhs pattern
-    ]
+  Atomy::Patterns::Particle new $:
+    if(x private)
+      then: '_ pattern
+      else: x lhs pattern
+    x operator to-sym
+    `[~(x rhs)] pattern
 
-`#(~(x)(~*as)) pattern :=
-  Atomy::Patterns::List new $:
-    [ '_ pattern
-      `#~x pattern
-    ] + as collect(&#pattern)
+`#(~(x: Atomy::AST::Variable)(~*as)) pattern :=
+  Atomy::Patterns::Particle new $:
+    '_ pattern
+    x name to-sym
+    `[~*as] pattern
 
-`#(~r ~(x)(~*as)) pattern :=
-  Atomy::Patterns::List new $:
-    [ r pattern
-      `#~x pattern
-    ] + as collect(&#pattern)
-
-class(Particle < Array):
-  call(*args) := to-proc [*args]
-
-  to-proc := [*args]:
-    x = dup
-
-    args each [a]:
-      idx = x find-index [a]:
-        a equal?(_undefined)
-
-      when(idx):
-        x [idx] = a
-
-    x first send(*(x drop(1)))
-
-  arity :=
-    select(&#equal?(_undefined)) size
-
-  receiver := at(0)
-
-  message := at(1)
-
-  arguments := drop(2)
-
-class(Symbol):
-  call(*args) := to-proc [*args]
-
-  arity := 1
+`#(~r ~(x: Atomy::AST::Variable)(~*as)) pattern :=
+  Atomy::Patterns::Particle new $:
+    r pattern
+    x name to-sym
+    `[~*as] pattern
