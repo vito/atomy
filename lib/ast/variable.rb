@@ -14,6 +14,7 @@ module Atomy
           var.get_bytecode(g)
         else
           g.push_self
+          g.allow_private
           g.send message_name.to_sym, 0
         end
       end
