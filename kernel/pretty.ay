@@ -13,6 +13,7 @@ Atomy::Particle unamb := pretty
 module(Atomy::AST):
   Block unamb := pretty
   ClassVariable unamb := pretty
+  Call unamb := pretty
   Compose unamb := doc:
     if(from?(#binary, #compose))
       then: pretty
