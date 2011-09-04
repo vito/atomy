@@ -3,7 +3,7 @@ module Atomy::Patterns
     attr_reader :patterns
 
     def initialize(ps)
-      @patterns = ps
+      @patterns = ps.to_a
     end
 
     def construct(g)
