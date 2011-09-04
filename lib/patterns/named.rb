@@ -20,6 +20,14 @@ module Atomy::Patterns
       @pattern == b.pattern
     end
 
+    def match(g, set = false, locals = {})
+      if @pattern.is_a?(Any)
+        deconstruct(g, locals)
+      else
+        super
+      end
+    end
+
     def target(g)
       @pattern.target(g)
     end

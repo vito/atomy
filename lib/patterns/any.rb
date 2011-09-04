@@ -9,6 +9,10 @@ module Atomy::Patterns
       b.kind_of?(Any)
     end
 
+    def match(g, set = false, locals = {})
+      g.pop
+    end
+
     def target(g)
       g.push_const :Object
     end
