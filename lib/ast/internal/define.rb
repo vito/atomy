@@ -12,9 +12,20 @@ module Atomy
           args = [@pattern.rhs]
         when Variable, Unary
           args = []
-        else
+        when Call
           args = @pattern.arguments
+        when Compose
+          case @pattern.right
+          when Call
+            args = @pattern.right.arguments
+          when Variable
+            args = []
+          when List
+            args = @pattern.right.elements
+          end
         end
+
+        raise "unknown pattern #{@pattern.inspect}" unless args
 
         @arguments = args.collect(&:to_pattern)
       end
@@ -25,22 +36,39 @@ module Atomy
         case @pattern
         when Binary
           recv = @pattern.lhs
-        when Variable
+        when Call, Variable
           recv = Primitive.new(@pattern.line, :self)
-        else
-          recv = @pattern.receiver
+        when Compose
+          recv = @pattern.left
         end
+
+        raise "unknown pattern #{@pattern.inspect}" unless recv
 
         @receiver = recv.to_pattern
       end
 
       def message_name
+        return @message_name if @message_name
+
         case @pattern
         when Variable
-          @pattern.name
+          name = @pattern.name
+        when Call
+          name = @pattern.name.name
+        when Compose
+          case @pattern.right
+          when Variable
+            name = @pattern.right.name
+          when Call
+            name = @pattern.right.name.name
+          when List
+            name = "[]"
+          end
         else
-          @pattern.message_name
+          name = @pattern.message_name
         end
+
+        (@message_name = name) || raise "unknown pattern #{@pattern.inspect}"
       end
 
       def prepare_all

@@ -3,9 +3,7 @@ macro(do ~(b: Block)): b body
 macro(~x =! ~y):
   Set new(x line, x to-pattern to-node, y)
 
--- TODO: shouldn't need to expand here
-macro(~x := ~y):
-  Define new(line, x expand, y)
+macro(~x := ~y): Define new(line, x, y)
 
 macro(define(~x) ~(y: Block)):
   `(~x := ~(y block-body))
