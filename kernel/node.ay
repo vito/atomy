@@ -36,7 +36,7 @@ module(Atomy::AST):
     Atomy::Patterns::NamedInstance new(n name)
 
   `%~x pattern :=
-    Atomy::Patterns::RuntimeClass new(x, nil)
+    Atomy::Patterns::RuntimeClass new(x)
 
   `&~x pattern :=
     Atomy::Patterns::BlockPass new(x to-pattern)

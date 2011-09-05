@@ -8,38 +8,7 @@ pretty-body([]) := []
 pretty-body([x]) := [from(#top): x pretty]
 pretty-body(x . xs) := [from(#list) { x pretty }] + pretty-body(xs)
 
-Atomy::Particle unamb := pretty
-
-module(Atomy::AST):
-  Block unamb := pretty
-  ClassVariable unamb := pretty
-  Call unamb := pretty
-  Compose unamb := doc:
-    if(from?(#binary, #compose))
-      then: pretty
-      else: parens(pretty)
-  Constant unamb := pretty
-  GlobalVariable unamb := pretty
-  (InlinedBody ? @expressions size < 2) unamb := pretty
-  (Tree ? @nodes size < 2) unamb := pretty
-  InstanceVariable unamb := pretty
-  List unamb := pretty
-  Primitive unamb := pretty
-  QuasiQuote unamb := pretty
-  Quote unamb := pretty
-  ScopedConstant unamb := pretty
-  Send unamb := doc:
-    if(from?(#binary, #compose))
-      then: pretty
-      else: parens(pretty)
-  Splice unamb := pretty
-  String unamb := pretty
-  ToplevelConstant unamb := pretty
-  Unary unamb := pretty
-  Unquote unamb := pretty
-  Variable unamb := pretty
-  Node unamb := doc: parens(pretty)
-  _ unamb := pretty
+_ unamb := pretty
 
 from(*where, &y) :=
   let(atomy-pretty-context = where flatten) { y call }
@@ -54,6 +23,28 @@ from?(*where) :=
       b include?(a)
     [a, b] ->
       a == b
+
+List all-pretty := collect [x]: x pretty
+
+Atomy::Pretty::Doc colored(color) := doc:
+  -- only makes sense to colorize if we're outputting to a terminal
+  unless(^atomy-pretty-colored? && ^output-port tty?):
+    return(self)
+
+  codes =
+    [ #black
+      #red
+      #green
+      #yellow
+      #blue
+      #magenta
+      #cyan
+      #white
+    ] to-a zip((0 .. 7) to-a)
+
+  hash = Hash [codes]
+
+  raw("\e[9" + hash [color] to-s + "m") <> self <> raw("\e[0m")
 
 String pretty := super colored(#yellow)
 Integer pretty := super colored(#blue)
@@ -120,6 +111,37 @@ Atomy::Map pretty := doc:
           a + [k unamb <+> text("->") <+> v unamb]
 
 module(Atomy::AST):
+  Block unamb := pretty
+  ClassVariable unamb := pretty
+  Call unamb := pretty
+  Compose unamb := doc:
+    if(from?(#binary, #compose))
+      then: pretty
+      else: parens(pretty)
+  Constant unamb := pretty
+  GlobalVariable unamb := pretty
+  (InlinedBody ? @expressions size < 2) unamb := pretty
+  (Tree ? @nodes size < 2) unamb := pretty
+  InstanceVariable unamb := pretty
+  List unamb := pretty
+  Primitive unamb := pretty
+  QuasiQuote unamb := pretty
+  Quote unamb := pretty
+  ScopedConstant unamb := pretty
+  Send unamb := doc:
+    if(from?(#binary, #compose))
+      then: pretty
+      else: parens(pretty)
+  Splice unamb := pretty
+  String unamb := pretty
+  ToplevelConstant unamb := pretty
+  Unary unamb := pretty
+  Unquote unamb := pretty
+  Variable unamb := pretty
+  Pattern unamb := @pattern unamb
+  Node unamb := doc: parens(pretty)
+  _ unamb := pretty
+
   Assign pretty := doc:
     from(#assign):
       @lhs unamb <+> text("=") <+> @rhs unamb
@@ -287,24 +309,53 @@ module(Atomy::AST):
       then: from(#top): vcat(@nodes all-pretty)
       else: from(#list): comma separate(@nodes all-pretty)
 
-List all-pretty := collect [x]: x pretty
+  Pattern pretty := @pattern pretty
 
-Atomy::Pretty::Doc colored(color) := doc:
-  -- only makes sense to colorize if we're outputting to a terminal
-  unless(^atomy-pretty-colored? && ^output-port tty?):
-    return(self)
 
-  codes =
-    [ #black
-      #red
-      #green
-      #yellow
-      #blue
-      #magenta
-      #cyan
-      #white
-    ] to-a zip((0 .. 7) to-a)
+module(Atomy::Patterns):
+  And pretty := `(~@a & ~@b) pretty
+  Any pretty := doc: text("_")
+  Attribute pretty := `(~@receiver ~(Atomy::AST::Variable new(-1, @name))) pretty
+  BlockPass pretty := `&~@pattern pretty
+  Constant pretty := @constant pretty
+  Default pretty := `(~@pattern = ~@default) pretty
+  HeadTail pretty := `(~@head . ~@tail) pretty
+  List pretty := `[~*(@patterns collect(&#to-node))] pretty
+  Literal pretty := @value pretty
+  Match pretty := @value pretty
+  Named pretty := doc:
+    if(@pattern is-a?(Any))
+      then: text(@name)
+      else: `(~(Atomy::AST::Variable new(-1, @name)): ~@pattern) pretty
+  NamedClass pretty :=
+    `(@@~(Atomy::AST::Variable new(-1, @identifier))) pretty
+  NamedInstance pretty :=
+    `(@~(Atomy::AST::Variable new(-1, @identifier))) pretty
+  NamedGlobal pretty :=
+    `($~(Atomy::AST::Variable new(-1, @identifier))) pretty
+  Or pretty := `(~@a | ~@b) pretty
+  Particle pretty :=
+    Atomy::Particle new(
+      @receiver
+      @message
+      @arguments patterns to-list
+    ) pretty
+  Predicate pretty := `(~@pattern ? ~@test) pretty
+  QuasiQuote pretty := @quoted pretty
+  Quote pretty := `'~@expression pretty
+  RuntimeClass pretty := `%~@body pretty
+  SingletonClass pretty := @body pretty
+  Splat pretty := `*~@pattern pretty
+  With pretty := `(~@pattern with(~@expression, ~@sub-pattern)) pretty
 
-  hash = Hash [codes]
-
-  raw("\e[9" + hash [color] to-s + "m") <> self <> raw("\e[0m")
+  And unamb := doc: parens(pretty)
+  Attribute unamb := doc: parens(pretty)
+  Default unamb := doc: parens(pretty)
+  HeadTail unamb := doc: parens(pretty)
+  Named unamb :=
+    if(@pattern is-a?(Any))
+      then: pretty
+      else: doc: parens(pretty)
+  Or unamb := doc: parens(pretty)
+  Predicate unamb := doc: parens(pretty)
+  With unamb := doc: parens(pretty)

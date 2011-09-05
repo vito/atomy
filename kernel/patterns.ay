@@ -1,6 +1,6 @@
 module(Atomy::Patterns):
   class(RuntimeClass < Pattern):
-    initialize(@body, @name) := #ok
+    initialize(@body, @name = nil) := #ok
 
     construct(g) := do:
       get(g)
