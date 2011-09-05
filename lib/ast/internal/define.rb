@@ -68,7 +68,9 @@ module Atomy
           name = @pattern.message_name
         end
 
-        (@message_name = name) || raise "unknown pattern #{@pattern.inspect}"
+        raise "unknown pattern #{@pattern.inspect}" unless name
+
+        @message_name = name
       end
 
       def prepare_all
