@@ -1,0 +1,61 @@
+macro(evaluate-when(~*when) ~(x: Block)):
+  evaluated? = false
+
+  when contains?('compile) && do:
+    x body evaluate
+    evaluated? =! true
+
+  when contains?('load) && do:
+    Atomy::CodeLoader when-load << [x block-body, evaluated?]
+
+  when contains?('run) &&
+    Atomy::CodeLoader when-run << [x block-body, evaluated?]
+
+  'nil
+
+macro(for-macro ~(b: Block)):
+  `(evaluate-when(compile, load, run):
+      module(Atomy::Macro::Helpers):
+        ~*(b contents))
+
+macro(let-macro(~*ms) ~(b: Block)):
+  tripled = ms zip(names(ms size) zip(names(ms size)))
+
+  define =
+    tripled collect [[`(~p = ~b), [let, mac]]]:
+      `(do:
+          Atomy::STATE [#~mac] = ~mac = '(macro(~p): ~b)
+
+          Atomy::STATE [#~let] =
+            Atomy::Macro register(
+              ~mac pattern class
+              ~mac pattern macro-pattern
+              ~mac prepared
+              Atomy::CodeLoader compiling
+              true
+            ))
+
+  unwind =
+    tripled collect [[_, [let, mac]]]:
+      `(do:
+          ~mac = Atomy::STATE [#~mac] pattern
+
+          ~mac class remove-method(Atomy::STATE [#~let])
+
+          when(lets = Atomy::Macro::Environment let [~mac class]):
+            lets delete(Atomy::STATE [#~let])
+
+            when(lets empty?):
+              Atomy::Macro::Environment let delete(~mac class))
+
+  names [res]:
+    `(do:
+        evaluate-when(compile):
+          ~*define
+
+        ~res = ~(b block-body)
+
+        evaluate-when(compile):
+          ~*unwind
+
+        ~res)
