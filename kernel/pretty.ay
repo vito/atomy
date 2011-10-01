@@ -201,6 +201,8 @@ module(Atomy::AST):
     from(#list):
       list(@elements all-pretty)
 
+  Literal pretty := @value pretty
+
   Macro pretty := doc:
     text("macro") <+> parens(@pattern pretty) <+> @body pretty
 
