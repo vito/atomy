@@ -240,9 +240,12 @@ module Atomy
         }.size
       end
 
-      # TODO
       def total_args
-        size
+        if splat_index
+          size - 1
+        else
+          size
+        end
       end
 
       def splat_index
