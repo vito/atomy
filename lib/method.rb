@@ -70,7 +70,11 @@ module Atomy
     names = []
     splatted = false
 
-    resolved = branches.collect do |pats, meth, provided|
+    # grouped methods by the namespace they're provided in
+    by_namespace = Hash.new { |h, k| h[k] = [] }
+
+    # determine locals and the required/default/total args
+    branches.each do |pats, meth, provided|
       segs = segments(pats[1])
 
       min_reqs ||= segs[0].size
@@ -86,7 +90,7 @@ module Atomy
 
       splatted = true if segs[2]
 
-      [pats[0], segs, meth, provided]
+      by_namespace[provided] << [pats[0], segs, meth]
     end
 
     names.uniq!
@@ -110,28 +114,90 @@ module Atomy
     g.local_count = total + g.local_names.size
 
     g.push_self
-    resolved.each do |recv, (reqs, defs, splat, block), meth, provided|
+
+    # push the namespaced checks first
+    by_namespace.each do |provided, methods|
+      next unless provided
+
+      skip = g.new_label
+
+      get_sender_scope(g)
+      g.send :module, 0
+      g.push_literal provided
+      g.send :using?, 1
+      g.gif skip
+
+      g.push_literal provided
+      g.add_scope
+
+      build_methods(g, methods, done, locals, min_reqs)
+
+      skip.set!
+    end
+
+    # try the bottom namespace after the others
+    if bottom = by_namespace[nil] and not bottom.empty?
+      build_methods(g, bottom, done, locals, min_reqs)
+    end
+
+    # call super. note that we keep the original sender's static scope for use
+    # in namespace checks
+    unless name == :initialize
+      g.invoke_primitive :vm_check_super_callable, 0
+      g.gif mismatch
+
+      g.push_scope
+      g.push_literal :"@atomy:sender"
+      get_sender_scope(g)
+      g.send :instance_variable_set, 2
+      g.pop
+
+      g.push_block
+      if g.state.super?
+        g.zsuper g.state.super.name
+      else
+        g.zsuper nil
+      end
+
+      g.push_scope
+      g.push_literal :"@atomy:sender"
+      g.push_nil
+      g.send :instance_variable_set, 2
+      g.pop
+
+      g.goto done
+    end
+
+    # no method branches matched; fail
+    mismatch.set!
+    g.push_self
+    g.push_cpath_top
+    g.find_const :Atomy
+    g.find_const :MethodFail
+    g.push_literal name
+    g.send :new, 1
+    g.allow_private
+    g.send :raise, 1
+
+    done.set!
+    g.state.pop_name
+    g.ret
+    g.close
+    g.pop_state
+    g.use_detected
+    g.encode
+
+    g.package Rubinius::CompiledMethod
+  end
+
+  def self.build_methods(g, methods, done, locals, min_reqs)
+    methods.each do |recv, (reqs, defs, splat, block), meth|
       skip = g.new_label
       argmis = g.new_label
 
       if reqs.size > min_reqs
         g.passed_arg(reqs.size - 1)
         g.gif skip
-      end
-
-      # TODO: have only one namespace guard
-      if provided
-        get_sender_scope(g)
-        # g.debug "[#{name}] sender"
-        g.send :module, 0
-        g.push_literal provided
-        # g.debug "[#{name}] provided from"
-        g.send :using?, 1
-        # g.debug "[#{name}] using?"
-        g.gif skip
-
-        g.push_literal provided
-        g.add_scope
       end
 
       if should_match_self?(recv)
@@ -201,53 +267,6 @@ module Atomy
 
       skip.set!
     end
-
-    # TODO: if all methods tried are in namespaces and we fail, raise NoMethodError instead
-    unless name == :initialize
-      g.invoke_primitive :vm_check_super_callable, 0
-      g.gif mismatch
-
-      g.push_scope
-      g.push_literal :"@atomy:sender"
-      get_sender_scope(g)
-      g.send :instance_variable_set, 2
-      g.pop
-
-      g.push_block
-      if g.state.super?
-        g.zsuper g.state.super.name
-      else
-        g.zsuper nil
-      end
-
-      g.push_scope
-      g.push_literal :"@atomy:sender"
-      g.push_nil
-      g.send :instance_variable_set, 2
-      g.pop
-
-      g.goto done
-    end
-
-    mismatch.set!
-    g.push_self
-    g.push_cpath_top
-    g.find_const :Atomy
-    g.find_const :MethodFail
-    g.push_literal name
-    g.send :new, 1
-    g.allow_private
-    g.send :raise, 1
-
-    done.set!
-    g.state.pop_name
-    g.ret
-    g.close
-    g.pop_state
-    g.use_detected
-    g.encode
-
-    g.package Rubinius::CompiledMethod
   end
 
   def self.add_method(target, name, branches, static_scope, visibility = :public, file = :dynamic_add, line = 1, defn = false)
