@@ -3,7 +3,7 @@ describe("namespaces"):
     namespace(NotUsed):
       not-used := 1
 
-    { not-used } should-raise(Atomy::MethodFail)
+    { not-used } should-raise(NoMethodError)
 
   it("provides methods for static scopes that are `using' the module"):
     namespace(Used):
@@ -32,7 +32,7 @@ describe("namespaces"):
 
   it("does not persist through #module-eval"):
     User module-eval:
-      { used } should-raise(Atomy::MethodFail)
+      { used } should-raise(NoMethodError)
 
   it("allows providing recursive methods"):
     namespace(Recursive):
@@ -83,7 +83,7 @@ describe("namespaces"):
       1 super-matcher := 1
       Object super-matcher := 2
 
-    { 2 super-matcher } should-raise(Atomy::MethodFail)
+    { 2 super-matcher } should-raise(NoMethodError)
 
     module(SuperMatcherUser):
       using(SuperMatcher)

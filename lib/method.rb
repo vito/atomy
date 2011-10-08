@@ -172,9 +172,23 @@ module Atomy
     mismatch.set!
     g.push_self
     g.push_cpath_top
-    g.find_const :Atomy
-    g.find_const :MethodFail
-    g.push_literal name
+    # if all the definitions are local to a namespace, act like the method
+    # doesn't even exist
+    if by_namespace[nil].empty?
+      g.find_const :NoMethodError
+      g.push_literal "unexposed method `"
+      g.push_literal name.to_s
+      g.push_literal "' called on an instance of "
+      g.push_self
+      g.send :class, 0
+      g.send :to_s, 0
+      g.push_literal "."
+      g.string_build 5
+    else
+      g.find_const :Atomy
+      g.find_const :MethodFail
+      g.push_literal name
+    end
     g.send :new, 1
     g.allow_private
     g.send :raise, 1
