@@ -25,7 +25,6 @@ module Atomy
         InlinedBody.new @line, @contents
       end
 
-      # TODO: remove #caller
       alias :caller :body
 
       def bytecode(g)
