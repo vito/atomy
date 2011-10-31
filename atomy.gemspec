@@ -27,4 +27,8 @@ Gem::Specification.new do |s|
   s.rubyforge_project = "atomy"
   s.summary = "the Atomy programming language"
   s.description = s.summary
+
+  s.add_dependency "hamster", "~> 0.4.2"
+
+  s.add_development_dependency "rake"
 end
