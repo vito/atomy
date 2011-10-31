@@ -74,7 +74,7 @@ module Atomy
     by_namespace = Hash.new { |h, k| h[k] = [] }
 
     # determine locals and the required/default/total args
-    branches.each do |pats, meth, provided|
+    branches.each do |pats, meth, provided, scope|
       segs = segments(pats[1])
 
       min_reqs ||= segs[0].size
@@ -90,7 +90,7 @@ module Atomy
 
       splatted = true if segs[2]
 
-      by_namespace[provided] << [pats[0], segs, meth]
+      by_namespace[provided] << [pats[0], segs, meth, scope]
     end
 
     names.uniq!
@@ -126,9 +126,6 @@ module Atomy
       g.push_literal provided
       g.send :using?, 1
       g.gif skip
-
-      g.push_literal provided
-      g.add_scope
 
       build_methods(g, methods, done, locals, min_reqs)
 
@@ -205,7 +202,7 @@ module Atomy
   end
 
   def self.build_methods(g, methods, done, locals, min_reqs)
-    methods.each do |recv, (reqs, defs, splat, block), meth|
+    methods.each do |recv, (reqs, defs, splat, block), meth, scope|
       skip = g.new_label
       argmis = g.new_label
 
@@ -213,6 +210,12 @@ module Atomy
         g.passed_arg(reqs.size - 1)
         g.gif skip
       end
+
+      g.push_variables
+      g.send :method, 0
+      g.push_literal scope
+      g.send :"scope=", 1
+      g.pop
 
       if should_match_self?(recv)
         g.dup
@@ -285,17 +288,7 @@ module Atomy
 
   def self.add_method(target, name, branches, static_scope, visibility = :public, file = :dynamic_add, line = 1, defn = false)
     cm = build_method(name, branches, file, line)
-
-    unless static_scope
-      static_scope = Rubinius::StaticScope.new(
-        self,
-        Rubinius::StaticScope.new(Object)
-      )
-    end
-
-    # this is broken; different branches should retain their static scopes, not
-    # have the last one win.
-    cm.scope = static_scope
+    cm.scope = Rubinius::StaticScope.new(Object)
 
     if defn and not Thread.current[:atomy_provide_in]
       Rubinius.add_defn_method name, cm, static_scope, visibility
@@ -304,8 +297,8 @@ module Atomy
     end
   end
 
-  def self.define_method(target, name, receiver, body, arguments = [], static_scope = nil, visibility = :public, file = :dynamic_define, line = 1)
-    method = [[receiver, arguments], body]
+  def self.define_method(target, name, receiver, body, arguments, static_scope, visibility = :public, file = :dynamic_define, line = 1)
+    method = [[receiver, arguments], body, nil, static_scope]
     methods = target.instance_variable_get(:"@atomy::#{name}")
 
     if methods

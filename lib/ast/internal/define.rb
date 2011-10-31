@@ -104,7 +104,8 @@ module Atomy
         g.send :current, 0
         g.push_literal :atomy_provide_in
         g.send :[], 1
-        g.make_array 3
+        g.push_scope
+        g.make_array 4
 
         receiver.target(g)
         g.push_literal "@atomy::"
