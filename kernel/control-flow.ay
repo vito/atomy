@@ -102,10 +102,10 @@ evaluate-when(compile, run, load):
         g ret
 
 macro(labels ~(body: Block)):
-  branches = body contents collect [`(~(n) ~(b))]:
-    LabelBranch new(n line, b body, n name)
+  branches = body contents collect [`(~n ~b)]:
+    LabelBranch new(n line, b body, n text)
 
-  `(let-macro(go(~'~name) = GoTo new(line, name name)):
+  `(let-macro(go(~'~name) = GoTo new(line, name text)):
       ~(Labels new(line, branches)))
 
 macro(while(~test) ~(body: Block)):

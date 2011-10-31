@@ -5,11 +5,11 @@ macro(*~x):
   Splat new(line, x)
 
 -- now in boot
---macro(@(x: Variable)):
+--macro(@(x: Word)):
   --InstanceVariable new(x line, x name)
 
-macro(@@~(x: Variable)):
-  ClassVariable new(line, x name)
+macro(@@~(x: Word)):
+  ClassVariable new(line, x text)
 
 macro($0):
   GlobalVariable new(line, "0")
@@ -20,8 +20,8 @@ macro($~(x: String)):
 macro($~(x: Constant)):
   GlobalVariable new(line, x identifier)
 
-macro($~(x: Variable)):
-  GlobalVariable new(line, x name)
+macro($~(x: Word)):
+  GlobalVariable new(line, x text)
 
 macro($exception):
   GlobalVariable new(line, "!")
@@ -35,8 +35,8 @@ macro($separator):
 macro(#~(x: Constant)):
   Literal new(line, x identifier to-sym)
 
-macro(#~(x: Variable)):
-  Literal new(line, x name to-sym)
+macro(#~(x: Word)):
+  Literal new(line, x text to-sym)
 
 macro(#~(x: String)):
   Literal new(line, x value to-sym)

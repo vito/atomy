@@ -8,14 +8,14 @@ module Atomy::AST
         @line,
         Primitive.new(@line, :self),
         @arguments,
-        @name.is_a?(Variable) && @name.name,
+        @name.is_a?(Word) && @name.text,
         nil,
         true
       )
     end
 
     def macro_name
-      return :"atomy_macro::#{@name.name}" if @name.is_a? Variable
+      return :"atomy_macro::#{@name.text}" if @name.is_a? Word
       @name.macro_name
     end
   end

@@ -2,7 +2,7 @@ Atomy::DYNAMIC_ROOTS = Hash new
 
 for-macro:
   key(n) :=
-    Atomy::AST::Variable new $:
+    Atomy::AST::Word new $:
       n line
       "atomy_" + n message-name
 

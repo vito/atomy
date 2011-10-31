@@ -1,7 +1,7 @@
 module Atomy::Macro
   module Helpers
     def variable(name, line = 0)
-      Atomy::AST::Variable.new(line, name.to_s)
+      Atomy::AST::Word.new(line, name.to_s)
     end
 
     # generate symbols

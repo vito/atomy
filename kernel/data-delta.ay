@@ -59,21 +59,21 @@ macro(data(~(root = 'Object)) ~(children: Block)):
 class(Atomy::AST::MacroQuote):
   quote(n, *_) := raise("unknown quoter: " + n inspect)
 
-macro(~Variable ~Atomy::AST::String):
+macro(~Word ~Atomy::AST::String):
   MacroQuote new(
     line,
-    @left name,
+    @left text,
     @right raw || @right value,
     []
     @right value
   )
 
-macro(~Variable ~(s: Atomy::AST::String)(~*args)):
+macro(~Word ~(s: Atomy::AST::String)(~*args)):
   MacroQuote new(
     line,
-    @left name,
+    @left text,
     s raw || s value,
-    args collect(&#name)
+    args collect(&#text)
     s value
   )
 

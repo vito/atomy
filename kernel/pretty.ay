@@ -137,7 +137,7 @@ module(Atomy::AST):
   ToplevelConstant unamb := pretty
   Unary unamb := pretty
   Unquote unamb := pretty
-  Variable unamb := pretty
+  Word unamb := pretty
   Pattern unamb := @pattern unamb
   Node unamb := doc: parens(pretty)
   _ unamb := pretty
@@ -291,7 +291,7 @@ module(Atomy::AST):
     from(#unary):
       text("~") <> @expression unamb
 
-  Variable pretty := ident(@name)
+  Word pretty := ident(@text)
 
   InlinedBody pretty := doc:
     from(#top): align(vcat(@expressions all-pretty))
@@ -317,7 +317,7 @@ module(Atomy::AST):
 module(Atomy::Patterns):
   And pretty := `(~@a & ~@b) pretty
   Any pretty := doc: text("_")
-  Attribute pretty := `(~@receiver ~(Atomy::AST::Variable new(-1, @name))) pretty
+  Attribute pretty := `(~@receiver ~(Atomy::AST::Word new(-1, @name))) pretty
   BlockPass pretty := `&~@pattern pretty
   Constant pretty := @constant pretty
   Default pretty := `(~@pattern = ~@default) pretty
@@ -330,11 +330,11 @@ module(Atomy::Patterns):
       then: text(@name)
       else: text(@name) <> text(":") <+> @pattern pretty
   NamedClass pretty :=
-    `(@@~(Atomy::AST::Variable new(-1, @identifier))) pretty
+    `(@@~(Atomy::AST::Word new(-1, @identifier))) pretty
   NamedInstance pretty :=
-    `(@~(Atomy::AST::Variable new(-1, @identifier))) pretty
+    `(@~(Atomy::AST::Word new(-1, @identifier))) pretty
   NamedGlobal pretty :=
-    `($~(Atomy::AST::Variable new(-1, @identifier))) pretty
+    `($~(Atomy::AST::Word new(-1, @identifier))) pretty
   Or pretty := `(~@a | ~@b) pretty
   Particle pretty :=
     Atomy::Particle new(

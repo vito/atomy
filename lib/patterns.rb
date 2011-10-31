@@ -133,12 +133,12 @@ module Atomy::Patterns
     end
   end
 
-  class Atomy::AST::Variable
+  class Atomy::AST::Word
     def pattern
-      if @name == "_"
+      if @text == "_"
         Any.new
       else
-        Named.new(@name, Any.new)
+        Named.new(@text, Any.new)
       end
     end
   end
@@ -240,17 +240,17 @@ module Atomy::Patterns
     def pattern
       case @operator
       when "$"
-        NamedGlobal.new(@receiver.name)
+        NamedGlobal.new(@receiver.text)
       when "@"
         case @receiver
         when Atomy::AST::Unary
           if @receiver.operator == "@"
-            NamedClass.new(@receiver.receiver.name)
+            NamedClass.new(@receiver.receiver.text)
           else
             super
           end
-        when Atomy::AST::Variable
-          NamedInstance.new(@receiver.name)
+        when Atomy::AST::Word
+          NamedInstance.new(@receiver.text)
         else
           super
         end
@@ -281,13 +281,13 @@ module Atomy::Patterns
   class Atomy::AST::Compose
     def pattern
       if @right.is_a?(Atomy::AST::Block) and \
-          @left.is_a?(Atomy::AST::Variable)
-        Named.new(@left.name, @right.contents[0].to_pattern)
-      elsif @right.is_a?(Atomy::AST::Variable)
-        Attribute.new(@left, @right.name, [])
+          @left.is_a?(Atomy::AST::Word)
+        Named.new(@left.text, @right.contents[0].to_pattern)
+      elsif @right.is_a?(Atomy::AST::Word)
+        Attribute.new(@left, @right.text, [])
       elsif @right.is_a?(Atomy::AST::Call) and \
-              @right.name.is_a?(Atomy::AST::Variable)
-        Attribute.new(@left, @right.name.name, @right.arguments)
+              @right.name.is_a?(Atomy::AST::Word)
+        Attribute.new(@left, @right.name.text, @right.arguments)
       elsif @right.is_a?(Atomy::AST::List)
         Attribute.new(@left, "[]", @right.elements)
       else

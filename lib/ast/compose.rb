@@ -11,14 +11,14 @@ module Atomy
             @line,
             @left,
             @right.arguments,
-            @right.name.is_a?(Variable) && @right.name.name
+            @right.name.is_a?(Word) && @right.name.text
           )
         else
           Send.new(
             @line,
             @left,
             [],
-            @right.is_a?(Variable) && @right.name
+            @right.is_a?(Word) && @right.text
           )
         end
       end
@@ -33,7 +33,7 @@ module Atomy
       end
 
       def macro_name
-        return :"atomy_macro::#{@right.name}" if @right.is_a? Variable
+        return :"atomy_macro::#{@right.text}" if @right.is_a? Word
         @right.macro_name || @left.macro_name
       end
     end

@@ -1,6 +1,6 @@
 for-macro:
   key-name(x: Atomy::AST::Compose) := key-name(x right)
-  key-name(x: Atomy::AST::Variable) := x name
+  key-name(x: Atomy::AST::Word) := x text
 
 
 macro(#~(l: List)):

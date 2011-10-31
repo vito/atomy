@@ -34,7 +34,7 @@ describe("macros"):
   describe("macro definition"):
     it("can pattern-match node types via constants"):
       macro(~Block m-foo-7): '1
-      macro(~Variable m-foo-7): '2
+      macro(~Word m-foo-7): '2
       macro(~Primitive m-foo-7): '3
 
       : 1 ; m-foo-7 should-be(1)

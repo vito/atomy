@@ -12,16 +12,16 @@ dynamic(restarts, [])
 
 for-macro:
   catcher(x) :=
-    Atomy::AST::Variable new(x line) $:
+    Atomy::AST::Word new(x line) $:
       x match:
-        Atomy::AST::Variable ->
-          "restart:" + x name
+        Atomy::AST::Word ->
+          "restart:" + x text
 
         Atomy::AST::Compose ->
-          "restart:" + x left name
+          "restart:" + x left text
 
         Atomy::AST::Call ->
-          "restart:" + x name name
+          "restart:" + x name text
 
 data(Restart(@name, @action))
 
@@ -123,7 +123,7 @@ section("Handling"):
 
       rs = pairs collect [[n, e]]:
         n match:
-          Variable ->
+          Word ->
             `(Restart new(#~n, { ~e }))
 
           `(~(n)(~*as)) ->

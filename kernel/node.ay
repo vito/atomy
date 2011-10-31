@@ -27,13 +27,13 @@ module(Atomy::AST):
     Atomy::Patterns::With new(Atomy::Patterns::Any new, e, y to-pattern)
 
   `@@~n pattern :=
-    Atomy::Patterns::NamedClass new(n name)
+    Atomy::Patterns::NamedClass new(n text)
 
   `$~n pattern :=
-    Atomy::Patterns::NamedGlobal new(n name)
+    Atomy::Patterns::NamedGlobal new(n text)
 
   `@~n pattern :=
-    Atomy::Patterns::NamedInstance new(n name)
+    Atomy::Patterns::NamedInstance new(n text)
 
   `%~x pattern :=
     Atomy::Patterns::RuntimeClass new(x)
@@ -56,8 +56,8 @@ module(Atomy::AST):
   'nil pattern :=
     Atomy::Patterns::Match new(#nil)
 
-  `#~(x: Atomy::AST::Variable) pattern :=
-    Atomy::Patterns::Literal new(x name to-sym)
+  `#~(x: Atomy::AST::Word) pattern :=
+    Atomy::Patterns::Literal new(x text to-sym)
 
   `#~(x: Atomy::AST::String) pattern :=
     Atomy::Patterns::Literal new(x value to-sym)

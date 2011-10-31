@@ -1,15 +1,15 @@
 module Atomy
   module AST
-    class Variable < Node
-      attributes :name
+    class Word < Node
+      attributes :text
       generate
 
-      alias :message_name :name
+      alias :message_name :text
 
       def bytecode(g)
         pos(g)
 
-        var = g.state.scope.search_local(@name)
+        var = g.state.scope.search_local(@text)
         if var
           var.get_bytecode(g)
         else
@@ -20,11 +20,11 @@ module Atomy
       end
 
       def macro_name
-        :"atomy_macro::@#{@name}"
+        :"atomy_macro::@#{@text}"
       end
 
       def to_send
-        Send.new(@line, Primitive.new(@line, :self), [], @name, nil, true)
+        Send.new(@line, Primitive.new(@line, :self), [], @text, nil, true)
       end
     end
   end

@@ -10,7 +10,7 @@ module Atomy
         case @pattern
         when Binary
           args = [@pattern.rhs]
-        when Variable, Unary
+        when Word, Unary
           args = []
         when Call
           args = @pattern.arguments
@@ -18,7 +18,7 @@ module Atomy
           case @pattern.right
           when Call
             args = @pattern.right.arguments
-          when Variable
+          when Word
             args = []
           when List
             args = @pattern.right.elements
@@ -36,7 +36,7 @@ module Atomy
         case @pattern
         when Binary
           recv = @pattern.lhs
-        when Call, Variable
+        when Call, Word
           recv = Primitive.new(@pattern.line, :self)
         when Compose
           recv = @pattern.left
@@ -51,16 +51,16 @@ module Atomy
         return @message_name if @message_name
 
         case @pattern
-        when Variable
-          name = @pattern.name
+        when Word
+          name = @pattern.text
         when Call
-          name = @pattern.name.name
+          name = @pattern.name.text
         when Compose
           case @pattern.right
-          when Variable
-            name = @pattern.right.name
+          when Word
+            name = @pattern.right.text
           when Call
-            name = @pattern.right.name.name
+            name = @pattern.right.name.text
           when List
             name = "[]"
           end

@@ -255,9 +255,9 @@ module(Atomy::Patterns):
 
 -- base patterns
 module(Atomy::AST):
-  Variable pattern :=
+  Word pattern :=
     Atomy::Patterns::Named new $:
-      @name
+      @text
       Atomy::Patterns::Any new
 
   Primitive pattern :=
@@ -288,17 +288,14 @@ module(Atomy::AST):
   QuasiQuote pattern :=
     Atomy::Patterns::QuasiQuote new(self)
 
-  `(~x { ~y }) pattern := do:
-    unless(x is-a?(Atomy::AST::Variable)):
-      p(to-sexp)
+  `(~x { ~y }) pattern :=
+    Atomy::Patterns::Named new(x text, y to-pattern)
 
-    Atomy::Patterns::Named new(x name, y to-pattern)
+  `(~x ~(y: Atomy::AST::Word)) pattern :=
+    Atomy::Patterns::Attribute new(x, y text, [])
 
-  `(~x ~(y: Atomy::AST::Variable)) pattern :=
-    Atomy::Patterns::Attribute new(x, y name, [])
-
-  `(~x ~(y: Atomy::AST::Variable)(~*as)) pattern :=
-    Atomy::Patterns::Attribute new(x, y name, as)
+  `(~x ~(y: Atomy::AST::Word)(~*as)) pattern :=
+    Atomy::Patterns::Attribute new(x, y text, as)
 
   `(~x [~*as]) pattern :=
     Atomy::Patterns::Attribute new(x, "[]", as)

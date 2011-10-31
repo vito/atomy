@@ -137,14 +137,14 @@ module(Atomy::Patterns):
     x operator to-sym
     `[~(x rhs)] pattern
 
-`#(~(x: Atomy::AST::Variable)(~*as)) pattern :=
+`#(~(x: Atomy::AST::Word)(~*as)) pattern :=
   Atomy::Patterns::Particle new $:
     '_ pattern
-    x name to-sym
+    x text to-sym
     `[~*as] pattern
 
-`#(~r ~(x: Atomy::AST::Variable)(~*as)) pattern :=
+`#(~r ~(x: Atomy::AST::Word)(~*as)) pattern :=
   Atomy::Patterns::Particle new $:
     r pattern
-    x name to-sym
+    x text to-sym
     `[~*as] pattern

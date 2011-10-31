@@ -1303,7 +1303,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level0 = (number | quote | quasi_quote | splice | unquote | string | constant | variable | block | list | unary)
+  # level0 = (number | quote | quasi_quote | splice | unquote | string | constant | word | block | list | unary)
   def _level0
 
     _save = self.pos
@@ -1329,7 +1329,7 @@ class Atomy::Parser
       _tmp = apply(:_constant)
       break if _tmp
       self.pos = _save
-      _tmp = apply(:_variable)
+      _tmp = apply(:_word)
       break if _tmp
       self.pos = _save
       _tmp = apply(:_block)
@@ -2209,8 +2209,8 @@ class Atomy::Parser
     return _tmp
   end
 
-  # variable = line:line identifier:n { Atomy::AST::Variable.new(line, n) }
-  def _variable
+  # word = line:line identifier:n { Atomy::AST::Word.new(line, n) }
+  def _word
 
     _save = self.pos
     while true # sequence
@@ -2226,7 +2226,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::Variable.new(line, n) ; end
+      @result = begin;  Atomy::AST::Word.new(line, n) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -2234,7 +2234,7 @@ class Atomy::Parser
       break
     end # end sequence
 
-    set_failed_rule :_variable unless _tmp
+    set_failed_rule :_word unless _tmp
     return _tmp
   end
 
@@ -3869,7 +3869,7 @@ class Atomy::Parser
   Rules[:_expression] = rule_info("expression", "level3")
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs).to_list }")
   Rules[:_interpolated] = rule_info("interpolated", "wsp expressions:es wsp \"}\" { Atomy::AST::Tree.new(0, Array(es).to_list) }")
-  Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | splice | unquote | string | constant | variable | block | list | unary)")
+  Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | splice | unquote | string | constant | word | block | list | unary)")
   Rules[:_level1] = rule_info("level1", "(call | grouped | level0)")
   Rules[:_level2] = rule_info("level2", "(compose | level1)")
   Rules[:_level3] = rule_info("level3", "(macro | op_assoc_prec | binary | level2)")
@@ -3887,7 +3887,7 @@ class Atomy::Parser
   Rules[:_string] = rule_info("string", "line:line \"\\\"\" < (\"\\\\\" escape | str_seq)*:c > \"\\\"\" { Atomy::AST::String.new(                         line,                         c.join,                         text.gsub(\"\\\\\\\"\", \"\\\"\")                       )                     }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text }")
   Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s {                     names = [m] + Array(s)                     const_chain(line, names)                   } | line:line (\"::\" constant_name)+:s {                     names = Array(s)                     const_chain(line, names, true)                   })")
-  Rules[:_variable] = rule_info("variable", "line:line identifier:n { Atomy::AST::Variable.new(line, n) }")
+  Rules[:_word] = rule_info("word", "line:line identifier:n { Atomy::AST::Word.new(line, n) }")
   Rules[:_unary] = rule_info("unary", "line:line !\":\" op_letter:o level1:e { Atomy::AST::Unary.new(line, e, o) }")
   Rules[:_block] = rule_info("block", "(line:line \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es).to_list, [].to_list) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es).to_list, [].to_list) })")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es).to_list) }")
