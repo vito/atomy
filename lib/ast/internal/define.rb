@@ -36,6 +36,8 @@ module Atomy
         case @pattern
         when Binary
           recv = @pattern.lhs
+        when Unary
+          recv = @pattern.receiver
         when Call, Word
           recv = Primitive.new(@pattern.line, :self)
         when Compose

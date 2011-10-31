@@ -99,8 +99,8 @@
       }
 
       When a string is used as a message, you get a "macro-quote." The       \
-      receiver should be a variable, which names the macro-quoter. Arguments \
-      used in the send should be variables, whose names will be used as flags.
+      receiver should be a word, which names the macro-quoter. Arguments     \
+      used in the send should be words, whose names will be used as flags.
 
       \example{
         r"foo"
@@ -111,9 +111,7 @@
       escapes except for \code{\\"}.
     }
 
-    \item{pseudo variables}{\hl{self}, \hl{nil}, \hl{true}, and \hl{false}}
-
-    \item{arrays}{\hl{[]}, \hl{[1]}, \hl{[1, #two, "three"]}, ...}
+    \item{lists}{\hl{[]}, \hl{[1]}, \hl{[1, #two, "three"]}, ...}
 
     \item{expressions}{
       \definitions{
