@@ -97,7 +97,7 @@ macro(_FILE): File new(line)
 macro(import(~name)): `(Atomy import(~name, "load" to-sym))
 
 "operators define cosmetics data comparison meta dynamic control-flow patterns
-precision node data-delta particles maps block documentation namespaces doc
+precision node data-delta namespaces particles maps block documentation doc
 pretty errors format concurrency io condition therie repl" split each [k]:
   puts("loading " + k)
   import(File expand-path("../", _FILE) + "/" + k)
