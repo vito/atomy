@@ -22,8 +22,7 @@ module Atomy::Patterns
     end
 
     def matches?(g)
-      g.pop
-      g.push_true
+      @pattern.matches?(g)
     end
 
     def deconstruct(g, locals = {})

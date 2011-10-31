@@ -30,26 +30,37 @@ module Atomy::Patterns
       matched = g.new_label
       mismatch = g.new_label
 
-      g.dup
-      g.push_literal :size
-      g.send :respond_to?, 1
-      g.gif mismatch
+      has_splat = @patterns.any? { |p| p.is_a?(Splat) }
+
+      unless has_splat
+        g.dup
+        g.push_literal :size
+        g.send :respond_to?, 1
+        g.gif mismatch
+      end
 
       g.dup
       g.push_literal :[]
       g.send :respond_to?, 1
       g.gif mismatch
 
-      g.dup
-      g.send :size, 0
-      g.push @patterns.size
-      g.send :==, 1
-      g.gif mismatch
+      unless has_splat
+        g.dup
+        g.send :size, 0
+        g.push @patterns.size
+        g.send :==, 1
+        g.gif mismatch
+      end
 
       @patterns.each_with_index do |p, i|
         g.dup
-        g.push_int i
-        g.send :[], 1
+        if p.is_a?(Splat)
+          g.push_int i
+          g.send :drop, 1
+        else
+          g.push_int i
+          g.send :[], 1
+        end
         p.matches?(g)
         g.gif mismatch
       end
@@ -68,8 +79,13 @@ module Atomy::Patterns
     def deconstruct(g, locals = {})
       @patterns.each_with_index do |p, i|
         g.dup
-        g.push_int i
-        g.send :[], 1
+        if p.is_a?(Splat)
+          g.push_int i
+          g.send :drop, 1
+        else
+          g.push_int i
+          g.send :[], 1
+        end
         p.deconstruct(g, locals)
       end
       g.pop
