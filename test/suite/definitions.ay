@@ -1,4 +1,18 @@
 describe("definitions"):
+  describe("static scope"):
+    it("retains the proper static scope for each branch"):
+      module(DefinitionsA):
+        Foo = 1
+        0 fizz := Foo
+
+      module(DefinitionsB):
+        Foo = 2
+        1 fizz := Foo
+
+      0 fizz should-be(1)
+      1 fizz should-be(2)
+
+
   describe("arguments"):
     describe("splats"):
       it("consumes the rest of the arguments"):
