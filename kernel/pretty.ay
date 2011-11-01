@@ -2,7 +2,7 @@ dynamic(atomy-pretty-multiline?, false)
 dynamic(atomy-pretty-context, #top)
 dynamic(atomy-pretty-colored?, false)
 
-ident(n) := doc: text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
+ident(n) := Atomy::Pretty::Text new(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
 
 pretty-body([]) := []
 pretty-body([x]) := [from(#top): x pretty]
@@ -52,7 +52,7 @@ Float pretty := super colored(#blue)
 TrueClass pretty := super colored(#green)
 FalseClass pretty := super colored(#red)
 NilClass pretty := super colored(#black)
-Object pretty := doc: text(inspect)
+Object pretty := Atomy::Pretty::Text new(inspect)
 
 Object show := pretty flatten render
 
