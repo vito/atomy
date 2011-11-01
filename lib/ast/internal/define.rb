@@ -139,7 +139,12 @@ module Atomy
         added.set!
 
         g.push_scope
-        g.push_literal :public
+        if defn
+          g.push_variables
+          g.send :method_visibility, 0
+        else
+          g.push_literal :public
+        end
         g.push_scope
         g.send :active_path, 0
         g.push_int @line
