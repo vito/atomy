@@ -1,6 +1,6 @@
 module Atomy::Macro
   module Helpers
-    def variable(name, line = 0)
+    def word(name, line = 0)
       Atomy::AST::Word.new(line, name.to_s)
     end
 
@@ -10,7 +10,7 @@ module Atomy::Macro
 
       as =
         Hamster.stream {
-          variable("s:" + Atomy::Macro::Environment.salt!.to_s)
+          word("s:" + Atomy::Macro::Environment.salt!.to_s)
         }.take(num)
 
       if block
