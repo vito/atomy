@@ -4,3 +4,5 @@
 _play/
 _doodle/
 .rbx/
+.rbenv-gemsets
+Gemfile.lock
