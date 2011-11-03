@@ -68,6 +68,11 @@ module Atomy
         # unquoting at depth 1; compile
         if d == 1
           @expression.compile(g)
+          g.push_cpath_top
+          g.find_const :Proc
+          g.push_literal :to_node
+          g.send :__from_block__, 1
+          g.send_with_block :collect, 0, false
 
         # unquoted too far
         elsif d && d < 1
