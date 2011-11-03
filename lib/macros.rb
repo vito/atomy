@@ -46,7 +46,7 @@ module Atomy::Macro
     Atomy.define_method(
       target,
       name,
-      pattern,
+      Atomy::MethodPatterns.new(pattern),
       Atomy::AST::Send.new(
         body.line,
         Atomy::AST::Send.new(
@@ -58,7 +58,6 @@ module Atomy::Macro
         [],
         "expand"
       ),
-      [],
       Rubinius::StaticScope.new(Atomy::AST),
       :public,
       file,

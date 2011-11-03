@@ -81,6 +81,55 @@ module Atomy
         end
       end
 
+      def push_patterns(g)
+        req = []
+        dfs = []
+        spl = nil
+        blk = nil
+        arguments.each do |a|
+          case a
+          when Patterns::BlockPass
+            blk = a
+          when Patterns::Splat
+            spl = a
+          when Patterns::Default
+            dfs << a
+          else
+            req << a
+          end
+        end
+
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :MethodPatterns
+
+        receiver.construct(g)
+
+        req.each do |r|
+          r.construct(g)
+        end
+
+        g.make_array req.size
+        dfs.each do |d|
+          d.construct(g)
+        end
+
+        g.make_array dfs.size
+        if spl
+          spl.construct(g)
+        else
+          g.push_nil
+        end
+
+        if blk
+          blk.construct(g)
+        else
+          g.push_nil
+        end
+
+        g.send :new, 5
+      end
+
       def bytecode(g)
         pos(g)
 
@@ -94,12 +143,7 @@ module Atomy
 
         create = g.new_label
         added = g.new_label
-        receiver.construct(g)
-        arguments.each do |p|
-          p.construct(g)
-        end
-        g.make_array arguments.size
-        g.make_array 2
+        push_patterns(g)
         @body.prepare_all.construct(g)
         g.push_cpath_top
         g.find_const :Thread

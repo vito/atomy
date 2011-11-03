@@ -1,22 +1,27 @@
 module Atomy
-  def self.segments(args)
-    req = []
-    dfs = []
-    spl = nil
-    blk = nil
-    args.each do |a|
-      case a
-      when Patterns::BlockPass
-        blk = a
-      when Patterns::Splat
-        spl = a
-      when Patterns::Default
-        dfs << a
-      else
-        req << a
-      end
+  class MethodPatterns
+    attr_accessor :receiver, :required, :defaults, :splat, :block
+
+    def initialize(receiver, required = [], defaults = [], splat = nil, block = nil)
+      @receiver = receiver
+      @required = required
+      @defaults = defaults
+      @splat = splat
+      @block = block
     end
-    [req, dfs, spl, blk]
+
+    def ==(b)
+      equal?(b) or \
+        @receiver == b.receiver and \
+        @required == b.required and \
+        @defaults == b.defaults and \
+        @splat == b.splat and \
+        @block == b.block
+    end
+
+    def size
+      @required.size + @defaults.size + (@splat ? 1 : 0) + (@block ? 1 : 0)
+    end
   end
 
   def self.should_match_self?(pat)
@@ -191,7 +196,13 @@ module Atomy
   end
 
   def self.build_methods(g, methods, done, min_reqs)
-    methods.each do |recv, (reqs, defs, splat, block), meth, scope|
+    methods.each do |pats, meth, scope|
+      recv = pats.receiver
+      reqs = pats.required
+      defs = pats.defaults
+      splat = pats.splat
+      block = pats.block
+
       skip = g.new_label
       argmis = g.new_label
 
@@ -286,8 +297,8 @@ module Atomy
     end
   end
 
-  def self.define_method(target, name, receiver, body, arguments, static_scope, visibility = :public, file = :dynamic_define, line = 1)
-    method = [[receiver, arguments], body, nil, static_scope]
+  def self.define_method(target, name, patterns, body, static_scope, visibility = :public, file = :dynamic_define, line = 1)
+    method = [patterns, body, nil, static_scope]
     methods = target.instance_variable_get(:"@atomy::#{name}")
 
     if methods
@@ -299,28 +310,46 @@ module Atomy
     add_method(target, name, methods, static_scope, visibility, file, line)
   end
 
-  def self.compare(xs, ys, np, p)
+  def self.compare(xs, ys, nn, n)
     return 1 if xs.size > ys.size
     return -1 if xs.size < ys.size
-    return 1 if np and not p
-    return -1 if not np and p
+    return 1 if nn and not n
+    return -1 if not nn and n
 
-    total = 0
+    total = xs.receiver <=> ys.receiver
 
-    xs.zip(ys) do |x, y|
+    xs.required.zip(ys.required) do |x, y|
       total += x <=> y unless y.nil?
     end
+
+    xs.defaults.zip(ys.defaults) do |x, y|
+      total += x <=> y unless y.nil?
+    end
+
+    # TODO: bother with this?
+    #if xs.splat and ys.splat
+      #total += xs.splat <=> ys.splat
+    #end
 
     total <=> 0
   end
 
-  def self.equivalent?(xs, ys, xp, yp)
-    return false unless xp == yp
+  def self.equivalent?(xs, ys, xn, yn)
+    return false unless xn == yn
     return false unless xs.size == ys.size
 
-    xs.zip(ys) do |x, y|
+    return false unless xs.receiver =~ ys.receiver
+
+    xs.required.zip(ys.required) do |x, y|
       return false unless x =~ y
     end
+
+    xs.defaults.zip(ys.defaults) do |x, y|
+      return false unless x =~ y
+    end
+
+    return false unless xs.splat =~ ys.splat
+    return false unless xs.block =~ ys.block
 
     true
   end
@@ -328,17 +357,17 @@ module Atomy
   # this should mutate branches, so I don't have to call
   # instance_variable_set
   def self.insert_method(new, branches)
-    if new[0][0].respond_to?(:<=>)
+    if new[0].receiver.respond_to?(:<=>)
       if branches.instance_variable_get(:"@sorted")
-        (nr, na), nb, np = new
+        nps, nb, nn = new
         branches.each_with_index do |branch, i|
-          (r, a), b, p = branch
+          ps, b, n = branch
 
-          case compare([nr] + na, [r] + a, np, p)
+          case compare(nps, ps, nn, n)
           when 1
             return branches.insert(i, new)
           when 0
-            if equivalent?([nr] + na, [r] + a, np, p)
+            if equivalent?(nps, ps, nn, n)
               branches[i] = new
               return branches
             end
@@ -350,7 +379,7 @@ module Atomy
         # this is needed because we define methods before <=> is
         # defined, so sort it once we have that
         branches.unshift(new).sort! do |b, a|
-          compare([a[0][0]] + a[0][1], [b[0][0]] + b[0][1], a[2], b[2])
+          compare(a[0], b[0], a[2], b[2])
         end
 
         branches.instance_variable_set(:"@sorted", true)

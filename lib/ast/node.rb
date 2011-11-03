@@ -535,7 +535,7 @@ EOF
         Atomy.define_method(
           self.class,
           macro_name,
-          pattern,
+          Atomy::MethodPatterns.new(pattern),
           Atomy::AST::Send.new(
             body.line,
             Atomy::AST::Send.new(
@@ -547,7 +547,6 @@ EOF
             Hamster.list,
             "expand"
           ),
-          Hamster.list,
           Rubinius::StaticScope.new(Atomy::AST),
           :public,
           file,
