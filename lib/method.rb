@@ -211,8 +211,10 @@ module Atomy
         g.gif skip
       end
 
-      g.push_variables
-      g.send :method, 0
+      g.push_cpath_top
+      g.find_const :Rubinius
+      g.find_const :CompiledMethod
+      g.send :current, 0
       g.push_literal scope
       g.send :"scope=", 1
       g.pop
