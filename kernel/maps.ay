@@ -3,23 +3,12 @@ for-macro:
   key-name(x: Atomy::AST::Word) := x text
 
 
-macro(#~(l: List)):
-  pairs = pairs-from(l elements)
-  keys = pairs collect [[k, _]]: `#~key-name(k)
-  values = pairs collect [[_, v]]: v
-  Atomy::AST::Map new(line, keys, values)
-
-
-class(Atomy::AST::Map < Atomy::AST::Node):
+class(Atomy::AST::Hash < Atomy::AST::Node):
   children([#keys], [#values])
   generate
 
   bytecode(g) := do:
     pos(g)
-
-    g push-cpath-top
-    g find-const(#Atomy)
-    g find-const(#Map)
 
     g push-cpath-top
     g find-const(#Hash)
@@ -33,7 +22,16 @@ class(Atomy::AST::Map < Atomy::AST::Node):
       g send("[]=" to-sym, 2)
       g pop
 
-    g send(#create, 1)
+
+macro(!#~(l: List)):
+  pairs = pairs-from(l elements)
+  keys = pairs collect [[k, _]]: `#~key-name(k)
+  values = pairs collect [[_, v]]: v
+  Atomy::AST::Hash new(line, keys, values)
+
+
+macro(#~(l: List)):
+  `(Atomy::Map create(!#~l))
 
 class(Atomy::Map < Hamster::Hash):
   class(<< self):
