@@ -765,12 +765,11 @@ class Array
   def to_node
     Atomy::AST::Compose.new(
       -1,
-      Atomy::AST::List.new(-1, collect(&:to_node)),
       Atomy::AST::ToplevelConstant.new(
         -1,
         "Array"
       ),
-      Hamster.list
+      Atomy::AST::List.new(-1, collect(&:to_node))
     )
   end
 end
