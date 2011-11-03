@@ -9,7 +9,7 @@ module Atomy
       def bytecode(g)
         pos(g)
 
-        var = g.state.scope.search_local(@text)
+        var = g.state.scope.search_local(@text.to_sym)
         if var
           var.get_bytecode(g)
         else

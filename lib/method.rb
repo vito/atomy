@@ -67,7 +67,6 @@ module Atomy
     min_reqs = nil
     reqs = 0
     defs = 0
-    names = []
     splatted = false
 
     # grouped methods by the namespace they're provided in
@@ -75,43 +74,27 @@ module Atomy
 
     # determine locals and the required/default/total args
     branches.each do |pats, meth, provided, scope|
-      segs = segments(pats[1])
-
-      min_reqs ||= segs[0].size
-      min_reqs = [min_reqs, segs[0].size].min
-      reqs = [reqs, segs[0].size].max
-      defs = [defs, segs[1].size].max
+      min_reqs ||= pats.required.size
+      min_reqs = [min_reqs, pats.required.size].min
+      reqs = [reqs, pats.required.size].max
+      defs = [defs, pats.defaults.size].max
       total = [reqs + defs, total].max
 
-      names += pats[0].local_names
-      pats[1].each do |p|
-        names += p.local_names
-      end
+      splatted = true if pats.splat
 
-      splatted = true if segs[2]
-
-      by_namespace[provided] << [pats[0], segs, meth, scope]
+      by_namespace[provided] << [pats, meth, scope]
     end
-
-    names.uniq!
 
     if splatted
       g.splat_index = reqs + defs
     end
 
     total.times do |n|
-      names.unshift("arg:" + n.to_s)
+      g.state.scope.new_local(:"arg:#{n}").reference
     end
 
-    locals = {}
-    names.each do |n|
-      locals[n] = g.state.scope.new_local(n).reference
-    end
-
-    g.local_names = names
     g.total_args = total
     g.required_args = min_reqs
-    g.local_count = total + g.local_names.size
 
     g.push_self
 
@@ -127,14 +110,14 @@ module Atomy
       g.send :using?, 1
       g.gif skip
 
-      build_methods(g, methods, done, locals, min_reqs)
+      build_methods(g, methods, done, min_reqs)
 
       skip.set!
     end
 
     # try the bottom namespace after the others
     if bottom = by_namespace[nil] and not bottom.empty?
-      build_methods(g, bottom, done, locals, min_reqs)
+      build_methods(g, bottom, done, min_reqs)
     end
 
     # call super. note that we keep the original sender's static scope for use
@@ -191,9 +174,15 @@ module Atomy
     g.send :raise, 1
 
     done.set!
+
     g.state.pop_name
+
     g.ret
     g.close
+
+    g.local_names = g.state.scope.local_names
+    g.local_count = g.state.scope.local_count
+
     g.pop_state
     g.use_detected
     g.encode
@@ -201,7 +190,7 @@ module Atomy
     g.package Rubinius::CompiledMethod
   end
 
-  def self.build_methods(g, methods, done, locals, min_reqs)
+  def self.build_methods(g, methods, done, min_reqs)
     methods.each do |recv, (reqs, defs, splat, block), meth, scope|
       skip = g.new_label
       argmis = g.new_label
@@ -231,12 +220,12 @@ module Atomy
 
       if recv.bindings > 0
         g.dup
-        recv.deconstruct(g, locals)
+        recv.deconstruct(g)
       end
 
       if block
         g.push_block_arg
-        block.deconstruct(g, locals)
+        block.deconstruct(g)
       end
 
       reqs.each_with_index do |a, i|
@@ -250,7 +239,7 @@ module Atomy
             a.matches?(g)
             g.gif argmis
           end
-          a.deconstruct(g, locals)
+          a.deconstruct(g)
         else
           a.matches?(g)
           g.gif skip
