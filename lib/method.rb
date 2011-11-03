@@ -211,6 +211,8 @@ module Atomy
         g.gif skip
       end
 
+      # TODO: if it's all in the same static scope, have it set on the CM,
+      # and don't do it here
       g.push_cpath_top
       g.find_const :Rubinius
       g.find_const :CompiledMethod
