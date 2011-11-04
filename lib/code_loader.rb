@@ -44,14 +44,6 @@ module Atomy
         @compiled = x
       end
 
-      def documentation
-        @documentation ||= false
-      end
-
-      def documentation=(x)
-        @documentation = x
-      end
-
       def compiled_name(fn)
         Atomy::Compiler.compiled_name(fn)
       end
@@ -64,31 +56,13 @@ module Atomy
         end
       end
 
-      def docs_name(fn)
-        CodeLoader.documentation + "/" + File.basename(fn, ".ay") + ".ddl"
-      end
-
-      def compile_if_needed(fn, debug = false, docs = false)
-        source = source_name(fn)
+      def compile_if_needed(fn, debug = false)
         compiled = compiled_name(fn)
 
         if !File.exists?(compiled) ||
-            File.stat(compiled).mtime < File.stat(fn).mtime ||
-            CodeLoader.documentation
-          if CodeLoader.documentation
-            Thread.current[:atomy_documentation] = docs = StringIO.new
-            docs << "\\style{Atomy}\n\n"
-            before = docs.size
-          end
-
+            File.stat(compiled).mtime < File.stat(fn).mtime
           CodeLoader.compiled! true
           Compiler.compile fn, nil, debug
-
-          if CodeLoader.documentation && docs.size > before
-            File.open(docs_name(fn), "w") do |f|
-              f.write(Thread.current[:atomy_documentation].string)
-            end
-          end
         end
 
         compiled

@@ -1,80 +1,27 @@
 require("actor")
 
-title"Concurrency"
+me := Actor current
 
-doc"
-  Get the current actor.
-" spec {
-  => Actor
-} for:
-  me := Actor current
+Actor <- v := send(v)
 
+macro(receive ~(body: Block)):
+  names [e]:
+    bs =
+      `(~e when('~pat to-pattern) [~pat]: ~exp)
+        for([pat, exp]) in(pairs-from(body contents))
 
-section("Sending & Receiving"):
-  doc"
-    Send message \code{v} to the actor.
-  " spec {
-    => Actor
-  } for {
-    Actor <- v := send(v)
-  } examples:
-    a = spawn: receive { 42 -> #ok } write
-    a <- 42
+    `(Actor receive [~e]: ~*bs)
 
-  doc"
-    Receive a message sent to the current actor that matches any of the \
-    patterns listed in \hl{body}. Blocks until a matching message is \
-    received. Non-matching messages are consumed and ignored.
-  " spec {
-    => any
-  } for {
-    macro(receive ~(body: Block)):
-      names [e]:
-        bs =
-          `(~e when('~pat to-pattern) [~pat]: ~exp)
-            for([pat, exp]) in(pairs-from(body contents))
+macro(receive ~(body: Block) after(~timeout) ~(action: Block)):
+  names [e]:
+    bs =
+      `(~e when('~pat to-pattern) [~pat]: ~exp)
+        for([pat, exp]) in(pairs-from(body contents)) +
+          [`(~e after(~timeout) ~action)]
 
-        `(Actor receive [~e]: ~*bs)
-  } examples:
-    a = spawn: receive { 1 -> #got-1 } write
-    a <- 0
-    a <- 2
-    a <- 1
-
-  doc"
-    Similar to \code{receive}, but with a timeout and an action to \
-    perform if it times out.
-  " spec {
-    => any
-  } for {
-    macro(receive ~(body: Block) after(~timeout) ~(action: Block)):
-      names [e]:
-        bs =
-          `(~e when('~pat to-pattern) [~pat]: ~exp)
-            for([pat, exp]) in(pairs-from(body contents)) +
-              [`(~e after(~timeout) ~action)]
-
-        `(Actor receive [~e]: ~*bs)
-  } examples:
-    receive { 1 -> #ok } after(1): #too-slow
+    `(Actor receive [~e]: ~*bs)
 
 
-section("Spawning"):
-  doc"
-    Spawn a new actor, performing \code{action}.
-  " spec {
-    => Actor
-  } for {
-    spawn(&action) := Actor send(#spawn, &action)
-  } examples:
-    spawn: (2 + 2) write
+spawn(&action) := Actor send(#spawn, &action)
 
-  doc"
-    Spawn a new actor, performing \code{action}, linked to the current \
-    actor.
-  " spec {
-    => Actor
-  } for {
-    spawn-link(&action) := Actor send(#spawn-link, &action)
-  } examples:
-    spawn-link: (2 + 2) write
+spawn-link(&action) := Actor send(#spawn-link, &action)

@@ -31,10 +31,6 @@ unless ARGV.empty? || ARGV[0][0] != ?-
       options[:load] = v
     end
 
-    o.on("-d", "--documentation DIR", "generate documentation with output to DIR") do |v|
-      Atomy::CodeLoader.documentation = v
-    end
-
     o.on("-x", "--skip-kernel", "don't load the kernel") do
       options[:skip_kernel] = true
     end

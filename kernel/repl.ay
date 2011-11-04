@@ -1,139 +1,95 @@
-title"The REPL"
-
 require("readline")
 
-doc"
-  The basics of a REPL - reading, evaluating, and printing in a loop. More \
-  flexibility is provided by various signals. See \hl{repl} for a fancier \
-  REPL, which builds upon this, and \hl{ReplDebugger}.
+basic-repl(bnd = TOPLEVEL_BINDING) :=
+  loop:
+    prompt =
+      with-restarts(use-prompt(p) -> p):
+        signal(#prompt)
+        ">> "
 
-  When showing the prompt, \hl{#prompt} is signaled with a \hl{#use-prompt} \
-  restart available. Invoke this restart and pass along a string to \
-  override the prompt, which defaults to \code{>>}.
+    in =
+      { Readline readline(prompt)
+      } rescue:
+        Interrupt: signal(#quit), ""
 
-  Input preceded by a colon (\code{:}) and followed by an alphanumeric \
-  character is assumed to be a \italic{special command}. These are not \
-  evaluated, and are signaled as \hl{#special(\italic{text})}.
+    in match:
+      nil -> signal(#quit)
 
-  When the user sends \code{EOF} (Ctrl+D) or an interrupt (Ctrl+C), \
-  \hl{#quit} is signaled.
+      "" -> #ok
 
-  When the user enters code, \hl{#input(\italic{text})} is signaled. The code\
-  is evaluated with two restarts registered: \code{#retry} for re-attempting \
-  evaluation, and \code{#abort}, for canceling the evaluation. After the code\
-  is evaluated, \hl{#evaluated(\italic{result})} is signaled.
+      String ? (=~ r"^:[[:alnum:]]") ->
+        signal(#special(in [1 .. -1]))
 
-  \hl{#loop} is signaled before the loop starts over again (i.e., after the \
-  input is handled).
-" spec {
-  bnd is-a?(Binding)
-} for:
-  basic-repl(bnd = TOPLEVEL_BINDING) :=
-    loop:
-      prompt =
-        with-restarts(use-prompt(p) -> p):
-          signal(#prompt)
-          ">> "
+      source:
+        signal(#input(source))
 
-      in =
-        { Readline readline(prompt)
-        } rescue:
-          Interrupt: signal(#quit), ""
+        try = {
+          with-restarts(retry -> try [], abort -> #ok):
+            res = Atomy::Compiler evaluate(source, bnd)
+            signal(#evaluated(res))
+        }
 
-      in match:
-        nil -> signal(#quit)
+        try []
 
-        "" -> #ok
-
-        String ? (=~ r"^:[[:alnum:]]") ->
-          signal(#special(in [1 .. -1]))
-
-        source:
-          signal(#input(source))
-
-          try = {
-            with-restarts(retry -> try [], abort -> #ok):
-              res = Atomy::Compiler evaluate(source, bnd)
-              signal(#evaluated(res))
-          }
-
-          try []
-
-      signal(#loop)
+    signal(#loop)
 
 
-doc"
-  An interactive debugger REPL for handling errors. This will list the \
-  results along with a number, allow the user to continue evaluating code, \
-  and once they enter a \italic{special command} in the form of \
-  \code{:\italic{number}}, the specified restart will be invoked.
-" for:
-  class(ReplDebugger):
-    class(<< self):
-      show-backtrace(e) := do:
-        Rubinius::Backtrace backtrace(e backtrace) show println
+class(ReplDebugger):
+  class(<< self):
+    show-backtrace(e) := do:
+      Rubinius::Backtrace backtrace(e backtrace) show println
+      debug(e)
+
+    run(e) := do:
+      DefaultDebugger show-error-banner(e)
+
+      with-restarts(backtrace -> show-backtrace(e)):
         debug(e)
 
-      run(e) := do:
-        DefaultDebugger show-error-banner(e)
+    debug(e) := do:
+      DefaultDebugger show-options-for(e)
 
-        with-restarts(backtrace -> show-backtrace(e)):
-          debug(e)
+      { send(#basic-repl) } bind:
+        #prompt -> restart(#use-prompt, "[!]> ")
 
-      debug(e) := do:
-        DefaultDebugger show-options-for(e)
+        #special(n ? (=~ r"\d+")) ->
+          ^restarts [n to-i] invoke
 
-        { send(#basic-repl) } bind:
-          #prompt -> restart(#use-prompt, "[!]> ")
-
-          #special(n ? (=~ r"\d+")) ->
-            ^restarts [n to-i] invoke
-
-          #quit -> exit(1)
+        #quit -> exit(1)
 
 dynamic(debugger, ReplDebugger)
 
-doc"
-  A more feature-filled REPL, providing persistent history and setting \
-  \hl{^debugger} to \hl{ReplDebugger}.
+repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
+  when(history && File exists?(history)):
+    File open(history, "r") [f]:
+      f readlines each [l]:
+        Readline::HISTORY << l strip
 
-  History will be managed and appended to a file specified by \hl{history} \
-  upon termination.
-" spec {
-  history is-a?(String)
-  bnd is-a?(Binding)
-} for:
-  repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
-    when(history && File exists?(history)):
-      File open(history, "r") [f]:
-        f readlines each [l]:
-          Readline::HISTORY << l strip
+  sane-history = Array[]
 
-    sane-history = Array[]
+  { let(debugger = ReplDebugger,
+        atomy-pretty-multiline? = true,
+        atomy-pretty-colored? = true):
+      frame = 0
 
-    { let(debugger = ReplDebugger,
-          atomy-pretty-multiline? = true,
-          atomy-pretty-colored? = true):
-        frame = 0
+      { basic-repl(bnd)
+      } bind:
+        #prompt ->
+          restart(#use-prompt, "[" + frame to-s + "]> ")
 
-        { basic-repl(bnd)
-        } bind:
-          #prompt ->
-            restart(#use-prompt, "[" + frame to-s + "]> ")
+        #loop ->
+          (frame += 1)
 
-          #loop ->
-            (frame += 1)
+        #quit -> exit(0)
 
-          #quit -> exit(0)
+        #input(str) -> (sane-history << str)
 
-          #input(str) -> (sane-history << str)
+        #special("h") ->
+          ":h\thelp" println
 
-          #special("h") ->
-            ":h\thelp" println
-
-          #evaluated(r) -> doc:
-            (text(" =>") <+> r pretty) render(76) println
-    } ensuring:
-      when(history):
-        File open(history, "a") [f]:
-          f puts(*sane-history)
+        #evaluated(r) -> doc:
+          (text(" =>") <+> r pretty) render(76) println
+  } ensuring:
+    when(history):
+      File open(history, "a") [f]:
+        f puts(*sane-history)
