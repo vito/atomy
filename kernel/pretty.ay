@@ -60,6 +60,8 @@ Atomy::Pretty::Doc pretty := self
 
 List pretty := doc: list(all-pretty)
 
+Array pretty := doc: text("Array") <> list(collect [x]: x pretty)
+
 Atomy::Particle pretty := doc:
   wildcard = [c]:
     if(c equal?(_undefined))
@@ -142,10 +144,6 @@ module(Atomy::AST):
   Node unamb := doc: parens(pretty)
   _ unamb := pretty
 
-  Assign pretty := doc:
-    from(#assign):
-      @lhs unamb <+> text("=") <+> @rhs unamb
-
   Binary pretty := doc:
     from(#binary):
       ((@lhs unamb <+> text(@operator)) </> @rhs unamb) hang(2)
@@ -162,40 +160,11 @@ module(Atomy::AST):
       then: args <> colon <+> contents
       else: align(args <+> (lbrace </> contents) nest(2) </> rbrace)
 
-  BlockPass pretty := doc:
-    from(#unary):
-      text("&") <> @body unamb
-
-  Class pretty := doc:
-    sub =
-      if(@superclass kind-of?(Primitive) && @superclass value == #nil)
-        then: empty
-        else: text("<") <+> from(#binary): @superclass unamb
-
-    name =
-      @name match:
-        Rubinius::AST::ClassName -> text(@name) name to-s
-        _ -> @name unamb
-
-    body = lbrace <+> comma separate(@body) expressions <+> rbrace
-
-    text("class") <> text("(") <> name <+> sub <> text(")") <+> body
-
-  ClassVariable pretty := ident(name to-s)
-
   Call pretty := doc: @name pretty <> tupled(@arguments all-pretty)
 
   Compose pretty := @left pretty <+> @right pretty
 
   Constant pretty := doc: text(@identifier)
-
-  Define pretty := doc:
-    from(#binary):
-      @pattern unamb <+> text(":=") <+> @body unamb
-
-  GlobalVariable pretty := ident(name to-s)
-
-  InstanceVariable pretty := ident(name to-s)
 
   List pretty := doc:
     from(#list):
@@ -226,55 +195,6 @@ module(Atomy::AST):
     from(#scoped-constant):
       @parent unamb <> text("::") <> text(@identifier)
 
-  Send pretty := doc:
-    with-block = [x]:
-      when(@block nil?):
-        break(x)
-
-      unless(@block is-a?(Block)):
-        break(x <+> from(#send-block, ^atomy-pretty-context): @block unamb)
-
-      args =
-        if(@block arguments empty?)
-          then: empty
-          else: list(@block arguments all-pretty)
-
-      align $:
-        condition:
-          ^atomy-pretty-multiline? && from?(#top) ->
-            ( ((x <+> args) <> colon) <$>
-                vsep(@block contents all-pretty)
-            ) hang(2)
-
-          ^atomy-pretty-multiline? ->
-            ( (x <+> args <+> lbrace) <$>
-                vsep(@block contents all-pretty)
-            ) hang(2) <$> rbrace
-
-          from?(#top) ->
-            ( ((x <+> args) <> colon) </>
-                comma separate(pretty-body(@block contents))
-            ) hang(2)
-
-          otherwise ->
-            ( (x <+> args <+> lbrace) </>
-                comma separate(pretty-body(@block contents))
-            ) hang(2) </> rbrace
-
-    args =
-      from(#list):
-        if(@arguments empty?)
-          then: empty
-          else: tupled(@arguments all-pretty)
-
-    condition:
-      @receiver kind-of?(Primitive) && @receiver value == #self ->
-        with-block [ident(@message-name) <> args]
-
-      otherwise ->
-        (from(#compose) { @receiver unamb } </>
-          with-block [ident(@message-name) <> args]) hang(2)
-
   Splice pretty := doc:
     from(#unary):
       text("~*") <> @expression unamb
@@ -292,19 +212,6 @@ module(Atomy::AST):
       text("~") <> @expression unamb
 
   Word pretty := ident(@text)
-
-  InlinedBody pretty := doc:
-    from(#top): align(vcat(@expressions all-pretty))
-
-  BlockBody pretty := doc:
-    from(#top): align(vcat(@expressions all-pretty))
-
-  Or pretty := `(~@a || ~@b) pretty
-
-  And pretty := `(~@a && ~@b) pretty
-
-  Ensure pretty := doc:
-    @body pretty <+> text("ensuring:") <+> @ensure pretty
 
   Tree pretty := doc:
     if(^atomy-pretty-multiline?)
