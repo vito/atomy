@@ -727,8 +727,6 @@ EOF
           g.goto start
 
           done.set!
-          g.pop
-          g.push :true
           g.ret
           g.pop_state
         end
