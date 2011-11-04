@@ -135,8 +135,6 @@ module Atomy
 
         raise("cannot find file to load for #{fn}") unless file
 
-        return require(file) unless file.suffix?(".ay")
-
         CodeLoader.when_load = []
         CodeLoader.when_run = []
         CodeLoader.reason = r
