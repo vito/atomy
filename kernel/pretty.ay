@@ -46,7 +46,8 @@ Atomy::Pretty::Doc colored(color) := doc:
 
   raw("\e[9" + hash [color] to-s + "m") <> self <> raw("\e[0m")
 
-String pretty := super colored(#yellow)
+String pretty := doc: text(inspect gsub("\\#", "#")) colored(#yellow)
+
 Integer pretty := super colored(#blue)
 Float pretty := super colored(#blue)
 TrueClass pretty := super colored(#green)
@@ -199,7 +200,7 @@ module(Atomy::AST):
     from(#unary):
       text("~*") <> @expression unamb
 
-  String pretty := doc: text(@value inspect)
+  String pretty := doc: text(@value inspect gsub("\\#", "#"))
 
   ToplevelConstant pretty := doc: text("::") <> text(@identifier)
 
