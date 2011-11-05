@@ -1789,15 +1789,15 @@ class Atomy::Parser
     return _tmp
   end
 
-  # set_lang = { @_grammar_lang = Atomy.import(p.value).new(nil) }
-  def _set_lang(p)
-    @result = begin;  @_grammar_lang = Atomy.import(p.value).new(nil) ; end
+  # set_lang = { @_grammar_lang = require("#{n}/language/parser").new(nil) }
+  def _set_lang(n)
+    @result = begin;  @_grammar_lang = require("#{n}/language/parser").new(nil) ; end
     _tmp = true
     set_failed_rule :_set_lang unless _tmp
     return _tmp
   end
 
-  # language = ".language" wsp string:p set_lang(p) %lang.root
+  # language = ".language" wsp identifier:n set_lang(n) %lang.root
   def _language
 
     _save = self.pos
@@ -1812,13 +1812,13 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_string)
-      p = @result
+      _tmp = apply(:_identifier)
+      n = @result
       unless _tmp
         self.pos = _save
         break
       end
-      _tmp = apply_with_args(:_set_lang, p)
+      _tmp = apply_with_args(:_set_lang, n)
       unless _tmp
         self.pos = _save
         break
@@ -3926,8 +3926,8 @@ class Atomy::Parser
   Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
   Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
   Rules[:_infix] = rule_info("infix", "line:line \".infix\" op_assoc?:assoc op_prec:prec (sig_sp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }")
-  Rules[:_set_lang] = rule_info("set_lang", "{ @_grammar_lang = Atomy.import(p.value).new(nil) }")
-  Rules[:_language] = rule_info("language", "\".language\" wsp string:p set_lang(p) %lang.root")
+  Rules[:_set_lang] = rule_info("set_lang", "{ @_grammar_lang = require(\"\#{n}/language/parser\").new(nil) }")
+  Rules[:_language] = rule_info("language", "\".language\" wsp identifier:n set_lang(n) %lang.root")
   Rules[:_quote] = rule_info("quote", "line:line \"'\" level1:e { Atomy::AST::Quote.new(line, e) }")
   Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level1:e { Atomy::AST::QuasiQuote.new(line, e) }")
   Rules[:_splice] = rule_info("splice", "line:line \"~*\" level1:e { Atomy::AST::Splice.new(line, e) }")
