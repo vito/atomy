@@ -59,7 +59,8 @@ module Atomy
     g.pop
   end
 
-  def self.build_method(name, branches, file = :dynamic_build, line = 1)
+  def self.build_method(name, branches, all_for_one = false,
+                        file = :dynamic_build, line = 1)
     g = Rubinius::Generator.new
     g.name = name.to_sym
     g.file = file.to_sym
@@ -119,14 +120,14 @@ module Atomy
       g.send :using?, 1
       g.gif skip
 
-      build_methods(g, methods, done, min_reqs)
+      build_methods(g, methods, done, min_reqs, all_for_one)
 
       skip.set!
     end
 
     # try the bottom namespace after the others
     if bottom = by_namespace[nil] and not bottom.empty?
-      build_methods(g, bottom, done, min_reqs)
+      build_methods(g, bottom, done, min_reqs, all_for_one)
     end
 
     # call super. note that we keep the original sender's static scope for use
@@ -199,7 +200,7 @@ module Atomy
     g.package Rubinius::CompiledMethod
   end
 
-  def self.build_methods(g, methods, done, min_reqs)
+  def self.build_methods(g, methods, done, min_reqs, all_for_one)
     methods.each do |pats, meth, scope|
       recv = pats.receiver
       reqs = pats.required
@@ -215,15 +216,15 @@ module Atomy
         g.gif skip
       end
 
-      # TODO: if it's all in the same static scope, have it set on the CM,
-      # and don't do it here
-      g.push_cpath_top
-      g.find_const :Rubinius
-      g.find_const :CompiledMethod
-      g.send :current, 0
-      g.push_literal scope
-      g.send :"scope=", 1
-      g.pop
+      unless all_for_one
+        g.push_cpath_top
+        g.find_const :Rubinius
+        g.find_const :CompiledMethod
+        g.send :current, 0
+        g.push_literal scope
+        g.send :"scope=", 1
+        g.pop
+      end
 
       if should_match_self?(recv)
         g.dup
@@ -294,9 +295,24 @@ module Atomy
     end
   end
 
+  def self.equal_scope?(a, b)
+    return a == b unless a and b
+
+    a.module == b.module and \
+      equal_scope?(a.parent, b.parent)
+  end
+
   def self.add_method(target, name, branches, static_scope, visibility = :public, file = :dynamic_add, line = 1, defn = false)
-    cm = build_method(name, branches, file, line)
-    cm.scope = Rubinius::StaticScope.new(Object)
+    scope = branches[0][3]
+    all_for_one = branches.all? { |_, _, _, s| equal_scope?(s, scope) }
+
+    cm = build_method(name, branches, all_for_one, file, line)
+
+    if all_for_one
+      cm.scope = scope
+    else
+      cm.scope = Rubinius::StaticScope.new(Object)
+    end
 
     if defn and not Thread.current[:atomy_provide_in]
       Rubinius.add_defn_method name, cm, static_scope, visibility
