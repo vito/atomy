@@ -1387,11 +1387,14 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level3 = (macro | op_assoc_prec | binary | level2)
+  # level3 = (language | macro | op_assoc_prec | binary | level2)
   def _level3
 
     _save = self.pos
     while true # choice
+      _tmp = apply(:_language)
+      break if _tmp
+      self.pos = _save
       _tmp = apply(:_macro)
       break if _tmp
       self.pos = _save
@@ -1783,6 +1786,51 @@ class Atomy::Parser
     end # end sequence
 
     set_failed_rule :_op_assoc_prec unless _tmp
+    return _tmp
+  end
+
+  # set_lang = { @_grammar_lang = Atomy.import(p.value).new(nil) }
+  def _set_lang(p)
+    @result = begin;  @_grammar_lang = Atomy.import(p.value).new(nil) ; end
+    _tmp = true
+    set_failed_rule :_set_lang unless _tmp
+    return _tmp
+  end
+
+  # language = ".language" wsp string:p set_lang(p) %lang.root
+  def _language
+
+    _save = self.pos
+    while true # sequence
+      _tmp = match_string(".language")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_string)
+      p = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply_with_args(:_set_lang, p)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = @_grammar_lang.external_invoke(self, :_root)
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_language unless _tmp
     return _tmp
   end
 
@@ -3872,12 +3920,14 @@ class Atomy::Parser
   Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | splice | unquote | string | constant | word | block | list | unary)")
   Rules[:_level1] = rule_info("level1", "(call | grouped | level0)")
   Rules[:_level2] = rule_info("level2", "(compose | level1)")
-  Rules[:_level3] = rule_info("level3", "(macro | op_assoc_prec | binary | level2)")
+  Rules[:_level3] = rule_info("level3", "(language | macro | op_assoc_prec | binary | level2)")
   Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
   Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.block_body) }")
   Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
   Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
   Rules[:_op_assoc_prec] = rule_info("op_assoc_prec", "line:line \"operator\" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, os, assoc, prec)                     }")
+  Rules[:_set_lang] = rule_info("set_lang", "{ @_grammar_lang = Atomy.import(p.value).new(nil) }")
+  Rules[:_language] = rule_info("language", "\".language\" wsp string:p set_lang(p) %lang.root")
   Rules[:_quote] = rule_info("quote", "line:line \"'\" level1:e { Atomy::AST::Quote.new(line, e) }")
   Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level1:e { Atomy::AST::QuasiQuote.new(line, e) }")
   Rules[:_splice] = rule_info("splice", "line:line \"~*\" level1:e { Atomy::AST::Splice.new(line, e) }")

@@ -122,7 +122,8 @@
                 | level0
          level2 = compose
                 | level1
-         level3 = macro
+         level3 = language
+                | macro
                 | op_assoc_prec
                 | binary
                 | level2
@@ -147,6 +148,9 @@
                     { Atomy.set_op_info(os, assoc, prec)
                       Atomy::AST::Operator.new(line, os, assoc, prec)
                     }
+
+    set_lang(p) = { @_grammar_lang = Atomy.import(p.value).new(nil) }
+       language = ".language" wsp string:p set_lang(p) %lang.root
 
           quote = line:line "'" level1:e
                     { Atomy::AST::Quote.new(line, e) }
