@@ -1,6 +1,6 @@
 module Atomy
   module AST
-    class Operator < Node
+    class Infix < Node
       attributes [:operators], [:associativity, ":left"], [:precedence, 5]
       generate
 

@@ -1387,7 +1387,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level3 = (language | macro | op_assoc_prec | binary | level2)
+  # level3 = (language | infix | macro | binary | level2)
   def _level3
 
     _save = self.pos
@@ -1395,10 +1395,10 @@ class Atomy::Parser
       _tmp = apply(:_language)
       break if _tmp
       self.pos = _save
-      _tmp = apply(:_macro)
+      _tmp = apply(:_infix)
       break if _tmp
       self.pos = _save
-      _tmp = apply(:_op_assoc_prec)
+      _tmp = apply(:_macro)
       break if _tmp
       self.pos = _save
       _tmp = apply(:_binary)
@@ -1693,8 +1693,8 @@ class Atomy::Parser
     return _tmp
   end
 
-  # op_assoc_prec = line:line "operator" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, os, assoc, prec)                     }
-  def _op_assoc_prec
+  # infix = line:line ".infix" op_assoc?:assoc op_prec:prec (sig_sp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }
+  def _infix
 
     _save = self.pos
     while true # sequence
@@ -1704,7 +1704,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = match_string("operator")
+      _tmp = match_string(".infix")
       unless _tmp
         self.pos = _save
         break
@@ -1732,7 +1732,7 @@ class Atomy::Parser
 
       _save3 = self.pos
       while true # sequence
-        _tmp = apply(:_sig_wsp)
+        _tmp = apply(:_sig_sp)
         unless _tmp
           self.pos = _save3
           break
@@ -1750,7 +1750,7 @@ class Atomy::Parser
 
           _save4 = self.pos
           while true # sequence
-            _tmp = apply(:_sig_wsp)
+            _tmp = apply(:_sig_sp)
             unless _tmp
               self.pos = _save4
               break
@@ -1776,7 +1776,7 @@ class Atomy::Parser
         break
       end
       @result = begin;  Atomy.set_op_info(os, assoc, prec)
-                      Atomy::AST::Operator.new(line, os, assoc, prec)
+                      Atomy::AST::Infix.new(line, os, assoc, prec)
                     ; end
       _tmp = true
       unless _tmp
@@ -1785,7 +1785,7 @@ class Atomy::Parser
       break
     end # end sequence
 
-    set_failed_rule :_op_assoc_prec unless _tmp
+    set_failed_rule :_infix unless _tmp
     return _tmp
   end
 
@@ -3920,12 +3920,12 @@ class Atomy::Parser
   Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | splice | unquote | string | constant | word | block | list | unary)")
   Rules[:_level1] = rule_info("level1", "(call | grouped | level0)")
   Rules[:_level2] = rule_info("level2", "(compose | level1)")
-  Rules[:_level3] = rule_info("level3", "(language | macro | op_assoc_prec | binary | level2)")
+  Rules[:_level3] = rule_info("level3", "(language | infix | macro | binary | level2)")
   Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
   Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.block_body) }")
   Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
   Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
-  Rules[:_op_assoc_prec] = rule_info("op_assoc_prec", "line:line \"operator\" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Operator.new(line, os, assoc, prec)                     }")
+  Rules[:_infix] = rule_info("infix", "line:line \".infix\" op_assoc?:assoc op_prec:prec (sig_sp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }")
   Rules[:_set_lang] = rule_info("set_lang", "{ @_grammar_lang = Atomy.import(p.value).new(nil) }")
   Rules[:_language] = rule_info("language", "\".language\" wsp string:p set_lang(p) %lang.root")
   Rules[:_quote] = rule_info("quote", "line:line \"'\" level1:e { Atomy::AST::Quote.new(line, e) }")

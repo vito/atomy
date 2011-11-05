@@ -123,8 +123,8 @@
          level2 = compose
                 | level1
          level3 = language
+                | infix
                 | macro
-                | op_assoc_prec
                 | binary
                 | level2
 
@@ -144,9 +144,9 @@
 
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
         op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
-  op_assoc_prec = line:line "operator" op_assoc?:assoc op_prec:prec (sig_wsp operator)+:os
+          infix = line:line ".infix" op_assoc?:assoc op_prec:prec (sig_sp operator)+:os
                     { Atomy.set_op_info(os, assoc, prec)
-                      Atomy::AST::Operator.new(line, os, assoc, prec)
+                      Atomy::AST::Infix.new(line, os, assoc, prec)
                     }
 
     set_lang(p) = { @_grammar_lang = Atomy.import(p.value).new(nil) }

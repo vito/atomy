@@ -55,6 +55,6 @@ List = Hamster::List
 List inject-right(i = _undefined, &block) :=
   reverse inject(i) [x, y]: block [y, x]
 
-operator right 5 .
+.infix right 5 .
 
 macro(~a . ~b): `(::Hamster::Stream new { ~b cons(~a) })

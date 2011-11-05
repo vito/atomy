@@ -1,6 +1,6 @@
 -- operator precedence/associativity
-operator right 5 </> <//> <$> <$$>
-operator right 6 <> <+>
+.infix right 5 </> <//> <$> <$$>
+.infix right 6 <> <+>
 
 module(Atomy::Pretty):
   -- combinatorial structures

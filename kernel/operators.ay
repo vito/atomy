@@ -1,28 +1,28 @@
 -- defining & assigning
-operator right 0 = := **= *= <<= >>= &&=
-                 &= ||= |= += -= /= ^= %=
+.infix right 0 = := **= *= <<= >>= &&=
+.infix right 0 &= ||= |= += -= /= ^= %=
 
 -- association
-operator right 1 <- ->
+.infix right 1 <- ->
 
 -- predicate pattern
-operator right 2 ?
+.infix right 2 ?
 
 -- ranges
---operator 1 .. ...
+--.infix 1 .. ...
 
 -- comparison
-operator 5 <=> < <= >= >
-operator 4 == !=
-operator 3 &&
-operator 2 ||
+.infix 5 <=> < <= >= >
+.infix 4 == !=
+.infix 3 &&
+.infix 2 ||
 
 -- math
-operator right 12 **
-operator 10 % * /
-operator 9 + -
+.infix right 12 **
+.infix 10 % * /
+.infix 9 + -
 
 -- bitwise and shifting
-operator 8 << >>
-operator 6 ^ |
-operator 7 &
+.infix 8 << >>
+.infix 6 ^ |
+.infix 7 &
