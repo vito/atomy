@@ -26,10 +26,21 @@ module Atomy
     end
   end
 
+  # the ivar where method branches are stored
   def self.methods_var(name)
     :"@atomy::#{name}"
   end
 
+  # stores the "real" sender; used for things like "super"
+  # where we want to keep the original for namespace checks
+  def self.sender_var
+    :"@atomy::sender"
+  end
+
+  # should we bother matching self?
+  #
+  # some things, like Constant patterns, indicate that
+  # it'll always match
   def self.should_match_self?(pat)
     case pat
     when Patterns::Match
@@ -43,14 +54,18 @@ module Atomy
     end
   end
 
+  # get the "actual" sender; either StaticScope.of_sender
+  # or VariableScope.of_sender's sender ivar if it's set
   def self.get_sender_scope(g)
     done = g.new_label
 
     g.push_rubinius
     g.find_const :StaticScope
     g.send :of_sender, 0
-    g.dup
-    g.push_literal :"@atomy:sender"
+    g.push_rubinius
+    g.find_const :VariableScope
+    g.send :of_sender, 0
+    g.push_literal sender_var
     g.send :instance_variable_get, 1
     g.dup
     g.gif done
@@ -61,6 +76,7 @@ module Atomy
     g.pop
   end
 
+  # build all of the method branches into one CompiledMethod
   def self.build_method(name, branches, all_for_one = false,
                         file = :dynamic_build, line = 1)
     g = Rubinius::Generator.new
@@ -138,8 +154,8 @@ module Atomy
       g.invoke_primitive :vm_check_super_callable, 0
       g.gif mismatch
 
-      g.push_scope
-      g.push_literal :"@atomy:sender"
+      g.push_variables
+      g.push_literal sender_var
       get_sender_scope(g)
       g.send :instance_variable_set, 2
       g.pop
@@ -151,12 +167,6 @@ module Atomy
         g.zsuper nil
       end
 
-      g.push_scope
-      g.push_literal :"@atomy:sender"
-      g.push_nil
-      g.send :instance_variable_set, 2
-      g.pop
-
       g.goto done
     end
 
@@ -164,8 +174,7 @@ module Atomy
     mismatch.set!
     g.push_self
     g.push_cpath_top
-    # if all the definitions are local to a namespace, act like the
-    # method doesn't even exist
+
     if by_namespace[nil].empty?
       g.find_const :NoMethodError
       g.push_literal "unexposed method `"
@@ -181,10 +190,12 @@ module Atomy
       g.find_const :MethodFail
       g.push_literal name
     end
+
     g.send :new, 1
     g.allow_private
     g.send :raise, 1
 
+    # successfully evaluated a branch
     done.set!
 
     g.state.pop_name
@@ -202,6 +213,8 @@ module Atomy
     g.package Rubinius::CompiledMethod
   end
 
+  # build all the method branches, assumed to be from the
+  # same namespace
   def self.build_methods(g, methods, done, min_reqs, all_for_one)
     methods.each do |pats, meth, scope|
       recv = pats.receiver
@@ -297,6 +310,7 @@ module Atomy
     end
   end
 
+  # StaticScope equivalency test
   def self.equal_scope?(a, b)
     return a == b unless a and b
 
@@ -304,6 +318,8 @@ module Atomy
       equal_scope?(a.parent, b.parent)
   end
 
+  # build a method from the given branches and add it to
+  # the target
   def self.add_method(target, name, branches,
                       static_scope, visibility = :public,
                       file = :dynamic_add, line = 1, defn = false)
@@ -326,6 +342,7 @@ module Atomy
     end
   end
 
+  # define a new method branch
   def self.define_method(target, name, patterns, body,
                          static_scope, visibility = :public,
                          file = :dynamic_define, line = 1)
@@ -345,6 +362,7 @@ module Atomy
                visibility, file, line)
   end
 
+  # compare one method's precision to another
   def self.compare(xs, ys, nn, n)
     return 1 if xs.size > ys.size
     return -1 if xs.size < ys.size
@@ -361,14 +379,19 @@ module Atomy
       total += x <=> y unless y.nil?
     end
 
-    # TODO: bother with this?
-    #if xs.splat and ys.splat
-      #total += xs.splat <=> ys.splat
-    #end
+    if xs.splat and ys.splat
+      total += xs.splat <=> ys.splat
+    end
+
+    if xs.block and ys.block
+      total += xs.block <=> ys.block
+    end
 
     total <=> 0
   end
 
+  # will two patterns (and namespaces) always match the
+  # same things?
   def self.equivalent?(xs, ys, xn, yn)
     return false unless xn == yn
     return false unless xs.size == ys.size
@@ -389,40 +412,50 @@ module Atomy
     true
   end
 
-  # this should mutate branches, so I don't have to call
-  # instance_variable_set
+  # insert method `new` into the list of branches
+  #
+  # if <=> isn't defined, we can't compare precision, so
+  # just unshift it
+  #
+  # if it is defined, but the list isn't sorted, sort it
+  #
+  # if it is defined, and the list is already sorted, insert
+  # it in the proper location with respect to precision
+  #
+  # during insertion, methods with equivalent patterns will
+  # be replaced
   def self.insert_method(new, branches)
-    if new[0].receiver.respond_to?(:<=>)
-      if branches.instance_variable_get(:"@sorted")
-        nps, nb, nn = new
-        branches.each_with_index do |branch, i|
-          ps, b, n = branch
+    unless new[0].receiver.respond_to?(:<=>)
+      return branches.unshift(new)
+    end
 
-          case compare(nps, ps, nn, n)
-          when 1
-            return branches.insert(i, new)
-          when 0
-            if equivalent?(nps, ps, nn, n)
-              branches[i] = new
-              return branches
-            end
+    if branches.instance_variable_get(:"@sorted")
+      nps, nb, nn = new
+      branches.each_with_index do |branch, i|
+        ps, b, n = branch
+
+        case compare(nps, ps, nn, n)
+        when 1
+          return branches.insert(i, new)
+        when 0
+          if equivalent?(nps, ps, nn, n)
+            branches[i] = new
+            return branches
           end
         end
-
-        branches << new
-      else
-        # this is needed because we define methods before <=> is
-        # defined, so sort it once we have that
-        branches.unshift(new).sort! do |b, a|
-          compare(a[0], b[0], a[2], b[2])
-        end
-
-        branches.instance_variable_set(:"@sorted", true)
-
-        branches
       end
+
+      branches << new
     else
-      branches.unshift(new)
+      # this is needed because we define methods before <=> is
+      # defined, so sort it once we have that
+      branches.unshift(new).sort! do |b, a|
+        compare(a[0], b[0], a[2], b[2])
+      end
+
+      branches.instance_variable_set(:"@sorted", true)
+
+      branches
     end
   end
 end
