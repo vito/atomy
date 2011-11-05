@@ -59,7 +59,7 @@ module Atomy
       def compile_if_needed(fn, debug = false)
         compiled = compiled_name(fn)
 
-        if !File.exists?(compiled) ||
+        if !loadable?(compiled) ||
             File.stat(compiled).mtime < File.stat(fn).mtime
           CodeLoader.compiled! true
           Compiler.compile fn, nil, debug
@@ -69,14 +69,18 @@ module Atomy
       end
 
       def find_file(fn)
-        if fn.suffix?(".ay") || fn.suffix?(".rb")
+        if fn.suffix? ".ay" and loadable? fn
           fn
-        elsif File.exists?(fn + ".ay")
+        elsif loadable?(fn + ".ay")
           fn + ".ay"
-        elsif File.exists?(fn + ".rb")
-          fn + ".rb"
-        else
+        end
+      end
+
+      def find_any_file(fn)
+        if loadable? fn
           fn
+        elsif loadable?(fn + ".ay")
+          fn + ".ay"
         end
       end
 
@@ -90,36 +94,48 @@ module Atomy
       def search_path(fn)
         $LOAD_PATH.each do |dir|
           path = find_file("#{dir}/#{fn}")
-          return path if loadable? path
+          return path if path
         end
 
         nil
+      end
+
+      def find_atomy(fn)
+        if qualified_path?(fn)
+          find_file(fn)
+        else
+          search_path(fn)
+        end
       end
 
       def qualified_path?(path)
         path[0] == ?/ or path.prefix?("./") or path.prefix?("../")
       end
 
-      def load_file(fn, r = :run, debug = false)
-        if qualified_path?(fn)
-          file = find_file(fn)
-        else
-          file = search_path(fn)
+      def require(fn)
+        unless file = find_atomy(fn)
+          raise LoadError, "no such file to load -- #{fn}"
         end
 
-        raise("cannot find file to load for #{fn}") unless file
+        load_file(file)
+      end
+
+      def load_file(fn, r = :run, debug = false)
+        unless file = find_any_file(fn)
+          raise LoadError, "no such file to load -- #{fn}"
+        end
 
         CodeLoader.when_load = []
         CodeLoader.when_run = []
         CodeLoader.reason = r
         CodeLoader.compiled! false
-        CodeLoader.compiling = fn
+        CodeLoader.compiling = file
 
         cfn = compile_if_needed(file, debug)
         cl = Rubinius::CodeLoader.new(cfn)
         cm = cl.load_compiled_file(cfn, 0, 0)
         script = cm.create_script(false)
-        script.file_path = fn
+        script.file_path = file
 
         CodeLoader.compiling = nil
 
