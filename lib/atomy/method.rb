@@ -2,7 +2,8 @@ module Atomy
   class MethodPatterns
     attr_accessor :receiver, :required, :defaults, :splat, :block
 
-    def initialize(receiver, required = [], defaults = [], splat = nil, block = nil)
+    def initialize(receiver, required = [],
+                   defaults = [], splat = nil, block = nil)
       @receiver = receiver
       @required = required
       @defaults = defaults
@@ -20,7 +21,8 @@ module Atomy
     end
 
     def size
-      @required.size + @defaults.size + (@splat ? 1 : 0) + (@block ? 1 : 0)
+      @required.size + @defaults.size +
+        (@splat ? 1 : 0) + (@block ? 1 : 0)
     end
   end
 
@@ -130,8 +132,8 @@ module Atomy
       build_methods(g, bottom, done, min_reqs, all_for_one)
     end
 
-    # call super. note that we keep the original sender's static scope for use
-    # in namespace checks
+    # call super. note that we keep the original sender's static
+    # scope for use in namespace checks
     unless name == :initialize
       g.invoke_primitive :vm_check_super_callable, 0
       g.gif mismatch
@@ -162,8 +164,8 @@ module Atomy
     mismatch.set!
     g.push_self
     g.push_cpath_top
-    # if all the definitions are local to a namespace, act like the method
-    # doesn't even exist
+    # if all the definitions are local to a namespace, act like the
+    # method doesn't even exist
     if by_namespace[nil].empty?
       g.find_const :NoMethodError
       g.push_literal "unexposed method `"
@@ -302,7 +304,9 @@ module Atomy
       equal_scope?(a.parent, b.parent)
   end
 
-  def self.add_method(target, name, branches, static_scope, visibility = :public, file = :dynamic_add, line = 1, defn = false)
+  def self.add_method(target, name, branches,
+                      static_scope, visibility = :public,
+                      file = :dynamic_add, line = 1, defn = false)
     scope = branches[0][3]
     all_for_one = branches.all? { |_, _, _, s| equal_scope?(s, scope) }
 
@@ -317,11 +321,14 @@ module Atomy
     if defn and not Thread.current[:atomy_provide_in]
       Rubinius.add_defn_method name, cm, static_scope, visibility
     else
-      Rubinius.add_method name, cm, defn ? Object : target, visibility
+      target = Object if defn
+      Rubinius.add_method name, cm, target, visibility
     end
   end
 
-  def self.define_method(target, name, patterns, body, static_scope, visibility = :public, file = :dynamic_define, line = 1)
+  def self.define_method(target, name, patterns, body,
+                         static_scope, visibility = :public,
+                         file = :dynamic_define, line = 1)
     method = [patterns, body, nil, static_scope]
     methods = target.instance_variable_get(methods_var(name))
 
@@ -334,7 +341,8 @@ module Atomy
       )
     end
 
-    add_method(target, name, methods, static_scope, visibility, file, line)
+    add_method(target, name, methods, static_scope,
+               visibility, file, line)
   end
 
   def self.compare(xs, ys, nn, n)
