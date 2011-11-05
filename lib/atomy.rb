@@ -1,4 +1,4 @@
-base = File.expand_path "../", __FILE__
+base = File.expand_path "../atomy", __FILE__
 
 module Atomy
   def self.import(*as)

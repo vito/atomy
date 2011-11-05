@@ -1,5 +1,5 @@
 module(Atomy::Format):
-  require(File expand-path("../../../lib/formatter.kpeg.rb", _FILE))
+  require(File expand-path("../../../lib/atomy/formatter.kpeg.rb", _FILE))
 
   class(Parser):
     class(<< self):
