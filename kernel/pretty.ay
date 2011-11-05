@@ -167,6 +167,14 @@ module(Atomy::AST):
 
   Constant pretty := doc: text(@identifier)
 
+  Infix pretty := doc:
+    hsep([
+      text(".infix")
+      text(@associativity to-s)
+      @precedence pretty
+      hsep(@operators map [o] { text(o) })
+    ])
+
   List pretty := doc:
     from(#list):
       list(@elements all-pretty)
