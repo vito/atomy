@@ -154,10 +154,7 @@ module Atomy
         g.make_array 4
 
         receiver.target(g)
-        g.push_literal "@atomy::"
-        g.push_literal message_name
-        g.string_build 2
-        g.send :to_sym, 0
+        g.push_literal Atomy.methods_var(message_name)
         g.send :instance_variable_get, 1
         g.dup
         g.gif create
@@ -173,10 +170,7 @@ module Atomy
         g.make_array 1
         receiver.target(g)
         g.swap
-        g.push_literal "@atomy::"
-        g.push_literal message_name
-        g.string_build 2
-        g.send :to_sym, 0
+        g.push_literal Atomy.methods_var(message_name)
         g.swap
         g.send :instance_variable_set, 2
 

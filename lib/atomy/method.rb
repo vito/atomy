@@ -24,6 +24,10 @@ module Atomy
     end
   end
 
+  def self.methods_var(name)
+    :"@atomy::#{name}"
+  end
+
   def self.should_match_self?(pat)
     case pat
     when Patterns::Match
@@ -303,12 +307,15 @@ module Atomy
 
   def self.define_method(target, name, patterns, body, static_scope, visibility = :public, file = :dynamic_define, line = 1)
     method = [patterns, body, nil, static_scope]
-    methods = target.instance_variable_get(:"@atomy::#{name}")
+    methods = target.instance_variable_get(methods_var(name))
 
     if methods
       insert_method(method, methods)
     else
-      methods = target.instance_variable_set(:"@atomy::#{name}", [method])
+      methods = target.instance_variable_set(
+        methods_var(name),
+        [method]
+      )
     end
 
     add_method(target, name, methods, static_scope, visibility, file, line)
