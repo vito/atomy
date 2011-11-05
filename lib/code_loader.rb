@@ -76,6 +76,14 @@ module Atomy
         end
       end
 
+      def find_any_file(fn)
+        if loadable? fn
+          fn
+        elsif loadable?(fn + ".ay")
+          fn + ".ay"
+        end
+      end
+
       def loadable?(fn)
         return false unless File.exists? fn
 
@@ -104,8 +112,16 @@ module Atomy
         path[0] == ?/ or path.prefix?("./") or path.prefix?("../")
       end
 
-      def load_file(fn, r = :run, debug = false)
+      def require(fn)
         unless file = find_atomy(fn)
+          raise LoadError, "no such file to load -- #{fn}"
+        end
+
+        load_file(file)
+      end
+
+      def load_file(fn, r = :run, debug = false)
+        unless file = find_any_file(fn)
           raise LoadError, "no such file to load -- #{fn}"
         end
 
@@ -113,13 +129,13 @@ module Atomy
         CodeLoader.when_run = []
         CodeLoader.reason = r
         CodeLoader.compiled! false
-        CodeLoader.compiling = fn
+        CodeLoader.compiling = file
 
         cfn = compile_if_needed(file, debug)
         cl = Rubinius::CodeLoader.new(cfn)
         cm = cl.load_compiled_file(cfn, 0, 0)
         script = cm.create_script(false)
-        script.file_path = fn
+        script.file_path = file
 
         CodeLoader.compiling = nil
 

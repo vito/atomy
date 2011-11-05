@@ -7,8 +7,8 @@ module Kernel
   alias atomy_original_require gem_original_require
 
   def gem_original_require(name)
-    if Atomy::CodeLoader.find_atomy(name)
-      Atomy.import(name)
+    if file = Atomy::CodeLoader.find_atomy(name)
+      Atomy.import(file)
     else
       atomy_original_require(name)
     end
