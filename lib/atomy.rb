@@ -13,6 +13,7 @@ end
 require "rubygems"
 require "hamster"
 
+require base + "/version"
 require base + "/macros"
 require base + "/method"
 require base + "/exceptions"
