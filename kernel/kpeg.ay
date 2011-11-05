@@ -140,7 +140,9 @@ macro(grammar: ~*body): names [g]:
       `(~(name)(~*args) := ~val) ->
         let(rule = name text,
             rule-vars = ::Set new(args to-a collect(&#text))):
-          `(~g set(~(name text), ~process-val(g, val), ~(args collect(&#text))))
+          `(~g set(~(name text)
+                   ~process-val(g, val)
+                   ~(args collect(&#text))))
 
       `(~name := ~val) ->
         let(rule = name text,
@@ -174,4 +176,6 @@ macro(parser(~name): ~*grammar):
 
           actions := @actions ||= ~actions
 
-        ~def)
+        ~def
+
+        ~name)
