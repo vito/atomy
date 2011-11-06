@@ -13,17 +13,12 @@ module Atomy
     def self.compile(file, output = nil, debug = false)
       compiler = new :atomy_file, :compiled_file
 
-      parser = compiler.parser
-      parser.root Atomy::AST::Script
-      parser.input file, 1
+      compiler.parser.root Atomy::AST::Script
+      compiler.parser.input file, 1
 
-      if debug
-        printer = compiler.packager.print
-        printer.bytecode = debug
-      end
+      compiler.packager.print.bytecode = debug if debug
 
-      writer = compiler.writer
-      writer.name = output ? output : compiled_name(file)
+      compiler.writer.name = output ? output : compiled_name(file)
 
       compiler.run
     end
@@ -31,66 +26,57 @@ module Atomy
     def self.compile_file(file, debug = false)
       compiler = new :atomy_file, :compiled_method
 
-      parser = compiler.parser
-      parser.root Atomy::AST::Script
-      parser.input file, 1
+      compiler.parser.root Atomy::AST::Script
+      compiler.parser.input file, 1
 
-      printer = compiler.packager.print
-      printer.bytecode = debug
+      compiler.packager.print.bytecode = debug if debug
 
       compiler.run
     end
 
-    def self.compile_string(string, file = "(compile_string:eval)", line = 1, debug = false)
+    def self.compile_string(string,
+                            file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_string, :compiled_method
 
-      parser = compiler.parser
-      parser.root Rubinius::AST::Script
-      parser.input string, file, line
+      compiler.parser.root Atomy::AST::Script
+      compiler.parser.input string, file, line
 
-      if debug
-        printer = compiler.packager.print
-        printer.bytecode = debug
-      end
+      compiler.packager.print.bytecode = debug if debug
 
       compiler.run
     end
 
-    def self.compile_eval(string, scope = nil, file = "(compile_eval:eval)", line = 1, debug = false)
+    def self.compile_eval(string, scope = nil,
+                          file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_string, :compiled_method
 
-      parser = compiler.parser
-      parser.root Rubinius::AST::EvalExpression
-      parser.input string, file, line
+      compiler.parser.root Rubinius::AST::EvalExpression
+      compiler.parser.input string, file, line
 
-      if debug
-        printer = compiler.packager.print
-        printer.bytecode = debug
-      end
+      compiler.packager.print.bytecode = debug if debug
 
       compiler.generator.variable_scope = scope
 
       compiler.run
     end
 
-    def self.compile_node(node, scope = nil, file = "(compile_node:eval)", line = 1, debug = false)
+    def self.compile_node(node, scope = nil,
+                          file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_bytecode, :compiled_method
 
-      eval = Rubinius::AST::EvalExpression.new(AST::Tree.new(line, [node]))
-      eval.file = file
+      expr = Rubinius::AST::EvalExpression.new(AST::Tree.new(line, [node]))
+      expr.file = file
 
-      if debug
-        printer = compiler.packager.print
-        printer.bytecode = debug
-      end
+      compiler.packager.print.bytecode = debug if debug
 
-      compiler.generator.input eval
+      compiler.generator.input expr
       compiler.generator.variable_scope = scope
 
       compiler.run
     end
 
-    def self.evaluate_node(node, instance = nil, bnd = nil, file = "(evaluate_node:eval)", line = 1)
+    def self.evaluate_node(node, bnd = nil, instance = nil,
+                           file = "(eval)", line = 1, debug = false)
       if bnd.nil?
         bnd = Binding.setup(
           Rubinius::VariableScope.of_sender,
@@ -101,7 +87,7 @@ module Atomy
 
       cm = compile_node(node, bnd.variables, file, line)
       cm.scope = bnd.static_scope.dup
-      cm.name = :__atomy_eval__
+      cm.name = :__eval__
 
       script = Rubinius::CompiledMethod::Script.new(cm, file, true)
       script.eval_binding = bnd
@@ -115,6 +101,8 @@ module Atomy
         be.proc_environment = bnd.proc_environment
       end
 
+      be.from_eval!
+
       if instance
         be.call_on_instance instance
       else
@@ -122,7 +110,8 @@ module Atomy
       end
     end
 
-    def self.evaluate(string, bnd = nil, file = "(evaluate:eval)", line = 1, debug = false)
+    def self.evaluate(string, bnd = nil, instance = nil,
+                      file = "(eval)", line = 1, debug = false)
       if bnd.nil?
         bnd = Binding.setup(
           Rubinius::VariableScope.of_sender,
@@ -149,7 +138,12 @@ module Atomy
       end
 
       be.from_eval!
-      be.call
+
+      if instance
+        be.call_on_instance instance
+      else
+        be.call
+      end
     end
   end
 end

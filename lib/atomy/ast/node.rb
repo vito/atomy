@@ -468,8 +468,16 @@ EOF
         )
       end
 
-      def evaluate(onto = nil, bnd = TOPLEVEL_BINDING)
-        Atomy::Compiler.evaluate_node(self, onto, bnd)
+      def evaluate(bnd = nil, onto = nil)
+        if bnd.nil?
+          bnd = Binding.setup(
+            Rubinius::VariableScope.of_sender,
+            Rubinius::CompiledMethod.of_sender,
+            Rubinius::StaticScope.of_sender
+          )
+        end
+
+        Atomy::Compiler.evaluate_node(self, bnd, onto)
       end
 
       # this is overridden by macro definitions
