@@ -1,6 +1,6 @@
 require("readline")
 
-basic-repl(bnd = TOPLEVEL_BINDING) :=
+basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=
   loop:
     prompt =
       with-restarts(use-prompt(p) -> p):
@@ -25,7 +25,10 @@ basic-repl(bnd = TOPLEVEL_BINDING) :=
 
         try = {
           with-restarts(retry -> try [], abort -> #ok):
-            res = Atomy::Compiler evaluate(source, bnd)
+            res = Atomy::Compiler evaluate(
+              source, bnd, nil,
+              "(eval)", 1, debug
+            )
             signal(#evaluated(res))
         }
 
@@ -59,7 +62,7 @@ class(ReplDebugger):
 
 dynamic(debugger, ReplDebugger)
 
-repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
+repl(history = nil, bnd = TOPLEVEL_BINDING, debug = false) := do:
   when(history && File exists?(history)):
     File open(history, "r") [f]:
       f readlines each [l]:
@@ -72,7 +75,7 @@ repl(history = nil, bnd = TOPLEVEL_BINDING) := do:
         atomy-pretty-colored? = true):
       frame = 0
 
-      { basic-repl(bnd)
+      { basic-repl(bnd, debug)
       } bind:
         #prompt ->
           restart(#use-prompt, "[" + frame to-s + "]> ")
