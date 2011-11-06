@@ -3,45 +3,16 @@ describe("assignment"):
     it("introduces a new local"):
       a = 0
       a should-be(0)
-      do: a = 1, a should-be(1)
+      { a = 1, a } call should-be(1)
       a should-be(0)
 
   describe("=!"):
     it("overwrites an existing local"):
       a = 0
       a should-be(0)
-      do: a =! 1, a should-be(1)
+      { a =! 1, a } call should-be(1)
       a should-be(1)
 
     it("introduces a new local if undefined"):
-      do: a =! 1, a should-be(1)
+      { a =! 1, a } call should-be(1)
       : a ; should-raise(NoMethodError)
-
-  describe("match"):
-    it("shadows local variables"):
-      a = 0
-      a should-be(0)
-      1 match: a -> a should-be(1)
-      a should-be(0)
-
-  describe("do"):
-    it("shadows local variables"):
-      a = 0
-      a should-be(0)
-      do: a = 1, a should-be(1)
-      a should-be(0)
-
-    it("shadows through nested `do's"):
-      a = 0
-      a should-be(0)
-      do:
-        a = 1
-        do:
-          a = 2
-          a should-be(2)
-        a should-be(1)
-      a should-be(0)
-
-    it("never introduces new variables"):
-      do: a = 1, a should-be(1)
-      : a : should-raise(NoMethodError)
