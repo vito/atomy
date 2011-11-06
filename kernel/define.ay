@@ -1,4 +1,4 @@
-macro(do ~(b: Block)): b body
+macro(do ~(b: Block)): b block-body
 
 macro(~x =! ~y):
   Set new(x line, x to-pattern to-node, y)

@@ -123,7 +123,6 @@ module(Atomy::AST):
       else: parens(pretty)
   Constant unamb := pretty
   GlobalVariable unamb := pretty
-  (InlinedBody ? @expressions size < 2) unamb := pretty
   (Tree ? @nodes size < 2) unamb := pretty
   InstanceVariable unamb := pretty
   List unamb := pretty

@@ -27,24 +27,7 @@ module Atomy
       generate
 
       def bytecode(g, done)
-        HiddenMatchBranch.new(@line, @pattern, @branch).bytecode(g, done)
-      end
-
-      def prepare_all
-        dup.tap do |x|
-          x.branch = x.branch.prepare_all
-        end
-      end
-    end
-
-    class HiddenMatchBranch < InlinedBody
-      children :pattern, :branch
-      generate
-
-      def bytecode(g, done)
         pos(g)
-
-        setup(g)
 
         skip = g.new_label
 
@@ -60,8 +43,12 @@ module Atomy
         g.goto done
 
         skip.set!
+      end
 
-        reset(g)
+      def prepare_all
+        dup.tap do |x|
+          x.branch = x.branch.prepare_all
+        end
       end
     end
   end

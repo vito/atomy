@@ -1,7 +1,7 @@
 dynamic(labels, Hash new)
 
 macro(if(~x) then ~(y: Block) else ~(z: Block)):
-  IfThenElse new(line, x, y body, z body)
+  IfThenElse new(line, x, y block-body, z block-body)
 
 macro(otherwise): 'true
 
@@ -9,13 +9,13 @@ macro(return(~y)):
   Return new(line, y)
 
 macro(~x ensuring ~(y: Block)):
-  Ensure new(line, x caller, y body)
+  Ensure new(line, x caller, y block-body)
 
 macro(when(~c) ~(b: Block)):
-  When new(line, c, b body)
+  When new(line, c, b block-body)
 
 macro(unless(~c) ~(b: Block)):
-  When new(line, `!~c, b body)
+  When new(line, `!~c, b block-body)
 
 macro(super):
   ZSuper new(line)
@@ -103,7 +103,7 @@ evaluate-when(compile, run, load):
 
 macro(labels ~(body: Block)):
   branches = body contents collect [`(~n ~b)]:
-    LabelBranch new(n line, b body, n text)
+    LabelBranch new(n line, b block-body, n text)
 
   `(let-macro(go(~'~name) = GoTo new(line, name text)):
       ~(Labels new(line, branches)))
@@ -117,7 +117,7 @@ macro(while(~test) ~(body: Block)):
 
           let-macro(break = 'go(~done),
                     next = 'go(~loop)):
-            ~(body caller)
+            ~(body block-body)
 
           go(~loop)
 
@@ -132,7 +132,7 @@ macro(until(~test) ~(body: Block)):
 
           let-macro(break = 'go(~done),
                     next = 'go(~loop)):
-            ~(body caller)
+            ~(body block-body)
 
           go(~loop)
 
@@ -144,7 +144,7 @@ macro(loop ~(body: Block)):
         ~loop:
           let-macro(break = 'go(~done),
                     next = 'go(~loop)):
-            ~(body caller)
+            ~(body block-body)
 
           go(~loop)
 
@@ -177,11 +177,11 @@ macro(condition ~(b: Block)):
   pairs-from(b contents) reverse inject('nil) [acc, [x, y]]:
     `(if(~x) then: ~y; else: ~acc)
 
-macro(~x match ~(b: Block)):
+macro(~val match ~(b: Block)):
   branches = pairs-from(b contents) collect [[x, y]]:
     MatchBranch new(x line, x to-pattern to-node, y)
 
-  Match new(line, x, branches)
+  Match new(line, val, branches)
 
 macro(~x rescue ~(y: Block)):
   branches = pairs-from(y contents) collect [[p, e]]:
@@ -193,7 +193,7 @@ macro(~x rescue ~(y: Block) else ~(z: Block)):
   branches = pairs-from(y contents) collect [[p, e]]:
     RescueHandler new(p line, p, e)
 
-  Catch new(line, x caller, branches, z body)
+  Catch new(line, x caller, branches, z block-body)
 
 module(Atomy::AST):
   class(Super < Node):

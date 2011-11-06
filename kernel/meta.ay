@@ -2,7 +2,7 @@ macro(evaluate-when(~*when) ~(x: Block)):
   evaluated? = false
 
   when contains?('compile) && do:
-    x body evaluate
+    x block-body evaluate
     evaluated? =! true
 
   when contains?('load) && do:

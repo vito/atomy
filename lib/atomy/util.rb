@@ -43,11 +43,7 @@ module Atomy
   end
 
   def self.assign_local(g, name, set = false)
-    if !set && g.state.scope.respond_to?(:pseudo_local)
-      var = g.state.scope.pseudo_local(name)
-    else
-      var = g.state.scope.search_local(name)
-    end
+    var = g.state.scope.search_local(name)
 
     if var && (set || var.depth == 0)
       var

@@ -22,10 +22,8 @@ module Atomy
       end
 
       def body
-        InlinedBody.new @line, @contents
+        raise "no #body for Block"
       end
-
-      alias :caller :body
 
       def bytecode(g)
         pos(g)
@@ -88,104 +86,6 @@ module Atomy
         g.find_const :Proc
         g.swap
         g.send :__from_block__, 1
-      end
-    end
-
-    class InlinedBody < Node
-      children [:expressions]
-      generate
-
-      attr_accessor :parent
-
-      def variables
-        @variables ||= {}
-      end
-
-      def local_count
-        @parent.local_count
-      end
-
-      def local_names
-        @parent.local_names
-      end
-
-      def allocate_slot
-        @parent.allocate_slot
-      end
-
-      def nest_scope(scope)
-        scope.parent = self
-      end
-
-      def module?
-        @parent.module?
-      end
-
-      def search_local(name)
-        if variable = variables[name]
-          variable.nested_reference
-        else
-          @parent.search_local(name)
-        end
-      end
-
-      def pseudo_local(name)
-        if variable = variables[name]
-          variable.nested_reference
-        elsif reference = @parent.search_local(name)
-          reference.depth += 1
-          reference
-        end
-      end
-
-      def new_local(name)
-        variables[name] =
-          @parent.new_local(:"#{name}::#{@parent.allocate_slot}")
-      end
-
-      def new_nested_local(name)
-        @parent.new_local(name).nested_reference
-      end
-
-      def empty?
-        @expressions.empty?
-      end
-
-      def setup(g)
-        g.state.scope.nest_scope self
-
-        blk = g.state.block?
-        ens = g.state.ensure?
-        res = g.state.rescue?
-        lop = g.state.loop?
-        msn = g.state.masgn?
-
-        g.push_state self
-
-        g.state.push_block if blk
-        g.state.push_ensure if ens
-        g.state.push_rescue(res) if res
-        g.state.push_loop if lop
-        g.state.push_masgn if msn
-      end
-
-      def reset(g)
-        g.pop_state
-      end
-
-      def bytecode(g)
-        pos(g)
-
-        setup(g)
-
-        g.push_nil if empty?
-
-        @expressions.each_with_index do |node,idx|
-          g.pop unless idx == 0
-          node.compile(g)
-        end
-
-        reset(g)
       end
     end
 
