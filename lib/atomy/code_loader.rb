@@ -120,7 +120,7 @@ module Atomy
         load_file(file)
       end
 
-      def load_file(fn, r = :run, debug = false)
+      def load_file(fn, r = :load, debug = false)
         unless file = find_any_file(fn)
           raise LoadError, "no such file to load -- #{fn}"
         end
