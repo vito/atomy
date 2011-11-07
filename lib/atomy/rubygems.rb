@@ -8,7 +8,7 @@ module Kernel
 
   def gem_original_require(name)
     if file = Atomy::CodeLoader.find_atomy(name)
-      Atomy.import(file)
+      Atomy::CodeLoader.load_file(file)
     else
       atomy_original_require(name)
     end

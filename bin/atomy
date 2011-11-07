@@ -45,7 +45,7 @@ end
 unless options[:skip_kernel]
   a = Time.now
   puts "loading kernel"
-  Atomy.import(kernel + "/boot.ay")
+  Atomy.load(kernel + "/boot.ay")
   puts Time.now - a
 end
 
@@ -73,7 +73,7 @@ def run_atomy(options)
 
   if file = options[:load] || ARGV[0]
     $0 = file
-    Atomy.import(file, ARGV[0] ? :run : :load, options[:debug])
+    Atomy.load(file, ARGV[0] ? :run : :load, options[:debug])
     return if ARGV[0]
   end
 

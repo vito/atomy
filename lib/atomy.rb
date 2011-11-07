@@ -1,12 +1,12 @@
 base = File.expand_path "../atomy", __FILE__
 
 module Atomy
-  def self.import(*as)
+  def self.load(*as)
     CodeLoader.load_file *as
   end
 
-  def self.import_kernel
-    import(File.expand_path("../../kernel/boot", __FILE__))
+  def self.load_kernel
+    require(File.expand_path("../../kernel/boot", __FILE__))
   end
 end
 
