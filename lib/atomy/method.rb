@@ -91,38 +91,19 @@ module Atomy
 
     g.state.push_name name
 
-    total = 0
-    min_reqs = nil
-    reqs = 0
-    defs = 0
-    splatted = false
-
     # grouped methods by the namespace they're provided in
     by_namespace = Hash.new { |h, k| h[k] = [] }
 
     # determine locals and the required/default/total args
     branches.each do |pats, meth, provided, scope|
-      min_reqs ||= pats.required.size
-      min_reqs = [min_reqs, pats.required.size].min
-      reqs = [reqs, pats.required.size].max
-      defs = [defs, pats.defaults.size].max
-      total = [reqs + defs, total].max
-
-      splatted = true if pats.splat
-
       by_namespace[provided] << [pats, meth, scope]
     end
 
-    if splatted
-      g.splat_index = reqs + defs
-    end
+    g.state.scope.new_local(:arguments).reference
 
-    total.times do |n|
-      g.state.scope.new_local(:"arg:#{n}").reference
-    end
-
-    g.total_args = total
-    g.required_args = min_reqs
+    g.splat_index = 0
+    g.total_args = 0
+    g.required_args = 0
 
     g.push_self
 
@@ -138,14 +119,14 @@ module Atomy
       g.send :using?, 1
       g.gif skip
 
-      build_methods(g, methods, done, min_reqs, all_for_one)
+      build_methods(g, methods, done, all_for_one)
 
       skip.set!
     end
 
     # try the bottom namespace after the others
     if bottom = by_namespace[nil] and not bottom.empty?
-      build_methods(g, bottom, done, min_reqs, all_for_one)
+      build_methods(g, bottom, done, all_for_one)
     end
 
     # call super. note that we keep the original sender's static
@@ -215,7 +196,7 @@ module Atomy
 
   # build all the method branches, assumed to be from the
   # same namespace
-  def self.build_methods(g, methods, done, min_reqs, all_for_one)
+  def self.build_methods(g, methods, done, all_for_one)
     methods.each do |pats, meth, scope|
       recv = pats.receiver
       reqs = pats.required
@@ -225,8 +206,9 @@ module Atomy
 
       skip = g.new_label
       argmis = g.new_label
+      argmis2 = g.new_label
 
-      if reqs.size > min_reqs
+      if reqs.size
         g.passed_arg(reqs.size - 1)
         g.gif skip
       end
@@ -247,12 +229,6 @@ module Atomy
         g.gif skip
       end
 
-      if splat
-        g.push_local(g.splat_index)
-        g.send :to_list, 0
-        splat.pattern.deconstruct(g)
-      end
-
       if recv.bindings > 0
         g.dup
         recv.deconstruct(g)
@@ -263,45 +239,74 @@ module Atomy
         block.deconstruct(g)
       end
 
-      reqs.each_with_index do |a, i|
-        next if a.wildcard? && a.bindings == 0
+      g.push_local 0
 
-        g.push_local(i)
+      reqs.each_with_index do |a, i|
+        g.shift_array
 
         if a.bindings > 0
           unless a.wildcard?
             g.dup
             a.matches?(g)
-            g.gif argmis
+            g.gif argmis2
           end
+
           a.deconstruct(g)
+        elsif a.wildcard?
+          g.pop
         else
           a.matches?(g)
-          g.gif skip
+          g.gif argmis
         end
       end
 
       defs.each_with_index do |d, i|
-        passed = g.new_label
-        decons = g.new_label
+        have_value = g.new_label
+
+        g.shift_array
 
         num = reqs.size + i
         g.passed_arg num
-        g.git passed
+        g.git have_value
 
+        g.pop
+        g.push_local 0
+        g.push_int num
         d.default.compile(g)
-        g.set_local num
-        g.goto decons
+        g.send :[]=, 2
 
-        passed.set!
-        g.push_local num
-
-        decons.set!
+        have_value.set!
+        unless d.wildcard?
+          g.dup
+          d.matches?(g)
+          g.gif argmis2
+        end
         d.deconstruct(g)
+      end
+
+      g.pop
+
+      if splat and s = splat.pattern
+        g.push_local 0
+        (reqs.size + defs.size).times do
+          g.shift_array
+          g.pop
+        end
+
+        g.send :to_list, 0
+        unless s.wildcard?
+          g.dup
+          s.matches?(g)
+          g.gif argmis
+        end
+        s.deconstruct(g)
       end
 
       meth.compile(g)
       g.goto done
+
+      argmis2.set!
+      g.pop
 
       argmis.set!
       g.pop
