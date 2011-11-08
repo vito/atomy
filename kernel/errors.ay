@@ -1,6 +1,6 @@
 Atomy::MethodFail message :=
-  "method '" + @method-name to-s + "' did not understand " +
-    "its arguments (non-exhaustive patterns)"
+  "method '" + @method-name to-s + "' does not understand " +
+    "the given arguments"
 
 Atomy::PatternMismatch message :=
   "pattern of type `" + @pattern class name split("::") last +
