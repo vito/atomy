@@ -12,7 +12,7 @@ class(ZSuperB < ZSuperA):
   test-3(&x) := super
   test-4(x = 0) := super
   test-5(x = 0, &y) := super
-  test-6(x) := do: super
+  test-6(x) := { super } call
 
 describe("zsuper"):
   it("resends the message to the superclass"):
