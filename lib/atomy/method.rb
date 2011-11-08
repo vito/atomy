@@ -345,8 +345,8 @@ module Atomy
   # define a new method branch
   def self.define_method(target, name, patterns, body,
                          static_scope, visibility = :public,
-                         file = :dynamic_define, line = 1)
-    method = [patterns, body, nil, static_scope]
+                         file = :dynamic_define, line = 1, defn = false)
+    method = [patterns, body, Thread.current[:atomy_provide_in], static_scope]
     methods = target.instance_variable_get(methods_var(name))
 
     if methods
@@ -359,7 +359,7 @@ module Atomy
     end
 
     add_method(target, name, methods, static_scope,
-               visibility, file, line)
+               visibility, file, line, defn)
   end
 
   # compare one method's precision to another

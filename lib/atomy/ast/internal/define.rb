@@ -138,44 +138,9 @@ module Atomy
         g.push_cpath_top
         g.find_const :Atomy
         receiver.target(g)
-        g.push_literal message_name
-        g.send :to_sym, 0
-
-        create = g.new_label
-        added = g.new_label
+        g.push_literal message_name.to_sym
         push_patterns(g)
         @body.prepare_all.construct(g)
-        g.push_cpath_top
-        g.find_const :Thread
-        g.send :current, 0
-        g.push_literal :atomy_provide_in
-        g.send :[], 1
-        g.push_scope
-        g.make_array 4
-
-        receiver.target(g)
-        g.push_literal Atomy.methods_var(message_name)
-        g.send :instance_variable_get, 1
-        g.dup
-        g.gif create
-
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.move_down 2
-        g.send :insert_method, 2
-        g.goto added
-
-        create.set!
-        g.pop
-        g.make_array 1
-        receiver.target(g)
-        g.swap
-        g.push_literal Atomy.methods_var(message_name)
-        g.swap
-        g.send :instance_variable_set, 2
-
-        added.set!
-
         g.push_scope
         if defn
           g.push_variables
@@ -187,7 +152,7 @@ module Atomy
         g.send :active_path, 0
         g.push_int @line
         g.push_literal defn
-        g.send :add_method, 8
+        g.send :define_method, 9
       end
 
       def local_count
