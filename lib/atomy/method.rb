@@ -91,14 +91,6 @@ module Atomy
 
     g.state.push_name name
 
-    # grouped methods by the namespace they're provided in
-    by_namespace = Hash.new { |h, k| h[k] = [] }
-
-    # determine locals and the required/default/total args
-    branches.each do |pats, meth, provided, scope|
-      by_namespace[provided] << [pats, meth, scope]
-    end
-
     g.state.scope.new_local(:arguments).reference
 
     g.splat_index = 0
@@ -108,7 +100,7 @@ module Atomy
     g.push_self
 
     # push the namespaced checks first
-    by_namespace.each do |provided, methods|
+    branches.each do |provided, methods|
       next unless provided
 
       skip = g.new_label
@@ -125,7 +117,7 @@ module Atomy
     end
 
     # try the bottom namespace after the others
-    if bottom = by_namespace[nil] and not bottom.empty?
+    if bottom = branches[nil] and not bottom.empty?
       build_methods(g, bottom, done, all_for_one)
     end
 
@@ -156,7 +148,7 @@ module Atomy
     g.push_self
     g.push_cpath_top
 
-    if by_namespace[nil].empty?
+    if branches[nil].empty?
       g.find_const :NoMethodError
       g.push_literal "unexposed method `"
       g.push_literal name.to_s
@@ -328,8 +320,18 @@ module Atomy
   def self.add_method(target, name, branches,
                       static_scope, visibility = :public,
                       file = :dynamic_add, line = 1, defn = false)
-    scope = branches[0][3]
-    all_for_one = branches.all? { |_, _, _, s| equal_scope?(s, scope) }
+    all_for_one = true
+    scope = nil
+    branches.each_value do |ms|
+      ms.each do |_, _, s|
+        unless equal_scope?(s, scope ||= s)
+          all_for_one = false
+          break
+        end
+      end
+
+      break unless all_for_one
+    end
 
     cm = build_method(name, branches, all_for_one, file, line)
 
@@ -351,15 +353,18 @@ module Atomy
   def self.define_method(target, name, patterns, body,
                          static_scope, visibility = :public,
                          file = :dynamic_define, line = 1, defn = false)
-    method = [patterns, body, Thread.current[:atomy_provide_in], static_scope]
+    provided = Thread.current[:atomy_provide_in]
+    method = [patterns, body, static_scope]
     methods = target.instance_variable_get(methods_var(name))
 
     if methods
-      insert_method(method, methods)
+      insert_method(method, methods[provided])
     else
+      branches = Hash.new { |h, k| h[k] = [] }
+      branches[provided] << method
       methods = target.instance_variable_set(
         methods_var(name),
-        [method]
+        branches
       )
     end
 
@@ -368,11 +373,9 @@ module Atomy
   end
 
   # compare one method's precision to another
-  def self.compare(xs, ys, nn, n)
+  def self.compare(xs, ys)
     return 1 if xs.size > ys.size
     return -1 if xs.size < ys.size
-    return 1 if nn and not n
-    return -1 if not nn and n
 
     total = xs.receiver <=> ys.receiver
 
@@ -397,8 +400,7 @@ module Atomy
 
   # will two patterns (and namespaces) always match the
   # same things?
-  def self.equivalent?(xs, ys, xn, yn)
-    return false unless xn == yn
+  def self.equivalent?(xs, ys)
     return false unless xs.size == ys.size
 
     return false unless xs.receiver =~ ys.receiver
@@ -435,15 +437,15 @@ module Atomy
     end
 
     if branches.instance_variable_get(:"@sorted")
-      nps, nb, nn = new
+      nps, nb, _ = new
       branches.each_with_index do |branch, i|
-        ps, b, n = branch
+        ps, b, _ = branch
 
-        case compare(nps, ps, nn, n)
+        case compare(nps, ps)
         when 1
           return branches.insert(i, new)
         when 0
-          if equivalent?(nps, ps, nn, n)
+          if equivalent?(nps, ps)
             branches[i] = new
             return branches
           end
@@ -455,7 +457,7 @@ module Atomy
       # this is needed because we define methods before <=> is
       # defined, so sort it once we have that
       branches.unshift(new).sort! do |b, a|
-        compare(a[0], b[0], a[2], b[2])
+        compare(a[0], b[0])
       end
 
       branches.instance_variable_set(:"@sorted", true)
