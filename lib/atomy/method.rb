@@ -237,12 +237,12 @@ module Atomy
     # if <=> isn't defined, we can't compare precision, so
     # just unshift it
     #
-    # if it is defined, but the list isn't sorted, sort it
+    # if it is defined, but the branches aren't sorted, sort them
     #
-    # if it is defined, and the list is already sorted, insert
-    # it in the proper location with respect to precision
+    # if it is defined, and the branches are already sorted, insert
+    # it in the proper order
     #
-    # during insertion, methods with equivalent patterns will
+    # during insertion, branches with equivalent patterns will
     # be replaced
     def insert(new, branches)
       unless new.receiver.respond_to?(:<=>)
