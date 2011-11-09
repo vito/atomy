@@ -81,7 +81,7 @@ module Atomy
         end
       end
 
-      def push_patterns(g)
+      def push_method(g)
         req = []
         dfs = []
         spl = nil
@@ -101,9 +101,12 @@ module Atomy
 
         g.push_cpath_top
         g.find_const :Atomy
-        g.find_const :MethodPatterns
+        g.find_const :Method
 
         receiver.construct(g)
+
+        @body.prepare_all.construct(g)
+        g.push_scope
 
         req.each do |r|
           r.construct(g)
@@ -127,7 +130,10 @@ module Atomy
           g.push_nil
         end
 
-        g.send :new, 5
+        g.push_scope
+        g.send :active_path, 0
+
+        g.send :new, 8
       end
 
       def bytecode(g)
@@ -139,20 +145,15 @@ module Atomy
         g.find_const :Atomy
         receiver.target(g)
         g.push_literal message_name.to_sym
-        push_patterns(g)
-        @body.prepare_all.construct(g)
-        g.push_scope
+        push_method(g)
         if defn
           g.push_variables
           g.send :method_visibility, 0
         else
           g.push_literal :public
         end
-        g.push_scope
-        g.send :active_path, 0
-        g.push_int @line
         g.push_literal defn
-        g.send :define_method, 9
+        g.send :define_method, 5
       end
 
       def local_count

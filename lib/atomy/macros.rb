@@ -46,22 +46,24 @@ module Atomy::Macro
     Atomy.define_method(
       target,
       name,
-      Atomy::MethodPatterns.new(pattern),
-      Atomy::AST::Send.new(
-        body.line,
+      Atomy::Method.new(
+        pattern,
         Atomy::AST::Send.new(
           body.line,
-          body,
+          Atomy::AST::Send.new(
+            body.line,
+            body,
+            [],
+            "to_node"
+          ),
           [],
-          "to_node"
+          "expand"
         ),
-        [],
-        "expand"
+        Rubinius::StaticScope.new(Atomy::AST),
+        [], [], nil, nil,
+        file
       ),
-      Rubinius::StaticScope.new(Atomy::AST),
-      :public,
-      file,
-      pattern.expression.line
+      :public
     )
 
     if let
