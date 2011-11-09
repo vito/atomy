@@ -22,6 +22,12 @@ describe("namespaces"):
       using(Used)
       used should-be(1)
 
+  it("provides methods to instance methods"):
+    class(ClassUser):
+      get-used := used
+
+    ClassUser new get-used should-be(1)
+
   it("persists used namespaces in a reopened class"):
     class(ClassUser):
       used should-be(1)
