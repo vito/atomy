@@ -33,4 +33,14 @@ macro(using(~which) { ~*body }):
 macro(namespace(~name) { ~*body }):
   `(module(~name):
       provide:
-        ~*body)  
+        ~*body)
+
+macro({ ~*body } where: ~*helpers):
+  names [h]:
+    `(do:
+        ~h = ::Module new
+        ~h provide:
+          ~*helpers
+
+        using(~h):
+          ~*body)
