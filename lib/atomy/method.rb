@@ -1,4 +1,6 @@
 module Atomy
+  METHODS = Hash.new { |h, k| h[k] = {} }
+
   class Method
     attr_accessor :receiver, :body, :scope, :required, :defaults,
                   :splat, :block, :file
@@ -446,11 +448,6 @@ module Atomy
     end
   end
 
-  # the ivar where method branches are stored
-  def self.methods_var(name)
-    :"@atomy::#{name}"
-  end
-
   # build a method from the given branches and add it to
   # the target
   def self.add_method(target, name, branches,
@@ -468,14 +465,14 @@ module Atomy
   # define a new method branch
   def self.define_method(target, name, method, visibility = :public, defn = false)
     provided = Thread.current[:atomy_provide_in]
-    branches = target.instance_variable_get(methods_var(name))
+    methods = METHODS[target]
 
-    if branches
+    if branches = methods[name]
       branches.add(method, provided)
     else
       branches = MethodBranches.new
       branches.add(method, provided)
-      target.instance_variable_set(methods_var(name), branches)
+      methods[name] = branches
     end
 
     add_method(target, name, branches, method.scope, visibility, defn)
