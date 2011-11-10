@@ -73,6 +73,8 @@
          sig_sp = (" " | "\t" | comment)+
         sig_wsp = (" " | "\t" | "\n" | comment)+
 
+        shebang = "#!" /.*?$/
+
         cont(p) = ("\n" sp)+ &{ continue?(p) } | sig_sp (("\n" sp)+ &{ continue?(p) })? | &.
 
            line = { current_line }
@@ -274,4 +276,4 @@
                 | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack("U") }
 
 
-           root = wsp expressions:es wsp !. { Array(es).to_list }
+           root = shebang? wsp expressions:es wsp !. { Array(es).to_list }

@@ -574,6 +574,27 @@ class Atomy::Parser
     return _tmp
   end
 
+  # shebang = "#!" /.*?$/
+  def _shebang
+
+    _save = self.pos
+    while true # sequence
+      _tmp = match_string("#!")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = scan(/\A(?-mix:.*?$)/)
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_shebang unless _tmp
+    return _tmp
+  end
+
   # cont = (("\n" sp)+ &{ continue?(p) } | sig_sp (("\n" sp)+ &{ continue?(p) })? | &.)
   def _cont(p)
 
@@ -3856,11 +3877,21 @@ class Atomy::Parser
     return _tmp
   end
 
-  # root = wsp expressions:es wsp !. { Array(es).to_list }
+  # root = shebang? wsp expressions:es wsp !. { Array(es).to_list }
   def _root
 
     _save = self.pos
     while true # sequence
+      _save1 = self.pos
+      _tmp = apply(:_shebang)
+      unless _tmp
+        _tmp = true
+        self.pos = _save1
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
       _tmp = apply(:_wsp)
       unless _tmp
         self.pos = _save
@@ -3877,10 +3908,10 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _save1 = self.pos
+      _save2 = self.pos
       _tmp = get_byte
       _tmp = _tmp ? nil : true
-      self.pos = _save1
+      self.pos = _save2
       unless _tmp
         self.pos = _save
         break
@@ -3902,6 +3933,7 @@ class Atomy::Parser
   Rules[:_wsp] = rule_info("wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)*")
   Rules[:_sig_sp] = rule_info("sig_sp", "(\" \" | \"\\t\" | comment)+")
   Rules[:_sig_wsp] = rule_info("sig_wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)+")
+  Rules[:_shebang] = rule_info("shebang", "\"\#!\" /.*?$/")
   Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })? | &.)")
   Rules[:_line] = rule_info("line", "{ current_line }")
   Rules[:_ident_start] = rule_info("ident_start", "< /[\\p{Ll}_]/u > { text }")
@@ -3949,5 +3981,5 @@ class Atomy::Parser
   Rules[:_binary] = rule_info("binary", "(level2:l binary_c(current_position):c { resolve(nil, l, c).first } | line:line operator:o &{ !o.end_with?(\"@\") } sig_wsp expression:r { Atomy::AST::Binary.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")
   Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack(\"U\") } | < /\\d{1,6}/ > { [text.to_i].pack(\"U\") } | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack(\"U\") } | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack(\"U\") })")
-  Rules[:_root] = rule_info("root", "wsp expressions:es wsp !. { Array(es).to_list }")
+  Rules[:_root] = rule_info("root", "shebang? wsp expressions:es wsp !. { Array(es).to_list }")
 end
