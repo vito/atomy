@@ -26,7 +26,8 @@ module Atomy::Patterns
       when :nil
         g.push_const :NilClass
       when :self
-        g.push_self
+        g.push_scope
+        g.send :for_method_definition, 0
       else
         Atomy.const_from_string(g, @value.class.name)
       end
