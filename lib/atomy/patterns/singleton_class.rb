@@ -3,7 +3,7 @@ module Atomy::Patterns
     attr_reader :body
 
     def initialize(body)
-      @body = body.prepare_all
+      @body = body
     end
 
     def construct(g)

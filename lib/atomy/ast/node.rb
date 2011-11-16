@@ -533,48 +533,42 @@ EOF
           Atomy::Macro.register(
             self.class,
             pattern,
-            body.prepare_all,
+            body,
             Atomy::CodeLoader.compiling
           )
 
           return
         end
 
-        Atomy.define_method(
-          self.class,
-          macro_name,
-          Atomy::Method.new(
-            pattern,
+        Atomy::AST::Define.new(
+          0,
+          Atomy::AST::Compose.new(
+            0,
+            pattern.quoted,
+            Atomy::AST::Word.new(0, macro_name.to_s)
+          ),
+          Atomy::AST::Send.new(
+            body.line,
             Atomy::AST::Send.new(
               body.line,
-              Atomy::AST::Send.new(
-                body.line,
-                body,
-                Hamster.list,
-                "to_node"
-              ),
-              Hamster.list,
-              "expand"
+              body,
+              [],
+              "to_node"
             ),
-            Rubinius::StaticScope.new(Atomy::AST),
-            [], [], nil, nil,
-            file
-          ),
-          :public
+            [],
+            "expand"
+          )
+        ).evaluate(
+          Binding.setup(
+            Rubinius::VariableScope.of_sender,
+            Rubinius::CompiledMethod.of_sender,
+            Rubinius::StaticScope.new(Atomy::AST)
+          ), nil, file.to_s, pattern.quoted.line
         )
       end
 
       def macro_name
         nil
-      end
-
-      def prepare_all
-        x = prepare
-        if x == self
-          x.children(&:prepare_all)
-        else
-          x.prepare_all
-        end
       end
 
       def compile(g)

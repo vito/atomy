@@ -29,20 +29,21 @@ module(Atomy::Patterns):
   (a: BlockPass) <=> (b: BlockPass) :=
     a pattern <=> b pattern
 
+  -- TODO: don't assume it's a class
   -- if one constant is a subclass of another, it is
   -- higher precision.
   (a: Constant) <=> (b: Constant) :=
     condition:
-      (a ancestors nil? || b ancestors nil?) ->
+      (a value ancestors nil? || b value ancestors nil?) ->
         0
 
-      (a ancestors first == b ancestors first) ->
+      (a value ancestors first == b value ancestors first) ->
         0
 
-      b ancestors include?(a ancestors first) ->
+      b value ancestors include?(a value ancestors first) ->
         -1
 
-      a ancestors include?(b ancestors first) ->
+      a value ancestors include?(b value ancestors first) ->
         1
 
       otherwise ->

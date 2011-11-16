@@ -23,15 +23,6 @@ module Atomy
         end
       end
 
-      def prepare_all
-        x = prepare
-        if x != self
-          x.prepare_all
-        else
-          raise "something's probably amiss; no expansion: #{to_sexp.inspect}"
-        end
-      end
-
       def macro_name
         return :"atomy_macro::#{@right.text}" if @right.is_a? Word
         @right.macro_name || @left.macro_name

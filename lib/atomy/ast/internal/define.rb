@@ -75,10 +75,64 @@ module Atomy
         @message_name = name
       end
 
-      def prepare_all
-        dup.tap do |x|
-          x.body = x.body.prepare_all
+      def compile_body(g)
+        meth = new_generator(g, message_name.to_sym)
+
+        pos(meth)
+
+        meth.push_state Rubinius::AST::ClosedScope.new(@line)
+        # TODO: push a super that calls message_name, not the branch's name
+        #meth.state.push_super self
+        meth.definition_line(@line)
+
+        meth.state.push_name message_name.to_sym
+
+        meth.state.scope.new_local(:arguments)
+
+        meth.splat_index = 0
+        meth.total_args = 0
+        meth.required_args = 0
+
+        if receiver.bindings > 0
+          meth.push_self
+          receiver.deconstruct(meth)
         end
+
+        if arguments.size > 0
+          meth.push_local(0)
+          arguments.each do |a|
+            case a
+            when Patterns::BlockPass
+              meth.push_block_arg
+              a.deconstruct(meth)
+            when Patterns::Splat
+              meth.dup
+              a.deconstruct(meth)
+            else
+              meth.shift_array
+              a.deconstruct(meth)
+            end
+          end
+
+          meth.pop
+        end
+
+        @body.compile(meth)
+
+        meth.state.pop_name
+
+        meth.ret
+        meth.close
+
+        meth.local_count = 1
+        meth.local_names = meth.state.scope.local_names
+        meth.use_detected
+
+        raise "mismatch: (#{meth.local_names.inspect}, #{meth.local_count})" unless meth.local_names.size == meth.local_count
+
+        meth.pop_state
+
+        meth
       end
 
       def push_method(g)
@@ -101,12 +155,15 @@ module Atomy
 
         g.push_cpath_top
         g.find_const :Atomy
-        g.find_const :Method
+        g.find_const :Branch
 
         receiver.construct(g)
 
-        @body.prepare_all.construct(g)
+        g.push_generator compile_body(g)
+        g.dup
         g.push_scope
+        g.send :"scope=", 1
+        g.pop
 
         req.each do |r|
           r.construct(g)
@@ -133,7 +190,7 @@ module Atomy
         g.push_scope
         g.send :active_path, 0
 
-        g.send :new, 8
+        g.send :new, 7
       end
 
       def bytecode(g)
@@ -152,8 +209,9 @@ module Atomy
         else
           g.push_literal :public
         end
+        g.push_scope
         g.push_literal defn
-        g.send :define_method, 5
+        g.send :define_branch, 6
       end
 
       def local_count

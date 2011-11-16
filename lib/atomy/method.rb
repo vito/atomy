@@ -1,16 +1,16 @@
 module Atomy
   METHODS = Hash.new { |h, k| h[k] = {} }
 
-  class Method
-    attr_accessor :receiver, :body, :scope, :required, :defaults,
-                  :splat, :block, :file
+  # TODO: visibility?
+  class Branch
+    attr_accessor :receiver, :executable, :required, :defaults,
+                  :splat, :block, :file, :name
 
-    def initialize(receiver, body, scope, required = [],
+    def initialize(receiver, executable, required = [],
                    defaults = [], splat = nil, block = nil,
                    file = :dynamic)
       @receiver = receiver
-      @body = body
-      @scope = scope
+      @executable = executable
       @required = required
       @defaults = defaults
       @splat = splat
@@ -21,8 +21,7 @@ module Atomy
     def ==(b)
       equal?(b) or \
         @receiver == b.receiver and \
-        @body == b.body and \
-        @scope == b.scope and \
+        @executable == b.executable and \
         @required == b.required and \
         @defaults == b.defaults and \
         @splat == b.splat and \
@@ -82,21 +81,22 @@ module Atomy
     end
   end
 
-  class MethodBranches
+  class Method
     include Enumerable
 
-    attr_reader :scopes
-
-    def initialize
+    def initialize(name)
+      @name = name
       @branches = Hash.new { |h, k| h[k] = [] }
-
-      # are we sorted yet?
       @sorted = false
+    end
+
+    def new_name
+      :"#{@name}:#{Macro::Environment.salt!}"
     end
 
     def add(branch, provided_in = nil)
       insert(branch, @branches[provided_in])
-
+      branch.name = new_name
       nil
     end
 
@@ -106,10 +106,10 @@ module Atomy
 
     def sort!
       @branches.each_value(&:sort!)
-
       @sorted = true
     end
 
+    # TODO: delegate to @branches
     def each(&blk)
       @branches.each(&blk)
     end
@@ -118,9 +118,17 @@ module Atomy
       @branches[ns]
     end
 
-    def build(name)
+    def size
+      size = 0
+      @branches.each_value do |v|
+        size += v.size
+      end
+      size
+    end
+
+    def build
       g = Rubinius::Generator.new
-      g.name = name.to_sym
+      g.name = @name
       g.file = :dynamic
       g.set_line 0
 
@@ -129,15 +137,13 @@ module Atomy
 
       g.push_state Rubinius::AST::ClosedScope.new(0)
 
-      g.state.push_name name
+      g.state.push_name @name
 
       g.state.scope.new_local(:arguments).reference
 
       g.splat_index = 0
       g.total_args = 0
       g.required_args = 0
-
-      g.push_self
 
       # push the namespaced checks first
       @branches.each do |provided, methods|
@@ -163,7 +169,7 @@ module Atomy
 
       # call super. note that we keep the original sender's static
       # scope for use in namespace checks
-      unless name == :initialize
+      unless @name == :initialize
         g.invoke_primitive :vm_check_super_callable, 0
         g.gif mismatch
 
@@ -191,7 +197,7 @@ module Atomy
       if @branches[nil].empty?
         g.find_const :NoMethodError
         g.push_literal "unexposed method `"
-        g.push_literal name.to_s
+        g.push_literal @name.to_s
         g.push_literal "' called on an instance of "
         g.push_self
         g.send :class, 0
@@ -201,7 +207,7 @@ module Atomy
       else
         g.find_const :Atomy
         g.find_const :MethodFail
-        g.push_literal name
+        g.push_literal @name
       end
 
       g.send :new, 1
@@ -283,87 +289,67 @@ module Atomy
         defs = meth.defaults
         splat = meth.splat
         block = meth.block
-        body = meth.body
-        scope = meth.scope
+
+        has_args = (reqs.size + defs.size) > 0
 
         skip = g.new_label
         argmis = g.new_label
-        argmis2 = g.new_label
 
-        if reqs.size
+        if reqs.size > 0
           g.passed_arg(reqs.size - 1)
           g.gif skip
         end
 
-        g.push_rubinius
-        g.find_const :CompiledMethod
-        g.send :current, 0
-        g.push_literal scope
-        g.send :"scope=", 1
-        g.pop
-
         if should_match_self?(recv)
-          g.dup
+          g.push_self
           recv.matches_self?(g)
           g.gif skip
         end
 
-        if recv.bindings > 0
-          g.dup
-          recv.deconstruct(g)
-        end
+        if has_args
+          g.push_local 0
 
-        if block
-          g.push_block_arg
-          block.deconstruct(g)
-        end
+          #unless defs.empty?
+            #g.dup
+            #g.push_int((reqs + defs).size)
+            #g.push_nil
+            #g.send :[]=, 2
+            #g.pop
+          #end
 
-        g.push_local 0
+          reqs.each_with_index do |a, i|
+            g.shift_array
 
-        reqs.each_with_index do |a, i|
-          g.shift_array
-
-          if a.bindings > 0
-            unless a.wildcard?
-              g.dup
+            if a.wildcard?
+              g.pop
+            else
               a.matches?(g)
-              g.gif argmis2
+              g.gif argmis
             end
+          end
 
-            a.deconstruct(g)
-          elsif a.wildcard?
+          defs.each_with_index do |d, i|
+            have_value = g.new_label
+
+            g.shift_array
+
+            num = reqs.size + i
+            g.passed_arg num
+            g.git have_value
+
             g.pop
-          else
-            a.matches?(g)
+            g.push_local 0
+            g.push_int num
+            d.default.compile(g)
+            g.send :[]=, 2
+
+            have_value.set!
+            d.matches?(g)
             g.gif argmis
           end
-        end
-
-        defs.each_with_index do |d, i|
-          have_value = g.new_label
-
-          g.shift_array
-
-          num = reqs.size + i
-          g.passed_arg num
-          g.git have_value
 
           g.pop
-          g.push_local 0
-          g.push_int num
-          d.default.compile(g)
-          g.send :[]=, 2
-
-          have_value.set!
-          unless d.wildcard?
-            g.dup
-            d.matches?(g)
-            g.gif argmis2
-          end
-          d.deconstruct(g)
         end
-
-        g.pop
 
         if splat and s = splat.pattern
           g.push_local 0
@@ -373,22 +359,33 @@ module Atomy
           end
 
           g.send :to_list, 0
-          unless s.wildcard?
-            g.dup
-            s.matches?(g)
-            g.gif argmis
-          end
-          s.deconstruct(g)
+          s.matches?(g)
+          g.gif skip
         end
 
-        body.compile(g)
+        # TODO: this kills the performance.
+        g.push_rubinius
+        g.find_const :CompiledMethod
+        g.send :current, 0
+        get_sender_scope(g)
+        g.send :"scope=", 1
+        g.pop
+
+        g.push_self
+        if has_args or splat
+          g.push_local 0
+          g.push_block
+          g.send_with_splat meth.name, 0, true
+        elsif block
+          g.push_block
+          g.send_with_block meth.name, 0, true
+        else
+          g.send_vcall meth.name
+        end
         g.goto done
 
-        argmis2.set!
-        g.pop
-
         argmis.set!
-        g.pop
+        g.pop if has_args
 
         skip.set!
       end
@@ -450,31 +447,33 @@ module Atomy
 
   # build a method from the given branches and add it to
   # the target
-  def self.add_method(target, name, branches,
-                      static_scope, visibility = :public, defn = false)
-    cm = branches.build(name)
+  def self.add_method(target, name, method, visibility = :public)
+    cm = method.build
 
-    if defn and not Thread.current[:atomy_provide_in]
-      Rubinius.add_defn_method name, cm, static_scope, visibility
-    else
-      target = Object if defn
-      Rubinius.add_method name, cm, target, visibility
-    end
+    Rubinius.add_method name, cm, target, visibility
   end
 
   # define a new method branch
-  def self.define_method(target, name, method, visibility = :public, defn = false)
+  def self.define_branch(target, name, branch, visibility, scope, defn)
     provided = Thread.current[:atomy_provide_in]
     methods = METHODS[target]
 
-    if branches = methods[name]
-      branches.add(method, provided)
+    if method = methods[name]
+      method.add(branch, provided)
     else
-      branches = MethodBranches.new
-      branches.add(method, provided)
-      methods[name] = branches
+      method = Method.new(name)
+      method.add(branch, provided)
+      methods[name] = method
     end
 
-    add_method(target, name, branches, method.scope, visibility, defn)
+    target = Object if defn and Thread.current[:atomy_provide_in]
+
+    if defn and not Thread.current[:atomy_provide_in]
+      Rubinius.add_defn_method branch.name, branch.executable, scope, visibility
+    else
+      Rubinius.add_method branch.name, branch.executable, target, visibility
+    end
+
+    add_method(target, name, method, visibility)
   end
 end

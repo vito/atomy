@@ -4,7 +4,7 @@ module Atomy::Patterns
 
     def initialize(p, d)
       @pattern = p
-      @default = d.prepare_all
+      @default = d
     end
 
     def construct(g)

@@ -250,12 +250,6 @@ module Atomy
 
         g.next = current_next
       end
-
-      def prepare_all
-        dup.tap do |x|
-          x.body = x.body.prepare_all
-        end
-      end
     end
   end
 end

@@ -115,7 +115,7 @@ module(Atomy::Patterns):
 
       done set!
 
-    deconstruct(g, locals = Hash new) := do:
+    deconstruct(g, locals = ::Hash new) := do:
       g dup
       g send(#receiver, 0)
       @receiver deconstruct(g, locals)

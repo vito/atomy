@@ -30,7 +30,7 @@ macro(let-macro(~*ms) ~(b: Block)):
             Atomy::Macro register(
               ~mac pattern class
               ~mac pattern macro-pattern
-              ~mac prepared
+              ~mac body
               Atomy::CodeLoader compiling
               true
             ))

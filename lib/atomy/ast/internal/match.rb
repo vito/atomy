@@ -44,12 +44,6 @@ module Atomy
 
         skip.set!
       end
-
-      def prepare_all
-        dup.tap do |x|
-          x.branch = x.branch.prepare_all
-        end
-      end
     end
   end
 end

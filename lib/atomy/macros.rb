@@ -43,27 +43,30 @@ module Atomy::Macro
   def self.register(target, pattern, body, file = :macro, let = false)
     name = let ? :"_let#{Environment.salt!}" : :_expand
 
-    Atomy.define_method(
-      target,
-      name,
-      Atomy::Method.new(
-        pattern,
+    Atomy::AST::Define.new(
+      0,
+      Atomy::AST::Compose.new(
+        0,
+        pattern.quoted,
+        Atomy::AST::Word.new(0, name)
+      ),
+      Atomy::AST::Send.new(
+        body.line,
         Atomy::AST::Send.new(
           body.line,
-          Atomy::AST::Send.new(
-            body.line,
-            body,
-            [],
-            "to_node"
-          ),
+          body,
           [],
-          "expand"
+          "to_node"
         ),
-        Rubinius::StaticScope.new(Atomy::AST),
-        [], [], nil, nil,
-        file
-      ),
-      :public
+        [],
+        "expand"
+      )
+    ).evaluate(
+      Binding.setup(
+        Rubinius::VariableScope.of_sender,
+        Rubinius::CompiledMethod.of_sender,
+        Rubinius::StaticScope.new(Atomy::AST)
+      ), nil, file.to_s, pattern.quoted.line
     )
 
     if let

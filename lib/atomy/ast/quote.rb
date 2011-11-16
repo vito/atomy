@@ -8,10 +8,6 @@ module Atomy
         pos(g)
         @expression.construct(g)
       end
-
-      def prepare_all
-        self
-      end
     end
   end
 end

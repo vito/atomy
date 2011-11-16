@@ -24,7 +24,7 @@ module(Atomy::Patterns):
 
   class(Predicate < Pattern):
     initialize(@pattern, test) :=
-      @test = test prepare-all
+      @test = test
 
     construct(g) := do:
       get(g)
@@ -59,7 +59,7 @@ module(Atomy::Patterns):
 
       done set!
 
-    deconstruct(g, locals = Hash new) :=
+    deconstruct(g, locals = ::Hash new) :=
       @pattern deconstruct(g, locals)
 
     local-names := @pattern local-names
@@ -68,7 +68,7 @@ module(Atomy::Patterns):
 
   class(With < Pattern):
     initialize(@pattern, expression, @sub-pattern) :=
-      @expression = expression prepare-all
+      @expression = expression
 
     construct(g) := do:
       get(g)
@@ -135,7 +135,7 @@ module(Atomy::Patterns):
 
       done set!
 
-    deconstruct(g, locals = Hash new) := do:
+    deconstruct(g, locals = ::Hash new) := do:
       unless(@result): g dup
       @pattern deconstruct(g, locals)
 
@@ -189,7 +189,7 @@ module(Atomy::Patterns):
 
       done set!
 
-    deconstruct(g, locals = Hash new) := do:
+    deconstruct(g, locals = ::Hash new) := do:
       g dup
       @a deconstruct(g, locals)
       @b deconstruct(g, locals)
@@ -231,7 +231,7 @@ module(Atomy::Patterns):
 
       done set!
 
-    deconstruct(g, locals = Hash new) := do:
+    deconstruct(g, locals = ::Hash new) := do:
       b = g new-label
       done = g new-label
 
