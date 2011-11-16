@@ -11,9 +11,9 @@ Module using?(y) :=
 Class using?(y) :=
   super || superclass && superclass using?(y)
 
-Module provide :=
+Module provide(&blk) :=
   let(provide-in = self):
-    yield
+    blk[]
 
 using(which) := do:
   Rubinius::StaticScope of-sender module using-modules << which

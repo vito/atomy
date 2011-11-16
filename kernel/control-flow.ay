@@ -29,12 +29,6 @@ macro(super(~*args) ~(blk: Block)):
 macro(super(~*args)):
   Super new(line, args, nil)
 
-macro(yield):
-  Yield new(line, [])
-
-macro(yield(~*args)):
-  Yield new(line, args)
-
 macro(break):
   Break new(line, 'nil)
 
@@ -245,32 +239,3 @@ module(Atomy::AST):
           g zsuper(g state super name)
         else:
           g zsuper(nil)
-
-  class(Yield < Node):
-    children([#arguments])
-    generate
-
-    bytecode(g) := do:
-      pos(g)
-
-      splat = nil
-
-      args = 0
-      @arguments each [a]:
-        e = a prepare
-        e match:
-          Splat:
-            splat =! e
-            break
-
-          _:
-            e bytecode(g)
-            args += 1
-
-      if(splat)
-        then:
-          splat compile(g)
-          g cast-array
-          g yield-splat(args)
-        else:
-          g yield-stack(args)
