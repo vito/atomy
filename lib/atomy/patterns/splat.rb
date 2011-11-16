@@ -26,22 +26,7 @@ module Atomy::Patterns
     end
 
     def deconstruct(g, locals = {})
-      singleton = g.new_label
-      done = g.new_label
-
-      g.dup
-      g.push_const :Array
-      g.swap
-      g.instance_of
-      g.git singleton
-
       g.cast_array
-      g.goto done
-
-      singleton.set!
-      g.make_array 1
-
-      done.set!
       g.send :to_list, 0
       @pattern.deconstruct(g, locals)
     end
