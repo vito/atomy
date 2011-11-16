@@ -15,4 +15,4 @@ describe("assignment"):
 
     it("introduces a new local if undefined"):
       { a =! 1, a } call should-be(1)
-      : a ; should-raise(NoMethodError)
+      { a } should-raise(NameError)

@@ -11,7 +11,7 @@ describe("blocks"):
 
     it("does not leak argument bindings into the block's context"):
       [a] { a + 1 } call(1)
-      { a } should-raise(NoMethodError)
+      { a } should-raise(NameError)
 
     it("is lexically scoped"):
       a = 1

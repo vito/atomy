@@ -119,7 +119,7 @@ describe("macros"):
         (m-foo-22 + fizzbuzz) should-be(3)
 
       m-foo-22 should-be(0)
-      { fizzbuzz } should-raise(NoMethodError)
+      { fizzbuzz } should-raise(NameError)
 
     it("lets later macros refer to earlier ones"):
       let-macro(m-foo-23 = '1,
