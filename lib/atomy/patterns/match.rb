@@ -34,7 +34,7 @@ module Atomy::Patterns
 
     def matches?(g)
       g.push @value
-      g.send :==, 1
+      g.meta_send_op_equal g.find_literal(:==)
     end
   end
 end
