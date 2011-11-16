@@ -77,7 +77,7 @@ x should-raise(y) :=
   x rescue {
     e ->
       unless(e kind-of?(y)):
-        raise(f"expected exception %s, got: %s" [y, e])
+        raise(f"expected exception %s, got: %s" [y, e class])
   } else:
       raise("#should-raise - no exception raised")
 
