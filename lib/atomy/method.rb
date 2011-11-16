@@ -145,6 +145,14 @@ module Atomy
       g.total_args = 0
       g.required_args = 0
 
+      # TODO: this kills the performance.
+      g.push_rubinius
+      g.find_const :CompiledMethod
+      g.send :current, 0
+      get_sender_scope(g)
+      g.send :"scope=", 1
+      g.pop
+
       # push the namespaced checks first
       @branches.each do |provided, methods|
         next unless provided
@@ -172,12 +180,6 @@ module Atomy
       unless @name == :initialize
         g.invoke_primitive :vm_check_super_callable, 0
         g.gif mismatch
-
-        g.push_variables
-        g.push_literal sender_var
-        get_sender_scope(g)
-        g.send :instance_variable_set, 2
-        g.pop
 
         g.push_block
         if g.state.super?
@@ -363,14 +365,6 @@ module Atomy
           g.gif skip
         end
 
-        # TODO: this kills the performance.
-        g.push_rubinius
-        g.find_const :CompiledMethod
-        g.send :current, 0
-        get_sender_scope(g)
-        g.send :"scope=", 1
-        g.pop
-
         g.push_self
         if has_args or splat
           g.push_local 0
@@ -411,23 +405,9 @@ module Atomy
     # get the "actual" sender; either StaticScope.of_sender
     # or VariableScope.of_sender's sender ivar if it's set
     def get_sender_scope(g)
-      done = g.new_label
-
       g.push_rubinius
       g.find_const :StaticScope
       g.send :of_sender, 0
-      g.push_rubinius
-      g.find_const :VariableScope
-      g.send :of_sender, 0
-      g.push_literal sender_var
-      g.send :instance_variable_get, 1
-      g.dup
-      g.gif done
-
-      g.swap
-
-      done.set!
-      g.pop
     end
 
     # StaticScope equivalency test
