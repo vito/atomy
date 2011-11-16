@@ -514,7 +514,7 @@ EOF
         if respond_to?(:show)
           puts "while expanding #{show}"
         else
-          puts "while expanding a #{self.class.name}"
+          puts "while expanding a #{to_sexp.inspect}"
         end
 
         raise
