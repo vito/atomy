@@ -22,7 +22,7 @@ macro(namespace(~name): ~*body):
       ~name)
 
 macro(using(~name) ~body):
-  `(with-instance-variables-from(self):
+  `(with-variables-of(self):
       ~body block call-on-instance(~name const-get(#Provider) new(self)))
 
 macro(~body where: ~*helpers):

@@ -23,6 +23,41 @@ module(Atomy::Patterns):
       g send(#instance-variable-set, 2)
       g pop
 
+  class(NamedRedirectedClass < NamedClass):
+    attr-reader(#target, #identifier)
+
+    initialize(@target, @identifier) := nil
+
+    construct(g) := do:
+      get(g)
+      @target construct(g)
+      g push-literal(@identifier)
+      g send(#new, 2)
+
+    (== b) :=
+      b kind-of?(NamedRedirectedClass) &&
+        @target == b target &&
+        @identifier == b identifier
+
+    deconstruct(g, locals = {}) := do:
+      have-class = g new-label
+
+      @target compile(g)
+      g dup
+      g push-cpath-top
+      g find-const(#Class)
+      g kind-of
+      g git(have-class)
+
+      g send(#class, 0)
+
+      have-class set!
+      g swap
+      g push-literal(name)
+      g swap
+      g send(#class-variable-set, 2)
+      g pop
+
 
 module(Atomy::AST):
   class(RedirectedInstanceVariable < Node):
@@ -39,6 +74,31 @@ module(Atomy::AST):
     pattern :=
       Atomy::Patterns::NamedRedirectedInstance new(@target, @name)
 
+  class(RedirectedClassVariable < Node):
+    children(#target)
+    attributes(#name)
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+      have-class = g new-label
+
+      @target compile(g)
+      g dup
+      g push-cpath-top
+      g find-const(#Class)
+      g kind-of
+      g git(have-class)
+
+      g send(#class, 0)
+
+      have-class set!
+      g push-literal(("@@" + @name) to-sym)
+      g send(#class-variable-get, 1)
+
+    pattern :=
+      Atomy::Patterns::NamedRedirectedClass new(@target, @name)
+
 
 macro(~x onto ~(b: Block)):
   names [val]:
@@ -50,15 +110,18 @@ macro(~x onto ~(b: Block)):
                     if(@private)
                       then: dup tap [p]: p lhs = 'self
                       else: self):
-          { with-instance-variables-from(~val) ~b
+          { with-variables-of(~val) ~b
           } block call-on-instance(~x))
 
 
-macro(with-instance-variables-from(~x) ~(b: Block)):
+macro(with-variables-of(~x) ~(b: Block)):
   names [val]:
     body = b contents collect [c]:
       c through-quotes([n]: n match: `@@~_ -> true) [n]:
         n match:
+          `@@~(name: Word) ->
+            RedirectedClassVariable new(n line, val, name text)
+
           `@~(name: Word) ->
             RedirectedInstanceVariable new(n line, val, name text)
 

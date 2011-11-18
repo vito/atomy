@@ -16,3 +16,70 @@ describe("assignment"):
     it("introduces a new local if undefined"):
       { a =! 1, a } call should-be(1)
       { a } should-raise(NameError)
+
+describe("with-variables-of"):
+  it("redirects instance variable access to the target"):
+    class(InstanceVariableUser):
+      initialize(@x) := nil
+      get-x := @x
+
+    with-variables-of(InstanceVariableUser new(42)):
+      @x should-be(42)
+
+  it("redirects instance variable assignment to the target"):
+    x = InstanceVariableUser new(42)
+    with-variables-of(x):
+      @x = 43
+
+    x get-x should-be(43)
+
+  it("redirects class variable access to the target"):
+    class(ClassVariableUser):
+      @@x = 42
+      get-x := @@x
+
+    with-variables-of(ClassVariableUser new):
+      @@x should-be(42)
+
+  it("redirects class variable assignment to the target"):
+    with-variables-of(ClassVariableUser new):
+      @@x = 43
+
+    ClassVariableUser new get-x should-be(43)
+
+describe("onto"):
+  it("replaces the receiver of private message sends"):
+    1 onto { inspect } should-be("1")
+    1 onto { + 2 } should-be(3)
+
+    1 onto { 3 inspect } should-be("3")
+    1 onto { 3 + 2 } should-be(5)
+
+  it("treats 'self' as the original 'self'"):
+    class(OntoWithSelf):
+      go := 1 onto: [self, + 2]
+
+    x = OntoWithSelf new
+    x go should-be([x, 3])
+
+  it("treats instance variables as belonging to the original 'self'"):
+    class(OntoWithInstanceVariable):
+      initialize(@x) := nil
+      go := 1 onto: @x
+      set := 1 onto: @x = 43
+
+    x = OntoWithInstanceVariable new(42)
+    x go should-be(42)
+    x set
+    x go should-be(43)
+
+  it("treats class variables as belonging to the original 'self'"):
+    class(OntoWithClassVariable):
+      @@foo = 42
+      go := 1 onto: @@foo
+      set := 1 onto: @@foo = 43
+
+    x = OntoWithClassVariable new
+    x go should-be(42)
+    x set
+    x go should-be(43)
