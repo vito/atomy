@@ -512,9 +512,9 @@ EOF
         end
       rescue
         if respond_to?(:show)
-          puts "while expanding #{show}"
+          $stderr.puts "while expanding #{show}"
         else
-          puts "while expanding a #{to_sexp.inspect}"
+          $stderr.puts "while expanding a #{to_sexp.inspect}"
         end
 
         raise
