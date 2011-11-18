@@ -103,10 +103,10 @@
      expression = level3
 
     expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)?
-                    { [x] + Array(xs).to_list }
+                    { [x] + Array(xs) }
 
    interpolated = wsp expressions:es wsp "}"
-                    { Atomy::AST::Tree.new(0, Array(es).to_list) }
+                    { Atomy::AST::Tree.new(0, Array(es)) }
 
          level0 = number
                 | quote
@@ -190,12 +190,12 @@
                     { Atomy::AST::Unary.new(line, e, o) }
 
           block = line:line ":" !operator wsp expressions?:es (wsp ";")?
-                    { Atomy::AST::Block.new(line, Array(es).to_list, [].to_list) }
+                    { Atomy::AST::Block.new(line, Array(es), []) }
                 | line:line "{" wsp expressions?:es wsp "}"
-                    { Atomy::AST::Block.new(line, Array(es).to_list, [].to_list) }
+                    { Atomy::AST::Block.new(line, Array(es), []) }
 
            list = line:line "[" wsp expressions?:es wsp "]"
-                    { Atomy::AST::List.new(line, Array(es).to_list) }
+                    { Atomy::AST::List.new(line, Array(es)) }
 
   composes(pos) = line:line compose:l cont(pos) level1:r
                     { Atomy::AST::Compose.new(line, l, r) }
@@ -203,7 +203,7 @@
                     { Atomy::AST::Compose.new(line, l, r) }
         compose = @composes(current_position)
 
-           args = "(" wsp expressions?:as wsp ")" { Array(as).to_list }
+           args = "(" wsp expressions?:as wsp ")" { Array(as) }
 
            call = line:line level0:n args:as
                     { Atomy::AST::Call.new(line, n, as) }
@@ -276,4 +276,4 @@
                 | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack("U") }
 
 
-           root = shebang? wsp expressions:es wsp !. { Array(es).to_list }
+           root = shebang? wsp expressions:es wsp !. { Array(es) }

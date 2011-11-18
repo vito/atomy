@@ -20,7 +20,7 @@ for-macro:
       else: this
 
   hash-pairs-from(es) :=
-    hash-pair-from(e) for(e) in(es) flatten
+    hash-pair-from(e) for(e) in(es) flatten(1)
 
 
 class(Atomy::AST::Hash < Atomy::AST::Node):
@@ -43,24 +43,8 @@ class(Atomy::AST::Hash < Atomy::AST::Node):
       g pop
 
 
-macro(!#~(l: List)):
+macro(#~(l: List)):
   pairs = hash-pairs-from(l elements)
   keys = pairs collect [[k, _]]: k
   values = pairs collect [[_, v]]: v
   Atomy::AST::Hash new(line, keys, values)
-
-
-macro(#~(l: List)):
-  `(Atomy::Map create(!#~l))
-
-class(Atomy::Map < Hamster::Hash):
-  class(<< self):
-    create(pairs = ::Hash new, &blk) := do:
-      base =
-        if(blk)
-          then: Map new(&blk)
-          else: Atomy::EmptyMap
-
-      pairs reduce(base) [hash, pair]: hash put(pair first, pair last)
-
-Atomy::EmptyMap = Atomy::Map new

@@ -165,7 +165,7 @@ for-macro:
       else: this
 
   pairs-from(es) :=
-    pair-from(e) for(e) in(es) flatten
+    pair-from(e) for(e) in(es) flatten(1)
 
 macro(condition ~(b: Block)):
   pairs-from(b contents) reverse inject('nil) [acc, [x, y]]:

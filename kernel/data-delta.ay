@@ -83,11 +83,8 @@ macro(macro-quoter(~n) [~*as] { ~*cs }):
         define(quote(#~n, ~*as)):
           ~*cs)
 
-macro(~a .. ~b): `(Hamster range(~a, ~b))
-macro(~a ... ~b): `(Hamster exclusive-range(~a, ~b))
-
-macro(~a [~x .. ~y]): `(~a [Range new(~x, ~y)])
-macro(~a [~x ... ~y]): `(~a [Range new(~x, ~y, true)])
+macro(~a .. ~b): `(Range new(~a, ~b))
+macro(~a ... ~b): `(Range new(~a, ~b, true))
 
 for-macro:
   intp-segments(s) :=

@@ -30,7 +30,7 @@ module Atomy
     n.collect do |x|
       x = x.to_node
       Atomy::AST::Quote.new(x.line, x)
-    end.to_list.to_node
+    end.to_node
   end
 
   def self.const_from_string(g, name)

@@ -21,7 +21,7 @@ module(Atomy):
     recv send(@message, *filled)
 
   Particle arity :=
-    @arguments cons(@receiver) select(&#equal?(_undefined)) size
+    (@receiver . @arguments) select(&#equal?(_undefined)) size
 
 Symbol call(*args) := to-proc [*args]
 

@@ -22,8 +22,7 @@ module Atomy::Patterns
 
     def target(g)
       g.push_cpath_top
-      g.find_const :Hamster
-      g.find_const :List
+      g.find_const :Array
     end
 
     def matches?(g)

@@ -55,7 +55,7 @@ restart(name, *args) := do:
 macro(~body bind { ~*handlers }):
   names [a]:
     callback = `([~a]: ~a match: ~*handlers)
-    `(let(handlers = ^handlers cons(~callback)):
+    `(let(handlers = ~callback . ^handlers):
         ~body rescue:
           (e: StandardError) -> error(e))
 
@@ -81,8 +81,11 @@ macro(with-restarts(~*restarts) ~(block: Block)):
 
 
 signal(c) := do:
-  ^handlers tails init each [(callback . rest)]:
-    let(handlers = rest):
+  hs = ^handlers dup
+
+  until(hs empty?):
+    callback = hs shift
+    let(handlers = hs):
       callback [c]
 
   nil

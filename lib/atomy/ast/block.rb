@@ -7,6 +7,7 @@ module Atomy
       children [:contents], [:arguments]
       generate
 
+      # TODO: clean these names up
       def block_arguments
         BlockArguments.new @arguments
       end
@@ -18,6 +19,8 @@ module Atomy
       def body
         raise "no #body for Block"
       end
+
+      alias :caller :block_body
 
       def bytecode(g)
         pos(g)
@@ -97,14 +100,12 @@ module Atomy
 
         if args.last.kind_of?(Patterns::BlockPass)
           g.push_block_arg
-          args.last.deconstruct(g)
-          args = args.init
+          args.pop.deconstruct(g)
         end
 
         g.cast_for_splat_block_arg
         args.each do |a|
           if a.kind_of?(Patterns::Splat)
-            g.send :to_list, 0
             a.pattern.deconstruct(g)
             return
           else

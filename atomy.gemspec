@@ -15,7 +15,6 @@ Gem::Specification.new do |s|
   s.description = s.summary
   s.has_rdoc = false
 
-  s.add_dependency "hamster", "~> 0.4.2"
   s.add_dependency "kpeg", "~> 0.8.4"
 
   s.add_development_dependency "rake"

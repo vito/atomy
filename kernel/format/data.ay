@@ -30,7 +30,7 @@ macro(ast(~root) { ~*nodes }):
 
   all =
     if(root != 'Atomy::AST::Node)
-      then: cs cons(`(class(~root < Atomy::AST::Node) {}))
+      then: `(class(~root < Atomy::AST::Node) {}) . cs
       else: cs
 
   `(do: ~*all)

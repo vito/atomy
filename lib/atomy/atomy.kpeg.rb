@@ -1219,7 +1219,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs).to_list }
+  # expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }
   def _expressions
 
     _save = self.pos
@@ -1274,7 +1274,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  [x] + Array(xs).to_list ; end
+      @result = begin;  [x] + Array(xs) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1286,7 +1286,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # interpolated = wsp expressions:es wsp "}" { Atomy::AST::Tree.new(0, Array(es).to_list) }
+  # interpolated = wsp expressions:es wsp "}" { Atomy::AST::Tree.new(0, Array(es)) }
   def _interpolated
 
     _save = self.pos
@@ -1312,7 +1312,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::Tree.new(0, Array(es).to_list) ; end
+      @result = begin;  Atomy::AST::Tree.new(0, Array(es)) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -2350,7 +2350,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # block = (line:line ":" !operator wsp expressions?:es (wsp ";")? { Atomy::AST::Block.new(line, Array(es).to_list, [].to_list) } | line:line "{" wsp expressions?:es wsp "}" { Atomy::AST::Block.new(line, Array(es).to_list, [].to_list) })
+  # block = (line:line ":" !operator wsp expressions?:es (wsp ";")? { Atomy::AST::Block.new(line, Array(es), []) } | line:line "{" wsp expressions?:es wsp "}" { Atomy::AST::Block.new(line, Array(es), []) })
   def _block
 
     _save = self.pos
@@ -2418,7 +2418,7 @@ class Atomy::Parser
           self.pos = _save1
           break
         end
-        @result = begin;  Atomy::AST::Block.new(line, Array(es).to_list, [].to_list) ; end
+        @result = begin;  Atomy::AST::Block.new(line, Array(es), []) ; end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -2469,7 +2469,7 @@ class Atomy::Parser
           self.pos = _save6
           break
         end
-        @result = begin;  Atomy::AST::Block.new(line, Array(es).to_list, [].to_list) ; end
+        @result = begin;  Atomy::AST::Block.new(line, Array(es), []) ; end
         _tmp = true
         unless _tmp
           self.pos = _save6
@@ -2486,7 +2486,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # list = line:line "[" wsp expressions?:es wsp "]" { Atomy::AST::List.new(line, Array(es).to_list) }
+  # list = line:line "[" wsp expressions?:es wsp "]" { Atomy::AST::List.new(line, Array(es)) }
   def _list
 
     _save = self.pos
@@ -2529,7 +2529,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::List.new(line, Array(es).to_list) ; end
+      @result = begin;  Atomy::AST::List.new(line, Array(es)) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -2632,7 +2632,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # args = "(" wsp expressions?:as wsp ")" { Array(as).to_list }
+  # args = "(" wsp expressions?:as wsp ")" { Array(as) }
   def _args
 
     _save = self.pos
@@ -2669,7 +2669,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Array(as).to_list ; end
+      @result = begin;  Array(as) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -3877,7 +3877,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # root = shebang? wsp expressions:es wsp !. { Array(es).to_list }
+  # root = shebang? wsp expressions:es wsp !. { Array(es) }
   def _root
 
     _save = self.pos
@@ -3916,7 +3916,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Array(es).to_list ; end
+      @result = begin;  Array(es) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -3947,8 +3947,8 @@ class Atomy::Parser
   Rules[:_in_multi] = rule_info("in_multi", "(/[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ \"{-\" in_multi /[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ /[-{}]/ in_multi)")
   Rules[:_delim] = rule_info("delim", "(wsp \",\" wsp | (sp \"\\n\" sp)+ &{ current_column >= c })")
   Rules[:_expression] = rule_info("expression", "level3")
-  Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs).to_list }")
-  Rules[:_interpolated] = rule_info("interpolated", "wsp expressions:es wsp \"}\" { Atomy::AST::Tree.new(0, Array(es).to_list) }")
+  Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }")
+  Rules[:_interpolated] = rule_info("interpolated", "wsp expressions:es wsp \"}\" { Atomy::AST::Tree.new(0, Array(es)) }")
   Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | splice | unquote | string | constant | word | block | list | unary)")
   Rules[:_level1] = rule_info("level1", "(call | grouped | level0)")
   Rules[:_level2] = rule_info("level2", "(compose | level1)")
@@ -3971,15 +3971,15 @@ class Atomy::Parser
   Rules[:_constant] = rule_info("constant", "(line:line constant_name:m (\"::\" constant_name)*:s {                     names = [m] + Array(s)                     const_chain(line, names)                   } | line:line (\"::\" constant_name)+:s {                     names = Array(s)                     const_chain(line, names, true)                   })")
   Rules[:_word] = rule_info("word", "line:line identifier:n { Atomy::AST::Word.new(line, n) }")
   Rules[:_unary] = rule_info("unary", "line:line !\":\" op_letter:o level1:e { Atomy::AST::Unary.new(line, e, o) }")
-  Rules[:_block] = rule_info("block", "(line:line \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es).to_list, [].to_list) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es).to_list, [].to_list) })")
-  Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es).to_list) }")
+  Rules[:_block] = rule_info("block", "(line:line \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), []) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), []) })")
+  Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
   Rules[:_composes] = rule_info("composes", "(line:line compose:l cont(pos) level1:r { Atomy::AST::Compose.new(line, l, r) } | line:line level1:l cont(pos) level1:r { Atomy::AST::Compose.new(line, l, r) })")
   Rules[:_compose] = rule_info("compose", "@composes(current_position)")
-  Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as).to_list }")
+  Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_call] = rule_info("call", "line:line level0:n args:as { Atomy::AST::Call.new(line, n, as) }")
   Rules[:_binary_c] = rule_info("binary_c", "(cont(pos) operator:o &{ !o.end_with?(\"@\") } sig_wsp level2:e { [o, e] })+:bs { bs.flatten }")
   Rules[:_binary] = rule_info("binary", "(level2:l binary_c(current_position):c { resolve(nil, l, c).first } | line:line operator:o &{ !o.end_with?(\"@\") } sig_wsp expression:r { Atomy::AST::Binary.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")
   Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack(\"U\") } | < /\\d{1,6}/ > { [text.to_i].pack(\"U\") } | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack(\"U\") } | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack(\"U\") })")
-  Rules[:_root] = rule_info("root", "shebang? wsp expressions:es wsp !. { Array(es).to_list }")
+  Rules[:_root] = rule_info("root", "shebang? wsp expressions:es wsp !. { Array(es) }")
 end

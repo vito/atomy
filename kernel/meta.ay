@@ -1,14 +1,14 @@
 macro(evaluate-when(~*when) ~(x: Block)):
   evaluated? = false
 
-  when contains?('compile) && do:
+  when member?('compile) && do:
     x block-body evaluate
     evaluated? =! true
 
-  when contains?('load) && do:
+  when member?('load) && do:
     Atomy::CodeLoader when-load << [x block-body, evaluated?]
 
-  when contains?('run) &&
+  when member?('run) &&
     Atomy::CodeLoader when-run << [x block-body, evaluated?]
 
   'nil

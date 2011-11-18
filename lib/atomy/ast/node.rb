@@ -77,13 +77,9 @@ module Atomy
           @#{n}.each do |e|
             if e.kind_of?(::Atomy::AST::Splice) && d == 1
               if size > 0
-                g.push_cpath_top
-                g.find_const :Hamster
-                g.move_down size
-                g.send :list, size
+                g.make_array size
               end
               e.construct(g, d)
-              g.send :to_list, 0
               g.send :+, 1 if size > 0 || spliced
               spliced = true
               size = 0
@@ -93,10 +89,7 @@ module Atomy
             end
           end
 
-          g.push_cpath_top
-          g.find_const :Hamster
-          g.move_down size
-          g.send :list, size
+          g.make_array size
 
           g.send :+, 1 if spliced
 END
@@ -140,8 +133,7 @@ EOF
             #{@@slots[:required].collect { |s| "raise \"initialized without `#{s}': \#{#{s}_.inspect}\" if #{s}_.nil?" }.join("; ")}
 
             @line = line
-            #{(all - lists).collect { |a| "@#{a} = #{a}_" }.join("; ")}
-            #{lists.collect { |a| "@#{a} = #{a}_.to_list" }.join("; ")}
+            #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
           end
 EOF
 
@@ -163,7 +155,7 @@ EOF
               }.join("; ")}
 
             #{@@attributes[:many].collect { |a|
-                "g.push_cpath_top; g.find_const :Hamster; @#{a}.each { |n| g.push_literal n }; g.send(:list, @#{a}.size)"
+                "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
               }.join("; ")}
 
             #{@@slots[:required].collect { |a|
@@ -171,7 +163,7 @@ EOF
               }.join("; ")}
 
             #{@@slots[:many].collect { |a|
-                "g.push_cpath_top; g.find_const :Hamster; @#{a}.each { |n| g.push_literal n }; g.send(:list, @#{a}.size)"
+                "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
               }.join("; ")}
 
             #{@@children[:optional].collect { |n, _|
@@ -206,7 +198,7 @@ EOF
 
         many_cs =
           @@children[:many].collect { |n|
-            ", @#{n}.zip(Hamster.interval(0, @#{n}.size - 1)).collect { |n, i| n.recursively(pre, post, [:#{n}, i], &f) }"
+            ", @#{n}.zip((0 .. @#{n}.size - 1).to_a).collect { |n, i| n.recursively(pre, post, [:#{n}, i], &f) }"
           }.join
 
         opt_cs =
@@ -297,7 +289,7 @@ EOF
                 @line#{creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss}
               )
             else
-              Hamster.list(#{all.join(", ")})
+              [#{all.join(", ")}]
             end
           end
 EOF
@@ -463,7 +455,7 @@ EOF
         Send.new(
           @line,
           self,
-          Hamster.list,
+          [],
           "call"
         )
       end
@@ -765,14 +757,7 @@ end
 
 class Array
   def to_node
-    Atomy::AST::Compose.new(
-      -1,
-      Atomy::AST::ToplevelConstant.new(
-        -1,
-        "Array"
-      ),
-      Atomy::AST::List.new(-1, collect(&:to_node))
-    )
+    Atomy::AST::List.new(-1, collect(&:to_node))
   end
 end
 
@@ -785,11 +770,5 @@ end
 class Symbol
   def to_node
     Atomy::AST::Literal.new -1, self
-  end
-end
-
-module Hamster::List
-  def to_node
-    Atomy::AST::List.new -1, collect(&:to_node)
   end
 end

@@ -27,7 +27,6 @@ module Atomy::Patterns
 
     def deconstruct(g, locals = {})
       g.cast_array
-      g.send :to_list, 0
       @pattern.deconstruct(g, locals)
     end
 

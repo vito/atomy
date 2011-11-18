@@ -298,7 +298,6 @@ module Atomy
           end
 
           if splat and s = splat.pattern
-            g.send :to_list, 0
             s.matches?(g)
             g.gif skip
           else

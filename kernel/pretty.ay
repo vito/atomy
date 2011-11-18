@@ -15,16 +15,16 @@ from(*where, &y) :=
 
 from?(*where) :=
   [^atomy-pretty-context, where] match:
-    [(a: List), (b: List)] ->
+    [(a: Array), (b: Array)] ->
       a any? [x]: b include?(x)
-    [(a: List), b] ->
+    [(a: Array), b] ->
       a include?(b)
-    [a, (b: List)] ->
+    [a, (b: Array)] ->
       b include?(a)
     [a, b] ->
       a == b
 
-List all-pretty := collect [x]: x pretty
+Array all-pretty := collect [x]: x pretty
 
 Atomy::Pretty::Doc colored(color) := doc:
   -- only makes sense to colorize if we're outputting to a terminal
@@ -59,9 +59,7 @@ Object show := pretty flatten render
 
 Atomy::Pretty::Doc pretty := self
 
-List pretty := doc: list(all-pretty)
-
-Array pretty := doc: text("Array") <> list(collect [x]: x pretty)
+Array pretty := doc: list(all-pretty)
 
 Atomy::Particle pretty := doc:
   wildcard = [c]:
@@ -100,18 +98,11 @@ Symbol pretty := doc:
     else: text("#") <> s pretty
 
 Hash pretty := doc:
-  text("!#") <>
+  text("#") <>
     brackets $:
       comma separate $:
         to-a collect [[k, v]]:
           k unamb <+> text("->") <+> v unamb
-
-Atomy::Map pretty := doc:
-  text("#") <>
-    brackets $:
-      comma separate $:
-        reduce([]) [a, k, v]:
-          a + [k unamb <+> text("->") <+> v unamb]
 
 module(Atomy::AST):
   Block unamb := pretty
@@ -255,7 +246,7 @@ module(Atomy::Patterns):
     Atomy::Particle new(
       @receiver
       @message
-      @arguments patterns to-list
+      @arguments patterns
     ) pretty
   Predicate pretty := `(~@pattern ? ~@test) pretty
   QuasiQuote pretty := @quoted pretty

@@ -113,17 +113,17 @@ namespace(Atomy::Pretty):
   []                     be(_, _) := SEmpty new
   ([i, Empty]      . ds) be(w, k) := ds be(w, k)
   ([i, Cat(x, y)]  . ds) be(w, k) := ([[i, x], [i, y]] + ds) be(w, k)
-  ([i, Nest(j, x)] . ds) be(w, k) := ds cons([i + j, x]) be(w, k)
+  ([i, Nest(j, x)] . ds) be(w, k) := ([i + j, x] . ds) be(w, k)
   ([i, Text(s)]    . ds) be(w, k) := SText new(s, { ds be(w, k + s size) })
   ([i, Raw(s)]     . ds) be(w, k) := SRaw new(s, { ds be(w, k) })
   ([i, Line(s)]    . ds) be(w, k) := SLine new(s, i, { ds be(w, i) })
-  ([i, Column(f)]  . ds) be(w, k) := ds cons([i, f [k]]) be(w, k)
-  ([i, Nesting(f)] . ds) be(w, k) := ds cons([i, f [i]]) be(w, k)
+  ([i, Column(f)]  . ds) be(w, k) := ([i, f [k]] . ds) be(w, k)
+  ([i, Nesting(f)] . ds) be(w, k) := ([i, f [i]] . ds) be(w, k)
   ([i, u: Union]   . ds) be(w, k) := do:
-    flattened = ds cons([i, u x]) be(w, k)
+    flattened = ([i, u x] . ds) be(w, k)
     if(flattened fits?(w - k))
       then: flattened
-      else: ds cons([i, u y]) be(w, k)
+      else: ([i, u y] . ds) be(w, k)
 
   -- find the best configuration to fit document X in width w
   Doc best(w, k) := [[0, self]] be(w, k)

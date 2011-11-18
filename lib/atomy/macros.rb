@@ -8,13 +8,13 @@ module Atomy::Macro
     def names(num = 0, &block)
       num = block.arity if block
 
-      as =
-        Hamster.stream {
-          word("s:" + Atomy::Macro::Environment.salt!.to_s)
-        }.take(num)
+      as = []
+      num.times do
+        as << word("s:" + Atomy::Macro::Environment.salt!.to_s)
+      end
 
       if block
-        block.call(*as.to_a)
+        block.call(*as)
       else
         as
       end

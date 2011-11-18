@@ -1,11 +1,11 @@
 task :default => :test
 
 task :parser do
-  sh "kpeg -f -s lib/atomy.kpeg"
+  sh "kpeg -f -s lib/atomy/atomy.kpeg"
 end
 
 task :formatter do
-  sh "kpeg -f -s lib/formatter.kpeg"
+  sh "kpeg -f -s lib/atomy/formatter.kpeg"
 end
 
 task :clean do
