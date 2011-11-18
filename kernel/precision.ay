@@ -34,6 +34,9 @@ module(Atomy::Patterns):
   -- higher precision.
   (a: Constant) <=> (b: Constant) :=
     condition:
+      (a value nil? || b value nil?) ->
+        0
+
       (a value ancestors nil? || b value ancestors nil?) ->
         0
 
