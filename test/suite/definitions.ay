@@ -65,9 +65,9 @@ describe("definitions"):
         d2(a, b = 1 + 1) := [a, b]
         d2(0) should-be([0, 2])
 
-      it("evaluates its default with other args in scope"):
+      it("evaluates its default without other args in scope"):
         d3(a, b = a + 1) := [a, b]
-        d3(0) should-be([0, 1])
+        { d3(0) } should-raise(NameError)
 
       it("is overrided by an argument"):
         d4(a, b = 3) := [a, b]
