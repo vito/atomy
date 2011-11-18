@@ -28,15 +28,14 @@ module Atomy
         @block == b.block
     end
 
-    def size
-      @required.size + @defaults.size +
-        (@splat ? 1 : 0) + (@block ? 1 : 0)
+    def total_args
+      @required.size + @defaults.size
     end
 
     # compare one method's precision to another
     def <=>(other)
-      return 1 if size > other.size
-      return -1 if size < other.size
+      return 1 if total_args > other.total_args
+      return -1 if total_args < other.total_args
 
       total = @receiver <=> other.receiver
 
@@ -62,7 +61,7 @@ module Atomy
     # will two patterns (and namespaces) always match the
     # same things?
     def =~(other)
-      return false unless size == other.size
+      return false unless total_args == other.total_args
 
       return false unless @receiver =~ other.receiver
 
@@ -118,14 +117,6 @@ module Atomy
 
     def [](ns)
       @branches[ns]
-    end
-
-    def size
-      size = 0
-      @branches.each_value do |v|
-        size += v.size
-      end
-      size
     end
 
     def build
@@ -294,7 +285,7 @@ module Atomy
         splat = meth.splat
         block = meth.block
 
-        has_args = (reqs.size + defs.size) > 0
+        has_args = meth.total_args > 0
 
         skip = g.new_label
         argmis = g.new_label
@@ -313,13 +304,20 @@ module Atomy
         if has_args
           g.push_local 0
 
-          #unless defs.empty?
-            #g.dup
-            #g.push_int((reqs + defs).size)
-            #g.push_nil
-            #g.send :[]=, 2
-            #g.pop
-          #end
+          unless defs.empty?
+            no_stretch = g.new_label
+
+            g.passed_arg(meth.total_args - 1)
+            g.git no_stretch
+
+            g.dup
+            g.push_int(meth.total_args - 1)
+            g.push_nil
+            g.send :[]=, 2
+            g.pop
+
+            no_stretch.set!
+          end
 
           reqs.each_with_index do |a, i|
             g.shift_array
@@ -352,19 +350,13 @@ module Atomy
             g.gif argmis
           end
 
-          g.pop
-        end
-
-        if splat and s = splat.pattern
-          g.push_local 0
-          (reqs.size + defs.size).times do
-            g.shift_array
+          if splat and s = splat.pattern
+            g.send :to_list, 0
+            s.matches?(g)
+            g.gif skip
+          else
             g.pop
           end
-
-          g.send :to_list, 0
-          s.matches?(g)
-          g.gif skip
         end
 
         g.push_self
