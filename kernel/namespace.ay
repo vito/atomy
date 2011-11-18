@@ -1,0 +1,40 @@
+require("delegate")
+
+class(AtomyDelegator < SimpleDelegator):
+  define(method-missing(m, *args, &block)):
+    target = self _-getobj--
+    { if(target respond-to?(m, true))
+        then: target _-send--(m, *args, &block)
+        else: super(m, *args, &block)
+    } ensuring:
+      when($"@"):
+        $"@" delete-if [t]:
+          r"\A#{Regexp quote(_FILE)}:#{_LINE - 2}:" =~ t
+
+
+macro(namespace(~name): ~*body):
+  `(module(~name):
+      ~*body
+
+      class(Provider < AtomyDelegator):
+        include(~name)
+        
+      ~name)
+
+macro(using(~name) ~body):
+  `(with-instance-variables-from(self):
+      ~body block call-on-instance(~name const-get(#Provider) new(self)))
+
+macro(~body where: ~*helpers):
+  names [mod]:
+    `(do:
+        ~mod =
+          Module new:
+            Self = self
+
+            ~*helpers
+
+            class(Provider < AtomyDelegator):
+              include(Self)
+
+        using(~mod) ~body)

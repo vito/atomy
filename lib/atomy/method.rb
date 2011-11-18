@@ -85,7 +85,7 @@ module Atomy
 
     def initialize(name)
       @name = name
-      @branches = Hash.new { |h, k| h[k] = [] }
+      @branches = []
       @sorted = false
     end
 
@@ -93,8 +93,8 @@ module Atomy
       :"#{@name}:#{Macro::Environment.salt!}"
     end
 
-    def add(branch, provided_in = nil)
-      insert(branch, @branches[provided_in])
+    def add(branch)
+      insert(branch, @branches)
       branch.name = new_name
       nil
     end
@@ -104,19 +104,8 @@ module Atomy
     end
 
     def sort!
-      @branches.each_value do |v|
-        v.sort! { |x, y| y <=> x }
-      end
+      @branches.sort! { |x, y| y <=> x }
       @sorted = true
-    end
-
-    # TODO: delegate to @branches
-    def each(&blk)
-      @branches.each(&blk)
-    end
-
-    def [](ns)
-      @branches[ns]
     end
 
     def build
@@ -138,35 +127,7 @@ module Atomy
       g.total_args = 0
       g.required_args = 0
 
-      # TODO: this kills the performance.
-      g.push_rubinius
-      g.find_const :CompiledMethod
-      g.send :current, 0
-      get_sender_scope(g)
-      g.send :"scope=", 1
-      g.pop
-
-      # push the namespaced checks first
-      @branches.each do |provided, methods|
-        next unless provided
-
-        skip = g.new_label
-
-        get_sender_scope(g)
-        g.send :module, 0
-        g.push_literal provided
-        g.send :using?, 1
-        g.gif skip
-
-        build_methods(g, methods, done)
-
-        skip.set!
-      end
-
-      # try the bottom namespace after the others
-      if bottom = @branches[nil] and not bottom.empty?
-        build_methods(g, bottom, done)
-      end
+      build_methods(g, @branches, done)
 
       # call super. note that we keep the original sender's static
       # scope for use in namespace checks
@@ -188,23 +149,9 @@ module Atomy
       mismatch.set!
       g.push_self
       g.push_cpath_top
-
-      if @branches[nil].empty?
-        g.find_const :NoMethodError
-        g.push_literal "unexposed method `"
-        g.push_literal @name.to_s
-        g.push_literal "' called on an instance of "
-        g.push_self
-        g.send :class, 0
-        g.send :to_s, 0
-        g.push_literal "."
-        g.string_build 5
-      else
-        g.find_const :Atomy
-        g.find_const :MethodFail
-        g.push_literal @name
-      end
-
+      g.find_const :Atomy
+      g.find_const :MethodFail
+      g.push_literal @name
       g.send :new, 1
       g.allow_private
       g.send :raise, 1
@@ -429,20 +376,17 @@ module Atomy
 
   # define a new method branch
   def self.define_branch(target, name, branch, visibility, scope, defn)
-    provided = Thread.current[:atomy_provide_in]
     methods = METHODS[target]
 
     if method = methods[name]
-      method.add(branch, provided)
+      method.add(branch)
     else
       method = Method.new(name)
-      method.add(branch, provided)
+      method.add(branch)
       methods[name] = method
     end
 
-    target = Object if defn and Thread.current[:atomy_provide_in]
-
-    if defn and not Thread.current[:atomy_provide_in]
+    if defn
       Rubinius.add_defn_method branch.name, branch.executable, scope, visibility
     else
       Rubinius.add_method branch.name, branch.executable, target, visibility

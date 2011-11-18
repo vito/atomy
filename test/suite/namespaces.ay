@@ -1,131 +1,84 @@
 describe("namespaces"):
-  it("doesn't provide methods to static scopes that aren't `using' the module"):
+  it("isolates method definitions"):
     namespace(NotUsed):
       not-used := 1
 
-    { not-used } should-raise(NoMethodError)
+    { method(#not-used) } should-raise(NameError)
 
-  it("provides methods for static scopes that are `using' the module"):
+  it("provides methods for when `using' the namespace"):
     namespace(Used):
       used := 1
 
+    using(Used):
+      used should-be(1)
+
+  it("can be extended into a module"):
+    module(ExtenderModule):
+      extend(Used)
+      used should-be(1)
+
+  it("can be included into a module"):
     module(User):
-      using(Used)
-      used should-be(1)
+      include(Used)
 
-  it("persists used namespaces in a reopened module"):
-    module(User):
-      used should-be(1)
+    class(UserClassUser):
+      include(User)
 
-  it("allows using namespaces in a class definition"):
+    UserClassUser new used should-be(1)
+
+  it("provides instance methods"):
     class(ClassUser):
-      using(Used)
-      used should-be(1)
-
-  it("provides methods to instance methods"):
-    class(ClassUser):
+      include(Used)
       get-used := used
 
+    ClassUser new used should-be(1)
     ClassUser new get-used should-be(1)
 
-  it("persists used namespaces in a reopened class"):
-    class(ClassUser):
-      used should-be(1)
+  it("provides instance methods to a subclass"):
+    class(ClassUserSub < ClassUser):;
+    ClassUserSub new used should-be(1)
+    ClassUserSub new get-used should-be(1)
 
-  it("persists used namespaces through to a subclass"):
-    class(ClassUserSub < ClassUser):
-      used should-be(1)
-
-  it("does not persist through #module-eval"):
-    User module-eval:
-      { used } should-raise(NoMethodError)
-
-  it("allows providing recursive methods"):
-    namespace(Recursive):
-      0 recursive := 0
-      1 recursive := 1
-      Fixnum recursive :=
-        (- 2) recursive + (- 1) recursive
-
-    module(RecursiveUser):
-      using(Recursive)
-      3 recursive should-be(2)
-
-  it("allows methods defined in the module to use other methods"):
+  it("provides methods defined in the namespace to each other"):
     namespace(SelfUser):
       self-user-a := self-user-b
       self-user-b := self-user-c
       self-user-c := 42
 
-    module(SelfUserUser):
-      using(SelfUser)
-      self-user-a should-be(42)
+    class(SelfUserUser):
+      include(SelfUser)
 
-  it("respects class hierarchy"):
-    data:
-      Parent:
-        Child1
-        Child2
+    SelfUserUser new self-user-a should-be(42)
 
-    Parent a := 0
-    Child1 a := 1
-
-    Parent new a should-be(0)
-    Child1 new a should-be(1)
-    Child2 new a should-be(0)
-
-    namespace(Child1Overrider):
-      Parent a := 2
-
-    module(Child1OverriderUser):
-      using(Child1Overrider)
-
-      Parent new a should-be(2)
-      Child1 new a should-be(1)
-      Child2 new a should-be(2)
-
-  it("does not bypass sender static scope when matching with zsuper"):
-    namespace(SuperMatcher):
-      1 super-matcher := 1
-      Object super-matcher := 2
-
-    { 2 super-matcher } should-raise(NoMethodError)
-
-    module(SuperMatcherUser):
-      using(SuperMatcher)
-
-      1 super-matcher should-be(1)
-      2 super-matcher should-be(2)
-
-  it("provides methods used inside of `provide`"):
+  it("provides methods from included namespaces"):
     namespace(A):
       in-a := 1
 
     namespace(B):
-      using(A)
+      include(A)
       in-b := in-a
 
-    module(C):
-      using(B)
+    class(C):
+      include(B)
 
-      in-b should-be(1)
-      in-a should-be(1)
+    C new in-b should-be(1)
+    C new in-a should-be(1)
 
-  it("does not perform local rebinding"):
-    class(LocalRebindingClass):
-      bar := "Foo#bar"
-      baz := bar
+  describe(#where):
+    it("provides methods for the duration of a block"):
+      { foo(1, 2) should-be(3) } where: foo(a, b) := a + b
 
-    namespace(LocalRebinder):
-      LocalRebindingClass bar := "LocalRebinder#bar"
+    it("does not leak method definitions"):
+      { hidden(1, 2) should-be(3) } where: hidden(a, b) := a + b
+      { method(#hidden) } should-raise(NameError)
 
-    lrc = LocalRebindingClass new
-    lrc bar should-be("Foo#bar")
-    lrc baz should-be("Foo#bar")
+    it("shadows method definitions"):
+      outer(a, b) := a + b
+      { outer(1, 2) should-be(-1) } where: outer(a, b) := a - b
+      outer(1, 2) should-be(3)
 
-    module(LocalRebinderUser):
-      using(LocalRebinder)
-
-      lrc = LocalRebindingClass new
-      lrc bar should-be("LocalRebinder#bar")
-      lrc baz should-be("Foo#bar")
+    it("shadows when nested"):
+      { outer2(2, 3) should-be(6)
+        { outer2(2, 3) should-be(8)
+        } where: outer2(a, b) := a ** b
+      } where: outer2(a, b) := a * b
