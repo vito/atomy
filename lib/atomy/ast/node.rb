@@ -288,7 +288,7 @@ EOF
         all =
           (@@children[:required] +
             @@children[:many] +
-            @@children[:optional]).collect { |n| "@#{n}" }
+            @@children[:optional]).collect { |n, _| "@#{n}" }
 
         class_eval <<EOF
           def children(&f)
