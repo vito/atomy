@@ -105,7 +105,9 @@ module Atomy
     end
 
     def sort!
-      @branches.each_value(&:sort!)
+      @branches.each_value do |v|
+        v.sort! { |x, y| y <=> x }
+      end
       @sorted = true
     end
 
