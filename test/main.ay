@@ -2,7 +2,7 @@ theories = ARGV at(1) || "*"
 
 result =
   theorize:
-    Dir glob("test/suite/" + theories + ".ay") each [t]:
+    Dir glob(File expand-path("../suite", _FILE) + "/" + theories + ".ay") each [t]:
       require(t)
 
 unless(result failed == 0):
