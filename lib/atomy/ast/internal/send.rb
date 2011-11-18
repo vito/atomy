@@ -19,10 +19,10 @@ module Atomy
           e = a.prepare
           if e.kind_of?(BlockPass)
             block = e
-            break
+            next
           elsif e.kind_of?(Splat)
             splat = e
-            break
+            next
           end
 
           e.bytecode(g)
