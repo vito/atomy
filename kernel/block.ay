@@ -1,28 +1,18 @@
 macro(~x onto ~(b: Block)):
   names [ctx]:
-    shadowed? = false
+    instpat = '~(x: Word)
+    `(do:
+        ~ctx = self
+        let-macro(
+          self = '~ctx
 
-    blk = b through-quotes [n]:
-      n match:
-        `@~(x: Word):
-          shadowed? =! true
-          `(~ctx instance-variable-get(#~("@" + x text)))
+          Call = to-send tap [p]: p receiver = 'self
 
-        'self:
-          shadowed? =! true
-          ctx
+          @~instpat =
+            `(~'~ctx instance-variable-get(#~("@" + x text)))
 
-        Call ->
-          n to-send tap [p]:
-            p receiver = 'self
-
-        Binary ? @private ->
-          n dup tap [p]:
-            p lhs = 'self
-
-        _ ->
-          n
-
-    if(shadowed?)
-      then: `(do: ~ctx = self, ~blk block call-on-instance(~x))
-      else: `(~b block call-on-instance(~x))
+          Binary =
+            if(@private)
+              then: dup tap [p]: p lhs = 'self
+              else: self
+        ): ~b block call-on-instance(~x))
