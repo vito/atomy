@@ -95,12 +95,12 @@ Atomy::Particle to-s := show
 
 Symbol pretty := doc:
   s = to-s
-  if(s =~ r"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-_\\:.\/\?])*$"(u))
+  if(s =~ r"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-_\\.\/\?])*$"(u))
     then: text("#") <> ident(s)
     else: text("#") <> s pretty
 
 Hash pretty := doc:
-  text("#") <>
+  text("!#") <>
     brackets $:
       comma separate $:
         to-a collect [[k, v]]:
