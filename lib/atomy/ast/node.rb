@@ -588,7 +588,7 @@ EOF
       extend SentientNode
 
       def bytecode(g)
-        raise "no #bytecode for #{self.class.name}"
+        raise "no #bytecode for #{to_sexp}"
       end
     end
 
