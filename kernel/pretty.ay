@@ -1,3 +1,4 @@
+dynamic(atomy-pretty-printing, [])
 dynamic(atomy-pretty-multiline?, false)
 dynamic(atomy-pretty-context, #top)
 dynamic(atomy-pretty-colored?, false)
@@ -24,6 +25,13 @@ from?(*where) :=
     [a, b] ->
       a == b
 
+Object pretty :=
+  if(^atomy-pretty-printing member?(self))
+    then: doc: text("...")
+    else:
+      let(atomy-pretty-printing = self . ^atomy-pretty-printing):
+        pretty-print
+
 Array all-pretty := collect [x]: x pretty
 
 Atomy::Pretty::Doc colored(color) := doc:
@@ -46,22 +54,22 @@ Atomy::Pretty::Doc colored(color) := doc:
 
   raw("\e[9" + hash [color] to-s + "m") <> self <> raw("\e[0m")
 
-String pretty := doc: text(inspect gsub("\\#", "#")) colored(#yellow)
+String pretty-print := doc: text(inspect gsub("\\#", "#")) colored(#yellow)
 
-Integer pretty := super colored(#blue)
-Float pretty := super colored(#blue)
-TrueClass pretty := super colored(#green)
-FalseClass pretty := super colored(#red)
-NilClass pretty := super colored(#black)
-Object pretty := Atomy::Pretty::Text new(inspect)
+Integer pretty-print := super colored(#blue)
+Float pretty-print := super colored(#blue)
+TrueClass pretty-print := super colored(#green)
+FalseClass pretty-print := super colored(#red)
+NilClass pretty-print := super colored(#black)
+Object pretty-print := Atomy::Pretty::Text new(inspect)
 
 Object show := pretty flatten render
 
-Atomy::Pretty::Doc pretty := self
+Atomy::Pretty::Doc pretty-print := self
 
-Array pretty := doc: list(all-pretty)
+Array pretty-print := doc: list(all-pretty)
 
-Atomy::Particle pretty := doc:
+Atomy::Particle pretty-print := doc:
   wildcard = [c]:
     if(c equal?(_undefined))
       then: '_
@@ -91,13 +99,13 @@ Atomy::Particle pretty := doc:
 
 Atomy::Particle to-s := show
 
-Symbol pretty := doc:
+Symbol pretty-print := doc:
   s = to-s
   if(s =~ r"^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-_\\.\/\?])*$"(u))
     then: text("#") <> ident(s)
     else: text("#") <> s pretty
 
-Hash pretty := doc:
+Hash pretty-print := doc:
   text("#") <>
     brackets $:
       comma separate $:
@@ -135,11 +143,11 @@ module(Atomy::AST):
   Node unamb := doc: parens(pretty)
   _ unamb := pretty
 
-  Binary pretty := doc:
+  Binary pretty-print := doc:
     from(#binary):
       ((@lhs unamb <+> text(@operator)) </> @rhs unamb) hang(2)
 
-  Block pretty := doc:
+  Block pretty-print := doc:
     args =
       if(@arguments empty?)
         then: empty
@@ -151,13 +159,13 @@ module(Atomy::AST):
       then: args <> colon <+> contents
       else: align(args <+> (lbrace </> contents) nest(2) </> rbrace)
 
-  Call pretty := doc: @name pretty <> tupled(@arguments all-pretty)
+  Call pretty-print := doc: @name pretty <> tupled(@arguments all-pretty)
 
-  Compose pretty := @left pretty <+> @right pretty
+  Compose pretty-print := @left pretty <+> @right pretty
 
-  Constant pretty := doc: text(@identifier)
+  Constant pretty-print := doc: text(@name)
 
-  Infix pretty := doc:
+  Infix pretty-print := doc:
     hsep([
       text(".infix")
       text(@associativity to-s)
@@ -165,16 +173,16 @@ module(Atomy::AST):
       hsep(@operators map [o] { text(o) })
     ])
 
-  List pretty := doc:
+  List pretty-print := doc:
     from(#list):
       list(@elements all-pretty)
 
-  Literal pretty := @value pretty
+  Literal pretty-print := @value pretty
 
-  Macro pretty := doc:
+  Macro pretty-print := doc:
     text("macro") <+> parens(@pattern pretty) <+> @body pretty
 
-  Primitive pretty := doc:
+  Primitive pretty-print := doc:
     @value match:
       #self -> text("self")
       #true -> text("true")
@@ -182,79 +190,79 @@ module(Atomy::AST):
       #nil -> text("nil")
       x -> text(x inspect)
 
-  QuasiQuote pretty := doc:
+  QuasiQuote pretty-print := doc:
     from(#unary):
       text("`") <> @expression unamb
 
-  Quote pretty := doc:
+  Quote pretty-print := doc:
     from(#unary):
       text("'") <> @expression unamb
 
-  ScopedConstant pretty := doc:
+  ScopedConstant pretty-print := doc:
     from(#scoped-constant):
-      @parent unamb <> text("::") <> text(@identifier)
+      @parent unamb <> text("::") <> text(@name)
 
-  Splice pretty := doc:
+  Splice pretty-print := doc:
     from(#unary):
       text("~*") <> @expression unamb
 
-  String pretty := doc: text(@value inspect gsub("\\#", "#"))
+  String pretty-print := doc: text(@value inspect gsub("\\#", "#"))
 
-  ToplevelConstant pretty := doc: text("::") <> text(@identifier)
+  ToplevelConstant pretty-print := doc: text("::") <> text(@name)
 
-  Unary pretty := doc:
+  Unary pretty-print := doc:
     from(#unary):
       text(@operator) <> @receiver unamb
 
-  Unquote pretty := doc:
+  Unquote pretty-print := doc:
     from(#unary):
       text("~") <> @expression unamb
 
-  Word pretty := ident(@text)
+  Word pretty-print := ident(@text to-s)
 
-  Tree pretty := doc:
+  Tree pretty-print := doc:
     if(^atomy-pretty-multiline?)
       then: from(#top): vcat(@nodes all-pretty)
       else: from(#list): comma separate(@nodes all-pretty)
 
-  Pattern pretty := @pattern pretty
+  Pattern pretty-print := @pattern pretty
 
 
 module(Atomy::Patterns):
-  And pretty := `(~@a & ~@b) pretty
-  Any pretty := doc: text("_")
-  Attribute pretty := `(~@receiver ~(Atomy::AST::Word new(-1, @name))) pretty
-  BlockPass pretty := `&~@pattern pretty
-  Constant pretty := @constant pretty
-  Default pretty := `(~@pattern = ~@default) pretty
-  HeadTail pretty := `(~@head . ~@tail) pretty
-  List pretty := `[~*(@patterns collect(&#to-node))] pretty
-  Literal pretty := @value pretty
-  Match pretty := @value pretty
-  Named pretty := doc:
+  And pretty-print := `(~@a & ~@b) pretty
+  Any pretty-print := doc: text("_")
+  Attribute pretty-print := `(~@receiver ~(Atomy::AST::Word new(-1, @name))) pretty
+  BlockPass pretty-print := `&~@pattern pretty
+  Constant pretty-print := @constant pretty
+  Default pretty-print := `(~@pattern = ~@default) pretty
+  HeadTail pretty-print := `(~@head . ~@tail) pretty
+  List pretty-print := `[~*(@patterns collect(&#to-node))] pretty
+  Literal pretty-print := @value pretty
+  Match pretty-print := @value pretty
+  Named pretty-print := doc:
     if(@pattern is-a?(Any))
       then: text(@name)
       else: text(@name) <> text(":") <+> @pattern pretty
-  NamedClass pretty :=
+  NamedClass pretty-print :=
     `(@@~(Atomy::AST::Word new(-1, @identifier))) pretty
-  NamedInstance pretty :=
+  NamedInstance pretty-print :=
     `(@~(Atomy::AST::Word new(-1, @identifier))) pretty
-  NamedGlobal pretty :=
+  NamedGlobal pretty-print :=
     `($~(Atomy::AST::Word new(-1, @identifier))) pretty
-  Or pretty := `(~@a | ~@b) pretty
-  Particle pretty :=
+  Or pretty-print := `(~@a | ~@b) pretty
+  Particle pretty-print :=
     Atomy::Particle new(
       @receiver
       @message
       @arguments patterns
     ) pretty
-  Predicate pretty := `(~@pattern ? ~@test) pretty
-  QuasiQuote pretty := @quoted pretty
-  Quote pretty := `'~@expression pretty
-  RuntimeClass pretty := `%~@body pretty
-  SingletonClass pretty := @body pretty
-  Splat pretty := `*~@pattern pretty
-  With pretty := `(~@pattern with(~@expression, ~@sub-pattern)) pretty
+  Predicate pretty-print := `(~@pattern ? ~@test) pretty
+  QuasiQuote pretty-print := @quoted pretty
+  Quote pretty-print := `'~@expression pretty
+  RuntimeClass pretty-print := `%~@body pretty
+  SingletonClass pretty-print := @body pretty
+  Splat pretty-print := `*~@pattern pretty
+  With pretty-print := `(~@pattern with(~@expression, ~@sub-pattern)) pretty
 
   And unamb := doc: parens(pretty)
   Attribute unamb := doc: parens(pretty)
