@@ -6,6 +6,7 @@ kernel = File.expand_path "../../kernel/", __FILE__
 
 require 'readline'
 require 'optparse'
+require 'profiler'
 
 require base + "/atomy"
 
@@ -35,6 +36,10 @@ unless ARGV.empty? || ARGV[0][0] != ?-
       options[:skip_kernel] = true
     end
 
+    o.on("-p", "--profile", "perform profiling") do
+      options[:profile] = true
+    end
+
     o.on_tail("-h", "--help", "show this message") do
       puts o
       exit
@@ -47,6 +52,11 @@ unless options[:skip_kernel]
   puts "loading kernel"
   Atomy.load(kernel + "/boot.ay")
   puts Time.now - a
+end
+
+if options[:profile]
+  profiler = Rubinius::Profiler::Instrumenter.new
+  profiler.start
 end
 
 def run_atomy(options)
@@ -119,4 +129,12 @@ def run_atomy(options)
   end
 end
 
-run_atomy(options)
+begin
+  run_atomy(options)
+ensure
+  if options[:profile]
+    profiler.stop
+    #data = profiler.info
+    profiler.show
+  end
+end
