@@ -3,14 +3,12 @@ module Atomy
 
   # TODO: visibility?
   class Branch
-    attr_accessor :receiver, :executable, :required, :defaults,
+    attr_accessor :receiver, :required, :defaults,
                   :splat, :block, :file, :name
 
-    def initialize(receiver, executable, required = [],
-                   defaults = [], splat = nil, block = nil,
-                   file = :dynamic)
+    def initialize(receiver, required = [], defaults = [],
+                   splat = nil, block = nil, file = :dynamic)
       @receiver = receiver
-      @executable = executable
       @required = required
       @defaults = defaults
       @splat = splat
@@ -21,7 +19,6 @@ module Atomy
     def ==(b)
       equal?(b) or \
         @receiver == b.receiver and \
-        @executable == b.executable and \
         @required == b.required and \
         @defaults == b.defaults and \
         @splat == b.splat and \
@@ -374,7 +371,7 @@ module Atomy
   end
 
   # define a new method branch
-  def self.define_branch(target, name, branch, visibility, scope, defn)
+  def self.define_branch(target, name, branch, code, visibility, scope, defn)
     methods = METHODS[target]
 
     if method = methods[name]
@@ -386,9 +383,9 @@ module Atomy
     end
 
     if defn
-      Rubinius.add_defn_method branch.name, branch.executable, scope, visibility
+      Rubinius.add_defn_method branch.name, code, scope, visibility
     else
-      Rubinius.add_method branch.name, branch.executable, target, visibility
+      Rubinius.add_method branch.name, code, target, visibility
     end
 
     add_method(target, name, method, visibility)

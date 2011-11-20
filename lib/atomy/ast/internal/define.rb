@@ -159,12 +159,6 @@ module Atomy
 
         receiver.construct(g)
 
-        g.push_generator compile_body(g)
-        g.dup
-        g.push_scope
-        g.send :"scope=", 1
-        g.pop
-
         req.each do |r|
           r.construct(g)
         end
@@ -190,7 +184,7 @@ module Atomy
         g.push_scope
         g.send :active_path, 0
 
-        g.send :new, 7
+        g.send :new, 6
       end
 
       def bytecode(g)
@@ -201,8 +195,15 @@ module Atomy
         g.push_cpath_top
         g.find_const :Atomy
         receiver.target(g)
-        g.push_literal message_name.to_sym
+        g.push_literal message_name
         push_method(g)
+
+        g.push_generator compile_body(g)
+        g.dup
+        g.push_scope
+        g.send :"scope=", 1
+        g.pop
+
         if defn
           g.push_variables
           g.send :method_visibility, 0
@@ -211,7 +212,7 @@ module Atomy
         end
         g.push_scope
         g.push_literal defn
-        g.send :define_branch, 6
+        g.send :define_branch, 7
       end
 
       def local_count
