@@ -151,6 +151,13 @@ macro(_undefined):
 macro($~(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
   NthRef new(line, x value)
 
+-- redefine symbol literals to allow interpolation
+macro(#~(x: String)):
+  i = interpolated(x value)
+  if(i interpolated?)
+    then: `(~i to-sym)
+    else: Literal new(line, x value to-sym)
+
 module(Atomy::AST):
   class(Undefined < Node):
     generate
@@ -171,11 +178,14 @@ module(Atomy::AST):
     children([#segments])
     generate
 
+    interpolated? := @segments size > 1
+
     bytecode(g) := do:
       pos(g)
 
       @segments each [s]:
         s compile(g)
 
-      g string-build(@segments size)
+      when(interpolated?):
+        g string-build(@segments size)
 
