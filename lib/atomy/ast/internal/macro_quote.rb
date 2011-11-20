@@ -15,7 +15,7 @@ module Atomy
 
       def expand
         quote(
-          @name.to_sym,
+          @name,
           @contents,
           @flags,
           @value

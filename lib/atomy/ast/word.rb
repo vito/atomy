@@ -9,12 +9,12 @@ module Atomy
       def bytecode(g)
         pos(g)
 
-        var = g.state.scope.search_local(@text.to_sym)
+        var = g.state.scope.search_local(@text)
         if var
           var.get_bytecode(g)
         else
           g.push_self
-          g.send_vcall message_name.to_sym
+          g.send_vcall message_name
         end
       end
 

@@ -57,7 +57,7 @@ macro(#~(x: Binary)):
       ~(if(x private)
           then: '_undefined
           else: wildcard(x lhs))
-      #~(x operator)
+      ~(x operator)
       [~(wildcard(x rhs))]
     ))
 
@@ -134,7 +134,7 @@ module(Atomy::Patterns):
     if(x private)
       then: '_ pattern
       else: x lhs pattern
-    x operator to-sym
+    x operator
     `[~(x rhs)] pattern
 
 `#(~(x: Atomy::AST::Word)(~*as)) pattern :=

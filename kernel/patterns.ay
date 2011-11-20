@@ -298,7 +298,7 @@ module(Atomy::AST):
     Atomy::Patterns::Attribute new(x, y text, as)
 
   `(~x [~*as]) pattern :=
-    Atomy::Patterns::Attribute new(x, "[]", as)
+    Atomy::Patterns::Attribute new(x, #"[]", as)
 
   String pattern :=
     Atomy::Patterns::Literal new(@value)

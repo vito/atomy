@@ -38,12 +38,12 @@ module Atomy
             g.push_nil
           end
 
-          g.send_with_splat @message_name.to_sym, args, @private
+          g.send_with_splat @message_name, args, @private
         elsif block
           block.compile(g)
-          g.send_with_block @message_name.to_sym, args, @private
+          g.send_with_block @message_name, args, @private
         else
-          g.send @message_name.to_sym, args, @private
+          g.send @message_name, args, @private
         end
       end
     end

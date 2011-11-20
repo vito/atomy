@@ -18,11 +18,7 @@ module Atomy::Patterns
     end
 
     def target(g)
-      names = @expression.class.name.split("::")
-      g.push_const names.slice!(0).to_sym
-      names.each do |n|
-        g.find_const n.to_sym
-      end
+      @expression.get(g)
     end
 
     def matches?(g)

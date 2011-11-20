@@ -12,31 +12,31 @@ macro(@@~(x: Word)):
   ClassVariable new(line, x text)
 
 macro($0):
-  GlobalVariable new(line, "0")
+  GlobalVariable new(line, "0" to-sym)
 
 macro($~(x: String)):
   GlobalVariable new(line, x value)
 
 macro($~(x: Constant)):
-  GlobalVariable new(line, x identifier)
+  GlobalVariable new(line, x name)
 
 macro($~(x: Word)):
   GlobalVariable new(line, x text)
 
 macro($exception):
-  GlobalVariable new(line, "!")
+  GlobalVariable new(line, "!" to-sym)
 
 macro($path):
-  GlobalVariable new(line, ":")
+  GlobalVariable new(line, ":" to-sym)
 
 macro($separator):
-  GlobalVariable new(line, "/")
+  GlobalVariable new(line, "/" to-sym)
 
 macro(#~(x: Constant)):
-  Literal new(line, x identifier to-sym)
+  Literal new(line, x name)
 
 macro(#~(x: Word)):
-  Literal new(line, x text to-sym)
+  Literal new(line, x text)
 
 macro(#~(x: String)):
   Literal new(line, x value to-sym)

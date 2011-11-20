@@ -1,16 +1,13 @@
 Atomy::DYNAMIC_ROOTS = Hash new
 
 for-macro:
-  key(n) :=
-    Atomy::AST::Word new $:
-      n line
-      "atomy_" + n message-name
+  key(n) := ("atomy_" + n message-name to-s) to-sym
 
   dynvar(x) :=
-    `(Thread current [#~key(x)] || Atomy::DYNAMIC_ROOTS [#~x])
+    `(Thread current [~key(x)] || Atomy::DYNAMIC_ROOTS [#~x])
 
   set-dynvar(n, v) :=
-    `(Thread current [#~key(n)] = ~v)
+    `(Thread current [~key(n)] = ~v)
 
 macro(dynamic(~n, ~root)):
   `(Atomy::DYNAMIC_ROOTS [#~n] = ~root)

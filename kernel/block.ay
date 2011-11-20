@@ -68,7 +68,7 @@ module(Atomy::AST):
     bytecode(g) := do:
       pos(g)
       @target compile(g)
-      g push-literal(("@" + @name) to-sym)
+      g push-literal(#"@#{@name}")
       g send(#instance-variable-get, 1)
 
     pattern :=
@@ -93,7 +93,7 @@ module(Atomy::AST):
       g send(#class, 0)
 
       have-class set!
-      g push-literal(("@@" + @name) to-sym)
+      g push-literal(#"@@#{@name}")
       g send(#class-variable-get, 1)
 
     pattern :=

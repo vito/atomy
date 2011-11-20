@@ -5,7 +5,7 @@ module Atomy
       generate
 
       def name
-        ("@@" + @identifier).to_sym
+        :"@@#{@identifier}"
       end
 
       def bytecode(g)

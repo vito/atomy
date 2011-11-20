@@ -35,7 +35,6 @@ module Atomy
 
   def self.const_from_string(g, name)
     g.push_cpath_top
-    top = nil
     name.split("::").each do |s|
       next if s.empty?
       g.find_const s.to_sym

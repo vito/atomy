@@ -42,7 +42,7 @@ module Atomy::Patterns
         a.compile(g)
         g.swap
       end
-      g.send((@name + "=").to_sym, 1 + @arguments.size)
+      g.send(:"#{@name}=", 1 + @arguments.size)
       g.pop
     end
 

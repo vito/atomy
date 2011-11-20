@@ -8,11 +8,11 @@ module Atomy
       def bytecode(g)
         pos(g)
         @receiver.compile(g)
-        g.send message_name.to_sym, 0
+        g.send message_name, 0
       end
 
       def message_name
-        @operator + "@"
+        :"#{@operator}@"
       end
 
       def macro_name

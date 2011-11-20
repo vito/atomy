@@ -3,7 +3,7 @@ module Atomy::Patterns
     attr_reader :name, :pattern
 
     def initialize(n, p)
-      @name = n.to_sym
+      @name = n
       @pattern = p
     end
 

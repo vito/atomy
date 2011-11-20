@@ -64,7 +64,7 @@ module Atomy
           when Call
             name = @pattern.right.name.text
           when List
-            name = "[]"
+            name = :[]
           end
         else
           name = @pattern.message_name
@@ -76,7 +76,7 @@ module Atomy
       end
 
       def compile_body(g)
-        meth = new_generator(g, message_name.to_sym)
+        meth = new_generator(g, message_name)
 
         pos(meth)
 
@@ -85,7 +85,7 @@ module Atomy
         #meth.state.push_super self
         meth.definition_line(@line)
 
-        meth.state.push_name message_name.to_sym
+        meth.state.push_name message_name
 
         meth.state.scope.new_local(:arguments)
 

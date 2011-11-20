@@ -22,10 +22,10 @@ module Atomy
         @lhs.compile(g)
         @rhs.compile(g)
 
-        if meta = Operators[@operator.to_sym]
-          g.__send__ meta, g.find_literal(@operator.to_sym)
+        if meta = Operators[@operator]
+          g.__send__ meta, g.find_literal(@operator)
         else
-          g.send @operator.to_sym, 1
+          g.send @operator, 1
         end
       end
 

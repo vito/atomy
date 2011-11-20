@@ -7,7 +7,7 @@ module Atomy::Patterns
     end
 
     def name
-      ("@@" + @identifier).to_sym
+      :"@@#{@identifier}"
     end
 
     def construct(g)

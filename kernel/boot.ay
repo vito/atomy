@@ -77,19 +77,19 @@ macro(~_ ~(Word)(~*args) [~*ys] ~(z: Block)):
 -- foo [bar, ...]
 macro(~x [~*ys]):
   to-send tap [x]:
-    x message-name = "[]"
+    x message-name = "[]" to-sym
     x arguments = ys + x arguments
 
 -- Foo(...)
 macro(~(Constant)(~*args)):
   to-send tap [x]:
-    x message-name = @name identifier
+    x message-name = @name name
 
 -- Bar::Foo(...)
 macro(~(ScopedConstant)(~*args)):
   to-send tap [x]:
     x receiver = @name parent
-    x message-name = @name identifier
+    x message-name = @name name
 
 macro(_LINE): line
 macro(_FILE): File new(line)

@@ -27,10 +27,7 @@ module Atomy::Patterns
 
     # helper for pushing the current class const onto the stack
     def get(g)
-      g.push_cpath_top
-      self.class.name.split("::").each do |n|
-        g.find_const n.to_sym
-      end
+      Atomy.const_from_string(g, self.class.name)
     end
 
     # create the pattern on the stack
@@ -182,11 +179,11 @@ module Atomy::Patterns
   class Atomy::AST::Binary
     def pattern
       case @operator
-      when "."
+      when :"."
         HeadTail.new(@lhs.to_pattern, @rhs.to_pattern)
-      when "="
+      when :"="
         Default.new(@lhs.to_pattern, @rhs)
-      when "?"
+      when :"?"
         Predicate.new(@private ? Any.new : @lhs.to_pattern, @rhs)
       else
         super
@@ -239,12 +236,12 @@ module Atomy::Patterns
   class Atomy::AST::Unary
     def pattern
       case @operator
-      when "$"
+      when :"$"
         NamedGlobal.new(@receiver.text)
-      when "@"
+      when :"@"
         case @receiver
         when Atomy::AST::Unary
-          if @receiver.operator == "@"
+          if @receiver.operator == :"@"
             NamedClass.new(@receiver.receiver.text)
           else
             super
@@ -254,11 +251,11 @@ module Atomy::Patterns
         else
           super
         end
-      when "%"
+      when :"%"
         RuntimeClass.new(@receiver, nil)
-      when "&"
+      when :"&"
         BlockPass.new(@receiver.to_pattern)
-      when "*"
+      when :"*"
         Splat.new(@receiver.to_pattern)
       else
         super
@@ -289,7 +286,7 @@ module Atomy::Patterns
               @right.name.is_a?(Atomy::AST::Word)
         Attribute.new(@left, @right.name.text, @right.arguments)
       elsif @right.is_a?(Atomy::AST::List)
-        Attribute.new(@left, "[]", @right.elements)
+        Attribute.new(@left, :[], @right.elements)
       else
         super
       end

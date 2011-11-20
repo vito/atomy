@@ -1,7 +1,7 @@
 module Atomy::Macro
   module Helpers
     def word(name, line = 0)
-      Atomy::AST::Word.new(line, name.to_s)
+      Atomy::AST::Word.new(line, name.to_sym)
     end
 
     # generate symbols
@@ -10,7 +10,7 @@ module Atomy::Macro
 
       as = []
       num.times do
-        as << word("s:" + Atomy::Macro::Environment.salt!.to_s)
+        as << word(:"s:#{Atomy::Macro::Environment.salt!}")
       end
 
       if block
@@ -56,10 +56,10 @@ module Atomy::Macro
           body.line,
           body,
           [],
-          "to_node"
+          :to_node
         ),
         [],
-        "expand"
+        :expand
       )
     ).evaluate(
       Binding.setup(

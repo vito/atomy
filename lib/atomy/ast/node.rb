@@ -433,10 +433,7 @@ EOF
       end
 
       def get(g)
-        g.push_cpath_top
-        self.class.name.split("::").each do |n|
-          g.find_const n.to_sym
-        end
+        Atomy.const_from_string(g, self.class.name)
       end
 
       def to_node
@@ -456,7 +453,7 @@ EOF
           @line,
           self,
           [],
-          "call"
+          :call
         )
       end
 
@@ -537,7 +534,7 @@ EOF
           Atomy::AST::Compose.new(
             0,
             pattern.quoted,
-            Atomy::AST::Word.new(0, macro_name.to_s)
+            Atomy::AST::Word.new(0, macro_name)
           ),
           Atomy::AST::Send.new(
             body.line,
@@ -545,10 +542,10 @@ EOF
               body.line,
               body,
               [],
-              "to_node"
+              :to_node
             ),
             [],
-            "expand"
+            :expand
           )
         ).evaluate(
           Binding.setup(

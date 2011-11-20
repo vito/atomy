@@ -83,11 +83,11 @@
    ident_letter = < /[\p{L}\d]/u | !":" op_letter > { text }
 
       # \p{S} matches ["$", "+", "<", "=", ">", "^", "`", "|", "~"]
-      op_letter = < /[\p{S}!@#%&*\-\\:.\/\?]/u > { text }
+      op_letter = < /[\p{S}!@#%&*\-\\:.\/\?]/u > { text.to_sym }
 
-       operator = < op_letter+ > &{ text != ":" } { text }
+       operator = < op_letter+ > &{ text !~ /[@:]$/ } { text.to_sym }
 
-     identifier = < ident_start ident_letter* > { text.tr("-", "_") }
+     identifier = < ident_start ident_letter* > { text.tr("-", "_").to_sym }
 
         grouped = "(" wsp expression:x wsp ")" { x }
 
@@ -173,7 +173,7 @@
                       )
                     }
 
-  constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text }
+  constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text.to_sym }
        constant = line:line constant_name:m ("::" constant_name)*:s {
                     names = [m] + Array(s)
                     const_chain(line, names)
@@ -208,11 +208,11 @@
            call = line:line level0:n args:as
                     { Atomy::AST::Call.new(line, n, as) }
 
-  binary_c(pos) = (cont(pos) operator:o &{ !o.end_with?("@") } sig_wsp level2:e { [o, e] })+:bs
+  binary_c(pos) = (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs
                     { bs.flatten }
          binary = level2:l binary_c(current_position):c
                     { resolve(nil, l, c).first }
-                | line:line operator:o &{ !o.end_with?("@") } sig_wsp expression:r
+                | line:line operator:o sig_wsp expression:r
                     { Atomy::AST::Binary.new(
                         line,
                         Atomy::AST::Primitive.new(line, :self),

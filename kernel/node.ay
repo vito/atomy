@@ -29,6 +29,7 @@ module(Atomy::AST):
   `@@~n pattern :=
     Atomy::Patterns::NamedClass new(n text)
 
+  -- TODO: handle other forms than just Words
   `$~n pattern :=
     Atomy::Patterns::NamedGlobal new(n text)
 

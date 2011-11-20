@@ -4,21 +4,20 @@ dynamic(restarts, [])
 
 for-macro:
   catcher(x) :=
-    Atomy::AST::Word new(x line) $:
-      x match:
-        Atomy::AST::Word ->
-          "restart:" + x text
+    x match:
+      Atomy::AST::Word ->
+        #"restart:#{x text}"
 
-        Atomy::AST::Compose ->
-          "restart:" + x left text
+      Atomy::AST::Compose ->
+        #"restart:#{x left text}"
 
-        Atomy::AST::Call ->
-          "restart:" + x name text
+      Atomy::AST::Call ->
+        #"restart:#{x name text}"
 
 data(Restart(@name, @action))
 
 Restart invoke(*args) :=
-  throw(("restart:" + @name to-s) to-sym, @action [*args])
+  throw(#"restart:#{name}", @action [*args])
 
 data(Condition):
   Error(@backtrace):
@@ -75,7 +74,7 @@ macro(with-restarts(~*restarts) ~(block: Block)):
     pairs reduce(
       `{ ~block rescue: (e: StandardError) -> error(e) }
     ) [x, [name, _]]:
-      `{ catch(#~catcher(name)) ~x }
+      `{ catch(~catcher(name)) ~x }
 
   `(let(restarts = [~*rs] + ^restarts) ~body)
 
