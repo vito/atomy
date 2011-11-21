@@ -86,6 +86,10 @@ module Atomy
           g.send :new, 2
         end
       end
+
+      def splice?
+        true
+      end
     end
   end
 end

@@ -148,9 +148,30 @@ module(Atomy::Patterns):
 
   NamedInstance =~ NamedInstance := true
 
-  (a: QuasiQuote) =~ (b: QuasiQuote) :=
-    -- TODO: go through quotes.
-    a expression == b expression
+  (a: QuasiQuote) =~ (b: QuasiQuote) := do:
+    total = 0
+
+    a quoted walk-with(
+      b quoted
+      [a, b] { a unquote? && b unquote? }
+    ) [x, y]:
+      condition:
+        x nil? || y nil? ->
+          return(false)
+
+        x unquote? && y unquote? -> do:
+          when(x splice? != y splice?):
+            return(false)
+
+          unless(x expression to-pattern =~
+                   y expression to-pattern):
+            return(false)
+
+        x bottom? || y bottom? ->
+          unless(x == y):
+            return(false)
+
+    true
 
   (a: Quote) =~ (b: Quote) :=
     a expression == b expression

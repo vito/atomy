@@ -452,6 +452,10 @@ EOF
         false
       end
 
+      def splice?
+        false
+      end
+
       def caller
         Send.new(
           @line,
