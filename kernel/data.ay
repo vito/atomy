@@ -41,9 +41,6 @@ macro(#~(x: Word)):
 macro(#~(x: String)):
   Literal new(line, x value to-sym)
 
-macro(#~(x: Primitive)):
-  Literal new(line, x value to-s to-sym)
-
 macro(~x for(~e) in(~c)):
   `(~c collect [~e]: ~x)
 

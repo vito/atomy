@@ -140,11 +140,11 @@ module(Atomy::Patterns):
 `#(~(x: Atomy::AST::Word)(~*as)) pattern :=
   Atomy::Patterns::Particle new $:
     '_ pattern
-    x text to-sym
+    x text
     `[~*as] pattern
 
 `#(~r ~(x: Atomy::AST::Word)(~*as)) pattern :=
   Atomy::Patterns::Particle new $:
     r pattern
-    x text to-sym
+    x text
     `[~*as] pattern

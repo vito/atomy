@@ -29,12 +29,9 @@ module(Atomy::Patterns):
   (a: BlockPass) <=> (b: BlockPass) :=
     a pattern <=> b pattern
 
-  -- TODO: don't assume it's a class
-  -- if one constant is a subclass of another, it is
-  -- higher precision.
   (a: Constant) <=> (b: Constant) :=
     condition:
-      (a value nil? || b value nil?) ->
+      !(a value is-a?(Class) && b value is-a?(Class)) ->
         0
 
       (a value ancestors nil? || b value ancestors nil?) ->

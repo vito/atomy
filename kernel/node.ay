@@ -29,8 +29,25 @@ module(Atomy::AST):
   `@@~n pattern :=
     Atomy::Patterns::NamedClass new(n text)
 
-  -- TODO: handle other forms than just Words
-  `$~n pattern :=
+  `$0 pattern :=
+    Atomy::Patterns::NamedGlobal new("0")
+
+  `$exception pattern :=
+    Atomy::Patterns::NamedGlobal new("!")
+
+  `$path pattern :=
+    Atomy::Patterns::NamedGlobal new(":")
+
+  `$separator pattern :=
+    Atomy::Patterns::NamedGlobal new("/")
+
+  `$~(n: Atomy::AST::Constant) pattern :=
+    Atomy::Patterns::NamedGlobal new(n name)
+
+  `$~(n: Atomy::AST::String) pattern :=
+    Atomy::Patterns::NamedGlobal new(n value)
+
+  `$~(n: Atomy::AST::Word) pattern :=
     Atomy::Patterns::NamedGlobal new(n text)
 
   `@~n pattern :=
@@ -58,7 +75,10 @@ module(Atomy::AST):
     Atomy::Patterns::Match new(#nil)
 
   `#~(x: Atomy::AST::Word) pattern :=
-    Atomy::Patterns::Literal new(x text to-sym)
+    Atomy::Patterns::Literal new(x text)
+
+  `#~(x: Atomy::AST::Constant) pattern :=
+    Atomy::Patterns::Literal new(x name)
 
   `#~(x: Atomy::AST::String) pattern :=
     Atomy::Patterns::Literal new(x value to-sym)
