@@ -282,6 +282,10 @@ EOF
             @@children[:many] +
             @@children[:optional]).collect { |n, _| "@#{n}" }
 
+        attrs =
+          @@attributes[:required] + @@attributes[:many] +
+            @@attributes[:optional].collect(&:first)
+
         class_eval <<EOF
           def children(&f)
             if block_given?
@@ -300,9 +304,13 @@ EOF
 
             return if !b.is_a?(#{self.name}) || (stop && stop.call(self, b))
 
+            #{attrs.collect { |a| "return if @#{a} != b.#{a}" }.join("; ")}
+
             children.zip(b.children).each do |x, y|
-              if x.respond_to?(:zip)
-                x.zip(y).each do |x2, y2|
+              if x.respond_to?(:each)
+                num = [x.size, y.size].max
+                num.times do |i|
+                  x2, y2 = x[i], y[i]
                   if x2
                     x2.walk_with(y2, stop, &f)
                   elsif y2
@@ -324,10 +332,6 @@ EOF
             #{@@children.values.flatten(1).empty?.inspect}
           end
 EOF
-
-        attrs =
-          @@attributes[:required] + @@attributes[:many] +
-            @@attributes[:optional].collect(&:first)
 
         class_eval <<EOF
           def details
