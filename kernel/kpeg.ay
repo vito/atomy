@@ -37,40 +37,40 @@ for-macro:
   process-val(g, c: Atomy::AST::Call) := do:
     args = "(" + c arguments collect(&#show) join(", ") + ")"
 
-    `(~g ref(~(c name text), nil, ~args))
+    `(~g ref(~(c name text to-s), nil, ~args))
 
   process-val(g, `@~(c: Atomy::AST::Call)) := do:
     args = "(" + c arguments collect(&#show) join(", ") + ")"
 
-    `(~g invoke(~(c name text), ~args))
+    `(~g invoke(~(c name text to-s), ~args))
 
   process-val(g, `^~(c: Atomy::AST::Call)) := do:
     args = "(" + c arguments collect(&#show) join(", ") + ")"
 
-    `(~g foreign-invoke("parent", ~(c name text), ~args))
+    `(~g foreign-invoke("parent", ~(c name text to-s), ~args))
 
   process-val(g, `%~(c: Atomy::AST::Call)) := do:
-    [gram, name] = c name text split(".")
+    [gram, name] = c name text to-s split(".")
     args = "(" + c arguments collect(&#show) join(", ") + ")"
 
     `(~g foreign-invoke(~gram, ~name, ~args))
 
   process-val(g, w: Atomy::AST::Word) :=
-    `(~g ref(~(w text)))
+    `(~g ref(~(w text to-s)))
 
   process-val(g, `@~(w: Atomy::AST::Word)) := do:
-    `(~g invoke(~(w text)))
+    `(~g invoke(~(w text to-s)))
 
   process-val(g, `^~(w: Atomy::AST::Word)) := do:
-    `(~g foreign-invoke("parent", ~(w text)))
+    `(~g foreign-invoke("parent", ~(w text to-s)))
 
   process-val(g, `%~(w: Atomy::AST::Word)) := do:
-    [gram, name] = w text split(".")
+    [gram, name] = w text to-s split(".")
     `(~g foreign-invoke(~gram, ~name))
 
   process-val(g, `=~(name)(~v)) := do:
     when(^rule-vars): ^rule-vars << name text
-    `(~g t(~process-val(g, v), ~(name text)))
+    `(~g t(~process-val(g, v), ~(name text to-s)))
 
   process-val(g, `?~v) :=
     `(~g maybe(~process-val(g, v)))
@@ -124,7 +124,7 @@ macro(grammar: ~*body): names [g]:
         `(~g add-setup(~g action(~call)))
 
       `(%~name := ~const) ->
-        `(~g add-foreign-grammar(~(name text), ~(const show)))
+        `(~g add-foreign-grammar(~(name text to-s), ~(const show)))
 
       `(%~name = ~expr) -> do:
         call =
@@ -135,19 +135,19 @@ macro(grammar: ~*body): names [g]:
             else:
               `{ ~*xs }
 
-        `(~g set-variable(~(name text), call))
+        `(~g set-variable(~(name text to-s), call))
 
       `(~(name)(~*args) := ~val) ->
         let(rule = name text,
             rule-vars = ::Set new(args to-a collect(&#text))):
-          `(~g set(~(name text)
+          `(~g set(~(name text to-s)
                    ~process-val(g, val)
-                   ~(args collect(&#text))))
+                   ~(args collect [x]: x text to-s)))
 
       `(~name := ~val) ->
         let(rule = name text,
             rule-vars = ::Set new):
-          `(~g set(~(name text), ~process-val(g, val)))
+          `(~g set(~(name text to-s), ~process-val(g, val)))
 
       _ -> `unknown(~n)
 
