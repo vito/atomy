@@ -1,7 +1,7 @@
 dynamic(labels, Hash new)
 
 macro(if(~x) then ~(y: Block) else ~(z: Block)):
-  IfThenElse new(line, x, y block-body, z block-body)
+  IfThenElse new(line, x, y body, z body)
 
 macro(otherwise): 'true
 
@@ -9,13 +9,13 @@ macro(return(~y)):
   Return new(line, y)
 
 macro(~x ensuring ~(y: Block)):
-  Ensure new(line, x caller, y block-body)
+  Ensure new(line, x caller, y body)
 
 macro(when(~c) ~(b: Block)):
-  When new(line, c, b block-body)
+  When new(line, c, b body)
 
 macro(unless(~c) ~(b: Block)):
-  When new(line, `!~c, b block-body)
+  When new(line, `!~c, b body)
 
 macro(super):
   ZSuper new(line)
@@ -97,7 +97,7 @@ evaluate-when(compile, run, load):
 
 macro(labels ~(body: Block)):
   branches = body contents collect [`(~n ~b)]:
-    LabelBranch new(n line, b block-body, n text)
+    LabelBranch new(n line, b body, n text)
 
   `(let-macro(go(~'~name) = GoTo new(line, name text)):
       ~(Labels new(line, branches)))
@@ -111,7 +111,7 @@ macro(while(~test) ~(body: Block)):
 
           let-macro(break = 'go(~done),
                     next = 'go(~loop)):
-            ~(body block-body)
+            ~(body body)
 
           go(~loop)
 
@@ -126,7 +126,7 @@ macro(until(~test) ~(body: Block)):
 
           let-macro(break = 'go(~done),
                     next = 'go(~loop)):
-            ~(body block-body)
+            ~(body body)
 
           go(~loop)
 
@@ -138,7 +138,7 @@ macro(loop ~(body: Block)):
         ~loop:
           let-macro(break = 'go(~done),
                     next = 'go(~loop)):
-            ~(body block-body)
+            ~(body body)
 
           go(~loop)
 
@@ -187,7 +187,7 @@ macro(~x rescue ~(y: Block) else ~(z: Block)):
   branches = pairs-from(y contents) collect [[p, e]]:
     RescueHandler new(p line, p, e)
 
-  Catch new(line, x caller, branches, z block-body)
+  Catch new(line, x caller, branches, z body)
 
 module(Atomy::AST):
   class(Super < Node):

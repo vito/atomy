@@ -2,14 +2,14 @@ macro(evaluate-when(~*when) ~(x: Block)):
   evaluated? = false
 
   when member?('compile) && do:
-    x block-body evaluate
+    x body evaluate
     evaluated? =! true
 
   when member?('load) && do:
-    Atomy::CodeLoader when-load << [x block-body, evaluated?]
+    Atomy::CodeLoader when-load << [x body, evaluated?]
 
   when member?('run) &&
-    Atomy::CodeLoader when-run << [x block-body, evaluated?]
+    Atomy::CodeLoader when-run << [x body, evaluated?]
 
   'nil
 
@@ -53,7 +53,7 @@ macro(let-macro(~*ms) ~(b: Block)):
         evaluate-when(compile):
           ~*define
 
-        ~res = ~(b block-body)
+        ~res = ~(b body)
 
         evaluate-when(compile):
           ~*unwind

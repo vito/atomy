@@ -1587,7 +1587,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b { Atomy::AST::Macro.new(line, p, b.block_body) }
+  # macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b { Atomy::AST::Macro.new(line, p, b.body) }
   def _macro
 
     _save = self.pos
@@ -1640,7 +1640,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::Macro.new(line, p, b.block_body) ; end
+      @result = begin;  Atomy::AST::Macro.new(line, p, b.body) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -3933,7 +3933,7 @@ class Atomy::Parser
   Rules[:_level2] = rule_info("level2", "(compose | level1)")
   Rules[:_level3] = rule_info("level3", "(language | infix | macro | binary | level2)")
   Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
-  Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.block_body) }")
+  Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.body) }")
   Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
   Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
   Rules[:_infix] = rule_info("infix", "line:line \".infix\" op_assoc?:assoc op_prec:prec (sig_sp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }")

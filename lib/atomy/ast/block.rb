@@ -7,20 +7,15 @@ module Atomy
       children [:contents], [:arguments]
       generate
 
-      # TODO: clean these names up
-      def block_arguments
+      def arguments
         BlockArguments.new @arguments
       end
 
-      def block_body
+      def body
         BlockBody.new @line, @contents
       end
 
-      def body
-        raise "no #body for Block"
-      end
-
-      alias :caller :block_body
+      alias :caller :body
 
       def bytecode(g)
         pos(g)
@@ -28,7 +23,7 @@ module Atomy
         state = g.state
         state.scope.nest_scope self
 
-        blk = new_block_generator g, block_arguments
+        blk = new_block_generator g, arguments
 
         blk.push_state self
         blk.state.push_super state.super
@@ -39,7 +34,7 @@ module Atomy
         # Push line info down.
         pos(blk)
 
-        block_arguments.bytecode(blk)
+        arguments.bytecode(blk)
 
         blk.state.push_block
         blk.push_modifiers
@@ -51,10 +46,10 @@ module Atomy
         too_few = blk.new_label
         done = blk.new_label
 
-        blk.passed_arg(block_arguments.required_args - 1)
+        blk.passed_arg(arguments.required_args - 1)
         blk.gif too_few
 
-        block_body.compile(blk)
+        body.compile(blk)
         blk.goto done
 
         too_few.set!
@@ -73,7 +68,7 @@ module Atomy
         blk.close
         blk.pop_state
 
-        blk.splat_index = block_arguments.splat_index
+        blk.splat_index = arguments.splat_index
         blk.local_count = local_count
         blk.local_names = local_names
 

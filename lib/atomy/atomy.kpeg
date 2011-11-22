@@ -142,7 +142,7 @@
                     { Atomy::AST::Primitive.new(line, text.to_i) }
 
           macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b
-                    { Atomy::AST::Macro.new(line, p, b.block_body) }
+                    { Atomy::AST::Macro.new(line, p, b.body) }
 
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
         op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
