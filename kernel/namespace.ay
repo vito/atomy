@@ -12,6 +12,15 @@ class(AtomyDelegator < SimpleDelegator):
           r"\A#{Regexp quote(_FILE)}:#{_LINE - 2}:" =~ t
 
 
+macro(namespace: ~*body):
+  `(Module new:
+      Self = self
+
+      ~*body
+
+      class(Provider < AtomyDelegator):
+        include(Self))
+
 macro(namespace(~name): ~*body):
   `(module(~name):
       ~*body
@@ -26,15 +35,4 @@ macro(using(~name) ~body):
       ~body block call-on-instance(~name const-get(#Provider) new(self)))
 
 macro(~body where: ~*helpers):
-  names [mod]:
-    `(do:
-        ~mod =
-          Module new:
-            Self = self
-
-            ~*helpers
-
-            class(Provider < AtomyDelegator):
-              include(Self)
-
-        using(~mod) ~body)
+  `(using(namespace: ~*helpers) ~body)
