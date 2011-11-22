@@ -7,10 +7,6 @@ module Atomy
       children [:contents], [:arguments]
       generate
 
-      def arguments
-        BlockArguments.new @arguments
-      end
-
       def body
         BlockBody.new @line, @contents
       end
@@ -23,6 +19,7 @@ module Atomy
         state = g.state
         state.scope.nest_scope self
 
+        arguments = BlockArguments.new @arguments
         blk = new_block_generator g, arguments
 
         blk.push_state self
