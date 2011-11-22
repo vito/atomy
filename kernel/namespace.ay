@@ -12,14 +12,28 @@ class(AtomyDelegator < SimpleDelegator):
           r"\A#{Regexp quote(_FILE)}:#{_LINE - 2}:" =~ t
 
 
+with-static-scope(mod, &blk) :=
+  blk block call-under $:
+    self
+    Rubinius::StaticScope new $:
+      mod
+      Rubinius::StaticScope of-sender
+
+
 macro(namespace: ~*body):
-  `(Module new:
-      Self = self
+  names [mod]:
+    `(do:
+        ~mod = Module new
 
-      ~*body
+        with-static-scope(~mod):
+          Self = ~mod
 
-      class(Provider < AtomyDelegator):
-        include(Self))
+          ~*body
+
+          class(Provider < AtomyDelegator):
+            include(Self)
+
+          ~mod)
 
 macro(namespace(~name): ~*body):
   `(module(~name):
@@ -27,7 +41,7 @@ macro(namespace(~name): ~*body):
 
       class(Provider < AtomyDelegator):
         include(~name)
-        
+
       ~name)
 
 macro(using(~name) ~body):
