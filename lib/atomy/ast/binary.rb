@@ -22,6 +22,8 @@ module Atomy
         @lhs.compile(g)
         @rhs.compile(g)
 
+        g.allow_private if @private
+
         if meta = Operators[@operator]
           g.__send__ meta, g.find_literal(@operator)
         else
