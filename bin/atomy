@@ -1,5 +1,10 @@
-#!/usr/bin/env rbx -X19
+#!/usr/bin/env rbx
 # vim: ft=ruby
+
+unless Rubinius.ruby19?
+  puts("Atomy must be run in 1.9 mode.")
+  exit(1)
+end
 
 base = File.expand_path "../../lib/", __FILE__
 kernel = File.expand_path "../../kernel/", __FILE__

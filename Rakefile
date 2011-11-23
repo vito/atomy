@@ -17,11 +17,11 @@ task :install do
 end
 
 task :reference do
-  sh "./bin/atomy -d docs/reference -s exit"
+  sh "rbx -X19 ./bin/atomy -d docs/reference -s exit"
 end
 
 task :docs do
-  sh "./bin/atomy ../doodle/bin/doodle docs/index.ddl -o _doodle"
+  sh "rbx -X19 ./bin/atomy ../doodle/bin/doodle docs/index.ddl -o _doodle"
 end
 
 task :sync_docs do
@@ -29,5 +29,5 @@ task :sync_docs do
 end
 
 task :test do
-  sh "./bin/atomy test/main.ay"
+  sh "rbx -X19 ./bin/atomy test/main.ay"
 end
