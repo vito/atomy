@@ -1,5 +1,8 @@
 require("delegate")
 
+module(Atomy):
+  HELPERS = Hash new
+
 class(AtomyDelegator < SimpleDelegator):
   define(method-missing(m, *args, &block)):
     target = self _-getobj--
@@ -49,4 +52,5 @@ macro(using(~name) ~body):
       ~body block call-on-instance(~name const-get(#Provider) new(self)))
 
 macro(~body where: ~*helpers):
-  `(using(namespace: ~*helpers) ~body)
+  names [helper]:
+    `(using(Atomy::HELPERS[#~helper] ||= namespace: ~*helpers) ~body)
