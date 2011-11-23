@@ -50,9 +50,11 @@ describe("with-variables-of"):
 describe("onto"):
   it("replaces the receiver of private message sends"):
     1 onto { inspect } should-be("1")
+    1 onto { inspect() } should-be("1")
     1 onto { + 2 } should-be(3)
 
     1 onto { 3 inspect } should-be("3")
+    1 onto { 3 inspect() } should-be("3")
     1 onto { 3 + 2 } should-be(5)
 
   it("treats 'self' as the original 'self'"):
