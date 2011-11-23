@@ -1,6 +1,10 @@
-module Atomy
-  METHODS = Hash.new { |h, k| h[k] = {} }
+class Module
+  def atomy_methods
+    @atomy_methods ||= {}
+  end
+end
 
+module Atomy
   # TODO: visibility?
   class Branch
     attr_accessor :receiver, :required, :defaults,
@@ -372,7 +376,7 @@ module Atomy
 
   # define a new method branch
   def self.define_branch(target, name, branch, code, visibility, scope, defn)
-    methods = METHODS[target]
+    methods = target.atomy_methods
 
     if method = methods[name]
       method.add(branch)
