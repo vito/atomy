@@ -95,7 +95,7 @@ macro(_LINE): line
 macro(_FILE): File new(line)
 
 "operators define cosmetics data comparison meta dynamic control-flow
-patterns node data-delta namespace particles maps block doc pretty
-errors format concurrency io condition therie repl kpeg" split each [k]:
+patterns node data-delta namespace particles maps block doc pretty errors
+format concurrency io condition therie repl kpeg" split each [k]:
   puts("loading " + k)
   require(File expand-path("../", _FILE) + "/" + k)
