@@ -80,9 +80,10 @@ module Atomy::Patterns
       ps.each_with_index do |x, i|
         if x.is_a?(Atomy::AST::Splice)
           vary = true
-        elsif x.is_a?(Atomy::AST::Unquote) and x.expression.pattern.is_a?(Atomy::Patterns::Default)
+        elsif x.is_a?(Atomy::AST::Unquote) and \
+                (pat = x.expression.to_pattern).is_a?(Default)
           vary = true
-          defaults[i] = x.expression.pattern
+          defaults[i] = pat
         else
           req += 1 unless vary
         end

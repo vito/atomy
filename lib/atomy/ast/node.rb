@@ -576,10 +576,6 @@ EOF
         compile(g)
       end
 
-      def to_pattern
-        pattern
-      end
-
       def macro_pattern
         Atomy::Patterns::QuasiQuote.new(
           Atomy::AST::QuasiQuote.new(

@@ -255,56 +255,56 @@ module(Atomy::Patterns):
 
 -- base patterns
 module(Atomy::AST):
-  Word pattern :=
+  Word to-pattern :=
     Atomy::Patterns::Named new $:
       @text
       Atomy::Patterns::Any new
 
-  Primitive pattern :=
+  Primitive to-pattern :=
     Atomy::Patterns::Match new(@value)
 
-  Literal pattern :=
+  Literal to-pattern :=
     Atomy::Patterns::Literal new(@value)
 
-  List pattern :=
+  List to-pattern :=
     Atomy::Patterns::List new $:
       @elements collect [e]: e to-pattern
 
-  Constant pattern :=
+  Constant to-pattern :=
     Atomy::Patterns::Constant new(self)
 
-  ScopedConstant pattern :=
+  ScopedConstant to-pattern :=
     Atomy::Patterns::Constant new(self)
 
-  ToplevelConstant pattern :=
+  ToplevelConstant to-pattern :=
     Atomy::Patterns::Constant new(self)
 
-  Quote pattern :=
+  Quote to-pattern :=
     Atomy::Patterns::Quote new(@expression)
 
-  Block pattern :=
+  Block to-pattern :=
     Atomy::Patterns::SingletonClass new(self)
 
-  QuasiQuote pattern :=
+  QuasiQuote to-pattern :=
     Atomy::Patterns::QuasiQuote new(self)
 
-  `(~x { ~y }) pattern :=
+  `(~x { ~y }) to-pattern :=
     Atomy::Patterns::Named new(x text, y to-pattern)
 
-  `(~x ~(y: Atomy::AST::Word)) pattern :=
+  `(~x ~(y: Atomy::AST::Word)) to-pattern :=
     Atomy::Patterns::Attribute new(x, y text, [])
 
-  `(~x ~(y: Atomy::AST::Word)(~*as)) pattern :=
+  `(~x ~(y: Atomy::AST::Word)(~*as)) to-pattern :=
     Atomy::Patterns::Attribute new(x, y text, as)
 
-  `(~x [~*as]) pattern :=
+  `(~x [~*as]) to-pattern :=
     Atomy::Patterns::Attribute new(x, #"[]", as)
 
-  String pattern :=
+  String to-pattern :=
     Atomy::Patterns::Literal new(@value)
 
-  Symbol pattern := 
+  Symbol to-pattern :=
     Atomy::Patterns::Literal new(@name to-sym)
 
-  Node pattern :=
+  Node to-pattern :=
     raise("unknown pattern: " + to-sexp inspect)

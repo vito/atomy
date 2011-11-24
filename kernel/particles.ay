@@ -123,28 +123,28 @@ module(Atomy::Patterns):
       g send(#arguments, 0)
       @arguments deconstruct(g, locals)
 
-`#(~r [~*as]) pattern :=
+`#(~r [~*as]) to-pattern :=
   Atomy::Patterns::Particle new $:
-    r pattern
+    r to-pattern
     #"[]"
-    `[~*as] pattern
+    `[~*as] to-pattern
 
-`#~(x: Atomy::AST::Binary) pattern :=
+`#~(x: Atomy::AST::Binary) to-pattern :=
   Atomy::Patterns::Particle new $:
     if(x private)
-      then: '_ pattern
-      else: x lhs pattern
+      then: '_ to-pattern
+      else: x lhs to-pattern
     x operator
-    `[~(x rhs)] pattern
+    `[~(x rhs)] to-pattern
 
-`#(~(x: Atomy::AST::Word)(~*as)) pattern :=
+`#(~(x: Atomy::AST::Word)(~*as)) to-pattern :=
   Atomy::Patterns::Particle new $:
-    '_ pattern
+    '_ to-pattern
     x text
-    `[~*as] pattern
+    `[~*as] to-pattern
 
-`#(~r ~(x: Atomy::AST::Word)(~*as)) pattern :=
+`#(~r ~(x: Atomy::AST::Word)(~*as)) to-pattern :=
   Atomy::Patterns::Particle new $:
-    r pattern
+    r to-pattern
     x text
-    `[~*as] pattern
+    `[~*as] to-pattern

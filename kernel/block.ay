@@ -71,7 +71,7 @@ module(Atomy::AST):
       g push-literal(#"@#{@name}")
       g send(#instance-variable-get, 1)
 
-    pattern :=
+    to-pattern :=
       Atomy::Patterns::NamedRedirectedInstance new(@target, @name)
 
   class(RedirectedClassVariable < Node):
@@ -96,7 +96,7 @@ module(Atomy::AST):
       g push-literal(#"@@#{@name}")
       g send(#class-variable-get, 1)
 
-    pattern :=
+    to-pattern :=
       Atomy::Patterns::NamedRedirectedClass new(@target, @name)
 
 

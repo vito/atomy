@@ -25,8 +25,8 @@ for-macro:
 
     pat-def =
       `(evaluate-when(compile, load, run):
-          ~(Atomy::AST::QuasiQuote new(0, cons)) pattern :=
-              ~(Atomy::AST::QuasiQuote new(0, pat)) pattern)
+          ~(Atomy::AST::QuasiQuote new(0, cons)) to-pattern :=
+              ~(Atomy::AST::QuasiQuote new(0, pat)) to-pattern)
 
     class =
       if(root)
@@ -166,7 +166,7 @@ module(Atomy::AST):
       pos(g)
       g push-undef
 
-    pattern := Atomy::Patterns::Any new
+    to-pattern := Atomy::Patterns::Any new
 
   class(NthRef < Rubinius::AST::NthRef):
     include(NodeLike)

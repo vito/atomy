@@ -1,84 +1,84 @@
 module(Atomy::AST):
-  '_ pattern :=
+  '_ to-pattern :=
     Atomy::Patterns::Any new
 
-  `(~h . ~t) pattern :=
+  `(~h . ~t) to-pattern :=
     Atomy::Patterns::HeadTail new(h to-pattern, t to-pattern)
 
-  `(~p = ~d) pattern :=
+  `(~p = ~d) to-pattern :=
     Atomy::Patterns::Default new(p to-pattern, d)
 
-  `(? ~t) pattern :=
+  `(? ~t) to-pattern :=
     Atomy::Patterns::Predicate new(Atomy::Patterns::Any new, t)
 
-  `(~p ? ~t) pattern :=
+  `(~p ? ~t) to-pattern :=
     Atomy::Patterns::Predicate new(p to-pattern, t)
 
-  `(~a & ~b) pattern :=
+  `(~a & ~b) to-pattern :=
     Atomy::Patterns::And new(a to-pattern, b to-pattern)
 
-  `(~a | ~b) pattern :=
+  `(~a | ~b) to-pattern :=
     Atomy::Patterns::Or new(a to-pattern, b to-pattern)
 
-  `(~x with(~e, ~y)) pattern :=
+  `(~x with(~e, ~y)) to-pattern :=
     Atomy::Patterns::With new(x to-pattern, e, y to-pattern)
 
-  `(with(~e, ~y)) pattern :=
+  `(with(~e, ~y)) to-pattern :=
     Atomy::Patterns::With new(Atomy::Patterns::Any new, e, y to-pattern)
 
-  `@@~n pattern :=
+  `@@~n to-pattern :=
     Atomy::Patterns::NamedClass new(n text)
 
-  `$0 pattern :=
+  `$0 to-pattern :=
     Atomy::Patterns::NamedGlobal new("0")
 
-  `$exception pattern :=
+  `$exception to-pattern :=
     Atomy::Patterns::NamedGlobal new("!")
 
-  `$path pattern :=
+  `$path to-pattern :=
     Atomy::Patterns::NamedGlobal new(":")
 
-  `$separator pattern :=
+  `$separator to-pattern :=
     Atomy::Patterns::NamedGlobal new("/")
 
-  `$~(n: Atomy::AST::Constant) pattern :=
+  `$~(n: Atomy::AST::Constant) to-pattern :=
     Atomy::Patterns::NamedGlobal new(n name)
 
-  `$~(n: Atomy::AST::String) pattern :=
+  `$~(n: Atomy::AST::String) to-pattern :=
     Atomy::Patterns::NamedGlobal new(n value)
 
-  `$~(n: Atomy::AST::Word) pattern :=
+  `$~(n: Atomy::AST::Word) to-pattern :=
     Atomy::Patterns::NamedGlobal new(n text)
 
-  `@~n pattern :=
+  `@~n to-pattern :=
     Atomy::Patterns::NamedInstance new(n text)
 
-  `%~x pattern :=
+  `%~x to-pattern :=
     Atomy::Patterns::RuntimeClass new(x)
 
-  `&~x pattern :=
+  `&~x to-pattern :=
     Atomy::Patterns::BlockPass new(x to-pattern)
 
-  `*~x pattern :=
+  `*~x to-pattern :=
     Atomy::Patterns::Splat new(x to-pattern)
 
-  'self pattern :=
+  'self to-pattern :=
     Atomy::Patterns::Match new(#self)
 
-  'true pattern :=
+  'true to-pattern :=
     Atomy::Patterns::Match new(#true)
 
-  'false pattern :=
+  'false to-pattern :=
     Atomy::Patterns::Match new(#false)
 
-  'nil pattern :=
+  'nil to-pattern :=
     Atomy::Patterns::Match new(#nil)
 
-  `#~(x: Atomy::AST::Word) pattern :=
+  `#~(x: Atomy::AST::Word) to-pattern :=
     Atomy::Patterns::Literal new(x text)
 
-  `#~(x: Atomy::AST::Constant) pattern :=
+  `#~(x: Atomy::AST::Constant) to-pattern :=
     Atomy::Patterns::Literal new(x name)
 
-  `#~(x: Atomy::AST::String) pattern :=
+  `#~(x: Atomy::AST::String) to-pattern :=
     Atomy::Patterns::Literal new(x value to-sym)
