@@ -224,8 +224,8 @@ module Atomy::Patterns
       end
     end
 
-    def names
-      names = []
+    def local_names
+      names = Set.new
 
       @quoted.through_quotes(proc { true }) do |e|
         names += e.to_pattern.local_names

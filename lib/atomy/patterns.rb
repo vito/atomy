@@ -424,15 +424,14 @@ EOF
       done.set!
     end
 
-    # TODO: patterns define "names" and "bound" instead
-
     # local names bound by this pattern, not including children
     def names
       []
     end
 
+    # a Set of all locals provided by this pattern
     def local_names
-      ns = names
+      ns = Set.new names
       children do |p|
         ns += p.local_names
         p

@@ -11,6 +11,7 @@ module Atomy
 end
 
 require "rubygems"
+require "set"
 
 require base + "/version"
 require base + "/macros"
