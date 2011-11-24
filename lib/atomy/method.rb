@@ -102,6 +102,14 @@ module Atomy
       nil
     end
 
+    def size
+      @branches.size
+    end
+
+    def each(*args, &blk)
+      @branches.each(*args, &blk)
+    end
+
     def build
       g = Rubinius::Generator.new
       g.name = @name
