@@ -1,24 +1,7 @@
 module Atomy::Patterns
   class List < Pattern
-    attr_reader :patterns
-
-    def initialize(ps)
-      @patterns = ps.to_a
-    end
-
-    def construct(g)
-      get(g)
-      @patterns.each do |p|
-        p.construct(g)
-      end
-      g.make_array @patterns.size
-      g.send :new, 1
-    end
-
-    def ==(b)
-      b.kind_of?(List) and \
-      @patterns == b.patterns
-    end
+    children([:patterns])
+    generate
 
     def target(g)
       g.push_cpath_top
@@ -88,14 +71,6 @@ module Atomy::Patterns
         p.deconstruct(g, locals)
       end
       g.pop
-    end
-
-    def local_names
-      @patterns.collect { |p| p.local_names }.flatten
-    end
-
-    def bindings
-      @patterns.reduce(0) { |a, p| p.bindings + a }
     end
   end
 end

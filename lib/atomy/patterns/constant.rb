@@ -1,22 +1,18 @@
 module Atomy::Patterns
   class Constant < Pattern
-    attr_reader :constant, :value
-
-    def initialize(constant, value = nil)
-      @constant = constant
-      @value = value
-    end
+    attributes(:constant, :value?)
+    generate
 
     def construct(g)
       get(g)
       @constant.construct(g)
-      @constant.compile(g)
+      if @value
+        g.push_literal @value
+      else
+        # TODO: spec compile vs. bytecode
+        @constant.bytecode(g)
+      end
       g.send :new, 2
-    end
-
-    def ==(b)
-      b.kind_of?(Constant) and \
-        @constant == b.constant
     end
 
     def target(g)

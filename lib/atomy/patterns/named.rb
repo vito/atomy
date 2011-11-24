@@ -1,24 +1,8 @@
 module Atomy::Patterns
   class Named < Pattern
-    attr_reader :name, :pattern
-
-    def initialize(n, p)
-      @name = n
-      @pattern = p
-    end
-
-    def construct(g)
-      get(g)
-      g.push_literal @name
-      @pattern.construct(g)
-      g.send :new, 2
-    end
-
-    def ==(b)
-      b.kind_of?(Named) and \
-      @name == b.name and \
-      @pattern == b.pattern
-    end
+    children(:pattern)
+    attributes(:name)
+    generate
 
     def match(g, set = false, locals = {})
       if @pattern.is_a?(Any)
@@ -52,12 +36,12 @@ module Atomy::Patterns
       g.pop
     end
 
-    def local_names
-      [@name] + @pattern.local_names
+    def names
+      [@name]
     end
 
-    def bindings
-      1 + @pattern.bindings
+    def bound
+      1
     end
 
     def wildcard?

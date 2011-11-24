@@ -1,18 +1,14 @@
 module(Atomy::Patterns):
   class(Predicate < Pattern):
-    initialize(@pattern, test) :=
-      @test = test
+    children(#pattern)
+    attributes(#test)
+    generate
 
     construct(g) := do:
       get(g)
       @pattern construct(g)
       @test construct(g)
       g send(#new, 2)
-
-    (== b) :=
-      b kind-of?(Predicate) &&
-        @pattern == b pattern &&
-        @test == b test
 
     target(g) := @pattern target(g)
 
@@ -39,28 +35,20 @@ module(Atomy::Patterns):
     deconstruct(g, locals = ::Hash new) :=
       @pattern deconstruct(g, locals)
 
-    local-names := @pattern local-names
-
-    bindings := @pattern bindings
-
     precision := @pattern precision + 1
 
+
   class(With < Pattern):
-    initialize(@pattern, expression, @sub-pattern) :=
-      @expression = expression
+    children(#pattern, #sub-pattern)
+    attributes(#expression)
+    generate
 
     construct(g) := do:
       get(g)
       @pattern construct(g)
-      @expression construct(g)
       @sub-pattern construct(g)
+      @expression construct(g)
       g send(#new, 3)
-
-    (== b) :=
-      b kind-of?(With) &&
-        @pattern == b pattern &&
-        @expression == b expression &&
-        @sub-pattern == b pattern
 
     target(g) := @pattern target(g)
 
@@ -129,26 +117,12 @@ module(Atomy::Patterns):
 
       @sub-pattern deconstruct(g, locals)
 
-    local-names := @pattern local-names + @sub-pattern local-names
-
-    bindings := @pattern bindings + @sub-pattern bindings
 
   class(And < Pattern):
-    initialize(@a, @b) := #ok
+    children(#a, #b)
+    generate
 
-    construct(g) := do:
-      get(g)
-      @a construct(g)
-      @b construct(g)
-      g send(#new, 2)
-
-    (== b) :=
-      b kind-of?(And) &&
-        @a == b a &&
-        @b == b b
-
-    target(g) :=
-      @a target(g)
+    target(g) := @a target(g)
 
     matches?(g) := do:
       mismatch = g new-label
@@ -173,24 +147,12 @@ module(Atomy::Patterns):
       @a deconstruct(g, locals)
       @b deconstruct(g, locals)
 
-    local-names := [@a local-names + @b local-names] uniq
 
   class(Or < Pattern):
-    initialize(@a, @b) := #ok
+    children(#a, #b)
+    generate
 
-    construct(g) := do:
-      get(g)
-      @a construct(g)
-      @b construct(g)
-      g send(#new, 2)
-
-    (== b) :=
-      b kind-of?(Or) &&
-        @a == b a &&
-        @b == b b
-
-    target(g) :=
-      @a target(g)
+    target(g) := @a target(g)
 
     matches?(g) := do:
       matched = g new-label
@@ -229,15 +191,13 @@ module(Atomy::Patterns):
 
       done set!
 
-    local-names := [@a local-names + @b local-names] uniq
-
 
 -- base patterns
 module(Atomy::AST):
   Word to-pattern :=
     Atomy::Patterns::Named new $:
-      @text
       Atomy::Patterns::Any new
+      @text
 
   Primitive to-pattern :=
     Atomy::Patterns::Match new(@value)
@@ -268,7 +228,7 @@ module(Atomy::AST):
     Atomy::Patterns::QuasiQuote new(self)
 
   `(~x { ~y }) to-pattern :=
-    Atomy::Patterns::Named new(x text, y to-pattern)
+    Atomy::Patterns::Named new(y to-pattern, x text)
 
   `(~x ~(y: Atomy::AST::Word)) to-pattern :=
     Atomy::Patterns::Attribute new(x, y text, [])

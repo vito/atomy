@@ -1,5 +1,346 @@
 module Atomy::Patterns
   class Pattern
+    module SentientPattern
+      # hash from attribute to the type of child pattern it is
+      # :normal = normal, required subnode
+      # :many = a list of subnodes
+      # :optional = optional (might be nil)
+      def reset_children
+        @@children = {
+          :required => [],
+          :many => [],
+          :optional => []
+        }
+      end
+
+      def reset_attributes
+        @@attributes = {
+          :required => [],
+          :many => [],
+          :optional => []
+        }
+      end
+
+      def reset_slots
+        @@slots = {
+          :required => [],
+          :many => [],
+          :optional => []
+        }
+      end
+
+      def inherited(sub)
+        sub.reset_children
+        sub.reset_attributes
+        sub.reset_slots
+      end
+
+      def self.extended(sub)
+        sub.reset_children
+        sub.reset_attributes
+        sub.reset_slots
+      end
+
+      def spec(into, specs)
+        specs.each do |s|
+          if s.respond_to?(:[]) and s.respond_to?(:size)
+            if s.size == 2
+              into[:optional] << s
+            else
+              into[:many] << s[0]
+            end
+          elsif s.to_s[-1] == ??
+            into[:optional] << [s.to_s[0..-2].to_sym, "nil"]
+          else
+            into[:required] << s
+          end
+        end
+      end
+
+      def attributes(*specs)
+        spec(@@attributes, specs)
+      end
+
+      def slots(*specs)
+        spec(@@slots, specs)
+      end
+
+      def children(*specs)
+        spec(@@children, specs)
+      end
+
+      def generate
+        all = []
+        args = []
+        (@@children[:required] + @@children[:many] +
+         @@attributes[:required] + @@attributes[:many] +
+         @@slots[:required] + @@slots[:many]).each do |x|
+          all << x.to_s
+          args << "#{x}_"
+        end
+
+        lists = @@children[:many] + @@attributes[:many] + @@slots[:many]
+
+        (@@children[:optional] + @@attributes[:optional]).each do |x, d|
+          all << x.to_s
+          args << "#{x}_ = #{d}"
+        end
+
+        non_slots = all.dup
+        @@slots[:optional].each do |x, d|
+          all << x.to_s
+          args << "#{x}_ = #{d}"
+        end
+
+        class_eval <<EOF
+          attr_accessor #{all.collect { |a| ":#{a}" }.join(", ")}
+EOF
+
+        class_eval <<EOF
+          def initialize(#{args.join ", "})
+            #{@@children[:required].collect { |n| "raise \"initialized with non-pattern `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(Pattern)" }.join("; ")}
+            #{@@children[:many].collect { |n| "raise \"initialized with non-homogenous list `#{n}': \#{#{n}_.inspect}\" unless #{n}_.all? { |x| x.is_a?(Pattern) }" }.join("; ")}
+            #{@@children[:optional].collect { |n, _| "raise \"initialized with non-pattern `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(Pattern)" }.join("; ")}
+            #{@@attributes[:required].collect { |a| "raise \"initialized without `#{a}': \#{self.inspect}\" if #{a}_.nil?" }.join("; ")}
+            #{@@slots[:required].collect { |s| "raise \"initialized without `#{s}': \#{#{s}_.inspect}\" if #{s}_.nil?" }.join("; ")}
+
+            #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
+          end
+EOF
+
+        class_eval <<EOF
+          def construct(g)
+            get(g)
+
+            #{@@children[:required].collect { |n|
+                "@#{n}.construct(g)"
+              }.join("; ")}
+
+            #{@@children[:many].collect { |n|
+                "@#{n}.each { |n| n.construct(g) }; g.make_array @#{n}.size"
+              }.join("; ")}
+
+            #{@@attributes[:required].collect { |a|
+                "g.push_literal(@#{a})"
+              }.join("; ")}
+
+            #{@@attributes[:many].collect { |a|
+                "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
+              }.join("; ")}
+
+            #{@@slots[:required].collect { |a|
+                "g.push_literal(@#{a})"
+              }.join("; ")}
+
+            #{@@slots[:many].collect { |a|
+                "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
+              }.join("; ")}
+
+            #{@@children[:optional].collect { |n, _|
+                "if @#{n}; @#{n}.construct(g, d); else; g.push_nil; end"
+              }.join("; ")}
+
+            #{@@attributes[:optional].collect { |a, _|
+                "g.push_literal(@#{a})"
+              }.join("; ")}
+
+            #{@@slots[:optional].collect { |a, _|
+                "g.push_literal(@#{a})"
+              }.join("; ")}
+
+            g.send :new, #{all.size}
+          end
+EOF
+
+        class_eval <<EOF
+          def eql?(b)
+            b.kind_of?(#{self.name})#{non_slots.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
+          end
+
+          alias :== :eql?
+EOF
+
+        req_cs =
+          @@children[:required].collect { |n|
+            "@#{n}.recursively(pre, post, :#{n}, &f)"
+          }
+
+        many_cs =
+          @@children[:many].collect { |n|
+            "@#{n}.zip((0 .. @#{n}.size - 1).to_a).collect { |n, i| n.recursively(pre, post, [:#{n}, i], &f) }"
+          }
+
+        opt_cs =
+          @@children[:optional].collect { |n, _|
+            "@#{n} ? @#{n}.recursively(pre, post, :#{n}, &f) : nil"
+          }
+
+        req_as =
+          (@@attributes[:required] + @@attributes[:many]).collect { |a|
+            "@#{a}"
+          }
+
+        opt_as = @@attributes[:optional].collect { |a, _|
+            "@#{a}"
+          }
+
+        req_ss =
+          (@@slots[:required] + @@slots[:many]).collect { |a|
+            "@#{a}"
+          }
+
+        opt_ss = @@slots[:optional].collect { |a, _|
+            "@#{a}"
+          }
+
+        class_eval <<EOF
+          def recursively(pre = nil, post = nil, context = nil, &f)
+            if pre and pre.arity == 2
+              stop = pre.call(self, context)
+            elsif pre
+              stop = pre.call(self)
+            else
+              stop = false
+            end
+
+            if stop
+              if f.arity == 2
+                res = f.call(self, context)
+                post.call(context) if post
+                return res
+              else
+                res = f.call(self)
+                post.call(context) if post
+                return res
+              end
+            end
+
+            recursed = #{self.name}.new(
+              #{(req_cs + many_cs + req_as + req_ss + opt_cs + opt_as + opt_ss).join ", "}
+            )
+
+            if f.arity == 2
+              res = f.call(recursed, context)
+            else
+              res = f.call(recursed)
+            end
+
+            post.call(context) if post
+
+            res
+          end
+EOF
+
+        creq_cs =
+          @@children[:required].collect { |n|
+            "f.call(@#{n})"
+          }
+
+        cmany_cs =
+          @@children[:many].collect { |n|
+            "@#{n}.collect { |n| f.call(n) }"
+          }
+
+        copt_cs =
+          @@children[:optional].collect { |n, _|
+            "@#{n} ? f.call(@#{n}) : nil"
+          }
+
+        all =
+          (@@children[:required] +
+            @@children[:many] +
+            @@children[:optional]).collect { |n, _| "@#{n}" }
+
+        attrs =
+          @@attributes[:required] + @@attributes[:many] +
+            @@attributes[:optional].collect(&:first)
+
+        class_eval <<EOF
+          def children(&f)
+            if block_given?
+              #{self.name}.new(
+                #{(creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss).join ", "}
+              )
+            else
+              [#{all.join(", ")}]
+            end
+          end
+EOF
+
+        class_eval <<EOF
+          def walk_with(b, stop = nil, &f)
+            f.call(self, b)
+
+            return if !b.is_a?(#{self.name}) || (stop && stop.call(self, b))
+
+            #{attrs.collect { |a| "return if @#{a} != b.#{a}" }.join("; ")}
+
+            children.zip(b.children).each do |x, y|
+              if x.respond_to?(:each)
+                num = [x.size, y.size].max
+                num.times do |i|
+                  x2, y2 = x[i], y[i]
+                  if x2
+                    x2.walk_with(y2, stop, &f)
+                  elsif y2
+                    f.call(x2, y2)
+                  end
+                end
+              elsif x
+                x.walk_with(y, stop, &f)
+              elsif y
+                # x is nil, y is not
+                f.call(x, y)
+              end
+            end
+          end
+EOF
+
+        class_eval <<EOF
+          def bottom?
+            #{@@children.values.flatten(1).empty?.inspect}
+          end
+EOF
+
+        class_eval <<EOF
+          def details
+            #{attrs.inspect}
+          end
+EOF
+
+        slots =
+          @@slots[:required] + @@slots[:many] +
+            @@slots[:optional].collect(&:first)
+
+        class_eval <<EOF
+          def slots
+            #{slots.inspect}
+          end
+EOF
+
+        required = @@children[:required].collect { |c| ", [:\"#{c}\", @#{c}.to_sexp]" }.join
+        many = @@children[:many].collect { |c| ", [:\"#{c}\", @#{c}.collect(&:to_sexp)]" }.join
+        optional = @@children[:optional].collect { |c, _| ", [:\"#{c}\", @#{c} && @#{c}.to_sexp]" }.join
+
+        a_required = @@attributes[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        a_many = @@attributes[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        a_optional = @@attributes[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
+
+        s_required = @@slots[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        s_many = @@slots[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        s_optional = @@slots[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
+
+        class_eval <<EOF
+          def to_sexp
+            [:"#{self.name.split("::").last.downcase}"#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}]
+          end
+EOF
+
+      end
+    end
+
+    extend SentientPattern
+
     attr_accessor :variable
 
     # push the target class for this pattern in a defition
@@ -85,9 +426,20 @@ module Atomy::Patterns
       done.set!
     end
 
-    # local names bound by this pattern
-    def local_names
+    # TODO: patterns define "names" and "bound" instead
+
+    # local names bound by this pattern, not including children
+    def names
       []
+    end
+
+    def local_names
+      ns = names
+      children do |p|
+        ns += p.local_names
+        p
+      end
+      ns
     end
 
     # number of locals
@@ -95,9 +447,18 @@ module Atomy::Patterns
       local_names.size
     end
 
-    # number of bindings
+    # number of bindings, not including children
+    def bound
+      0
+    end
+
     def bindings
-      locals
+      bs = bound
+      children do |p|
+        bs += p.bindings
+        p
+      end
+      bs
     end
 
     # test if a pattern matches a value
@@ -135,7 +496,7 @@ module Atomy::Patterns
       if @text == "_"
         Any.new
       else
-        Named.new(@text, Any.new)
+        Named.new(Any.new, @text)
       end
     end
   end
@@ -277,7 +638,7 @@ module Atomy::Patterns
     def to_pattern
       if @right.is_a?(Atomy::AST::Block) and \
           @left.is_a?(Atomy::AST::Word)
-        Named.new(@left.text, @right.contents[0].to_pattern)
+        Named.new(@right.contents[0].to_pattern, @left.text)
       elsif @right.is_a?(Atomy::AST::Word)
         Attribute.new(@left, @right.text, [])
       elsif @right.is_a?(Atomy::AST::Call) and \

@@ -1,24 +1,10 @@
 module Atomy::Patterns
   class NamedGlobal < Pattern
-    attr_reader :identifier
-
-    def initialize(n)
-      @identifier = n
-    end
+    attributes(:identifier)
+    generate
 
     def name
       :"$#{@identifier}"
-    end
-
-    def construct(g)
-      get(g)
-      g.push_literal @identifier
-      g.send :new, 1
-    end
-
-    def ==(b)
-      b.kind_of?(NamedGlobal) and \
-      @identifier == b.identifier
     end
 
     def target(g)
@@ -35,11 +21,7 @@ module Atomy::Patterns
       g.pop
     end
 
-    def local_names
-      []
-    end
-
-    def bindings
+    def bound
       1
     end
 

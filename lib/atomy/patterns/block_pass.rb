@@ -1,21 +1,7 @@
 module Atomy::Patterns
   class BlockPass < Pattern
-    attr_reader :pattern
-
-    def initialize(p)
-      @pattern = p
-    end
-
-    def construct(g)
-      get(g)
-      @pattern.construct(g)
-      g.send :new, 1
-    end
-
-    def ==(b)
-      b.kind_of?(BlockPass) and \
-      @pattern == b.pattern
-    end
+    children(:pattern)
+    generate
 
     def target(g)
       g.push_const :Object
@@ -45,10 +31,6 @@ module Atomy::Patterns
       g.pop
 
       done.set!
-    end
-
-    def local_names
-      @pattern.local_names
     end
   end
 end

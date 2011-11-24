@@ -269,7 +269,7 @@ EOF
 
         cmany_cs =
           @@children[:many].collect { |n|
-            ", @#{n}.each.collect { |n| f.call(n) }"
+            ", @#{n}.collect { |n| f.call(n) }"
           }.join
 
         copt_cs =

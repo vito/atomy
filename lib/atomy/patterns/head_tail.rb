@@ -1,24 +1,7 @@
 module Atomy::Patterns
   class HeadTail < Pattern
-    attr_reader :head, :tail
-
-    def initialize(head, tail)
-      @head = head
-      @tail = tail
-    end
-
-    def construct(g)
-      get(g)
-      @head.construct(g)
-      @tail.construct(g)
-      g.send :new, 2
-    end
-
-    def ==(b)
-      b.kind_of?(HeadTail) and \
-      @head == b.head and \
-      @tail == b.tail
-    end
+    children(:head, :tail)
+    generate
 
     def target(g)
       g.push_cpath_top
@@ -52,14 +35,6 @@ module Atomy::Patterns
       g.shift_array
       @head.deconstruct(g, locals)
       @tail.deconstruct(g, locals)
-    end
-
-    def local_names
-      @head.local_names + @tail.local_names
-    end
-
-    def bindings
-      @head.bindings + @tail.bindings
     end
   end
 end

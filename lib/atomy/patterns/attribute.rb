@@ -1,12 +1,7 @@
 module Atomy::Patterns
   class Attribute < Pattern
-    attr_reader :receiver, :name, :arguments
-
-    def initialize(r, n, as = [])
-      @receiver = r
-      @name = n
-      @arguments = as
-    end
+    attributes(:receiver, :name, :arguments)
+    generate
 
     def construct(g)
       get(g)
@@ -17,13 +12,6 @@ module Atomy::Patterns
       end
       g.make_array @arguments.size
       g.send :new, 3
-    end
-
-    def ==(b)
-      b.kind_of?(Attribute) and \
-      @receiver == b.receiver and \
-      @name == b.name and \
-      @arguments == b.arguments
     end
 
     def target(g)
@@ -46,11 +34,7 @@ module Atomy::Patterns
       g.pop
     end
 
-    def local_names
-      []
-    end
-
-    def bindings
+    def bound
       1
     end
 

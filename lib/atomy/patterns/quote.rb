@@ -1,20 +1,12 @@
 module Atomy::Patterns
   class Quote < Pattern
-    attr_reader :expression
-
-    def initialize(x)
-      @expression = x
-    end
+    attributes(:expression)
+    generate
 
     def construct(g)
       get(g)
       @expression.construct(g, nil)
       g.send :new, 1
-    end
-
-    def ==(b)
-      b.kind_of?(Quote) and \
-      @expression == b.expression
     end
 
     def target(g)

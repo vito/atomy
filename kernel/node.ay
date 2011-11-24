@@ -21,10 +21,10 @@ module(Atomy::AST):
     Atomy::Patterns::Or new(a to-pattern, b to-pattern)
 
   `(~x with(~e, ~y)) to-pattern :=
-    Atomy::Patterns::With new(x to-pattern, e, y to-pattern)
+    Atomy::Patterns::With new(x to-pattern, y to-pattern, e)
 
   `(with(~e, ~y)) to-pattern :=
-    Atomy::Patterns::With new(Atomy::Patterns::Any new, e, y to-pattern)
+    Atomy::Patterns::With new(Atomy::Patterns::Any new, y to-pattern, e)
 
   `@@~n to-pattern :=
     Atomy::Patterns::NamedClass new(n text)

@@ -1,6 +1,7 @@
 module Atomy::Patterns
   class QuasiQuote < Pattern
-    attr_reader :quoted
+    attributes(:quoted)
+    generate
 
     def initialize(x)
       @quoted = x.through_quotes(proc { true }) do |e|
@@ -12,11 +13,6 @@ module Atomy::Patterns
       get(g)
       @quoted.construct(g, nil)
       g.send :new, 1
-    end
-
-    def ==(b)
-      b.kind_of?(QuasiQuote) and \
-      @quoted == b.expression
     end
 
     def expression
@@ -228,7 +224,7 @@ module Atomy::Patterns
       end
     end
 
-    def local_names
+    def names
       names = []
 
       @quoted.through_quotes(proc { true }) do |e|
@@ -239,7 +235,7 @@ module Atomy::Patterns
       names
     end
 
-    def bindings
+    def bound
       bindings = 0
 
       @quoted.through_quotes(proc { true }) do |e|
