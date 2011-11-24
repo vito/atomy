@@ -358,12 +358,6 @@ module Atomy
       a.module == b.module and \
         equal_scope?(a.parent, b.parent)
     end
-
-    # stores the "real" sender; used for things like "super"
-    # where we want to keep the original for namespace checks
-    def sender_var
-      :"@atomy::sender"
-    end
   end
 
   # build a method from the given branches and add it to
