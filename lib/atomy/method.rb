@@ -8,16 +8,15 @@ module Atomy
   # TODO: visibility?
   class Branch
     attr_accessor :receiver, :required, :defaults,
-                  :splat, :block, :file, :name
+                  :splat, :block, :name
 
     def initialize(receiver, required = [], defaults = [],
-                   splat = nil, block = nil, file = :dynamic)
+                   splat = nil, block = nil)
       @receiver = receiver
       @required = required
       @defaults = defaults
       @splat = splat
       @block = block
-      @file = file
     end
 
     def ==(b)
