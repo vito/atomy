@@ -1,4 +1,4 @@
-$LOAD_PATH << File.expand_path("../../rubinius/benchmark/lib", __FILE__)
+require("rubygems")
 require("benchmark/ips")
 
 class Fixnum
