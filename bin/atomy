@@ -88,7 +88,7 @@ def run_atomy(options)
 
   if file = options[:load] || ARGV[0]
     $0 = file
-    run = ARGV.unshift
+    run = ARGV.shift
     Atomy.load(file, run ? :run : :load, options[:debug])
     return if run
   end
