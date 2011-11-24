@@ -378,4 +378,14 @@ module Atomy
 
     add_method(target, name, method, visibility)
   end
+
+  def self.dynamic_branch(target, name, branch, visibility = :public,
+                          scope = nil, defn = false, &body)
+    body.block.code.name = name
+
+    define_branch(
+      target, name, branch, body.block.code,
+      visibility, scope || Rubinius::StaticScope.of_sender, defn
+    )
+  end
 end
