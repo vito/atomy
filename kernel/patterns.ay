@@ -43,6 +43,8 @@ module(Atomy::Patterns):
 
     bindings := @pattern bindings
 
+    precision := @pattern precision + 1
+
   class(With < Pattern):
     initialize(@pattern, expression, @sub-pattern) :=
       @expression = expression

@@ -32,7 +32,7 @@ module Atomy
       @required.size + @defaults.size
     end
 
-    # compare one method's precision to another
+    # compare one branch's precision to another
     def <=>(other)
       return 1 if total_args > other.total_args
       return -1 if total_args < other.total_args
@@ -58,8 +58,7 @@ module Atomy
       total <=> 0
     end
 
-    # will two patterns (and namespaces) always match the
-    # same things?
+    # will two branches always match the same cases?
     def =~(other)
       return false unless total_args == other.total_args
 
@@ -73,8 +72,13 @@ module Atomy
         return false unless x =~ y
       end
 
-      return false unless @splat =~ other.splat
-      return false unless @block =~ other.block
+      if @splat or other.splat
+        return false unless @splat =~ other.splat
+      end
+
+      if @block or other.block
+        return false unless @block =~ other.block
+      end
 
       true
     end
@@ -95,17 +99,7 @@ module Atomy
 
     def add(branch)
       insert(branch, @branches)
-      branch.name = new_name
       nil
-    end
-
-    def sorted?
-      @sorted
-    end
-
-    def sort!
-      @branches.sort! { |x, y| y <=> x }
-      @sorted = true
     end
 
     def build
@@ -193,33 +187,22 @@ module Atomy
     # during insertion, branches with equivalent patterns will
     # be replaced
     def insert(new, branches)
-      unless new.receiver.respond_to?(:precision)
-        return branches.unshift(new)
-      end
-
-      if sorted?
-        branches.each_with_index do |branch, i|
-          case new <=> branch
-          when 1
-            return branches.insert(i, new)
-          when 0
-            if new =~ branch
-              branches[i] = new
-              return branches
-            end
+      branches.each_with_index do |branch, i|
+        case new <=> branch
+        when 1
+          new.name = new_name
+          return branches.insert(i, new)
+        when 0
+          if new =~ branch
+            new.name = branch.name
+            branches[i] = new
+            return branches
           end
         end
-
-        branches << new
-      else
-        # this is needed because we define methods before <=> is
-        # defined, so sort it once we have that
-        branches.unshift(new)
-
-        sort!
-
-        branches
       end
+
+      new.name = new_name
+      branches << new
     end
 
     # build all the method branches, assumed to be from the
