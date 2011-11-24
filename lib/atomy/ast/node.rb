@@ -6,7 +6,7 @@ module Atomy
       # :many = a list of subnodes
       # :optional = optional (might be nil)
       def reset_children
-        @@children = {
+        @children = {
           :required => [],
           :many => [],
           :optional => []
@@ -14,7 +14,7 @@ module Atomy
       end
 
       def reset_attributes
-        @@attributes = {
+        @attributes = {
           :required => [],
           :many => [],
           :optional => []
@@ -22,17 +22,11 @@ module Atomy
       end
 
       def reset_slots
-        @@slots = {
+        @slots = {
           :required => [],
           :many => [],
           :optional => []
         }
-      end
-
-      def inherited(sub)
-        sub.reset_children
-        sub.reset_attributes
-        sub.reset_slots
       end
 
       def self.extended(sub)
@@ -55,18 +49,20 @@ module Atomy
             into[:required] << s
           end
         end
+
+        into
       end
 
       def attributes(*specs)
-        spec(@@attributes, specs)
+        spec(@attributes, specs)
       end
 
       def slots(*specs)
-        spec(@@slots, specs)
+        spec(@slots, specs)
       end
 
       def children(*specs)
-        spec(@@children, specs)
+        spec(@children, specs)
       end
 
       def many_construct(n)
@@ -99,22 +95,22 @@ END
       def generate
         all = []
         args = ""
-        (@@children[:required] + @@children[:many] +
-         @@attributes[:required] + @@attributes[:many] +
-         @@slots[:required] + @@slots[:many]).each do |x|
+        (@children[:required] + @children[:many] +
+         @attributes[:required] + @attributes[:many] +
+         @slots[:required] + @slots[:many]).each do |x|
           all << x.to_s
           args << ", #{x}_"
         end
 
-        lists = @@children[:many] + @@attributes[:many] + @@slots[:many]
+        lists = @children[:many] + @attributes[:many] + @slots[:many]
 
-        (@@children[:optional] + @@attributes[:optional]).each do |x, d|
+        (@children[:optional] + @attributes[:optional]).each do |x, d|
           all << x.to_s
           args << ", #{x}_ = #{d}"
         end
 
         non_slots = all.dup
-        @@slots[:optional].each do |x, d|
+        @slots[:optional].each do |x, d|
           all << x.to_s
           args << ", #{x}_ = #{d}"
         end
@@ -126,11 +122,11 @@ EOF
         class_eval <<EOF
           def initialize(line#{args})
             raise "initialized with non-integer `line': \#{line}" unless line.is_a?(Integer)
-            #{@@children[:required].collect { |n| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(NodeLike)" }.join("; ")}
-            #{@@children[:many].collect { |n| "raise \"initialized with non-homogenous list `#{n}': \#{#{n}_.inspect}\" unless #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
-            #{@@children[:optional].collect { |n, _| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(NodeLike)" }.join("; ")}
-            #{@@attributes[:required].collect { |a| "raise \"initialized without `#{a}': \#{self.inspect}\" if #{a}_.nil?" }.join("; ")}
-            #{@@slots[:required].collect { |s| "raise \"initialized without `#{s}': \#{#{s}_.inspect}\" if #{s}_.nil?" }.join("; ")}
+            #{@children[:required].collect { |n| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(NodeLike)" }.join("; ")}
+            #{@children[:many].collect { |n| "raise \"initialized with non-homogenous list `#{n}': \#{#{n}_.inspect}\" unless #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
+            #{@children[:optional].collect { |n, _| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(NodeLike)" }.join("; ")}
+            #{@attributes[:required].collect { |a| "raise \"initialized without `#{a}': \#{self.inspect}\" if #{a}_.nil?" }.join("; ")}
+            #{@slots[:required].collect { |s| "raise \"initialized without `#{s}': \#{#{s}_.inspect}\" if #{s}_.nil?" }.join("; ")}
 
             @line = line
             #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
@@ -142,39 +138,39 @@ EOF
             get(g)
             g.push_int(@line)
 
-            #{@@children[:required].collect { |n|
+            #{@children[:required].collect { |n|
                 "@#{n}.construct(g, d)"
               }.join("; ")}
 
-            #{@@children[:many].collect { |n|
+            #{@children[:many].collect { |n|
                 many_construct(n)
               }.join("; ")}
 
-            #{@@attributes[:required].collect { |a|
+            #{@attributes[:required].collect { |a|
                 "g.push_literal(@#{a})"
               }.join("; ")}
 
-            #{@@attributes[:many].collect { |a|
+            #{@attributes[:many].collect { |a|
                 "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
               }.join("; ")}
 
-            #{@@slots[:required].collect { |a|
+            #{@slots[:required].collect { |a|
                 "g.push_literal(@#{a})"
               }.join("; ")}
 
-            #{@@slots[:many].collect { |a|
+            #{@slots[:many].collect { |a|
                 "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
               }.join("; ")}
 
-            #{@@children[:optional].collect { |n, _|
+            #{@children[:optional].collect { |n, _|
                 "if @#{n}; @#{n}.construct(g, d); else; g.push_nil; end"
               }.join("; ")}
 
-            #{@@attributes[:optional].collect { |a, _|
+            #{@attributes[:optional].collect { |a, _|
                 "g.push_literal(@#{a})"
               }.join("; ")}
 
-            #{@@slots[:optional].collect { |a, _|
+            #{@slots[:optional].collect { |a, _|
                 "g.push_literal(@#{a})"
               }.join("; ")}
 
@@ -192,35 +188,35 @@ EOF
 EOF
 
         req_cs =
-          @@children[:required].collect { |n|
+          @children[:required].collect { |n|
             ", @#{n}.recursively(pre, post, :#{n}, &f)"
           }.join
 
         many_cs =
-          @@children[:many].collect { |n|
+          @children[:many].collect { |n|
             ", @#{n}.zip((0 .. @#{n}.size - 1).to_a).collect { |n, i| n.recursively(pre, post, [:#{n}, i], &f) }"
           }.join
 
         opt_cs =
-          @@children[:optional].collect { |n, _|
+          @children[:optional].collect { |n, _|
             ", @#{n} ? @#{n}.recursively(pre, post, :#{n}, &f) : nil"
           }.join
 
         req_as =
-          (@@attributes[:required] + @@attributes[:many]).collect { |a|
+          (@attributes[:required] + @attributes[:many]).collect { |a|
             ", @#{a}"
           }.join
 
-        opt_as = @@attributes[:optional].collect { |a, _|
+        opt_as = @attributes[:optional].collect { |a, _|
             ", @#{a}"
           }.join
 
         req_ss =
-          (@@slots[:required] + @@slots[:many]).collect { |a|
+          (@slots[:required] + @slots[:many]).collect { |a|
             ", @#{a}"
           }.join
 
-        opt_ss = @@slots[:optional].collect { |a, _|
+        opt_ss = @slots[:optional].collect { |a, _|
             ", @#{a}"
           }.join
 
@@ -263,28 +259,28 @@ EOF
 EOF
 
         creq_cs =
-          @@children[:required].collect { |n|
+          @children[:required].collect { |n|
             ", f.call(@#{n})"
           }.join
 
         cmany_cs =
-          @@children[:many].collect { |n|
+          @children[:many].collect { |n|
             ", @#{n}.collect { |n| f.call(n) }"
           }.join
 
         copt_cs =
-          @@children[:optional].collect { |n, _|
+          @children[:optional].collect { |n, _|
             ", @#{n} ? f.call(@#{n}) : nil"
           }.join
 
         all =
-          (@@children[:required] +
-            @@children[:many] +
-            @@children[:optional]).collect { |n, _| "@#{n}" }
+          (@children[:required] +
+            @children[:many] +
+            @children[:optional]).collect { |n, _| "@#{n}" }
 
         attrs =
-          @@attributes[:required] + @@attributes[:many] +
-            @@attributes[:optional].collect(&:first)
+          @attributes[:required] + @attributes[:many] +
+            @attributes[:optional].collect(&:first)
 
         class_eval <<EOF
           def children(&f)
@@ -329,7 +325,7 @@ EOF
 
         class_eval <<EOF
           def bottom?
-            #{@@children.values.flatten(1).empty?.inspect}
+            #{@children.values.flatten(1).empty?.inspect}
           end
 EOF
 
@@ -340,8 +336,8 @@ EOF
 EOF
 
         slots =
-          @@slots[:required] + @@slots[:many] +
-            @@slots[:optional].collect(&:first)
+          @slots[:required] + @slots[:many] +
+            @slots[:optional].collect(&:first)
 
         class_eval <<EOF
           def slots
@@ -349,17 +345,17 @@ EOF
           end
 EOF
 
-        required = @@children[:required].collect { |c| ", [:\"#{c}\", @#{c}.to_sexp]" }.join
-        many = @@children[:many].collect { |c| ", [:\"#{c}\", @#{c}.collect(&:to_sexp)]" }.join
-        optional = @@children[:optional].collect { |c, _| ", [:\"#{c}\", @#{c} && @#{c}.to_sexp]" }.join
+        required = @children[:required].collect { |c| ", [:\"#{c}\", @#{c}.to_sexp]" }.join
+        many = @children[:many].collect { |c| ", [:\"#{c}\", @#{c}.collect(&:to_sexp)]" }.join
+        optional = @children[:optional].collect { |c, _| ", [:\"#{c}\", @#{c} && @#{c}.to_sexp]" }.join
 
-        a_required = @@attributes[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
-        a_many = @@attributes[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
-        a_optional = @@attributes[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
+        a_required = @attributes[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        a_many = @attributes[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        a_optional = @attributes[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
 
-        s_required = @@slots[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
-        s_many = @@slots[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
-        s_optional = @@slots[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
+        s_required = @slots[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        s_many = @slots[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
+        s_optional = @slots[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
 
         class_eval <<EOF
           def to_sexp
@@ -589,7 +585,10 @@ EOF
     class Node < Rubinius::AST::Node
       include Atomy::Macro::Helpers
       include NodeLike
-      extend SentientNode
+
+      def self.inherited(sub)
+        sub.extend SentientNode
+      end
 
       def bytecode(g)
         raise "no #bytecode for #{to_sexp}"
