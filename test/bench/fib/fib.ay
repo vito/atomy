@@ -1,0 +1,22 @@
+$LOAD_PATH << File expand-path("../../rubinius/benchmark/lib", _FILE)
+require("benchmark/ips")
+
+class(Fixnum):
+  define(fib-cond):
+    if(self == 0)
+      then: 1
+      else:
+        if(self == 1)
+          then: 1
+          else: (- 2) fib-cond + (- 1) fib-cond
+
+0 fib-atomy := 1
+1 fib-atomy := 1
+Fixnum fib-atomy := (- 2) fib-atomy + (- 1) fib-atomy
+
+Benchmark ips [x]:
+  x report("20 fib-cond"):
+    20 fib-cond
+
+  x report("20 fib-atomy"):
+    20 fib-atomy
