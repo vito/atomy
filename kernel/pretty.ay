@@ -141,7 +141,6 @@ module(Atomy::AST):
   Word unamb := pretty
   Pattern unamb := @pattern unamb
   Node unamb := doc: parens(pretty)
-  _ unamb := pretty
 
   Binary pretty-print := doc:
     from(#binary):
@@ -259,7 +258,6 @@ module(Atomy::Patterns):
   Predicate pretty-print := `(~@pattern ? ~@test) pretty
   QuasiQuote pretty-print := @quoted pretty
   Quote pretty-print := `'~@expression pretty
-  RuntimeClass pretty-print := `%~@body pretty
   SingletonClass pretty-print := @body pretty
   Splat pretty-print := `*~@pattern pretty
   With pretty-print := `(~@pattern with(~@expression, ~@sub-pattern)) pretty

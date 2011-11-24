@@ -251,8 +251,6 @@ module Atomy::Patterns
         else
           super
         end
-      when :"%"
-        RuntimeClass.new(@receiver, nil)
       when :"&"
         BlockPass.new(@receiver.to_pattern)
       when :"*"

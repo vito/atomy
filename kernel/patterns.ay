@@ -1,27 +1,4 @@
 module(Atomy::Patterns):
-  class(RuntimeClass < Pattern):
-    initialize(@body, @name = nil) := #ok
-
-    construct(g) := do:
-      get(g)
-      @body construct(g)
-      @body compile(g)
-      g send(#name, 0)
-      g send(#new, 2)
-
-    (== b) :=
-      b kind-of?(RuntimeClass) &&
-        @body == b body &&
-        @name == b name
-
-    target(g) :=
-      @body compile(g)
-
-    matches?(g) := do:
-      Atomy const-from-string(g, @name)
-      g swap
-      g kind-of
-
   class(Predicate < Pattern):
     initialize(@pattern, test) :=
       @test = test

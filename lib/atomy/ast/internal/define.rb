@@ -181,10 +181,7 @@ module Atomy
           g.push_nil
         end
 
-        g.push_scope
-        g.send :active_path, 0
-
-        g.send :new, 6
+        g.send :new, 5
       end
 
       def bytecode(g)
