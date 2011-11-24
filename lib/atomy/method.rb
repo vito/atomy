@@ -194,7 +194,7 @@ module Atomy
     # during insertion, branches with equivalent patterns will
     # be replaced
     def insert(new, branches)
-      unless new.receiver.respond_to?(:<=>)
+      unless new.receiver.respond_to?(:precision)
         return branches.unshift(new)
       end
 
