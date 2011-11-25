@@ -15,7 +15,8 @@ module Atomy::Patterns
     end
 
     def target(g)
-      raise "tried to get target of Attribute pattern: #{self.inspect}"
+      g.push_cpath_top
+      g.find_const :Object
     end
 
     def matches?(g)
