@@ -25,10 +25,7 @@ basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=
 
         try = {
           with-restarts(retry -> try [], abort -> #ok):
-            res = Atomy::Compiler evaluate(
-              source, bnd, nil,
-              "(eval)", 1, debug
-            )
+            res = Atomy::Compiler eval(source, bnd, "(eval)", 1, debug)
             signal(#evaluated(res))
         }
 

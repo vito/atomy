@@ -66,7 +66,7 @@ module Atomy::Macro
         Rubinius::VariableScope.of_sender,
         Rubinius::CompiledMethod.of_sender,
         Rubinius::StaticScope.new(Atomy::AST)
-      ), nil, file.to_s, pattern.quoted.line
+      ), file.to_s, pattern.quoted.line
     )
 
     if let

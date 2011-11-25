@@ -67,10 +67,9 @@ end
 def run_atomy(options)
   if str = options[:evaluate] || options[:start]
     $0 = "(eval)"
-    res = Atomy::Compiler.evaluate(
+    res = Atomy::Compiler.eval(
       str,
       TOPLEVEL_BINDING,
-      nil,
       "(eval)",
       1,
       options[:debug]

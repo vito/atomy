@@ -46,8 +46,8 @@ module Atomy
       compiler.run
     end
 
-    def self.compile_eval(string, scope = nil,
-                          file = "(eval)", line = 1, debug = false)
+    def self.compile_eval_string(string, scope = nil,
+                                 file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_string, :compiled_method
 
       compiler.parser.root Rubinius::AST::EvalExpression
@@ -57,11 +57,13 @@ module Atomy
 
       compiler.generator.variable_scope = scope
 
-      compiler.run
+      cm = compiler.run
+      cm.add_metadata :for_eval, true
+      cm
     end
 
-    def self.compile_node(node, scope = nil,
-                          file = "(eval)", line = 1, debug = false)
+    def self.compile_eval_node(node, scope = nil,
+                               file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_bytecode, :compiled_method
 
       expr = Rubinius::AST::EvalExpression.new(AST::Tree.new(line, [node]))
@@ -72,78 +74,79 @@ module Atomy
       compiler.generator.input expr
       compiler.generator.variable_scope = scope
 
-      compiler.run
+      cm = compiler.run
+      cm.add_metadata :for_eval, true
+      cm
     end
 
-    def self.evaluate_node(node, bnd = nil, instance = nil,
-                           file = "(eval)", line = 1, debug = false)
-      if bnd.nil?
-        bnd = Binding.setup(
-          Rubinius::VariableScope.of_sender,
-          Rubinius::CompiledMethod.of_sender,
-          Rubinius::StaticScope.of_sender
-        )
+    def self.construct_block(string_or_node, binding, file="(eval)", line=1, debug = false)
+      if string_or_node.is_a?(String)
+        cm = compile_eval_string string_or_node, binding.variables, file, line, debug
+      else
+        cm = compile_eval_node string_or_node, binding.variables, file, line, debug
       end
 
-      cm = compile_node(node, bnd.variables, file, line)
-      cm.scope = bnd.static_scope.dup
-      cm.name = :__eval__
+      cm.scope = binding.static_scope
+      cm.name = binding.variables.method.name
 
+      # This has to be setup so __FILE__ works in eval.
       script = Rubinius::CompiledMethod::Script.new(cm, file, true)
-      script.eval_binding = bnd
+      if string_or_node.is_a?(String)
+        script.eval_source = string_or_node
+      end
 
       cm.scope.script = script
 
       be = Rubinius::BlockEnvironment.new
-      be.under_context(bnd.variables, cm)
+      be.under_context binding.variables, cm
 
-      if bnd.from_proc?
-        be.proc_environment = bnd.proc_environment
+      # Pass the BlockEnvironment this binding was created from
+      # down into the new BlockEnvironment we just created.
+      # This indicates the "declaration trace" to the stack trace
+      # mechanisms, which can be different from the "call trace"
+      # in the case of, say: eval("caller", a_proc_instance)
+      if binding.from_proc?
+        be.proc_environment = binding.proc_environment
       end
 
       be.from_eval!
-
-      if instance
-        be.call_on_instance instance
-      else
-        be.call
-      end
+     
+      return be
     end
 
-    def self.evaluate(string, bnd = nil, instance = nil,
-                      file = "(eval)", line = 1, debug = false)
-      if bnd.nil?
-        bnd = Binding.setup(
-          Rubinius::VariableScope.of_sender,
-          Rubinius::CompiledMethod.of_sender,
-          Rubinius::StaticScope.of_sender
-        )
-      end
+    def self.eval(string_or_node, binding=nil, filename=nil, line=1, debug = false)
+      filename = filename.to_s if filename
+      lineno = lineno.to_i
 
-      cm = compile_eval(string, bnd.variables, file, line, debug)
-      cm.scope = bnd.static_scope.dup
-      cm.name = :__eval__
+      if binding
+        if binding.kind_of? Proc
+          binding = binding.binding
+        elsif binding.respond_to? :to_binding
+          binding = binding.to_binding
+        end
 
-      script = Rubinius::CompiledMethod::Script.new(cm, file, true)
-      script.eval_binding = bnd
-      script.eval_source = string
+        unless binding.kind_of? Binding
+          raise ArgumentError, "unknown type of binding"
+        end
 
-      cm.scope.script = script
-
-      be = Rubinius::BlockEnvironment.new
-      be.under_context(bnd.variables, cm)
-
-      if bnd.from_proc?
-        be.proc_environment = bnd.proc_environment
-      end
-
-      be.from_eval!
-
-      if instance
-        be.call_on_instance instance
+        filename ||= binding.static_scope.active_path
       else
-        be.call
+        binding = Binding.setup(Rubinius::VariableScope.of_sender,
+                                Rubinius::CompiledMethod.of_sender,
+                                Rubinius::StaticScope.of_sender,
+                                self)
+
+        filename ||= "(eval)"
       end
+
+      binding.static_scope = binding.static_scope.dup
+
+      be = Atomy::Compiler.construct_block string_or_node, binding,
+                                           filename, lineno, debug
+
+      be.set_eval_binding binding
+
+      be.call_on_instance(binding.self)
     end
   end
 end

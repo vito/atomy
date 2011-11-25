@@ -470,7 +470,7 @@ EOF
           )
         end
 
-        Atomy::Compiler.evaluate_node(self, bnd, *args)
+        Atomy::Compiler.eval(self, bnd, *args)
       end
 
       # this is overridden by macro definitions
@@ -556,7 +556,7 @@ EOF
             Rubinius::VariableScope.of_sender,
             Rubinius::CompiledMethod.of_sender,
             Rubinius::StaticScope.new(Atomy::AST)
-          ), nil, file.to_s, pattern.quoted.line
+          ), file.to_s, pattern.quoted.line
         )
       end
 
