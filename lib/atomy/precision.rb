@@ -34,7 +34,7 @@ module Atomy::Patterns
   class Pattern
     def <=>(other)
       case other
-      when Default, Named
+      when Default, Named, BlockPass, Splat
         self <=> other.pattern
       else
         precision <=> other.precision
@@ -44,8 +44,12 @@ module Atomy::Patterns
 
   class BlockPass
     def <=>(other)
-      return super unless other.is_a?(self.class)
-      pattern <=> other.pattern
+      case other
+      when self.class
+        pattern <=> other.pattern
+      else
+        pattern <=> other
+      end
     end
   end
 
@@ -85,8 +89,12 @@ module Atomy::Patterns
 
   class Splat
     def <=>(other)
-      return super unless other.is_a?(self.class)
-      pattern <=> other.pattern
+      case other
+      when self.class
+        pattern <=> other.pattern
+      else
+        pattern <=> other
+      end
     end
   end
 

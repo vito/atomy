@@ -383,6 +383,7 @@ EOF
       match(g, set, locals)
     end
 
+    # will this pattern match everything?
     def wildcard?
       false
     end

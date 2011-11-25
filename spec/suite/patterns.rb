@@ -88,8 +88,9 @@ module Atomy::Patterns
     end
 
     describe(BlockPass) do
-      it("is not a wildcard") do
-        refute BlockPass.new(Any.new).wildcard?
+      it("is a wildcard iff its pattern is a wildcard") do
+        assert BlockPass.new(Any.new).wildcard?
+        refute BlockPass.new(Match.new(1)).wildcard?
       end
 
       it("performs binding iff its pattern performs binding") do
@@ -521,8 +522,9 @@ module Atomy::Patterns
     end
 
     describe(Splat) do
-      it("is not a wildcard") do
-        refute Splat.new(Any.new).wildcard?
+      it("is a wildcard iff its pattern is a wildcard") do
+        assert Splat.new(Any.new).wildcard?
+        refute Splat.new(List.new([])).wildcard?
       end
 
       it("performs binding iff its pattern performs binding") do

@@ -27,5 +27,9 @@ module Atomy::Patterns
       match.set!
       @pattern.deconstruct(g, locals)
     end
+
+    def wildcard?
+      @pattern.wildcard?
+    end
   end
 end

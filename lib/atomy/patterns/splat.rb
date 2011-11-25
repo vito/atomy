@@ -17,5 +17,9 @@ module Atomy::Patterns
       g.cast_array
       @pattern.deconstruct(g, locals)
     end
+
+    def wildcard?
+      @pattern.wildcard?
+    end
   end
 end
