@@ -93,7 +93,7 @@ module Atomy
         meth.total_args = 0
         meth.required_args = 0
 
-        if receiver.bindings > 0
+        if receiver.binds?
           meth.push_self
           receiver.deconstruct(meth)
         end

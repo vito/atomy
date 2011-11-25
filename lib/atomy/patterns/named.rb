@@ -27,7 +27,7 @@ module Atomy::Patterns
         local = Atomy.assign_local(g, @name)
       end
 
-      if @pattern.bindings > 0
+      if @pattern.binds?
         g.dup
         @pattern.deconstruct(g, locals)
       end
@@ -40,8 +40,8 @@ module Atomy::Patterns
       [@name]
     end
 
-    def bound
-      1
+    def binds?
+      true
     end
 
     def wildcard?

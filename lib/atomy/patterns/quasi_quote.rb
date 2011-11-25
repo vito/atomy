@@ -235,15 +235,13 @@ module Atomy::Patterns
       names
     end
 
-    def bound
-      bindings = 0
-
+    def binds?
       @quoted.through_quotes(proc { true }) do |e|
-        bindings += e.to_pattern.bindings
+        return true if e.to_pattern.binds?
         e
       end
 
-      bindings
+      false
     end
   end
 end

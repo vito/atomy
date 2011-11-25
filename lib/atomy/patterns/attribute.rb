@@ -34,8 +34,8 @@ module Atomy::Patterns
       g.pop
     end
 
-    def bound
-      1
+    def binds?
+      true
     end
 
     def wildcard?

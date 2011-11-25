@@ -444,18 +444,14 @@ EOF
       local_names.size
     end
 
-    # number of bindings, not including children
-    def bound
-      0
-    end
-
-    def bindings
-      bs = bound
+    # does the pattern perform any binding/assignment?
+    def binds?
       children do |p|
-        bs += p.bindings
+        return true if p.binds?
         p
       end
-      bs
+
+      false
     end
 
     # test if a pattern matches a value
