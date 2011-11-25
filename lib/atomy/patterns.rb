@@ -464,6 +464,17 @@ EOF
       __send__ :===, v
     end
 
+    # get the pattern's definition target
+    def definition_target
+      singleton_class.dynamic_method(:definition_target) do |g|
+        g.total_args = g.required_args = g.local_count = 0
+        target(g)
+        g.ret
+      end
+
+      __send__ :definition_target
+    end
+
     def to_node
       Atomy::AST::Pattern.new(0, self)
     end
