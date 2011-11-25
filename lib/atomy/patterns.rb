@@ -569,7 +569,7 @@ EOF
 
   class Atomy::AST::Block
     def to_pattern
-      SingletonClass.new(self)
+      SingletonClass.new(body)
     end
   end
 

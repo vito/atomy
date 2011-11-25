@@ -222,7 +222,7 @@ module(Atomy::AST):
     Atomy::Patterns::Quote new(@expression)
 
   Block to-pattern :=
-    Atomy::Patterns::SingletonClass new(self)
+    Atomy::Patterns::SingletonClass new(body)
 
   QuasiQuote to-pattern :=
     Atomy::Patterns::QuasiQuote new(self)

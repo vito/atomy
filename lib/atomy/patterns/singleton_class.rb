@@ -5,7 +5,6 @@ module Atomy::Patterns
 
     def target(g)
       @body.compile(g)
-      g.send :call, 0
       g.send :singleton_class, 0
     end
 
