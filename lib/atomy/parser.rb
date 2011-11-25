@@ -4,6 +4,12 @@ require base + "/atomy.kpeg.rb"
 
 module Atomy
   class Parser
+    def self.parse_node(source)
+      p = new(source)
+      p.raise_error unless p.parse("expression")
+      p.result
+    end
+
     def self.parse_string(source)
       p = new(source)
       p.raise_error unless p.parse
