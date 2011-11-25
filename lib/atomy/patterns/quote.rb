@@ -5,7 +5,7 @@ module Atomy::Patterns
 
     def construct(g)
       get(g)
-      @expression.construct(g, nil)
+      @expression.construct(g)
       g.send :new, 1
     end
 
@@ -14,7 +14,7 @@ module Atomy::Patterns
     end
 
     def matches?(g)
-      @expression.construct(g, nil)
+      @expression.construct(g)
       g.send :==, 1
     end
   end
