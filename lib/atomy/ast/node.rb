@@ -125,8 +125,6 @@ EOF
             #{@children[:required].collect { |n| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(NodeLike)" }.join("; ")}
             #{@children[:many].collect { |n| "raise \"initialized with non-homogenous list `#{n}': \#{#{n}_.inspect}\" unless #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
             #{@children[:optional].collect { |n, _| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(NodeLike)" }.join("; ")}
-            #{@attributes[:required].collect { |a| "raise \"initialized without `#{a}': \#{self.inspect}\" if #{a}_.nil?" }.join("; ")}
-            #{@slots[:required].collect { |s| "raise \"initialized without `#{s}': \#{#{s}_.inspect}\" if #{s}_.nil?" }.join("; ")}
 
             @line = line
             #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
