@@ -484,7 +484,7 @@ EOF
 
   class Atomy::AST::Word
     def to_pattern
-      if @text == "_"
+      if @text == :_
         Any.new
       else
         Named.new(Any.new, @text)
