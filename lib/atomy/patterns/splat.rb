@@ -4,10 +4,12 @@ module Atomy::Patterns
     generate
 
     def target(g)
-      g.push_const :Object
+      g.push_cpath_top
+      g.find_const :Object
     end
 
     def matches?(g)
+      g.cast_array
       @pattern.matches?(g)
     end
 
