@@ -13,6 +13,13 @@ module Atomy::Patterns
       matched = g.new_label
 
       g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.gif mismatch
+
+      g.dup
       g.send :empty?, 0
       g.git mismatch
 
