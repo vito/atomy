@@ -12,9 +12,18 @@ module Atomy::Patterns
       matched = g.new_label
       mismatch = g.new_label
 
-      has_splat = @patterns.any? { |p| p.is_a?(Splat) }
+      varying = false
+      required = 0
+      @patterns.each do |p|
+        if p.is_a?(Splat)
+          varying = true
+        else
+          varying = false if varying
+          required += 1
+        end
+      end
 
-      unless has_splat
+      unless varying
         g.dup
         g.push_literal :size
         g.send :respond_to?, 1
@@ -26,21 +35,23 @@ module Atomy::Patterns
       g.send :respond_to?, 1
       g.gif mismatch
 
-      unless has_splat
+      unless varying
         g.dup
         g.send :size, 0
-        g.push @patterns.size
+        g.push required
         g.send :==, 1
         g.gif mismatch
       end
 
+      splatted = 0
       @patterns.each_with_index do |p, i|
         g.dup
         if p.is_a?(Splat)
-          g.push_int i
+          g.push_int(i - splatted)
           g.send :drop, 1
+          splatted += 1
         else
-          g.push_int i
+          g.push_int(i - splatted)
           g.send :[], 1
         end
         p.matches?(g)

@@ -23,7 +23,7 @@ module Atomy::Patterns
       expression.get(g)
     end
 
-    def context(g, w, defaults)
+    def context(g, w, defaults, splices = 0)
       w.each do |c|
         if c.kind_of?(Array)
           g.send c[0], 0
@@ -47,7 +47,7 @@ module Atomy::Patterns
             valid.set!
           end
 
-          g.push_int c[1]
+          g.push_int(c[1] - splices)
           g.send :[], 1
 
           done.set! if dflt
@@ -81,7 +81,9 @@ module Atomy::Patterns
           vary = true
           defaults[i] = pat
         else
-          req += 1 unless vary
+          # more values after a splice indicates fixed width
+          vary = false if vary
+          req += 1
         end
       end
       [req, vary, defaults]
@@ -97,6 +99,7 @@ module Atomy::Patterns
 
       where = nil
       splice = false
+      splices = 0
       defaults = {}
 
       pre = proc { |e, c, d|
@@ -104,7 +107,7 @@ module Atomy::Patterns
             pats = my_context(@quoted.expression, (where + [c[0]]))
           req, vary, defaults = required_size(pats)
           g.push_stack_local them
-          context(g, where + [c[0]], defaults)
+          context(g, where + [c[0]], defaults, splices)
           g.send :size, 0
           g.push_int req
           g.send(vary ? :>= : :==, 1)
@@ -115,12 +118,15 @@ module Atomy::Patterns
 
         where = [] if !where and c == :expression
 
-        splice = true if e.kind_of?(Atomy::AST::Splice)
+        if e.kind_of?(Atomy::AST::Splice)
+          splice = true
+          splices += 1
+        end
 
         if !(e.unquote? && d == 1) && where && c != :unquoted
           e.get(g)
           g.push_stack_local them
-          context(g, where, defaults)
+          context(g, where, defaults, splices)
           g.kind_of
           g.gif mismatch
 
@@ -135,7 +141,7 @@ module Atomy::Patterns
               g.push_literal val
             end
             g.push_stack_local them
-            context(g, where, defaults)
+            context(g, where, defaults, splices)
             g.send a, 0
             g.send :==, 1
             g.gif mismatch
@@ -144,7 +150,7 @@ module Atomy::Patterns
           if e.bottom?
             e.construct(g)
             g.push_stack_local them
-            context(g, where, defaults)
+            context(g, where, defaults, splices)
             g.send :==, 1
             g.gif mismatch
           end
@@ -159,13 +165,13 @@ module Atomy::Patterns
         ctx = where.last == :unquoted ? where[0..-2] : where
         g.push_stack_local them
         if splice
-          context(g, ctx[0..-2], defaults)
+          context(g, ctx[0..-2], defaults, splices)
           g.send ctx.last[0], 0
           g.push_int ctx.last[1]
           g.send :drop, 1
           splice = false
         else
-          context(g, ctx, defaults)
+          context(g, ctx, defaults, splices)
         end
         e.to_pattern.matches?(g)
         g.gif mismatch
