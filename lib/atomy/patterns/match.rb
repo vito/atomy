@@ -3,19 +3,35 @@ module Atomy::Patterns
     attributes(:value)
     generate
 
+    def initialize(value)
+      case value
+      when :true, :false, :nil, :self, Fixnum, Bignum
+        @value = value
+      else
+        raise ArgumentError, "unknown Match value: #{value.inspect}"
+      end
+    end
+
     def target(g)
       case @value
       when :true
-        g.push_const :TrueClass
+        g.push_cpath_top
+        g.find_const :TrueClass
       when :false
-        g.push_const :FalseClass
+        g.push_cpath_top
+        g.find_const :FalseClass
       when :nil
-        g.push_const :NilClass
+        g.push_cpath_top
+        g.find_const :NilClass
       when :self
         g.push_scope
         g.send :for_method_definition, 0
-      else
-        Atomy.const_from_string(g, @value.class.name)
+      when Fixnum
+        g.push_cpath_top
+        g.find_const :Fixnum
+      when Bignum
+        g.push_cpath_top
+        g.find_const :Bignum
       end
     end
 
