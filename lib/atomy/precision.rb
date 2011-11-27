@@ -83,7 +83,25 @@ module Atomy::Patterns
   class List
     def <=>(other)
       return super unless other.is_a?(self.class)
-      Atomy::Patterns.compare(patterns, other.patterns)
+
+      varying, required = splat_info
+      ovarying, orequired = other.splat_info
+
+      unless varying and ovarying and required == orequired
+        if varying and required > orequired
+          return 1
+        elsif varying and required <= orequired
+          return -1
+        elsif ovarying and orequired > required
+          return -1
+        elsif ovarying and orequired <= required
+          return 1
+        end
+      end
+
+      no_splats = patterns.reject { |p| p.is_a?(Splat) }
+      other_no_splats = other.patterns.reject { |p| p.is_a?(Splat) }
+      Atomy::Patterns.compare(no_splats, other_no_splats)
     end
   end
 
