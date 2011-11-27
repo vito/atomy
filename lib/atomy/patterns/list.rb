@@ -35,7 +35,7 @@ module Atomy::Patterns
       g.dup
       g.send :size, 0
       g.push_int required
-      g.send(splat ? :== : :==, 1)
+      g.send(splat ? :>= : :==, 1)
       g.gif mismatch
 
       @patterns.each_with_index do |p, i|
