@@ -224,13 +224,6 @@ module Atomy::Patterns
         pat("[1]").must_be :===, [1]
       end
 
-      it("allows interspersed splats") do
-        pat("[1, *[2], 2]").must_be :===, [1, 2]
-        pat("[1, *[2, 3], 2]").wont_be :===, [1, 2, 3]
-        pat("[1, *[2, 3], 2, 3]").must_be :===, [1, 2, 3]
-        pat("[1, *[2, 3], 2, *[3], 3]").must_be :===, [1, 2, 3]
-      end
-
       it("matches arrays longer than required if finished with a splat") do
         pat("[*_]").must_be :===, []
         pat("[*[]]").must_be :===, []

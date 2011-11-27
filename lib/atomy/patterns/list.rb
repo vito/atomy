@@ -8,50 +8,43 @@ module Atomy::Patterns
       g.find_const :Array
     end
 
+    def splat_info
+      if @patterns.last.is_a?(Splat)
+        return [true, @patterns.size - 1]
+      else
+        return [false, @patterns.size]
+      end
+    end
+
     def matches?(g)
       matched = g.new_label
       mismatch = g.new_label
 
-      varying = false
-      required = 0
-      @patterns.each do |p|
-        if p.is_a?(Splat)
-          varying = true
-        else
-          varying = false if varying
-          required += 1
-        end
-      end
+      splat, required = splat_info
 
-      unless varying
-        g.dup
-        g.push_literal :size
-        g.send :respond_to?, 1
-        g.gif mismatch
-      end
+      g.dup
+      g.push_literal :size
+      g.send :respond_to?, 1
+      g.gif mismatch
 
       g.dup
       g.push_literal :[]
       g.send :respond_to?, 1
       g.gif mismatch
 
-      unless varying
-        g.dup
-        g.send :size, 0
-        g.push required
-        g.send :==, 1
-        g.gif mismatch
-      end
+      g.dup
+      g.send :size, 0
+      g.push_int required
+      g.send(splat ? :== : :==, 1)
+      g.gif mismatch
 
-      splatted = 0
       @patterns.each_with_index do |p, i|
         g.dup
         if p.is_a?(Splat)
-          g.push_int(i - splatted)
+          g.push_int i
           g.send :drop, 1
-          splatted += 1
         else
-          g.push_int(i - splatted)
+          g.push_int i
           g.send :[], 1
         end
         p.matches?(g)
