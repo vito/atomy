@@ -212,9 +212,9 @@ module Atomy::Patterns
       end
 
       it("performs binding iff any of its patterns perform binding") do
-        refute pat("[]").wildcard?
-        refute pat("[_]").wildcard?
-        refute pat("[a]").wildcard?
+        refute pat("[]").binds?
+        refute pat("[_]").binds?
+        assert pat("[a]").binds?
       end
 
       it("matches arrays of fixed length") do
