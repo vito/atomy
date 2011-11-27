@@ -1,11 +1,15 @@
 class Rubinius::Generator
-  def debug(name = "")
-    dup
-    send :inspect, 0
-    push_literal name + ": "
-    swap
-    push_literal "\n"
-    string_build 3
+  def debug(name = "", quiet = false)
+    if quiet
+      push_literal(name + "\n")
+    else
+      dup
+      send :inspect, 0
+      push_literal name + ": "
+      swap
+      push_literal "\n"
+      string_build 3
+    end
     send :display, 0
     pop
   end
