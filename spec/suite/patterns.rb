@@ -1,28 +1,4 @@
-def match(pat, val)
-  Atomy::Compiler.eval(
-    Atomy::AST::Set.new(
-      0,
-      Atomy::AST::Pattern.new(
-        0,
-        pat
-      ),
-      Atomy::AST::Literal.new(0, val)
-    ),
-    Binding.setup(
-      Rubinius::VariableScope.of_sender,
-      Rubinius::CompiledMethod.of_sender,
-      Rubinius::StaticScope.of_sender
-    )
-  )
-end
-
-def expr(str)
-  Atomy::Parser.parse_node(str)
-end
-
-def pat(str)
-  expr(str).to_pattern
-end
+require_relative("patterns_helper")
 
 module Atomy::Patterns
   describe(Pattern) do
@@ -67,23 +43,35 @@ module Atomy::Patterns
       it("targets Object for definition") do
         Any.new.definition_target.must_equal Object
       end
+
+      it("is never more precise than another pattern") do
+        for_every_pattern do |p|
+          (Any.new <=> p).wont_equal 1
+        end
+      end
     end
 
     describe(Attribute) do
       it("is a wildcard") do
-        assert Attribute.new(nil, nil, nil).wildcard?
+        assert Attribute.arbitrary.wildcard?
       end
 
       it("performs binding") do
-        assert Attribute.new(nil, nil, nil).binds?
+        assert Attribute.arbitrary.binds?
       end
 
       it("matches anything") do
-        Attribute.new(nil, nil, nil).must_be :===, Object.new
+        Attribute.arbitrary.must_be :===, Object.new
       end
 
       it("has no definition target") do
-        Attribute.new(nil, nil, nil).definition_target.must_equal Object
+        Attribute.arbitrary.definition_target.must_equal Object
+      end
+
+      it("is never more precise than another pattern") do
+        for_every_pattern do |p|
+          (Attribute.arbitrary <=> p).wont_equal 1
+        end
       end
     end
 
@@ -128,6 +116,13 @@ module Atomy::Patterns
       it("targets Object for definition") do
         BlockPass.new(Any.new).definition_target.must_equal Object
       end
+
+      it("uses its pattern for precision comparison") do
+        for_every_pattern do |p|
+          x = BlockPass.arbitrary
+          (x <=> p).must_equal(x.pattern <=> p)
+        end
+      end
     end
 
     describe(Constant) do
@@ -149,6 +144,21 @@ module Atomy::Patterns
         pat("Array").definition_target.must_equal Array
         pat("::String").definition_target.must_equal ::String
         pat("Atomy::Patterns").definition_target.must_equal Atomy::Patterns
+      end
+
+      it("uses class/module hierarchy to determine precision") do
+        foo = Class.new
+        bar = Class.new(foo)
+
+        (Constant.new(nil, Object) <=> Constant.new(nil, Object)).must_equal 0
+        (Constant.new(nil, Object) <=> Constant.new(nil, foo)).must_equal -1
+        (Constant.new(nil, foo) <=> Constant.new(nil, Object)).must_equal 1
+        (Constant.new(nil, foo) <=> Constant.new(nil, foo)).must_equal 0
+        (Constant.new(nil, Object) <=> Constant.new(nil, bar)).must_equal -1
+        (Constant.new(nil, bar) <=> Constant.new(nil, Object)).must_equal 1
+        (Constant.new(nil, bar) <=> Constant.new(nil, bar)).must_equal 0
+        (Constant.new(nil, foo) <=> Constant.new(nil, bar)).must_equal -1
+        (Constant.new(nil, bar) <=> Constant.new(nil, foo)).must_equal 1
       end
     end
 
@@ -172,6 +182,13 @@ module Atomy::Patterns
       it("targets its pattern's target for definition") do
         Default.new(Any.new, nil).definition_target.must_equal Object
         Default.new(List.new([]), nil).definition_target.must_equal Array
+      end
+
+      it("uses its pattern for precision comparison") do
+        for_every_pattern do |p|
+          x = Default.arbitrary
+          (x <=> p).must_equal(x.pattern <=> p)
+        end
       end
     end
 
@@ -204,6 +221,40 @@ module Atomy::Patterns
       it("targets Array for definition") do
         HeadTail.new(Any.new, Any.new).definition_target.must_equal Array
       end
+
+      it("compares with HeadTail by comparing both heads and tails") do
+        prec_00 = HeadTail.new(Any.new, Any.new)
+        prec_01 = HeadTail.new(Any.new, List.new([]))
+        prec_10 = HeadTail.new(Match.arbitrary, Any.new)
+        prec_11 = HeadTail.new(Match.arbitrary, List.new([]))
+
+        (prec_00 <=> prec_00).must_equal 0
+        (prec_00 <=> prec_01).must_equal -1
+        (prec_00 <=> prec_10).must_equal -1
+        (prec_00 <=> prec_11).must_equal -1
+        (prec_01 <=> prec_00).must_equal 1
+        (prec_01 <=> prec_01).must_equal 0
+        (prec_01 <=> prec_10).must_equal 0
+        (prec_01 <=> prec_11).must_equal -1
+        (prec_10 <=> prec_00).must_equal 1
+        (prec_10 <=> prec_01).must_equal 0
+        (prec_10 <=> prec_10).must_equal 0
+        (prec_10 <=> prec_11).must_equal -1
+        (prec_11 <=> prec_00).must_equal 1
+        (prec_11 <=> prec_01).must_equal 1
+        (prec_11 <=> prec_10).must_equal 1
+        (prec_11 <=> prec_11).must_equal 0
+      end
+
+      it("is more precise than Constant") do
+        (HeadTail.arbitrary <=> Constant.arbitrary).must_equal 1
+        (HeadTail.arbitrary <=> SingletonClass.arbitrary).must_equal 1
+      end
+
+      it("is less precise than List") do
+        (HeadTail.arbitrary <=> List.arbitrary).must_equal -1
+        (HeadTail.arbitrary <=> QuasiQuote.arbitrary).must_equal -1
+      end
     end
 
     describe(List) do
@@ -224,6 +275,7 @@ module Atomy::Patterns
         pat("[1]").must_be :===, [1]
       end
 
+      # TODO: test for not allowing a splat to match shorter than required
       it("matches arrays longer than required if finished with a splat") do
         pat("[*_]").must_be :===, []
         pat("[*[]]").must_be :===, []
@@ -237,6 +289,44 @@ module Atomy::Patterns
 
       it("targets Array for definition") do
         List.new([]).definition_target.must_equal Array
+      end
+
+      it("compares with Lists by comparing their patterns") do
+        prec_00 = List.new([Any.new, Any.new])
+        prec_01 = List.new([Any.new, List.new([])])
+        prec_10 = List.new([Match.arbitrary, Any.new])
+        prec_11 = List.new([Match.arbitrary, Match.arbitrary])
+
+        (prec_00 <=> prec_00).must_equal 0
+        (prec_00 <=> prec_01).must_equal -1
+        (prec_00 <=> prec_10).must_equal -1
+        (prec_00 <=> prec_11).must_equal -1
+        (prec_01 <=> prec_00).must_equal 1
+        (prec_01 <=> prec_01).must_equal 0
+        (prec_01 <=> prec_10).must_equal 0
+        (prec_01 <=> prec_11).must_equal -1
+        (prec_10 <=> prec_00).must_equal 1
+        (prec_10 <=> prec_01).must_equal 0
+        (prec_10 <=> prec_10).must_equal 0
+        (prec_10 <=> prec_11).must_equal -1
+        (prec_11 <=> prec_00).must_equal 1
+        (prec_11 <=> prec_01).must_equal 1
+        (prec_11 <=> prec_10).must_equal 1
+        (prec_11 <=> prec_11).must_equal 0
+      end
+
+      it("is higher precision if ends with a splat and has <= required") do
+        (pat("[*_]") <=> pat("[]")).must_equal -1
+        (pat("[1, *_]") <=> pat("[]")).must_equal 1
+        (pat("[*_]") <=> pat("[1]")).must_equal -1
+        (pat("[*_]") <=> pat("[*_]")).must_equal 0
+        (pat("[1, *_]") <=> pat("[1, *_]")).must_equal 0
+        (pat("[1, *_]") <=> pat("[a, *_]")).must_equal 1
+        (pat("[a, *_]") <=> pat("[1, *_]")).must_equal -1
+      end
+
+      it("is more precise than HeadTail") do
+        (List.arbitrary <=> HeadTail.arbitrary).must_equal 1
       end
     end
 
@@ -263,6 +353,12 @@ module Atomy::Patterns
       it("targets its value's class for definition") do
         [1, true, false, nil, "foo", :bar, Object.new, Class].each do |x|
           Literal.new(x).definition_target.must_equal x.class
+        end
+      end
+
+      it("is never less precise than any other pattern") do
+        for_every_pattern do |p|
+          (Literal.arbitrary <=> p).wont_equal -1
         end
       end
     end
@@ -297,6 +393,12 @@ module Atomy::Patterns
         x = Match.new(:self)
         x.definition_target.must_equal x.singleton_class
       end
+
+      it("is never less precise than any other pattern") do
+        for_every_pattern do |p|
+          (Match.arbitrary <=> p).wont_equal -1
+        end
+      end
     end
 
     describe(Named) do
@@ -328,6 +430,13 @@ module Atomy::Patterns
         Named.new(Any.new, :foo).definition_target.must_equal Object
         Named.new(List.new([]), :foo).definition_target.must_equal Array
       end
+
+      it("uses its pattern for precision comparison") do
+        for_every_pattern do |p|
+          x = Named.arbitrary
+          (x <=> p).must_equal(x.pattern <=> p)
+        end
+      end
     end
 
     describe(NamedClass) do
@@ -354,6 +463,12 @@ module Atomy::Patterns
 
       it("targets Object for definition") do
         NamedClass.new(:foo).definition_target.must_equal Object
+      end
+
+      it("is never more precise than another pattern") do
+        for_every_pattern do |p|
+          (NamedClass.arbitrary <=> p).wont_equal 1
+        end
       end
     end
 
@@ -382,6 +497,12 @@ module Atomy::Patterns
       it("targets Object for definition") do
         NamedGlobal.new(:foo).definition_target.must_equal Object
       end
+
+      it("is never more precise than another pattern") do
+        for_every_pattern do |p|
+          (NamedGlobal.arbitrary <=> p).wont_equal 1
+        end
+      end
     end
 
     describe(NamedInstance) do
@@ -409,6 +530,12 @@ module Atomy::Patterns
       it("targets Object for definition") do
         NamedInstance.new(:foo).definition_target.must_equal Object
       end
+
+      it("is never more precise than another pattern") do
+        for_every_pattern do |p|
+          (NamedInstance.arbitrary <=> p).wont_equal 1
+        end
+      end
     end
 
     describe(QuasiQuote) do
@@ -424,6 +551,8 @@ module Atomy::Patterns
         assert pat("`~a").binds?
       end
 
+      # TODO: no exceptions if matching different types
+      # TODO: defaults in lists/etc.
       it("matches expressions, using unquotes as nested patterns") do
         pat("`a").must_be :===, expr("a")
         pat("`a").wont_be :===, expr("b")
@@ -434,6 +563,17 @@ module Atomy::Patterns
         pat("`[1, ~_]").must_be :===, expr("[1, 2]")
         pat("`[1, ~_]").must_be :===, expr("[1, 3]")
         pat("`[1, ~_]").wont_be :===, expr("[1, 2, 3]")
+      end
+
+      it("matches nested quasiquotes/unquotes correctly") do
+        pat("`[1, `~_]").must_be :===, expr("[1, `~_]")
+        pat("`[1, `~_]").wont_be :===, expr("[1, `~3]")
+        pat("`[1, `~_, 3]").must_be :===, expr("[1, `~_, 3]")
+        pat("`[1, `~_, 3]").wont_be :===, expr("[1, `~3, 3]")
+        pat("`[1, `~~'2, 3]").must_be :===, expr("[1, `~2, 3]")
+        pat("`[1, `~~'2, 3]").wont_be :===, expr("[1, `~3, 3]")
+        pat("`[1, `~~'2, 3, ~_]").must_be :===, expr("[1, `~2, 3, 4]")
+        pat("`[1, `~~'2, 3, ~'4]").must_be :===, expr("[1, `~2, 3, 4]")
       end
 
       it("matches expressions, using splices as nested splat patterns") do
@@ -449,25 +589,54 @@ module Atomy::Patterns
         pat("`[1, ~*_]").wont_be :===, expr("[2, 2, 3]")
       end
 
-      it("allows additional patterns following a splice") do
-        pat("`[1, ~*_, 2]").wont_be :===, expr("[1]")
-        pat("`[1, ~*_, 2]").must_be :===, expr("[1, 2]")
-        pat("`[1, ~*_, 2, 3]").must_be :===, expr("[1, 2, 3]")
-        pat("`[1, ~*_, 2, 3]").wont_be :===, expr("[2, 2, 3]")
-
-        pat("`[1, ~*['2], 2]").wont_be :===, expr("[1]")
-        pat("`[1, ~*['2], 2]").must_be :===, expr("[1, 2]")
-        pat("`[1, ~*['2, '3], 2, 3]").must_be :===, expr("[1, 2, 3]")
-        pat("`[1, ~*['2, '3], 2, 3]").wont_be :===, expr("[2, 2, 3]")
-
-        pat("`[1, ~*_, 2, ~*_, 3]").must_be :===, expr("[1, 2, 3]")
-      end
-
       it("targets its expression's class for definition") do
         pat("`[]").definition_target.must_equal Atomy::AST::List
         pat("`a").definition_target.must_equal Atomy::AST::Word
         pat("``a").definition_target.must_equal Atomy::AST::QuasiQuote
         pat("`'a").definition_target.must_equal Atomy::AST::Quote
+      end
+
+      it("compares precision to other QuasiQuotes by going through quotes") do
+        (pat("`~_") <=> pat("`~_")).must_equal 0
+        (pat("`~_") <=> pat("`a")).must_equal -1
+        (pat("`a") <=> pat("`~_")).must_equal 1
+        (pat("`a") <=> pat("`a")).must_equal 0
+
+        (pat("``~~_") <=> pat("``~~_")).must_equal 0
+        (pat("``~~_") <=> pat("``~a")).must_equal -1
+        (pat("``~a") <=> pat("``~~_")).must_equal 1
+        (pat("``~a") <=> pat("``~a")).must_equal 0
+      end
+
+      it("yields a precision comparison of 0 if they can't be equivalent") do
+        (pat("`!a") <=> pat("`!~_")).must_equal 1
+        (pat("`!a") <=> pat("`#~_")).must_equal 0
+
+        (pat("`[~_, !a]") <=> pat("`[1, !~_]")).must_equal 0
+        (pat("`[1, !a]") <=> pat("`[~_, `#~_]")).must_equal 0
+      end
+
+      it("is less precise if it has a splice where the other has a match") do
+        (pat("`foo(1, 2, ~*_)") <=> pat("`foo(1, 2, 3)")).must_equal -1
+        (pat("`foo(1, 2, 3)") <=> pat("`foo(1, 2, ~*_)")).must_equal 1
+      end
+
+      it("doesn't count a wildcard splice's precision if the other doesn't have it") do
+        (pat("`foo(1, ~*_)") <=> pat("`foo(1)")).must_equal 0
+        (pat("`foo(1)") <=> pat("`foo(1, ~*_)")).must_equal 0
+
+        (pat("`foo(1, ~*[])") <=> pat("`foo(1)")).must_equal 1
+        (pat("`foo(1)") <=> pat("`foo(1, ~*[])")).must_equal -1
+      end
+
+      it("compares splice patterns if both exist") do
+        (pat("`foo(1, 2, ~*_)") <=> pat("`foo(1, 2, ~*[])")).must_equal -1
+        (pat("`foo(1, 2, ~*_)") <=> pat("`foo(1, 2, ~*_)")).must_equal 0
+        (pat("`foo(1, 2, ~*[])") <=> pat("`foo(1, 2, ~*_)")).must_equal 1
+      end
+
+      it("is less precise than Quote") do
+        (QuasiQuote.arbitrary <=> Quote.arbitrary).must_equal -1
       end
     end
 
@@ -492,6 +661,12 @@ module Atomy::Patterns
         pat("'`a").definition_target.must_equal Atomy::AST::QuasiQuote
         pat("''a").definition_target.must_equal Atomy::AST::Quote
       end
+
+      it("is never less precise than any other pattern") do
+        for_every_pattern do |p|
+          (Quote.arbitrary <=> p).wont_equal -1
+        end
+      end
     end
 
     describe(SingletonClass) do
@@ -511,6 +686,10 @@ module Atomy::Patterns
         x = Object.new
         p = SingletonClass.new(Atomy::AST::Literal.new(0, x))
         p.definition_target.must_equal x.singleton_class
+      end
+
+      it("is the same precision as Constant") do
+        (SingletonClass.arbitrary <=> Constant.arbitrary).must_equal 0
       end
     end
 
@@ -538,11 +717,19 @@ module Atomy::Patterns
       it("targets Object for definition") do
         Splat.new(Any.new).definition_target.must_equal Object
       end
+
+      it("uses its pattern for precision comparison") do
+        for_every_pattern do |p|
+          x = Splat.arbitrary
+          (x <=> p).must_equal(x.pattern <=> p)
+        end
+      end
     end
 
     describe(:<=>) do
     end
 
+    # TODO: note that =~ implies <=> is 0
     describe(:=~) do
     end
   end
