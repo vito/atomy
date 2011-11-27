@@ -178,7 +178,7 @@ EOF
 
         class_eval <<EOF
           def eql?(b)
-            b.kind_of?(#{self.name}) \\
+            b.kind_of?(#{name}) \\
             #{non_slots.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
           end
 
@@ -240,7 +240,7 @@ EOF
               end
             end
 
-            recursed = #{self.name}.new(
+            recursed = #{name}.new(
               @line#{req_cs + many_cs + req_as + req_ss + opt_cs + opt_as + opt_ss}
             )
 
@@ -283,7 +283,7 @@ EOF
         class_eval <<EOF
           def children(&f)
             if block_given?
-              #{self.name}.new(
+              #{name}.new(
                 @line#{creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss}
               )
             else
@@ -296,7 +296,7 @@ EOF
           def walk_with(b, stop = nil, &f)
             f.call(self, b)
 
-            return if !b.is_a?(#{self.name}) || (stop && stop.call(self, b))
+            return if !b.is_a?(#{name}) || (stop && stop.call(self, b))
 
             #{attrs.collect { |a| "return if @#{a} != b.#{a}" }.join("; ")}
 
@@ -343,6 +343,18 @@ EOF
           end
 EOF
 
+        lower_name = name.split("::").last.downcase
+
+        class_eval <<EOF
+          def accept(x)
+            if x.respond_to?(:#{lower_name})
+              x.#{lower_name}(self)
+            else
+              x.visit(self)
+            end
+          end
+EOF
+
         required = @children[:required].collect { |c| ", [:\"#{c}\", @#{c}.to_sexp]" }.join
         many = @children[:many].collect { |c| ", [:\"#{c}\", @#{c}.collect(&:to_sexp)]" }.join
         optional = @children[:optional].collect { |c, _| ", [:\"#{c}\", @#{c} && @#{c}.to_sexp]" }.join
@@ -357,7 +369,7 @@ EOF
 
         class_eval <<EOF
           def to_sexp
-            [:"#{self.name.split("::").last.downcase}"#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}]
+            [:"#{lower_name}"#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}]
           end
 EOF
 
