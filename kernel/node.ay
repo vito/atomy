@@ -26,7 +26,7 @@ module(Atomy::AST):
   `(with(~e, ~y)) to-pattern :=
     Atomy::Patterns::With new(Atomy::Patterns::Any new, y to-pattern, e)
 
-  `@@~n to-pattern :=
+  `@@~(n: Atomy::AST::Word) to-pattern :=
     Atomy::Patterns::NamedClass new(n text)
 
   `$0 to-pattern :=
@@ -50,7 +50,7 @@ module(Atomy::AST):
   `$~(n: Atomy::AST::Word) to-pattern :=
     Atomy::Patterns::NamedGlobal new(n text)
 
-  `@~n to-pattern :=
+  `@~(n: Atomy::AST::Word) to-pattern :=
     Atomy::Patterns::NamedInstance new(n text)
 
   `&~x to-pattern :=
