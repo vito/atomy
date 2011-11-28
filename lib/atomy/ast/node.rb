@@ -379,57 +379,58 @@ EOF
     module NodeLike
       attr_accessor :line
 
-      def through_quotes(pre_ = nil, post_ = nil, &f)
-        depth = 0
+      def through_quotes(stop = nil, &f)
+        ThroughQuotes.new(f, stop).go(self)
+      end
 
-        pre = proc { |x, c|
-          (pre_ && pre_.call(*([x, c, depth][0, pre_.arity])) && depth == 0) || \
-            x.kind_of?(AST::QuasiQuote) || \
-            x.unquote?
-        }
+      class ThroughQuotes
+        def initialize(f, stop)
+          @depth = 0
+          @f = f
+          @stop = stop
+        end
 
-        rpre = proc { |x, c|
-          pre_ && pre_.call(*([x, c, 0][0, pre_.arity]))
-        }
+        def go(x)
+          x.accept self
+        end
 
-        post = proc { post_ && post_.call }
+        def quasiquote(x)
+          @depth += 1
+          visit(x)
+        ensure
+          @depth -= 1
+        end
 
-        action = proc { |e, c|
-          if e.unquote?
-            depth -= 1
-            if depth == 0
-              depth += 1
-              u = e.expression.recursively(rpre, post_, :unquoted, &f)
-              next e.class.new(
-                e.line,
-                u
-              )
-            end
+        def unquote(x)
+          @depth -= 1
+          x.children do |c|
+            go(c)
+          end
+        ensure
+          @depth += 1
+        end
 
-            u = e.expression.recursively(pre, post, :expression, &action)
-            depth += 1
-            e.class.new(
-              e.line,
-              u
-            )
-          elsif e.kind_of?(Atomy::AST::QuasiQuote)
-            depth += 1
-            q = e.expression.recursively(pre, post, :expression, &action)
-            depth -= 1
-            Atomy::AST::QuasiQuote.new(
-              e.line,
-              q
-            )
-          else
-            if depth == 0
-              f.call(e)
+        alias :splice :unquote
+
+        def stop?(x)
+          @stop && @stop.call(x)
+        end
+
+        def visit(x)
+          new = x.children do |c|
+            if @depth == 0 and stop?(x)
+              c
             else
-              e
+              go(c)
             end
           end
-        }
 
-        recursively(pre, post, &action)
+          if @depth == 0
+            @f.call(new)
+          else
+            new
+          end
+        end
       end
 
       def unquote(d)
