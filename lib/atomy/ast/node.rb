@@ -185,21 +185,6 @@ EOF
           alias :== :eql?
 EOF
 
-        req_cs =
-          @children[:required].collect { |n|
-            ", @#{n}.recursively(pre, post, :#{n}, &f)"
-          }.join
-
-        many_cs =
-          @children[:many].collect { |n|
-            ", @#{n}.zip((0 .. @#{n}.size - 1).to_a).collect { |n, i| n.recursively(pre, post, [:#{n}, i], &f) }"
-          }.join
-
-        opt_cs =
-          @children[:optional].collect { |n, _|
-            ", @#{n} ? @#{n}.recursively(pre, post, :#{n}, &f) : nil"
-          }.join
-
         req_as =
           (@attributes[:required] + @attributes[:many]).collect { |a|
             ", @#{a}"
@@ -217,44 +202,6 @@ EOF
         opt_ss = @slots[:optional].collect { |a, _|
             ", @#{a}"
           }.join
-
-        class_eval <<EOF
-          def recursively(pre = nil, post = nil, context = nil, &f)
-            if pre and pre.arity == 2
-              stop = pre.call(self, context)
-            elsif pre
-              stop = pre.call(self)
-            else
-              stop = false
-            end
-
-            if stop
-              if f.arity == 2
-                res = f.call(self, context)
-                post.call(context) if post
-                return res
-              else
-                res = f.call(self)
-                post.call(context) if post
-                return res
-              end
-            end
-
-            recursed = #{name}.new(
-              @line#{req_cs + many_cs + req_as + req_ss + opt_cs + opt_as + opt_ss}
-            )
-
-            if f.arity == 2
-              res = f.call(recursed, context)
-            else
-              res = f.call(recursed)
-            end
-
-            post.call(context) if post
-
-            res
-          end
-EOF
 
         creq_cs =
           @children[:required].collect { |n|
