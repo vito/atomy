@@ -139,24 +139,98 @@ module Atomy::Patterns
   class QuasiQuote
     def <=>(other)
       return super unless other.is_a?(self.class)
+      PrecisionWalker.new.go(@quoted, other.quoted)
+    end
 
-      total = 0
-      quoted.walk_with(other.quoted,
-                       proc { |a, b| a.unquote? && b.unquote? }) do |x, y|
+    class PrecisionWalker
+      def initialize
+        @total = 0
+        @depth = 0
+      end
+
+      def fail(type = 0)
+        throw(:incomparable, type)
+      end
+
+      def compare(x, y)
+        if x.is_a?(Atomy::AST::QuasiQuote) && \
+            y.is_a?(Atomy::AST::QuasiQuote)
+          @depth += 1
+        end
+
+        if (x && x.unquote?) || (y && y.unquote?)
+          @depth -= 1
+        end
+
         if x.nil?
-          total -= 1 unless y.splice?
+          return -1
+
         elsif y.nil?
-          total += 1 unless x.splice?
-        elsif x.unquote? && y.unquote?
-          total += x.expression.to_pattern <=> y.expression.to_pattern
-        elsif x.unquote?
-          total += x.expression.to_pattern <=> Quote.new(y)
-        elsif y.unquote?
-          total += Quote.new(x) <=> y.expression.to_pattern
+          return 1
+
+        elsif x.unquote? && y.unquote? && @depth == 0
+          return x.expression.to_pattern <=> y.expression.to_pattern
+
+        elsif x.unquote? && @depth == 0
+          return x.expression.to_pattern <=> Quote.new(y)
+
+        elsif y.unquote? && @depth == 0
+          return Quote.new(x) <=> y.expression.to_pattern
+
+        elsif !x.is_a?(y.class) || !x.details.all? { |d| x.send(d) == y.send(d) }
+          fail
+
+        elsif x.bottom? || y.bottom?
+          fail if x != y
+        end
+
+        total = 0
+        x.class.children[:required].each do |c|
+          total += compare(x.send(c), y.send(c))
+        end
+
+        x.class.children[:many].each do |c|
+          xs = x.send(c)
+          ys = y.send(c)
+          [xs.size, ys.size].max.times do |i|
+            a = xs[i]
+            b = ys[i]
+
+            if a.nil?
+              unless b && b.splice? && b.expression.to_pattern.wildcard?
+                total -= 1
+              end
+            elsif b.nil?
+              unless a.splice? && a.expression.to_pattern.wildcard?
+                total += 1
+              end
+            elsif a.splice? && !b.splice?
+              total -= 1
+            elsif b.splice? && !a.splice?
+              total += 1
+            else
+              total += compare(a, b)
+            end
+          end
+        end
+
+        total <=> 0
+      ensure
+        if x && x.unquote? || y && y.unquote?
+          @depth += 1
+        end
+
+        if x.is_a?(Atomy::AST::QuasiQuote) && \
+            y.is_a?(Atomy::AST::QuasiQuote)
+          @depth -= 1
         end
       end
 
-      total <=> 0
+      def go(x, y)
+        catch(:incomparable) do
+          compare(x, y)
+        end
+      end
     end
   end
 
@@ -246,37 +320,106 @@ module Atomy::Patterns
   class QuasiQuote
     def =~(other)
       return false unless other.is_a?(self.class)
+      EquivalenceWalker.new.go(@quoted, other.quoted)
+    end
 
-      total = 0
+    class EquivalenceWalker
+      def initialize
+        @depth = 0
+      end
 
-      quoted.walk_with(other.quoted,
-                       proc { |a, b| a.unquote? && b.unquote? }) do |x, y|
+      def fail
+        throw(:inequivalent, false)
+      end
+
+      def compare(x, y)
+        if x.is_a?(Atomy::AST::QuasiQuote) && \
+            y.is_a?(Atomy::AST::QuasiQuote)
+          @depth += 1
+        end
+
+        if (x && x.unquote?) || (y && y.unquote?)
+          @depth -= 1
+        end
+
         if x.nil? || y.nil?
-          return false
+          fail
 
-        elsif x.unquote? && y.unquote?
-          if x.splice? != y.splice?
-            return false
+        elsif x.unquote? && y.unquote? && @depth == 0
+          if x.expression.to_pattern =~ y.expression.to_pattern
+            return true
+          else
+            fail
           end
 
-          unless x.expression.to_pattern =~ y.expression.to_pattern
-            return false
+        elsif x.unquote? && @depth == 0
+          if x.expression.to_pattern =~ Quote.new(y)
+            return true
+          else
+            fail
           end
 
-        elsif x.unquote? || y.unquote?
-          return false
+        elsif y.unquote? && @depth == 0
+          if Quote.new(x) =~ y.expression.to_pattern
+            return true
+          else
+            fail
+          end
 
         elsif !x.is_a?(y.class) || !x.details.all? { |d| x.send(d) == y.send(d) }
-          return false
+          fail
 
         elsif x.bottom? || y.bottom?
-          unless x == y
-            return false
+          fail if x != y
+        end
+
+        total = 0
+        x.class.children[:required].each do |c|
+          compare(x.send(c), y.send(c))
+        end
+
+        x.class.children[:many].each do |c|
+          xs = x.send(c)
+          ys = y.send(c)
+          [xs.size, ys.size].max.times do |i|
+            a = xs[i]
+            b = ys[i]
+
+            if a.nil?
+              unless b && b.splice? && b.expression.to_pattern.wildcard?
+                fail
+              end
+            elsif b.nil?
+              unless a.splice? && a.expression.to_pattern.wildcard?
+                fail
+              end
+            elsif a.splice? && !b.splice?
+              fail
+            elsif b.splice? && !a.splice?
+              fail
+            else
+              compare(a, b)
+            end
           end
+        end
+
+        true
+      ensure
+        if x && x.unquote? || y && y.unquote?
+          @depth += 1
+        end
+
+        if x.is_a?(Atomy::AST::QuasiQuote) && \
+            y.is_a?(Atomy::AST::QuasiQuote)
+          @depth -= 1
         end
       end
 
-      true
+      def go(x, y)
+        catch(:inequivalent) do
+          compare(x, y)
+        end
+      end
     end
   end
 
