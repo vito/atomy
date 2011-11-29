@@ -1,4 +1,4 @@
-theories = ARGV at(1) || "*"
+theories = ARGV at(0) || "*"
 
 result =
   theorize:
