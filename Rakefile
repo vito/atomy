@@ -28,6 +28,10 @@ task :sync_docs do
   sh "rsync -a -P -e \"ssh -p 7331\" _doodle/ alex@atomy-lang.org:/srv/http/atomy-lang.org/site/docs/"
 end
 
-task :test do
+task :spec do
+  sh "rbx spec/main.rb"
+end
+
+task :test => :spec do
   sh "rbx -X19 ./bin/atomy test/main.ay"
 end
