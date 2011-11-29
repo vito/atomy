@@ -57,9 +57,9 @@ module Atomy::Patterns
     def <=>(other)
       return super unless other.is_a?(self.class)
 
-      if not (value.is_a?(Class) && other.value.is_a?(Class))
+      if !(value.is_a?(Class) && other.value.is_a?(Class))
         0
-      elsif value.ancestors.nil? or other.value.ancestors.nil?
+      elsif value.ancestors.nil? || other.value.ancestors.nil?
         0
       elsif value.ancestors.first == other.value.ancestors.first
         0
@@ -87,14 +87,14 @@ module Atomy::Patterns
       varying, required = splat_info
       ovarying, orequired = other.splat_info
 
-      unless varying and ovarying and required == orequired
-        if varying and required > orequired
+      unless varying && ovarying && required == orequired
+        if varying && required > orequired
           return 1
-        elsif varying and required <= orequired
+        elsif varying && required <= orequired
           return -1
-        elsif ovarying and orequired > required
+        elsif ovarying && orequired > required
           return -1
-        elsif ovarying and orequired <= required
+        elsif ovarying && orequired <= required
           return 1
         end
       end
