@@ -141,6 +141,5 @@ describe("macros"):
 
       let-macro(foo = if($expanded < 5)
                         then: $expanded += 1, 'foo
-                        else: '42):
-        foo should-be(42)
-        $expanded should-be(5)
+                        else: $expanded):
+        foo should-be(5)
