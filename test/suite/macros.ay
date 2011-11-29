@@ -134,3 +134,13 @@ describe("macros"):
         m-foo-25 should-be(2)
 
       m-foo-25 should-be(1)
+
+    it("is available for its own expansion"):
+      for-macro:
+        $expanded = 0
+
+      let-macro(foo = if($expanded < 5)
+                        then: $expanded += 1, 'foo
+                        else: '42):
+        foo should-be(42)
+        $expanded should-be(5)
