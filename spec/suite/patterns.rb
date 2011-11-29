@@ -625,8 +625,8 @@ module Atomy::Patterns
         (pat("`foo(1, ~*_)") <=> pat("`foo(1)")).must_equal 0
         (pat("`foo(1)") <=> pat("`foo(1, ~*_)")).must_equal 0
 
-        (pat("`foo(1, ~*[])") <=> pat("`foo(1)")).must_equal 1
-        (pat("`foo(1)") <=> pat("`foo(1, ~*[])")).must_equal -1
+        (pat("`foo(1, ~*[2])") <=> pat("`foo(1)")).must_equal 1
+        (pat("`foo(1)") <=> pat("`foo(1, ~*[2])")).must_equal -1
       end
 
       it("compares splice patterns if both exist") do
