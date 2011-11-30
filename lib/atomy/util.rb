@@ -22,6 +22,15 @@ module Atomy
   # operator precedence/associativity table
   OPERATORS = {}
 
+  def self.copy(x)
+    case x
+    when Symbol, Integer, true, false, nil
+      x
+    else
+      x.dup
+    end
+  end
+
   def self.set_op_info(ops, assoc, prec)
     ops.each do |o|
       info = OPERATORS[o] ||= {}

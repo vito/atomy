@@ -7,6 +7,11 @@ module Atomy::AST
       pos(g)
       g.push_literal @value
     end
+
+    # don't dup our value
+    def copy
+      dup
+    end
   end
 
   class String < Literal

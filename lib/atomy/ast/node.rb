@@ -320,6 +320,46 @@ EOF
           end
 EOF
 
+        copyreq_as =
+          (@attributes[:required] + @attributes[:many]).collect { |a|
+            ", Atomy.copy(@#{a})"
+          }.join
+
+        copyopt_as = @attributes[:optional].collect { |a, _|
+            ", Atomy.copy(@#{a})"
+          }.join
+
+        copyreq_ss =
+          (@slots[:required] + @slots[:many]).collect { |a|
+            ", Atomy.copy(@#{a})"
+          }.join
+
+        copyopt_ss = @slots[:optional].collect { |a, _|
+            ", Atomy.copy(@#{a})"
+          }.join
+
+        copyreq_cs =
+          @children[:required].collect { |n|
+            ", @#{n}.copy"
+          }.join
+
+        copymany_cs =
+          @children[:many].collect { |n|
+            ", @#{n}.collect { |n| n.copy }"
+          }.join
+
+        copyopt_cs =
+          @children[:optional].collect { |n, _|
+            ", @#{n} ? @#{n}.copy : nil"
+          }.join
+
+        class_eval <<EOF
+          def copy
+            #{name}.new(
+              @line#{copyreq_cs + copymany_cs + copyreq_as + copyreq_ss + copyopt_cs + copyopt_as + copyopt_ss}
+            )
+          end
+EOF
       end
     end
 
@@ -441,15 +481,16 @@ EOF
       end
 
       def msg_expand
-        return do_expand unless macro_name and respond_to?(macro_name)
-        send(macro_name)
+        c = copy
+        return c.do_expand unless macro_name and respond_to?(macro_name)
+        c.send(macro_name)
       rescue MethodFail
-        do_expand
+        c.do_expand
       end
 
       def expand
         if lets = Atomy::Macro::Environment.let[self.class]
-          x = self
+          x = copy
           lets.reverse_each do |l|
             begin
               x = x.send(l)
