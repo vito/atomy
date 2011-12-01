@@ -115,7 +115,7 @@ def run_atomy(options)
         sane_history << str
 
         begin
-          res = Atomy::Compiler.evaluate str, TOPLEVEL_BINDING, nil, "(eval)", 1, options[:debug]
+          res = Atomy::Compiler.eval str, TOPLEVEL_BINDING, "(eval)", 1, options[:debug]
           if res.respond_to?(:pretty)
             puts "=> #{res.pretty.render}"
           else
