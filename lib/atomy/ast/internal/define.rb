@@ -4,75 +4,91 @@ module Atomy
       children :pattern, :body
       generate
 
-      def arguments
-        return @arguments if @arguments
-
-        case @pattern
+      def get_arguments(x)
+        case x
         when Binary
-          args = [@pattern.rhs]
+          [x.rhs]
         when Word, Unary
-          args = []
+          []
         when Call
-          args = @pattern.arguments
+          x.arguments
         when Compose
-          case @pattern.right
+          case x.right
           when Call
-            args = @pattern.right.arguments
+            x.right.arguments
           when Word
-            args = []
+            []
           when List
-            args = @pattern.right.elements
+            x.right.elements
+          when Compose
+            if x.right.right.is_a?(Unary) and x.right.right.operator == "&"
+              get_arguments(x.right.left)
+            end
+          when Unary
+            get_arguments(x.left)
           end
         end
+      end
 
-        raise "unknown pattern #{@pattern.inspect}" unless args
+      def arguments
+        @arguments ||=
+          get_arguments(@pattern).collect(&:to_pattern) ||
+            raise("unknown pattern #{@pattern.inspect}")
+      end
 
-        @arguments = args.collect(&:to_pattern)
+      def get_receiver(x)
+        case x
+        when Binary
+          x.lhs
+        when Unary
+          x.receiver
+        when Call, Word
+          Primitive.new(x.line, :self)
+        when Compose
+          if x.right.is_a?(Unary) and x.right.operator == "&"
+            get_receiver(x.left)
+          else
+            x.left
+          end
+        end
       end
 
       def receiver
-        return @receiver if @receiver
+        @receiver ||=
+          get_receiver(@pattern).to_pattern ||
+            raise("unknown pattern #{@pattern.inspect}")
+      end
 
-        case @pattern
-        when Binary
-          recv = @pattern.lhs
-        when Unary
-          recv = @pattern.receiver
-        when Call, Word
-          recv = Primitive.new(@pattern.line, :self)
+      def get_message_name(x)
+        case x
+        when Word
+          x.text
+        when Call
+          x.name.text
         when Compose
-          recv = @pattern.left
+          case x.right
+          when Word
+            x.right.text
+          when Call
+            x.right.name.text
+          when List
+            :[]
+          when Compose
+            if x.right.right.is_a?(Unary) and x.right.right.operator == "&"
+              get_message_name(x.right.left)
+            end
+          when Unary
+            get_message_name(x.left)
+          end
+        else
+          x.message_name
         end
-
-        raise "unknown pattern #{@pattern.inspect}" unless recv
-
-        @receiver = recv.to_pattern
       end
 
       def message_name
-        return @message_name if @message_name
-
-        case @pattern
-        when Word
-          name = @pattern.text
-        when Call
-          name = @pattern.name.text
-        when Compose
-          case @pattern.right
-          when Word
-            name = @pattern.right.text
-          when Call
-            name = @pattern.right.name.text
-          when List
-            name = :[]
-          end
-        else
-          name = @pattern.message_name
-        end
-
-        raise "unknown pattern #{@pattern.inspect}" unless name
-
-        @message_name = name
+        @message_name ||=
+          get_message_name(@pattern) ||
+            raise("unknown pattern #{@pattern.inspect}")
       end
 
       def compile_body(g)

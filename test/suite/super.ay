@@ -1,7 +1,7 @@
 class(ZSuperA):
   test-1 := #super
   test-2(x) := [#super, x]
-  test-3(&x) := [#super, x call]
+  test-3 &x := [#super, x call]
   test-4(x = 1) := [#super, x]
   test-5(x = 1, &y) := [#super, x, y call]
   test-6(x) := [#super, x]
@@ -9,7 +9,7 @@ class(ZSuperA):
 class(ZSuperB < ZSuperA):
   test-1 := super
   test-2(x) := super
-  test-3(&x) := super
+  test-3 &x := super
   test-4(x = 0) := super
   test-5(x = 0, &y) := super
   test-6(x) := { super } call
@@ -38,8 +38,8 @@ describe("zsuper"):
 class(SuperA):
   test-1 := #super
   test-2(x) := [#super, x]
-  test-3(&x) := [#super, x call]
-  test-4(&x) := [#super, x call]
+  test-3 &x := [#super, x call]
+  test-4 &x := [#super, x call]
   test-5(x = 1) := [#super, x]
   test-6(x = 1) := [#super, x]
   test-7(x = 1, &y) := [#super, x, y call]
@@ -48,8 +48,8 @@ class(SuperA):
 class(SuperB < SuperA):
   test-1 := super()
   test-2(x) := super(x + 1)
-  test-3(&x) := super(&x)
-  test-4(&x) := super: x call + 1
+  test-3 &x := super &x
+  test-4 &x := super: x call + 1
   test-5(x = 0) := super(x + 1)
   test-6(x = 0) := super()
   test-7(x = 0, &y) := super(x + 1, &y)
