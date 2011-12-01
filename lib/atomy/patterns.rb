@@ -544,14 +544,14 @@ EOF
     end
   end
 
-  class Atomy::AST::Unary
+  class Atomy::AST::Prefix
     def to_pattern
       case @operator
       when :"$"
         NamedGlobal.new(@receiver.text)
       when :"@"
         case @receiver
-        when Atomy::AST::Unary
+        when Atomy::AST::Prefix
           if @receiver.operator == :"@"
             NamedClass.new(@receiver.receiver.text)
           else
