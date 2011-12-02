@@ -4,53 +4,10 @@ module Atomy
       children :pattern, :body
       generate
 
-      def get_arguments(x)
-        case x
-        when Binary
-          [x.rhs]
-        when Word, Unary
-          []
-        when Call
-          x.arguments
-        when Compose
-          case x.right
-          when Call
-            x.right.arguments
-          when Word
-            []
-          when List
-            x.right.elements
-          when Compose
-            if x.right.right.is_a?(Unary) and x.right.right.operator == "&"
-              get_arguments(x.right.left)
-            end
-          when Unary
-            get_arguments(x.left)
-          end
-        end
-      end
-
       def arguments
         @arguments ||=
           get_arguments(@pattern).collect(&:to_pattern) ||
             raise("unknown pattern #{@pattern.inspect}")
-      end
-
-      def get_receiver(x)
-        case x
-        when Binary
-          x.lhs
-        when Unary
-          x.receiver
-        when Call, Word
-          Primitive.new(x.line, :self)
-        when Compose
-          if x.right.is_a?(Unary) and x.right.operator == "&"
-            get_receiver(x.left)
-          else
-            x.left
-          end
-        end
       end
 
       def receiver
@@ -59,36 +16,14 @@ module Atomy
             raise("unknown pattern #{@pattern.inspect}")
       end
 
-      def get_message_name(x)
-        case x
-        when Word
-          x.text
-        when Call
-          x.name.text
-        when Compose
-          case x.right
-          when Word
-            x.right.text
-          when Call
-            x.right.name.text
-          when List
-            :[]
-          when Compose
-            if x.right.right.is_a?(Unary) and x.right.right.operator == "&"
-              get_message_name(x.right.left)
-            end
-          when Unary
-            get_message_name(x.left)
-          end
-        else
-          x.message_name
-        end
-      end
-
       def message_name
         @message_name ||=
           get_message_name(@pattern) ||
             raise("unknown pattern #{@pattern.inspect}")
+      end
+
+      def block
+        @block ||= get_block(@pattern)
       end
 
       def compile_body(g)
@@ -114,13 +49,15 @@ module Atomy
           receiver.deconstruct(meth)
         end
 
+        if block
+          meth.push_block_arg
+          block.deconstruct(meth)
+        end
+
         if arguments.size > 0
           meth.push_local(0)
           arguments.each do |a|
             case a
-            when Patterns::BlockPass
-              meth.push_block_arg
-              a.deconstruct(meth)
             when Patterns::Splat
               meth.dup
               a.deconstruct(meth)
@@ -144,7 +81,9 @@ module Atomy
         meth.local_names = meth.state.scope.local_names
         meth.use_detected
 
-        raise "mismatch: (#{meth.local_names.inspect}, #{meth.local_count})" unless meth.local_names.size == meth.local_count
+        unless meth.local_names.size == meth.local_count
+          raise "locals mismatch: (#{meth.local_names}, #{meth.local_count})" 
+        end
 
         meth.pop_state
 
@@ -155,11 +94,8 @@ module Atomy
         req = []
         dfs = []
         spl = nil
-        blk = nil
         arguments.each do |a|
           case a
-          when Patterns::BlockPass
-            blk = a
           when Patterns::Splat
             spl = a
           when Patterns::Default
@@ -191,8 +127,8 @@ module Atomy
           g.push_nil
         end
 
-        if blk
-          blk.construct(g)
+        if block
+          block.construct(g)
         else
           g.push_nil
         end
@@ -235,6 +171,91 @@ module Atomy
       def local_names
         arguments.inject(receiver.local_names) do |acc, a|
           acc + a.local_names
+        end
+      end
+
+    private
+
+      def get_arguments(x)
+        case x
+        when Binary
+          [x.rhs]
+        when Word, Unary
+          []
+        when Call
+          x.arguments
+        when Compose
+          case x.right
+          when Call
+            x.right.arguments
+          when Word
+            []
+          when List
+            x.right.elements
+          when Compose
+            if x.right.right.is_a?(Unary) and x.right.right.operator == :&
+              get_arguments(x.right.left)
+            end
+          when Unary
+            get_arguments(x.left)
+          end
+        end
+      end
+
+      def get_receiver(x)
+        case x
+        when Binary
+          x.lhs
+        when Unary
+          x.receiver
+        when Call, Word
+          Primitive.new(x.line, :self)
+        when Compose
+          if x.right.is_a?(Unary) and x.right.operator == :&
+            get_receiver(x.left)
+          else
+            x.left
+          end
+        end
+      end
+
+      def get_message_name(x)
+        case x
+        when Word
+          x.text
+        when Call
+          x.name.text
+        when Compose
+          case x.right
+          when Word
+            x.right.text
+          when Call
+            x.right.name.text
+          when List
+            :[]
+          when Compose
+            if x.right.right.is_a?(Unary) and x.right.right.operator == :&
+              get_message_name(x.right.left)
+            end
+          when Unary
+            get_message_name(x.left)
+          end
+        else
+          x.message_name
+        end
+      end
+
+      def get_block(x)
+        case x
+        when Compose
+          case x.right
+          when Compose
+            if x.right.right.is_a?(Unary) and x.right.right.operator == :&
+              x.right.right.to_pattern
+            end
+          when Unary
+            x.right.to_pattern
+          end
         end
       end
     end

@@ -1,7 +1,7 @@
 module Atomy
   module AST
     class Send < Node
-      children :receiver, [:arguments], :block?
+      children :receiver, [:arguments], :splat?, :block?
       attributes :message_name
       slots [:private, "false"]
       generate
@@ -11,39 +11,25 @@ module Atomy
 
         @receiver.compile(g)
 
-        block = @block
-        splat = nil
-
-        args = 0
         @arguments.each do |a|
-          e = a.prepare
-          if e.kind_of?(BlockPass)
-            block = e
-            next
-          elsif e.kind_of?(Splat)
-            splat = e
-            next
-          end
-
-          e.bytecode(g)
-          args += 1
+          a.compile(g)
         end
 
-        if splat
-          splat.compile(g)
+        if @splat
+          @splat.compile(g)
           g.send :to_a, 0
           if block
-            block.compile(g)
+            @block.compile(g)
           else
             g.push_nil
           end
 
-          g.send_with_splat @message_name, args, @private
-        elsif block
-          block.compile(g)
-          g.send_with_block @message_name, args, @private
+          g.send_with_splat @message_name, @arguments.size, @private
+        elsif @block
+          @block.compile(g)
+          g.send_with_block @message_name, @arguments.size, @private
         else
-          g.send @message_name, args, @private
+          g.send @message_name, @arguments.size, @private
         end
       end
     end

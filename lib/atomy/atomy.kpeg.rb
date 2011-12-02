@@ -584,7 +584,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = scan(/\A(?-mix:.*?$)/)
+      _tmp = scan(/\A(?-mix:.*?$)/u)
       unless _tmp
         self.pos = _save
       end
@@ -753,7 +753,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # ident_start = < /[\p{Ll}_]/u > { text }
+  # ident_start = < /[\p{Ll}_]/ > { text }
   def _ident_start
 
     _save = self.pos
@@ -779,7 +779,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # ident_letter = < (/[\p{L}\d]/u | !":" op_letter) > { text }
+  # ident_letter = < (/[\p{L}\d]/ | !":" op_letter) > { text }
   def _ident_letter
 
     _save = self.pos
@@ -833,7 +833,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # op_letter = < /[\p{S}!@#%&*\-\\:.\/\?]/u > { text.to_sym }
+  # op_letter = < /[\p{S}!@#%&*\-\\:.\/\?]/ > { text.to_sym }
   def _op_letter
 
     _save = self.pos
@@ -994,7 +994,7 @@ class Atomy::Parser
 
     _save = self.pos
     while true # choice
-      _tmp = scan(/\A(?-mix:--.*?$)/)
+      _tmp = scan(/\A(?-mix:--.*?$)/u)
       break if _tmp
       self.pos = _save
       _tmp = apply(:_multi_comment)
@@ -1036,7 +1036,7 @@ class Atomy::Parser
 
       _save1 = self.pos
       while true # sequence
-        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
+        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/u)
         unless _tmp
           self.pos = _save1
           break
@@ -1053,7 +1053,7 @@ class Atomy::Parser
 
       _save2 = self.pos
       while true # sequence
-        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
+        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/u)
         unless _tmp
           self.pos = _save2
           break
@@ -1068,7 +1068,7 @@ class Atomy::Parser
           self.pos = _save2
           break
         end
-        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
+        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/u)
         unless _tmp
           self.pos = _save2
           break
@@ -1085,12 +1085,12 @@ class Atomy::Parser
 
       _save3 = self.pos
       while true # sequence
-        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/)
+        _tmp = scan(/\A(?-mix:[^\-\{\}]*)/u)
         unless _tmp
           self.pos = _save3
           break
         end
-        _tmp = scan(/\A(?-mix:[-{}])/)
+        _tmp = scan(/\A(?-mix:[-{}])/u)
         unless _tmp
           self.pos = _save3
           break
@@ -1450,7 +1450,7 @@ class Atomy::Parser
           break
         end
         _text_start = self.pos
-        _tmp = scan(/\A(?-mix:[\+\-]?0[oO][0-7]+)/)
+        _tmp = scan(/\A(?-mix:[\+\-]?0[oO][0-7]+)/u)
         if _tmp
           text = get_text(_text_start)
         end
@@ -1478,7 +1478,7 @@ class Atomy::Parser
           break
         end
         _text_start = self.pos
-        _tmp = scan(/\A(?-mix:[\+\-]?0[xX][\da-fA-F]+)/)
+        _tmp = scan(/\A(?-mix:[\+\-]?0[xX][\da-fA-F]+)/u)
         if _tmp
           text = get_text(_text_start)
         end
@@ -1506,7 +1506,7 @@ class Atomy::Parser
           break
         end
         _text_start = self.pos
-        _tmp = scan(/\A(?-mix:[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+)/)
+        _tmp = scan(/\A(?-mix:[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+)/u)
         if _tmp
           text = get_text(_text_start)
         end
@@ -1534,7 +1534,7 @@ class Atomy::Parser
           break
         end
         _text_start = self.pos
-        _tmp = scan(/\A(?-mix:[\+\-]?\d+\.\d+)/)
+        _tmp = scan(/\A(?-mix:[\+\-]?\d+\.\d+)/u)
         if _tmp
           text = get_text(_text_start)
         end
@@ -1562,7 +1562,7 @@ class Atomy::Parser
           break
         end
         _text_start = self.pos
-        _tmp = scan(/\A(?-mix:[\+\-]?\d+)/)
+        _tmp = scan(/\A(?-mix:[\+\-]?\d+)/u)
         if _tmp
           text = get_text(_text_start)
         end
@@ -1663,7 +1663,7 @@ class Atomy::Parser
         break
       end
       _text_start = self.pos
-      _tmp = scan(/\A(?-mix:left|right)/)
+      _tmp = scan(/\A(?-mix:left|right)/u)
       if _tmp
         text = get_text(_text_start)
       end
@@ -1694,7 +1694,7 @@ class Atomy::Parser
         break
       end
       _text_start = self.pos
-      _tmp = scan(/\A(?-mix:[0-9]+)/)
+      _tmp = scan(/\A(?-mix:[0-9]+)/u)
       if _tmp
         text = get_text(_text_start)
       end
@@ -2015,7 +2015,7 @@ class Atomy::Parser
     _save = self.pos
     while true # sequence
       _text_start = self.pos
-      _tmp = scan(/\A(?-mix:[^\\"]+)/)
+      _tmp = scan(/\A(?-mix:[^\\"]+)/u)
       if _tmp
         text = get_text(_text_start)
       end
@@ -2121,7 +2121,7 @@ class Atomy::Parser
     _save = self.pos
     while true # sequence
       _text_start = self.pos
-      _tmp = scan(/\A(?-mix:[A-Z][a-zA-Z0-9_]*)/)
+      _tmp = scan(/\A(?-mix:[A-Z][a-zA-Z0-9_]*)/u)
       if _tmp
         text = get_text(_text_start)
       end
@@ -3749,13 +3749,13 @@ class Atomy::Parser
 
       _save1 = self.pos
       while true # sequence
-        _tmp = scan(/\A(?-mix:[xX])/)
+        _tmp = scan(/\A(?-mix:[xX])/u)
         unless _tmp
           self.pos = _save1
           break
         end
         _text_start = self.pos
-        _tmp = scan(/\A(?-mix:[0-9a-fA-F]{1,5})/)
+        _tmp = scan(/\A(?-mix:[0-9a-fA-F]{1,5})/u)
         if _tmp
           text = get_text(_text_start)
         end
@@ -3777,7 +3777,7 @@ class Atomy::Parser
       _save2 = self.pos
       while true # sequence
         _text_start = self.pos
-        _tmp = scan(/\A(?-mix:\d{1,6})/)
+        _tmp = scan(/\A(?-mix:\d{1,6})/u)
         if _tmp
           text = get_text(_text_start)
         end
@@ -3798,13 +3798,13 @@ class Atomy::Parser
 
       _save3 = self.pos
       while true # sequence
-        _tmp = scan(/\A(?-mix:[oO])/)
+        _tmp = scan(/\A(?-mix:[oO])/u)
         unless _tmp
           self.pos = _save3
           break
         end
         _text_start = self.pos
-        _tmp = scan(/\A(?-mix:[0-7]{1,7})/)
+        _tmp = scan(/\A(?-mix:[0-7]{1,7})/u)
         if _tmp
           text = get_text(_text_start)
         end
@@ -3825,13 +3825,13 @@ class Atomy::Parser
 
       _save4 = self.pos
       while true # sequence
-        _tmp = scan(/\A(?-mix:[uU])/)
+        _tmp = scan(/\A(?-mix:[uU])/u)
         unless _tmp
           self.pos = _save4
           break
         end
         _text_start = self.pos
-        _tmp = scan(/\A(?-mix:[0-9a-fA-F]{4})/)
+        _tmp = scan(/\A(?-mix:[0-9a-fA-F]{4})/u)
         if _tmp
           text = get_text(_text_start)
         end
@@ -3915,9 +3915,9 @@ class Atomy::Parser
   Rules[:_shebang] = rule_info("shebang", "\"\#!\" /.*?$/")
   Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })? | &.)")
   Rules[:_line] = rule_info("line", "{ current_line }")
-  Rules[:_ident_start] = rule_info("ident_start", "< /[\\p{Ll}_]/u > { text }")
-  Rules[:_ident_letter] = rule_info("ident_letter", "< (/[\\p{L}\\d]/u | !\":\" op_letter) > { text }")
-  Rules[:_op_letter] = rule_info("op_letter", "< /[\\p{S}!@\#%&*\\-\\\\:.\\/\\?]/u > { text.to_sym }")
+  Rules[:_ident_start] = rule_info("ident_start", "< /[\\p{Ll}_]/ > { text }")
+  Rules[:_ident_letter] = rule_info("ident_letter", "< (/[\\p{L}\\d]/ | !\":\" op_letter) > { text }")
+  Rules[:_op_letter] = rule_info("op_letter", "< /[\\p{S}!@\#%&*\\-\\\\:.\\/\\?]/ > { text.to_sym }")
   Rules[:_operator] = rule_info("operator", "< op_letter+ > &{ text !~ /[@:]$/ } { text.to_sym }")
   Rules[:_identifier] = rule_info("identifier", "< ident_start ident_letter* > { text.tr(\"-\", \"_\").to_sym }")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")

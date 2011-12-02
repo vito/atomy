@@ -73,7 +73,7 @@ macro(~Word ~(s: Atomy::AST::String)(~*args)):
     line,
     @left text,
     s raw || s value,
-    args collect(&#text)
+    args collect #text
     s value
   )
 

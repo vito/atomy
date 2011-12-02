@@ -18,8 +18,19 @@ macro(@~(x: Word)): InstanceVariable new(line, x text)
 macro(~x = ~y): Assign new(line, x to-pattern to-node, y)
 
 -- [x, y] { x + y }
-macro(~List ~Block):
-  @right arguments = @left elements
+macro([~*args] ~Block):
+  @right arguments = args
+  @right
+
+-- [x, y] &z { x + y }
+macro([~*args] &~blk ~Block):
+  @right arguments = args
+  @right block = blk
+  @right
+
+-- &z { x + y }
+macro(&~blk ~Block):
+  @right block = blk
   @right
 
 -- foo { bar }
@@ -73,6 +84,14 @@ macro(~_ ~(Word)(~*args) [~*ys] ~(z: Block)):
   x = @left left to-send
   x block = z
   x
+
+-- proc-arg
+macro(~x &~y):
+  @left expand tap [s]:
+    s block = BlockPass new(y line, y)
+
+-- particle/symbol block-passing shorthand
+macro(~x #~y): `(~x &#~y)
 
 -- foo [bar, ...]
 macro(~x [~*ys]):

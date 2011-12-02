@@ -47,7 +47,7 @@ macro(~x for(~e) in(~c)):
 macro(~x for(~e) in(~c) if(~t)):
   `(~c collect [~e] { ~x } select [~e] { ~t })
 
-Array inject-right(i = _undefined, &block) :=
+Array inject-right(i = _undefined) &block :=
   reverse inject(i) [x, y]: block [y, x]
 
 .infix right 5 .
