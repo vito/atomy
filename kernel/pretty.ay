@@ -136,9 +136,13 @@ module(Atomy::AST):
   Splice unamb := pretty
   String unamb := pretty
   ToplevelConstant unamb := pretty
-  Unary unamb := pretty
+  Prefix unamb := pretty
+  Postfix unamb := pretty
   Unquote unamb := pretty
-  Word unamb := pretty
+  Word unamb := doc:
+    if(from?(#postfix))
+      then: parens(pretty)
+      else: pretty
   Pattern unamb := @pattern unamb
   Node unamb := doc: parens(pretty)
 
@@ -181,6 +185,14 @@ module(Atomy::AST):
   Macro pretty-print := doc:
     text("macro") <+> parens(@pattern pretty) <+> @body pretty
 
+  Postfix pretty-print := doc:
+    from(#postfix):
+      @receiver unamb <> text(@operator)
+
+  Prefix pretty-print := doc:
+    from(#prefix):
+      text(@operator) <> @receiver unamb
+
   Primitive pretty-print := doc:
     @value match:
       #self -> text("self")
@@ -190,11 +202,11 @@ module(Atomy::AST):
       x -> text(x inspect)
 
   QuasiQuote pretty-print := doc:
-    from(#unary):
+    from(#prefix):
       text("`") <> @expression unamb
 
   Quote pretty-print := doc:
-    from(#unary):
+    from(#prefix):
       text("'") <> @expression unamb
 
   ScopedConstant pretty-print := doc:
@@ -202,19 +214,15 @@ module(Atomy::AST):
       @parent unamb <> text("::") <> text(@name)
 
   Splice pretty-print := doc:
-    from(#unary):
+    from(#prefix):
       text("~*") <> @expression unamb
 
   String pretty-print := doc: text(@value inspect gsub("\\#", "#"))
 
   ToplevelConstant pretty-print := doc: text("::") <> text(@name)
 
-  Unary pretty-print := doc:
-    from(#unary):
-      text(@operator) <> @receiver unamb
-
   Unquote pretty-print := doc:
-    from(#unary):
+    from(#prefix):
       text("~") <> @expression unamb
 
   Word pretty-print := ident(@text to-s)

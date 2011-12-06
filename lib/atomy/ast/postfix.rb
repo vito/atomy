@@ -1,6 +1,6 @@
 module Atomy
   module AST
-    class Unary < Node
+    class Postfix < Node
       children :receiver
       attributes :operator
       generate
@@ -12,11 +12,11 @@ module Atomy
       end
 
       def message_name
-        :"#{@operator}@"
+        :"#{@operator}@@"
       end
 
       def macro_name
-        :"atomy_macro::#{@operator}@"
+        :"atomy_macro::#{@operator}@@"
       end
     end
   end

@@ -100,7 +100,7 @@
 
        delim(c) = (wsp "," wsp) | (sp "\n" sp)+ &{ current_column >= c }
 
-     expression = level3
+     expression = level4
 
     expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)?
                     { [x] + Array(xs) }
@@ -118,17 +118,19 @@
                 | word
                 | block
                 | list
-                | unary
+                | prefix
          level1 = call
                 | grouped
                 | level0
-         level2 = compose
+         level2 = postfix
                 | level1
-         level3 = language
+         level3 = compose
+                | level2
+         level4 = language
                 | infix
                 | macro
                 | binary
-                | level2
+                | level3
 
          number = line:line < /[\+\-]?0[oO][0-7]+/ >
                     { Atomy::AST::Primitive.new(line, text.to_i(8)) }
@@ -154,13 +156,13 @@
     set_lang(n) = { @_grammar_lang = require("#{n}/language/parser").new(nil) }
        language = ".language" wsp identifier:n set_lang(n) %lang.root
 
-          quote = line:line "'" level1:e
+          quote = line:line "'" level2:e
                     { Atomy::AST::Quote.new(line, e) }
-    quasi_quote = line:line "`" level1:e
+    quasi_quote = line:line "`" level2:e
                     { Atomy::AST::QuasiQuote.new(line, e) }
-         splice = line:line "~*" level1:e
+         splice = line:line "~*" level2:e
                     { Atomy::AST::Splice.new(line, e) }
-        unquote = line:line "~" level1:e
+        unquote = line:line "~" level2:e
                     { Atomy::AST::Unquote.new(line, e) }
 
          escape = number_escapes | escapes
@@ -186,8 +188,11 @@
            word = line:line identifier:n
                     { Atomy::AST::Word.new(line, n) }
 
-          unary = line:line !":" op_letter:o level1:e
-                    { Atomy::AST::Unary.new(line, e, o) }
+         prefix = line:line !":" op_letter:o level2:e
+                    { Atomy::AST::Prefix.new(line, e, o) }
+
+        postfix = line:line level1:e operator:o {} # these brackets are significant (kpeg bug)
+                    { Atomy::AST::Postfix.new(line, e, o) }
 
           block = line:line ":" !operator wsp expressions?:es (wsp ";")?
                     { Atomy::AST::Block.new(line, Array(es), []) }
@@ -197,9 +202,9 @@
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomy::AST::List.new(line, Array(es)) }
 
-  composes(pos) = line:line compose:l cont(pos) level1:r
+  composes(pos) = line:line compose:l cont(pos) level2:r
                     { Atomy::AST::Compose.new(line, l, r) }
-                | line:line level1:l cont(pos) level1:r
+                | line:line level2:l cont(pos) level2:r
                     { Atomy::AST::Compose.new(line, l, r) }
         compose = @composes(current_position)
 
@@ -208,9 +213,9 @@
            call = line:line level0:n args:as
                     { Atomy::AST::Call.new(line, n, as) }
 
-  binary_c(pos) = (cont(pos) operator:o sig_wsp level2:e { [o, e] })+:bs
+  binary_c(pos) = (cont(pos) operator:o sig_wsp level3:e { [o, e] })+:bs
                     { bs.flatten }
-         binary = level2:l binary_c(current_position):c
+         binary = level3:l binary_c(current_position):c
                     { resolve(nil, l, c).first }
                 | line:line operator:o sig_wsp expression:r
                     { Atomy::AST::Binary.new(

@@ -10,7 +10,7 @@ module Atomy
         case @pattern
         when Binary
           args = [@pattern.rhs]
-        when Word, Unary
+        when Word, Prefix, Postfix
           args = []
         when Call
           args = @pattern.arguments
@@ -36,7 +36,7 @@ module Atomy
         case @pattern
         when Binary
           recv = @pattern.lhs
-        when Unary
+        when Prefix, Postfix
           recv = @pattern.receiver
         when Call, Word
           recv = Primitive.new(@pattern.line, :self)
