@@ -1,3 +1,6 @@
+Condition = use("condition")
+use("doc")
+require("pretty")
 require("readline")
 
 basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=
@@ -41,13 +44,13 @@ class(ReplDebugger):
       debug(e)
 
     run(e) := do:
-      DefaultDebugger show-error-banner(e)
+      Condition::DefaultDebugger show-error-banner(e)
 
       with-restarts(backtrace -> show-backtrace(e)):
         debug(e)
 
     debug(e) := do:
-      DefaultDebugger show-options-for(e)
+      Condition::DefaultDebugger show-options-for(e)
 
       { send(#basic-repl) } bind:
         #prompt -> restart(#use-prompt, "[!]> ")
@@ -58,6 +61,8 @@ class(ReplDebugger):
         #quit -> exit(1)
 
 dynamic(debugger, ReplDebugger)
+
+export
 
 repl(history = nil, bnd = TOPLEVEL_BINDING, debug = false) := do:
   when(history && File exists?(history)):
@@ -87,7 +92,7 @@ repl(history = nil, bnd = TOPLEVEL_BINDING, debug = false) := do:
         #special("h") ->
           ":h\thelp" println
 
-        #evaluated(r) -> doc:
+        #evaluated(r) ->
           (text(" =>") <+> r pretty) render(76) println
   } ensuring:
     when(history):

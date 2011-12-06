@@ -350,12 +350,37 @@ module Atomy
     end
   end
 
+  def self.attach_defn_method(name, executable, static_scope, vis)
+    if vis == :private_module
+      visibility = :private
+    else
+      visibility = vis
+    end
+
+    res = Rubinius.add_defn_method(name, executable, static_scope, visibility)
+
+    mod = static_scope.for_method_definition
+    mod.private_module_function name if vis == :private_module
+
+    res
+  end
+
+  def self.attach_method(name, executable, mod, vis)
+    if vis == :private_module
+      visibility = :private
+    else
+      visibility = vis
+    end
+
+    res = Rubinius.add_method(name, executable, mod, visibility)
+    mod.private_module_function name if vis == :private_module
+    res
+  end
+
   # build a method from the given branches and add it to
   # the target
   def self.add_method(target, name, method, visibility = :public)
-    cm = method.build
-
-    Rubinius.add_method name, cm, target, visibility
+    attach_method name, method.build, target, visibility
   end
 
   # define a new method branch
@@ -371,9 +396,9 @@ module Atomy
     end
 
     if defn
-      Rubinius.add_defn_method branch.name, code, scope, visibility
+      attach_defn_method branch.name, code, scope, visibility
     else
-      Rubinius.add_method branch.name, code, target, visibility
+      attach_method branch.name, code, target, visibility
     end
 
     add_method(target, name, method, visibility)

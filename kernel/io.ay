@@ -6,6 +6,8 @@ x println := x tap: ^output-port puts(x to-s)
 x dump := x tap: ^output-port print(x to-s)
 x write := x tap: ^output-port puts(x show)
 
+export
+
 with-output-to((filename: String), mode = "w") &action :=
   let(output-port = File open(filename, mode)):
     action ensuring:

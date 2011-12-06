@@ -92,10 +92,15 @@ def run_atomy(options)
     return if run
   end
 
-  if respond_to?(:repl, true)
-    send(:repl, File.expand_path("~/.atomy_history"), TOPLEVEL_BINDING, options[:debug])
-  else
-    $stderr.puts("main REPL startup failed! here's a basic one:")
+
+  begin
+    require("repl").repl(
+      File.expand_path("~/.atomy_history"),
+      TOPLEVEL_BINDING,
+      options[:debug]
+    )
+  rescue => e
+    $stderr.puts("main REPL startup failed (#{e.inspect})! here's a basic one:")
 
     history_file = File.expand_path("~/.atomy_history")
 

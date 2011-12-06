@@ -1,3 +1,22 @@
+module Kernel
+  alias :method_missing_old :method_missing
+
+  def method_missing_atomy(meth, *args)
+    scope = Rubinius::StaticScope.of_sender
+    while scope
+      if scope.module.respond_to?(meth, true)
+        return scope.module.send(meth, *args)
+      else
+        scope = scope.parent
+      end
+    end
+
+    method_missing_old(meth, *args)
+  end
+
+  alias :method_missing :method_missing_atomy
+end
+
 class Rubinius::Generator
   def debug(name = "", quiet = false)
     if quiet

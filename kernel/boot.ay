@@ -113,8 +113,13 @@ macro(~(ScopedConstant)(~*args)):
 macro(_LINE): line
 macro(_FILE): File new(line)
 
+macro($path):
+  GlobalVariable new(line, ":" to-sym)
+
+$path << File expand-path("../", _FILE)
+
 "operators define cosmetics data comparison meta dynamic control-flow
-patterns node data-delta namespace particles maps block doc pretty errors
-format concurrency io condition therie repl kpeg" split each [k]:
+patterns node data-delta namespace particles maps block errors
+format concurrency io condition therie" split each [k]:
   puts("loading " + k)
-  require(File expand-path("../", _FILE) + "/" + k)
+  require(k)

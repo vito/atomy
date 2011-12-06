@@ -1,3 +1,50 @@
+class Module
+  def export(*names)
+    if block_given?
+      Rubinius::VariableScope.of_sender.method_visibility = :module
+
+      begin
+        yield
+      ensure
+        Rubinius::VariableScope.of_sender.method_visibility = :private_module
+      end
+    elsif names.empty?
+      Rubinius::VariableScope.of_sender.method_visibility = :module
+    else
+      names.each do |meth|
+        singleton_class.set_visibility(meth, :public)
+      end
+    end
+
+    self
+  end
+
+  def private_module_function(*args)
+    if args.empty?
+      vs = Rubinius::VariableScope.of_sender
+      if scr = vs.method.scope.script
+        if scr.eval? and scr.eval_binding
+          scr.eval_binding.variables.method_visibility = :private_module
+        end
+      end
+
+      Rubinius::VariableScope.of_sender.method_visibility = :private_module
+    else
+      sc = Rubinius::Type.object_singleton_class(self)
+      args.each do |meth|
+        method_name = Rubinius::Type.coerce_to_symbol meth
+        mod, method = lookup_method(method_name)
+        sc.method_table.store method_name, method.method, :private
+        Rubinius::VM.reset_method_cache method_name
+        set_visibility method_name, :private
+      end
+    end
+
+    return self
+  end
+
+end
+
 module Atomy
   module AST
     module SentientNode
@@ -607,10 +654,10 @@ EOF
       end
     end
 
-    class Script < Rubinius::AST::Container
-      def initialize(body)
-        super body
-        @name = :__script__
+    class ScriptBody < Node
+      def initialize(line, body)
+        @line = line
+        @body = body
       end
 
       def sprinkle_salt(g, by)
@@ -634,94 +681,172 @@ EOF
       end
 
       def bytecode(g)
+        @body.pos(g)
+
+        when_load = g.new_label
+        done_loading = g.new_label
+        when_run = g.new_label
+        start = g.new_label
+        done = g.new_label
+
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :CodeLoader
+        g.send :reason, 0
+        g.push_literal :load
+        g.send :==, 1
+        g.git when_load
+
+        done_loading.set!
+
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :CodeLoader
+        g.send :reason, 0
+        g.push_literal :run
+        g.send :==, 1
+        g.git when_run
+
+        before = Atomy::Macro::Environment.salt
+
+        start.set!
+        @body.bytecode(g)
+
+        after = Atomy::Macro::Environment.salt
+        g.goto done
+
+        when_load.set!
+
+        sprinkle_salt(g, after - before) if after > before
+
+        Atomy::CodeLoader.when_load.each do |e, c|
+          if c
+            skip = g.new_label
+
+            g.push_cpath_top
+            g.find_const :Atomy
+            g.find_const :CodeLoader
+            g.send :compiled?, 0
+            g.git skip
+
+            e.load_bytecode(g)
+            g.pop
+
+            skip.set!
+          else
+            e.load_bytecode(g)
+            g.pop
+          end
+        end
+        g.goto done_loading
+
+        when_run.set!
+
+        sprinkle_salt(g, after - before) if after > before
+
+        Atomy::CodeLoader.when_run.each do |e, c|
+          if c
+            skip = g.new_label
+
+            g.push_cpath_top
+            g.find_const :Atomy
+            g.find_const :CodeLoader
+            g.send :compiled?, 0
+            g.git skip
+
+            e.load_bytecode(g)
+            g.pop
+
+            skip.set!
+          else
+            e.load_bytecode(g)
+            g.pop
+          end
+        end
+        g.goto start
+
+        done.set!
+      end
+    end
+
+    class Script < Rubinius::AST::Container
+      def initialize(body)
+        @body = ScriptBody.new(body.line, body)
+        @name = :__script__
+      end
+
+      def attach_and_call(g, arg_name, scoped=false, pass_block=false)
+        name = @name || arg_name
+        meth = new_generator(g, name)
+
+        meth.push_state self
+
+        if scoped
+          meth.push_self
+          meth.add_scope
+        end
+
+        meth.state.push_name name
+
+        meth.push_self
+        meth.send :private_module_function, 0
+        meth.pop
+
+        @body.bytecode meth
+
+        meth.state.pop_name
+
+        meth.ret
+        meth.close
+
+        meth.local_count = local_count
+        meth.local_names = local_names
+
+        meth.pop_state
+
+        g.dup
+        g.push_rubinius
+        g.swap
+        g.push_literal arg_name
+        g.swap
+        g.push_generator meth
+        g.swap
+        g.push_scope
+        g.swap
+        g.send :attach_method, 4
+        g.pop
+
+        if pass_block
+          g.push_block
+          g.send_with_block arg_name, 0
+        else
+          g.send arg_name, 0
+        end
+
+        return meth
+      end
+
+      def bytecode(g)
+        @body.pos(g)
+
         super(g)
 
         container_bytecode(g) do
           g.push_state self
 
-          when_load = g.new_label
-          done_loading = g.new_label
-          when_run = g.new_label
-          start = g.new_label
-          done = g.new_label
-
           g.push_cpath_top
-          g.find_const :Atomy
-          g.find_const :CodeLoader
-          g.send :reason, 0
-          g.push_literal :load
-          g.send :==, 1
-          g.git when_load
+          g.find_const :Module
+          g.send :new, 0
+          g.dup
+          g.swap
+          g.push_literal :Self
+          g.swap
+          g.send :const_set, 2
 
-          done_loading.set!
+          g.dup
+          attach_and_call(g, :__module_init__, true)
+          g.pop
 
-          g.push_cpath_top
-          g.find_const :Atomy
-          g.find_const :CodeLoader
-          g.send :reason, 0
-          g.push_literal :run
-          g.send :==, 1
-          g.git when_run
-
-          before = Atomy::Macro::Environment.salt
-
-          start.set!
-          @body.bytecode g
-
-          after = Atomy::Macro::Environment.salt
-          g.goto done
-
-          when_load.set!
-
-          sprinkle_salt(g, after - before) if after > before
-
-          Atomy::CodeLoader.when_load.each do |e, c|
-            if c
-              skip = g.new_label
-
-              g.push_cpath_top
-              g.find_const :Atomy
-              g.find_const :CodeLoader
-              g.send :compiled?, 0
-              g.git skip
-
-              e.load_bytecode(g)
-              g.pop
-
-              skip.set!
-            else
-              e.load_bytecode(g)
-              g.pop
-            end
-          end
-          g.goto done_loading
-
-          when_run.set!
-
-          sprinkle_salt(g, after - before) if after > before
-
-          Atomy::CodeLoader.when_run.each do |e, c|
-            if c
-              skip = g.new_label
-
-              g.push_cpath_top
-              g.find_const :Atomy
-              g.find_const :CodeLoader
-              g.send :compiled?, 0
-              g.git skip
-
-              e.load_bytecode(g)
-              g.pop
-
-              skip.set!
-            else
-              e.load_bytecode(g)
-              g.pop
-            end
-          end
-          g.goto start
-
-          done.set!
           g.ret
           g.pop_state
         end

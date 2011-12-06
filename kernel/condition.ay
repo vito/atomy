@@ -1,3 +1,5 @@
+use("io")
+
 -- registered handlers/restarts
 dynamic(handlers, [])
 dynamic(restarts, [])
@@ -43,14 +45,6 @@ NoRestartError message := "unknown restart " + @restart show
 EndOfFile message := "unexpected end-of-file for " + @port show
 
 
-restart(name, *args) := do:
-  ^restarts each [r]:
-    when(r name == name):
-      r invoke(*args)
-
-  error(NoRestartError new(name))
-
-
 macro(~body bind { ~*handlers }):
   names [a]:
     callback = `([~a]: ~a match: ~*handlers)
@@ -65,13 +59,13 @@ macro(with-restarts(~*restarts) ~(block: Block)):
   rs = pairs collect [[n, e]]:
     n match:
       Word ->
-        `(Restart new(#~n, { ~e }))
+        `(make-restart(#~n, { ~e }))
 
       `(~(n)(~*as)) ->
-        `(Restart new(#~n, [~*as] { ~e }))
+        `(make-restart(#~n, [~*as] { ~e }))
 
       `(~(n)(~*as) &~b) ->
-        `(Restart new(#~n, [~*as] &~b { ~e }))
+        `(make-restart(#~n, [~*as] &~b { ~e }))
 
   body =
     pairs reduce(
@@ -80,6 +74,18 @@ macro(with-restarts(~*restarts) ~(block: Block)):
       `{ catch(~catcher(name)) ~x }
 
   `(let(restarts = [~*rs] + ^restarts) ~body)
+
+
+export
+
+make-restart(name, action) := Restart new(name, action)
+
+restart(name, *args) := do:
+  ^restarts each [r]:
+    when(r name == name):
+      r invoke(*args)
+
+  error(NoRestartError new(name))
 
 
 signal(c) := do:

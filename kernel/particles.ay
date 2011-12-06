@@ -1,3 +1,5 @@
+Atomy = ::Atomy
+
 module(Atomy):
   data(Particle(@receiver, @message, @arguments))
 

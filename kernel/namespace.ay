@@ -1,9 +1,15 @@
+Module use(path) := do:
+  x = require(path)
+  extend(x)
+  include(x)
+  x
+
 require("delegate")
 
-module(Atomy):
+module(::Atomy):
   HELPERS = Hash new
 
-class(AtomyDelegator < SimpleDelegator):
+class(::AtomyDelegator < SimpleDelegator):
   define(method-missing(m, *args) &block):
     target = self _-getobj--
     { if(target respond-to?(m, true))
