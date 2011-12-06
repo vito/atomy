@@ -9,7 +9,7 @@ module Atomy
         when Constant
           Rubinius::AST::ClassName.new @line, @name.name, @superclass
         when ToplevelConstant
-          Rubinius::AST::ToplevelModuleName.new @line, @name, @superclass
+          Rubinius::AST::ToplevelClassName.new @line, @name, @superclass
         when ScopedConstant
           Rubinius::AST::ScopedClassName.new @line, @name, @superclass
         else
