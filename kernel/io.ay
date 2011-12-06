@@ -6,21 +6,21 @@ x println := x tap: ^output-port puts(x to-s)
 x dump := x tap: ^output-port print(x to-s)
 x write := x tap: ^output-port puts(x show)
 
-with-output-to((filename: String), mode = "w", &action) :=
+with-output-to((filename: String), mode = "w") &action :=
   let(output-port = File open(filename, mode)):
     action ensuring:
       ^output-port close
 
-with-output-to(io, &action) :=
+with-output-to(io) &action :=
   let(output-port = io): action call
 
-with-error-to((filename: String), mode = "w", &action) :=
+with-error-to((filename: String), mode = "w") &action :=
   let(error-port = File open(filename, mode)):
     action ensuring:
       ^error-port close
 
-with-error-to(io, &action) :=
-  let(error-port = io, &action)
+with-error-to(io) &action :=
+  let(error-port = io) &action
 
 
 read-line(sep = $separator) := do:
@@ -52,10 +52,10 @@ read-char := read-byte chr
 read(length = nil, buffer = nil) :=
   ^input-port send(#read, length, buffer)
 
-with-input-from((filename: String), mode = "r", &action) :=
+with-input-from((filename: String), mode = "r") &action :=
   let(input-port = File open(filename, mode)):
     action ensuring:
       ^input-port close
 
-with-input-from(io, &action) :=
-  let(input-port = io, &action)
+with-input-from(io) &action :=
+  let(input-port = io) &action

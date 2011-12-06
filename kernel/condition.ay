@@ -70,6 +70,9 @@ macro(with-restarts(~*restarts) ~(block: Block)):
       `(~(n)(~*as)) ->
         `(Restart new(#~n, [~*as] { ~e }))
 
+      `(~(n)(~*as) &~b) ->
+        `(Restart new(#~n, [~*as] &~b { ~e }))
+
   body =
     pairs reduce(
       `{ ~block rescue: (e: StandardError) -> error(e) }

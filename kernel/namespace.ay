@@ -4,18 +4,18 @@ module(Atomy):
   HELPERS = Hash new
 
 class(AtomyDelegator < SimpleDelegator):
-  define(method-missing(m, *args, &block)):
+  define(method-missing(m, *args) &block):
     target = self _-getobj--
     { if(target respond-to?(m, true))
-        then: target _-send--(m, *args, &block)
-        else: super(m, *args, &block)
+        then: target _-send--(m, *args) &block
+        else: super(m, *args) &block
     } ensuring:
       when($"@"):
         $"@" delete-if [t]:
           r"\A#{Regexp quote(_FILE)}:#{_LINE - 2}:" =~ t
 
 
-with-static-scope(mod, &blk) :=
+with-static-scope(mod) &blk :=
   blk block call-under $:
     self
     Rubinius::StaticScope new $:

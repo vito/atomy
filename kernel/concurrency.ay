@@ -22,6 +22,6 @@ macro(receive ~(body: Block) after(~timeout) ~(action: Block)):
     `(Actor receive [~e]: ~*bs)
 
 
-spawn(&action) := Actor send(#spawn, &action)
+spawn &action := Actor send(#spawn) &action
 
-spawn-link(&action) := Actor send(#spawn-link, &action)
+spawn-link &action := Actor send(#spawn-link) &action

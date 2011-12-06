@@ -23,7 +23,7 @@ module Atomy
       end
 
       def to_send
-        Send.new(@line, Primitive.new(@line, :self), [], @text, nil, true)
+        Send.new(@line, Primitive.new(@line, :self), [], @text, nil, nil, true)
       end
     end
   end

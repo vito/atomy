@@ -12,7 +12,7 @@ class(Stats):
 dynamic(stats, nil)
 
 
-theorize(&tests) :=
+theorize &tests :=
   let(stats = Stats new):
     tests call
     "\n" display
@@ -31,7 +31,7 @@ theorize(&tests) :=
     ^stats
 
 
-describe(what, &body) := do:
+describe(what) &body := do:
   f"- %s" [what] indented println
 
   let(nesting-level = ^nesting-level + 1):
@@ -40,7 +40,7 @@ describe(what, &body) := do:
   nil
 
 
-it(description, &tests) := do:
+it(description) &tests := do:
   { tests call
     f"✓ %s" [description] indented colored(#green) println
   } rescue {

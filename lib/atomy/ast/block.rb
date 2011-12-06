@@ -4,7 +4,7 @@ module Atomy
       include NodeLike
       extend SentientNode
 
-      children [:contents], [:arguments]
+      children [:contents], [:arguments], :block?
       generate
 
       def body
@@ -30,6 +30,11 @@ module Atomy
 
         # Push line info down.
         pos(blk)
+
+        if @block
+          blk.push_block_arg
+          @block.to_pattern.deconstruct(blk)
+        end
 
         arguments.bytecode(blk)
 
@@ -88,15 +93,8 @@ module Atomy
       def bytecode(g)
         return if @arguments.empty?
 
-        args = @arguments
-
-        if args.last.kind_of?(Patterns::BlockPass)
-          g.push_block_arg
-          args.pop.deconstruct(g)
-        end
-
         g.cast_for_splat_block_arg
-        args.each do |a|
+        @arguments.each do |a|
           if a.kind_of?(Patterns::Splat)
             a.pattern.deconstruct(g)
             return

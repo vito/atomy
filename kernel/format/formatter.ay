@@ -292,7 +292,7 @@ module(Atomy::Format):
 
     justify-to(_, _, []) := ""
     justify-to(j, to, all: s . ss) := do:
-      needed = to - all collect(&#size) inject(&#"+")
+      needed = to - all collect #size inject #(+ _)
 
       spacings =
         condition:

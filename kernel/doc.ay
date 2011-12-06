@@ -170,8 +170,8 @@ namespace(Atomy::Pretty):
   raw(s) := Atomy::Pretty::Raw new(s to-s)
   line := Atomy::Pretty::Line new(true)
   linebreak := Atomy::Pretty::Line new(false)
-  column(&f) := Atomy::Pretty::Column new(f)
-  nesting(&f) := Atomy::Pretty::Nesting new(f)
+  column &f := Atomy::Pretty::Column new(f)
+  nesting &f := Atomy::Pretty::Nesting new(f)
   group(x) := { x flatten } <|> { x }
   softline := group(line)
   softbreak := group(linebreak)
@@ -223,7 +223,7 @@ namespace(Atomy::Pretty):
 
   -- call `f' with the width of the passed document, and render the result
   -- after it
-  width(d, &f) :=
+  width(d) &f :=
     column [c1]: d <> column [c2]: f [c2 - c1]
 
   -- helper documents

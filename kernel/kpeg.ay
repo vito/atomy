@@ -35,23 +35,23 @@ for-macro:
     `(~g reg(~(b raw)))
 
   process-val(g, c: Atomy::AST::Call) := do:
-    args = "(" + c arguments collect(&#show) join(", ") + ")"
+    args = "(" + c arguments collect #show join(", ") + ")"
 
     `(~g ref(~(c name text to-s), nil, ~args))
 
   process-val(g, `@~(c: Atomy::AST::Call)) := do:
-    args = "(" + c arguments collect(&#show) join(", ") + ")"
+    args = "(" + c arguments collect #show join(", ") + ")"
 
     `(~g invoke(~(c name text to-s), ~args))
 
   process-val(g, `^~(c: Atomy::AST::Call)) := do:
-    args = "(" + c arguments collect(&#show) join(", ") + ")"
+    args = "(" + c arguments collect #show join(", ") + ")"
 
     `(~g foreign-invoke("parent", ~(c name text to-s), ~args))
 
   process-val(g, `%~(c: Atomy::AST::Call)) := do:
     [gram, name] = c name text to-s split(".")
-    args = "(" + c arguments collect(&#show) join(", ") + ")"
+    args = "(" + c arguments collect #show join(", ") + ")"
 
     `(~g foreign-invoke(~gram, ~name, ~args))
 
@@ -139,7 +139,7 @@ macro(grammar: ~*body): names [g]:
 
       `(~(name)(~*args) := ~val) ->
         let(rule = name text,
-            rule-vars = ::Set new(args to-a collect(&#text))):
+            rule-vars = ::Set new(args to-a collect #text)):
           `(~g set(~(name text to-s)
                    ~process-val(g, val)
                    ~(args collect [x]: x text to-s)))

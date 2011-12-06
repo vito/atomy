@@ -39,15 +39,15 @@ describe("definitions"):
         0 bar-2(1, 2, 3) should-be([0, 1, [2, 3]])
 
       it("appears before a block arg"):
-        baz(a, *bs, &c) := [a, bs, c]
+        baz(a, *bs) &c := [a, bs, c]
         x = :;
         : baz ; should-raise(ArgumentError)
-        res = baz(1, &x)
+        res = baz(1) &x
         res at(0) should-be(1)
         res at(1) should-be([])
         res at(2) should: kind-of?(Proc)
 
-        res = baz(1, 2, 3, &x)
+        res = baz(1, 2, 3) &x
         res at(0) should-be(1)
         res at(1) should-be([2, 3])
         res at(2) should: kind-of?(Proc)
@@ -74,7 +74,7 @@ describe("definitions"):
         d4(0, 1) should-be([0, 1])
 
       it("may appear before a block arg"):
-        d5(a = 1, &b) := [a, b]
+        d5(a = 1) &b := [a, b]
         d5 should-be([1, nil])
         d5(2) should-be([2, nil])
 

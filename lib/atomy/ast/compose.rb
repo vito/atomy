@@ -7,11 +7,25 @@ module Atomy
       def to_send
         case @right
         when Call
+          @right.to_send.tap do |s|
+            s.receiver = @left
+          end
+        when List
+          args = @right.elements
+          s = args.last
+          if s.is_a?(Prefix) && s.operator == :*
+            splat = s.receiver
+            args.pop
+          else
+            splat = nil
+          end
+
           Send.new(
             @line,
             @left,
-            @right.arguments,
-            @right.name.is_a?(Word) && @right.name.text
+            args,
+            :[],
+            splat
           )
         else
           Send.new(

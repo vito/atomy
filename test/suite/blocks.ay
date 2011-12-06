@@ -33,13 +33,13 @@ describe("blocks"):
 
     describe("block"):
       it("binds a block argument"):
-        [&x] { x call } call { 1 } should-be(1)
+        &x { x call } call { 1 } should-be(1)
 
       it("binds as nil if no block given"):
-        [&x] { x } call should-be(nil)
+        &x { x } call should-be(nil)
 
       it("works with arguments before it"):
-        [a, &x] { x call(a) } call(2) [a] { a + 1 } should-be(3)
+        [a] &x { x call(a) } call(2) [a] { a + 1 } should-be(3)
 
       it("fails with arguments after it"):
         { [&x, a] { x call(a) } call(2) [a] { a + 1 }
@@ -60,15 +60,15 @@ describe("blocks"):
         foo call(1, 2, 3) should-be([1, [2, 3]])
 
       it("appears before a block arg"):
-        foo = [a, *bs, &c]: [a, bs, c]
+        foo = [a, *bs] &c: [a, bs, c]
         x = {}
         { foo call } should-raise(ArgumentError)
-        res = foo call(1, &x)
+        res = foo call(1) &x
         res at(0) should-be(1)
         res at(1) should-be([])
         res at(2) should: kind-of?(Proc)
 
-        res = foo call(1, 2, 3, &x)
+        res = foo call(1, 2, 3) &x
         res at(0) should-be(1)
         res at(1) should-be([2, 3])
         res at(2) should: kind-of?(Proc)
