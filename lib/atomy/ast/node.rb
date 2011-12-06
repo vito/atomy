@@ -732,7 +732,7 @@ end
 
 class Object
   def to_node
-    raise "not a node: #{self.inspect}"
+    raise "cannot convert to a node: #{self.inspect}"
   end
 end
 
