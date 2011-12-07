@@ -1,15 +1,23 @@
+module Rubinius
+  class StaticScope
+    attr_accessor :atomy_visibility
+  end
+end
+
 class Module
   def export(*names)
     if block_given?
-      Rubinius::VariableScope.of_sender.method_visibility = :module
+      scope = Rubinius::StaticScope.of_sender
+      old = scope.atomy_visibility
+      scope.atomy_visibility = :module
 
       begin
         yield
       ensure
-        Rubinius::VariableScope.of_sender.method_visibility = :private_module
+        scope.atomy_visibility = old
       end
     elsif names.empty?
-      Rubinius::VariableScope.of_sender.method_visibility = :module
+      Rubinius::StaticScope.of_sender.atomy_visibility = :module
     else
       names.each do |meth|
         singleton_class.set_visibility(meth, :public)
@@ -21,14 +29,7 @@ class Module
 
   def private_module_function(*args)
     if args.empty?
-      vs = Rubinius::VariableScope.of_sender
-      if scr = vs.method.scope.script
-        if scr.eval? and scr.eval_binding
-          scr.eval_binding.variables.method_visibility = :private_module
-        end
-      end
-
-      Rubinius::VariableScope.of_sender.method_visibility = :private_module
+      Rubinius::StaticScope.of_sender.atomy_visibility = :private_module
     else
       sc = Rubinius::Type.object_singleton_class(self)
       args.each do |meth|
@@ -38,11 +39,10 @@ class Module
         Rubinius::VM.reset_method_cache method_name
         set_visibility method_name, :private
       end
+
+      return self
     end
-
-    return self
   end
-
 end
 
 module Atomy
