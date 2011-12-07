@@ -23,6 +23,9 @@ module Kernel
     end
   end
 
+  module_function :require
+  module_function :gem_original_require
+
   private :atomy_original_gem_original_require
   private :atomy_original_require
 end
