@@ -1,17 +1,17 @@
 module Kernel
   alias :method_missing_old :method_missing
 
-  def method_missing_atomy(meth, *args)
+  def method_missing_atomy(meth, *args, &blk)
     scope = Rubinius::StaticScope.of_sender
     while scope
       if scope.module.respond_to?(meth, true)
-        return scope.module.send(meth, *args)
+        return scope.module.send(meth, *args, &blk)
       else
         scope = scope.parent
       end
     end
 
-    method_missing_old(meth, *args)
+    method_missing_old(meth, *args, &blk)
   end
 
   alias :method_missing :method_missing_atomy
