@@ -14,6 +14,7 @@ class(Stats):
 
 dynamic(stats)
 
+export
 
 theorize &tests :=
   let(stats = Stats new):

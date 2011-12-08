@@ -1,8 +1,11 @@
-theories = ARGV at(0) || "*"
+use("therie")
+
+glob = ARGV at(0) || "*"
+theories = File expand-path(i"../suite/#{glob}.ay", _FILE)
 
 result =
   theorize:
-    Dir glob(File expand-path("../suite", _FILE) + "/" + theories + ".ay") each [t]:
+    Dir glob(theories) each [t]:
       require(t)
 
 unless(result failed == 0):

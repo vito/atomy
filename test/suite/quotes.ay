@@ -1,3 +1,5 @@
+use("therie")
+
 describe("quasiquotation"):
   it("constructs an expression"):
     `1 should-be('1)

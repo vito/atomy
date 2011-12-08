@@ -1,3 +1,5 @@
+use("therie")
+
 describe("definitions"):
   describe("static scope"):
     it("retains the proper static scope for each branch"):

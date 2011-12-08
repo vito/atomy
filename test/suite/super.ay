@@ -1,3 +1,5 @@
+use("therie")
+
 class(ZSuperA):
   test-1 := #super
   test-2(x) := [#super, x]

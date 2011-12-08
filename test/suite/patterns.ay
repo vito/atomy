@@ -1,3 +1,5 @@
+use("therie")
+
 describe("pattern-matching"):
   describe("expressions"):
     describe("quote"):

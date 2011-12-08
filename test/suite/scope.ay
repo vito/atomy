@@ -1,3 +1,5 @@
+use("therie")
+
 describe("assignment"):
   describe("="):
     it("introduces a new local"):

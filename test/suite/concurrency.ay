@@ -1,3 +1,6 @@
+use("therie")
+use("concurrency")
+
 describe("concurrency"):
   describe("spawn"):
     it("creates an actor that executes a block"):

@@ -1,3 +1,5 @@
+use("therie")
+
 describe("macros"):
   describe("unique name generation"):
     it("creates names via #names"):

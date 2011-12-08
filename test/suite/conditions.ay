@@ -1,3 +1,6 @@
+use("therie")
+use("condition")
+
 describe("condition"):
   describe(#signal):
     it("triggers matching handlers"):
