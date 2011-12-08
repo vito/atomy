@@ -1,3 +1,5 @@
+use("dynamic")
+
 dynamic(labels, Hash new)
 
 macro(if(~x) then ~(y: Block) else ~(z: Block)):

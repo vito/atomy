@@ -1,14 +1,13 @@
-module(::Atomy):
-  class(Dynvar):
-    initialize(@name, @default) := nil
+class(Dynvar):
+  initialize(@name, @default) := nil
 
-  ^Dynvar := Thread current [@name] || @default
-  Dynvar set(x) := Thread current [@name] = x
+^Dynvar := Thread current [@name] || @default
+Dynvar set(x) := Thread current [@name] = x
 
 macro(dynamic(~n, ~(root = 'nil))):
   names [local]:
     `(do:
-        @~n = ::Atomy::Dynvar new(~(local text), ~root)
+        @~n = Dynvar new(~(local text), ~root)
 
         class(<< self):
           attr-reader(#~n))

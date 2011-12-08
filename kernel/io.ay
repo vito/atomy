@@ -1,3 +1,5 @@
+use("dynamic")
+
 dynamic(output-port, $stdout)
 dynamic(input-port, $stdin)
 dynamic(error-port, $stderr)

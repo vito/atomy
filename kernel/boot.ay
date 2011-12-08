@@ -118,8 +118,7 @@ macro($path):
 
 $path << File expand-path("../", _FILE)
 
-"operators define cosmetics data comparison meta dynamic control-flow
-patterns node data-delta particles maps block errors
-format" split each [k]:
+"operators define cosmetics data comparison meta control-flow patterns node
+data-delta particles maps block errors format" split each [k]:
   puts("loading " + k)
-  require(k)
+  use(k)
