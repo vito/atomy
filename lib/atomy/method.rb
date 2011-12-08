@@ -131,8 +131,6 @@ module Atomy
 
       build_methods(g, @branches, done)
 
-      # call super. note that we keep the original sender's static
-      # scope for use in namespace checks
       unless @name == :initialize
         g.invoke_primitive :vm_check_super_callable, 0
         g.gif mismatch

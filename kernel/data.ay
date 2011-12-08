@@ -26,8 +26,8 @@ macro($~(x: Word)):
 macro($exception):
   GlobalVariable new(line, "!" to-sym)
 
-macro($path):
-  GlobalVariable new(line, ":" to-sym)
+--macro($path):
+  --GlobalVariable new(line, ":" to-sym)
 
 macro($separator):
   GlobalVariable new(line, "/" to-sym)
