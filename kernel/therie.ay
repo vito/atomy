@@ -1,3 +1,6 @@
+IO = use("io")
+use("condition")
+
 dynamic(nesting-level, 0)
 
 class(Stats):
@@ -9,7 +12,7 @@ class(Stats):
 
   inspect := f"Stats(@passed = %d, @failed = %d)" [@passed, @failed]
 
-dynamic(stats, nil)
+dynamic(stats)
 
 
 theorize &tests :=
@@ -103,7 +106,7 @@ String indented := " " * (^nesting-level * 2) + self
 
 String colored(color) := do:
   -- only makes sense to colorize if we're outputting to a terminal
-  unless(^output-port tty?):
+  unless(^(IO output-port) tty?):
     return(self)
 
   codes =

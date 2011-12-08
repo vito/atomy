@@ -1,6 +1,6 @@
 Condition = use("condition")
 use("doc")
-require("pretty")
+Pretty = require("pretty")
 require("readline")
 
 basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=
@@ -60,8 +60,6 @@ class(ReplDebugger):
 
         #quit -> exit(1)
 
-dynamic(debugger, ReplDebugger)
-
 export
 
 repl(history = nil, bnd = TOPLEVEL_BINDING, debug = false) := do:
@@ -72,9 +70,9 @@ repl(history = nil, bnd = TOPLEVEL_BINDING, debug = false) := do:
 
   sane-history = Array[]
 
-  { let(debugger = ReplDebugger,
-        atomy-pretty-multiline? = true,
-        atomy-pretty-colored? = true):
+  { let(Condition debugger = ReplDebugger,
+        Pretty multiline? = true,
+        Pretty colored? = true):
       frame = 0
 
       { basic-repl(bnd, debug)

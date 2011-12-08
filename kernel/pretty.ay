@@ -1,9 +1,10 @@
 use("doc")
+IO = use("io")
 
-dynamic(atomy-pretty-printing, [])
-dynamic(atomy-pretty-multiline?, false)
-dynamic(atomy-pretty-context, #top)
-dynamic(atomy-pretty-colored?, false)
+dynamic(printing, [])
+dynamic(multiline?, false)
+dynamic(context, #top)
+dynamic(colored?, false)
 
 ident(n) := text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
 
@@ -14,10 +15,11 @@ pretty-body(x . xs) := [from(#list) { x pretty }] + pretty-body(xs)
 _ unamb := pretty
 
 from(*where) &y :=
-  let(atomy-pretty-context = where flatten) { y call }
+  let(context = where flatten):
+    y call
 
 from?(*where) :=
-  [^atomy-pretty-context, where] match:
+  [^context, where] match:
     [(a: Array), (b: Array)] ->
       a any? [x]: b include?(x)
     [(a: Array), b] ->
@@ -28,17 +30,17 @@ from?(*where) :=
       a == b
 
 Object pretty :=
-  if(^atomy-pretty-printing member?(self))
+  if(^printing member?(self))
     then: text("...")
     else:
-      let(atomy-pretty-printing = self . ^atomy-pretty-printing):
+      let(printing = self . ^printing):
         pretty-print
 
 Array all-pretty := collect [x]: x pretty
 
 Doc colored(color) := do:
   -- only makes sense to colorize if we're outputting to a terminal
-  unless(^atomy-pretty-colored? && ^output-port tty?):
+  unless(^colored? && ^(IO output-port) tty?):
     return(self)
 
   codes =
@@ -230,7 +232,7 @@ module(::Atomy::AST):
   Word pretty-print := ident(@text to-s)
 
   Tree pretty-print :=
-    if(^atomy-pretty-multiline?)
+    if(^multiline?)
       then: from(#top): vcat(@nodes all-pretty)
       else: from(#list): comma separate(@nodes all-pretty)
 

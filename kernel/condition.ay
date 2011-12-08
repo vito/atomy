@@ -1,4 +1,6 @@
-use("io")
+IO = use("io")
+
+ConditionsSystem = self
 
 -- registered handlers/restarts
 dynamic(handlers, [])
@@ -48,7 +50,7 @@ EndOfFile message := "unexpected end-of-file for " + @port show
 macro(~body bind { ~*handlers }):
   names [a]:
     callback = `([~a]: ~a match: ~*handlers)
-    `(let(handlers = ~callback . ^handlers):
+    `(let(ConditionsSystem handlers = ~callback . ^(ConditionsSystem handlers)):
         ~body rescue:
           (e: StandardError) -> error(e))
 
@@ -59,13 +61,13 @@ macro(with-restarts(~*restarts) ~(block: Block)):
   rs = pairs collect [[n, e]]:
     n match:
       Word ->
-        `(make-restart(#~n, { ~e }))
+        `(ConditionsSystem::Restart new(#~n, { ~e }))
 
       `(~(n)(~*as)) ->
-        `(make-restart(#~n, [~*as] { ~e }))
+        `(ConditionsSystem::Restart new(#~n, [~*as] { ~e }))
 
       `(~(n)(~*as) &~b) ->
-        `(make-restart(#~n, [~*as] &~b { ~e }))
+        `(ConditionsSystem::Restart new(#~n, [~*as] &~b { ~e }))
 
   body =
     pairs reduce(
@@ -73,12 +75,10 @@ macro(with-restarts(~*restarts) ~(block: Block)):
     ) [x, [name, _]]:
       `{ catch(~catcher(name)) ~x }
 
-  `(let(restarts = [~*rs] + ^restarts) ~body)
+  `(let(ConditionsSystem restarts = [~*rs] + ^(ConditionsSystem restarts)) ~body)
 
 
 export
-
-make-restart(name, action) := Restart new(name, action)
 
 restart(name, *args) := do:
   ^restarts each [r]:
@@ -116,7 +116,7 @@ error(x) := do:
 
   signal(e)
 
-  with-output-to(^error-port):
+  with-output-to(^(IO error-port)):
     ^debugger run(e)
 
 
@@ -134,7 +134,7 @@ warning(x) :=
 
     signal(w)
 
-    with-output-to(^error-port):
+    with-output-to(^(IO error-port)):
       (w name + ": " + w message) println
 
     nil
