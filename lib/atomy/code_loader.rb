@@ -2,6 +2,8 @@ require("stringio")
 
 module Atomy
   class CodeLoader
+    LOADED = {}
+
     class << self
       def reason
         @reason ||= :run
@@ -11,12 +13,12 @@ module Atomy
         @reason = x
       end
 
-      def when_load
-        @when_load ||= []
+      def context
+        @context
       end
 
-      def when_load=(x)
-        @when_load = x
+      def context=(x)
+        @context = x
       end
 
       def compiling
@@ -25,14 +27,6 @@ module Atomy
 
       def compiling=(x)
         @compiling = x
-      end
-
-      def when_run
-        @when_run ||= []
-      end
-
-      def when_run=(x)
-        @when_run = x
       end
 
       # TODO: make sure this works as expected with multiple loadings
@@ -54,18 +48,6 @@ module Atomy
         elsif fn.suffix? ".ayc"
           fn[0..-2]
         end
-      end
-
-      def compile_if_needed(fn, debug = false)
-        compiled = compiled_name(fn)
-
-        if !loadable?(compiled) ||
-            File.stat(compiled).mtime < File.stat(fn).mtime
-          CodeLoader.compiled! true
-          Compiler.compile fn, nil, debug
-        end
-
-        compiled
       end
 
       def find_file(fn)
@@ -120,26 +102,75 @@ module Atomy
         load_file(file)
       end
 
+      def compilation_needed?(fn)
+        compiled = compiled_name(fn)
+
+        !loadable?(compiled) ||
+          File.stat(compiled).mtime < File.stat(fn).mtime
+      end
+
       def load_file(fn, r = :load, debug = false)
         unless file = find_any_file(fn)
           raise LoadError, "no such file to load -- #{fn}"
         end
 
-        CodeLoader.when_load = []
-        CodeLoader.when_run = []
+        old_reason = CodeLoader.reason
+        old_context = CodeLoader.context
+        old_compiling = CodeLoader.compiling
+        old_compiled = CodeLoader.compiled?
+
         CodeLoader.reason = r
         CodeLoader.compiled! false
         CodeLoader.compiling = file
 
-        cfn = compile_if_needed(file, debug)
-        cl = Rubinius::CodeLoader.new(cfn)
-        cm = cl.load_compiled_file(cfn, 0, 0)
-        script = cm.create_script(false)
-        script.file_path = file
+        if compilation_needed?(fn)
+          mod = Module.new
 
-        CodeLoader.compiling = nil
+          mod.const_set(:Self, mod)
 
-        MAIN.__send__ :__script__
+          mod.singleton_class.dynamic_method(:__module_init__) do |g|
+            g.push_self
+            g.add_scope
+
+            g.push_self
+            g.send :private_module_function, 0
+            g.pop
+
+            g.push_variables
+            g.push_scope
+            g.make_array 2
+            g.ret
+          end
+
+          vs, ss = mod.__module_init__
+          bnd = Binding.setup(
+            vs,
+            vs.method,
+            ss,
+            mod
+          )
+
+          CodeLoader.context = bnd
+          CodeLoader.compiled! true
+          Compiler.compile fn, nil, debug
+          LOADED[file] = mod
+        elsif mod = LOADED[file]
+          mod
+        else
+          cfn = compiled_name(fn)
+          cl = Rubinius::CodeLoader.new(cfn)
+          cm = cl.load_compiled_file(cfn, 0, 0)
+          script = cm.create_script(false)
+          script.file_path = file
+
+          LOADED[file] = MAIN.__send__ :__script__
+        end
+      ensure
+        CodeLoader.reason = old_context
+        CodeLoader.compiled! old_compiled
+        CodeLoader.compiling = old_compiling
+
+        CodeLoader.context = old_context
       end
     end
   end

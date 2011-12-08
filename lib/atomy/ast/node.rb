@@ -685,97 +685,22 @@ EOF
       end
 
       def bytecode(g)
-        @body.pos(g)
+        pos(g)
 
-        when_load = g.new_label
-        done_loading = g.new_label
-        when_run = g.new_label
-        start = g.new_label
-        done = g.new_label
+        @body.each do |n|
+          n.compile(g)
 
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.find_const :CodeLoader
-        g.send :reason, 0
-        g.push_literal :load
-        g.send :==, 1
-        g.git when_load
-
-        done_loading.set!
-
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.find_const :CodeLoader
-        g.send :reason, 0
-        g.push_literal :run
-        g.send :==, 1
-        g.git when_run
-
-        before = Atomy::Macro::Environment.salt
-
-        start.set!
-        @body.bytecode(g)
-
-        after = Atomy::Macro::Environment.salt
-        g.goto done
-
-        when_load.set!
-
-        sprinkle_salt(g, after - before) if after > before
-
-        Atomy::CodeLoader.when_load.each do |e, c|
-          if c
-            skip = g.new_label
-
-            g.push_cpath_top
-            g.find_const :Atomy
-            g.find_const :CodeLoader
-            g.send :compiled?, 0
-            g.git skip
-
-            e.load_bytecode(g)
-            g.pop
-
-            skip.set!
-          else
-            e.load_bytecode(g)
-            g.pop
+          # macros always evaluate during compilation
+          unless n.is_a?(Macro)
+            n.evaluate(CodeLoader.context, CodeLoader.compiling)
           end
         end
-        g.goto done_loading
-
-        when_run.set!
-
-        sprinkle_salt(g, after - before) if after > before
-
-        Atomy::CodeLoader.when_run.each do |e, c|
-          if c
-            skip = g.new_label
-
-            g.push_cpath_top
-            g.find_const :Atomy
-            g.find_const :CodeLoader
-            g.send :compiled?, 0
-            g.git skip
-
-            e.load_bytecode(g)
-            g.pop
-
-            skip.set!
-          else
-            e.load_bytecode(g)
-            g.pop
-          end
-        end
-        g.goto start
-
-        done.set!
       end
     end
 
     class Script < Rubinius::AST::Container
       def initialize(body)
-        @body = ScriptBody.new(body.line, body)
+        @body = ScriptBody.new(body.line, body.nodes)
         @name = :__script__
       end
 
