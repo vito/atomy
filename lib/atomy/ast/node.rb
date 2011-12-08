@@ -112,6 +112,7 @@ module Atomy
         spec(@children, specs)
       end
 
+      # TODO: spec for multi-splice
       def many_construct(n)
         x = <<END
 
@@ -119,11 +120,10 @@ module Atomy
           size = 0
           @#{n}.each do |e|
             if e.kind_of?(::Atomy::AST::Splice) && d == 1
-              if size > 0
-                g.make_array size
-              end
+              g.make_array size
+              g.send :+, 1 if spliced
               e.construct(g, d)
-              g.send :+, 1 if size > 0 || spliced
+              g.send :+, 1
               spliced = true
               size = 0
             else
