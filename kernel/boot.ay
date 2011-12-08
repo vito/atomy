@@ -120,6 +120,6 @@ $path << File expand-path("../", _FILE)
 
 "operators define cosmetics data comparison meta dynamic control-flow
 patterns node data-delta namespace particles maps block errors
-format concurrency io condition therie" split each [k]:
+format" split each [k]:
   puts("loading " + k)
   require(k)
