@@ -5,6 +5,13 @@ module Rubinius
 end
 
 class Module
+  def use(path)
+    x = require(path)
+    extend(x)
+    include(x)
+    x
+  end
+
   def export(*names)
     if block_given?
       scope = Rubinius::StaticScope.of_sender

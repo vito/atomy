@@ -1,5 +1,0 @@
-Module use(path) := do:
-  x = require(path)
-  extend(x)
-  include(x)
-  x
