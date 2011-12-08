@@ -1,7 +1,5 @@
 require("actor")
 
-me := Actor current
-
 Actor <- v := send(v)
 
 macro(receive ~(body: Block)):
@@ -21,6 +19,10 @@ macro(receive ~(body: Block) after(~timeout) ~(action: Block)):
 
     `(Actor receive [~e]: ~*bs)
 
+
+export
+
+me := Actor current
 
 spawn &action := Actor send(#spawn) &action
 
