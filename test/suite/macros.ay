@@ -136,7 +136,7 @@ describe("macros"):
       m-foo-25 should-be(1)
 
     it("is available for its own expansion"):
-      for-macro:
+      when-compiling:
         $expanded = 0
 
       let-macro(foo = if($expanded < 5)

@@ -57,59 +57,58 @@ macro(next):
 macro(next(~x)):
   Next new(line, x)
 
-evaluate-when(compile, run, load):
-  module(Atomy::AST):
-    class(Labels < Node):
-      children([#tags])
-      generate
+module(Atomy::AST):
+  class(Labels < Node):
+    children([#tags])
+    generate
 
-      bytecode(g) := do:
-        pos(g)
+    bytecode(g) := do:
+      pos(g)
 
-        tags = ::Hash new
+      tags = ::Hash new
 
-        labels =
-          @tags to-a collect [t]:
-            tags [t name] = g new-label
+      lbls =
+        @tags to-a collect [t]:
+          tags [t name] = g new-label
 
-        let(labels = tags):
-          labels zip(@tags to-a) each [[l, t]]:
-            l set!
-            t body compile(g)
-            g pop
+      let(labels = tags):
+        lbls zip(@tags to-a) each [[l, t]]:
+          l set!
+          t body compile(g)
+          g pop
 
-        g push-nil
+      g push-nil
 
-    class(LabelBranch < Node):
-      children(#body)
-      attributes(#name)
-      generate
+  class(LabelBranch < Node):
+    children(#body)
+    attributes(#name)
+    generate
 
-    class(GoTo < Node):
-      attributes(#name)
-      generate
+  class(GoTo < Node):
+    attributes(#name)
+    generate
 
-      bytecode(g) := do:
-        pos(g)
-        g goto(^labels fetch(@name))
+    bytecode(g) := do:
+      pos(g)
+      g goto(^labels fetch(@name))
 
-    class(Break < Node):
-      children(#value)
-      generate
+  class(Break < Node):
+    children(#value)
+    generate
 
-      bytecode(g) := do:
-        pos(g)
-        @value compile(g)
-        g raise-break
+    bytecode(g) := do:
+      pos(g)
+      @value compile(g)
+      g raise-break
 
-    class(Next < Node):
-      children(#value)
-      generate
+  class(Next < Node):
+    children(#value)
+    generate
 
-      bytecode(g) := do:
-        pos(g)
-        @value compile(g)
-        g ret
+    bytecode(g) := do:
+      pos(g)
+      @value compile(g)
+      g ret
 
 macro(labels ~(body: Block)):
   branches = body contents collect [`(~n ~b)]:

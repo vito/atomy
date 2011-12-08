@@ -24,9 +24,8 @@ for-macro:
     cons = `(~(name)(~*tmps))
 
     pat-def =
-      `(evaluate-when(compile, load, run):
-          ~(Atomy::AST::QuasiQuote new(0, cons)) to-pattern :=
-              ~(Atomy::AST::QuasiQuote new(0, pat)) to-pattern)
+      `(~(Atomy::AST::QuasiQuote new(0, cons)) to-pattern :=
+          ~(Atomy::AST::QuasiQuote new(0, pat)) to-pattern)
 
     class =
       if(root)
@@ -78,10 +77,9 @@ macro(~Word ~(s: Atomy::AST::String)(~*args)):
   )
 
 macro(macro-quoter(~n) [~*as] { ~*cs }):
-  `(evaluate-when(compile, load, run):
-      class(Atomy::AST::MacroQuote):
-        define(quote(#~n, ~*as)):
-          ~*cs)
+  `(class(Atomy::AST::MacroQuote):
+      define(quote(#~n, ~*as)):
+        ~*cs)
 
 macro(~a .. ~b): `(Range new(~a, ~b))
 macro(~a ... ~b): `(Range new(~a, ~b, true))
