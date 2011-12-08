@@ -1,3 +1,5 @@
+require("pretty")
+
 module(Atomy::Format):
   class(Formatter):
     attr-accessor(#position)
