@@ -5,7 +5,7 @@ module Atomy
       generate
 
       def bytecode(g)
-        @pattern.define_macro(@body)
+        @pattern.define_macro(@body, Atomy::CodeLoader.compiling)
 
         pos(g)
         @pattern.construct(g)

@@ -2,6 +2,7 @@ require("stringio")
 
 module Atomy
   class CodeLoader
+    # TODO: make thread-safe
     LOADED = {}
 
     class << self
@@ -13,6 +14,14 @@ module Atomy
         @reason = x
       end
 
+      def module
+        @module
+      end
+
+      def module=(x)
+        @module = x
+      end
+
       def context
         @context
       end
@@ -22,7 +31,7 @@ module Atomy
       end
 
       def compiling
-        @compiling ||= :macro
+        @compiling
       end
 
       def compiling=(x)
@@ -114,63 +123,77 @@ module Atomy
           raise LoadError, "no such file to load -- #{fn}"
         end
 
+        loaded = LOADED[file]
+        return loaded if loaded
+
         old_reason = CodeLoader.reason
-        old_context = CodeLoader.context
-        old_compiling = CodeLoader.compiling
         old_compiled = CodeLoader.compiled?
+        old_compiling = CodeLoader.compiling
+        old_context = CodeLoader.context
+        old_module = CodeLoader.module
 
-        CodeLoader.reason = r
-        CodeLoader.compiled! false
-        CodeLoader.compiling = file
+        mod = Module.new
+        mod.private_module_function
+        mod.const_set(:Self, mod)
 
-        if compilation_needed?(fn)
-          mod = Module.new
+        mod.singleton_class.dynamic_method(:__module_init__, file) do |g|
+          g.push_self
+          g.add_scope
 
-          mod.const_set(:Self, mod)
+          g.push_self
+          g.send :private_module_function, 0
+          g.pop
 
-          mod.singleton_class.dynamic_method(:__module_init__) do |g|
-            g.push_self
-            g.add_scope
+          g.push_variables
+          g.push_scope
+          g.make_array 2
+          g.ret
+        end
 
-            g.push_self
-            g.send :private_module_function, 0
-            g.pop
+        LOADED[file] = mod
 
-            g.push_variables
-            g.push_scope
-            g.make_array 2
-            g.ret
+        vs, ss = mod.__module_init__
+        bnd = Binding.setup(
+          vs,
+          vs.method,
+          ss,
+          mod
+        )
+
+        begin
+          CodeLoader.reason = r
+          CodeLoader.compiled! false
+          CodeLoader.compiling = file.to_sym
+          CodeLoader.context = bnd
+          CodeLoader.module = mod
+
+          LOADED[file.to_sym] = mod
+
+          if compilation_needed?(fn)
+            CodeLoader.compiled! true
+            Compiler.compile fn, nil, debug
+          else
+            cfn = compiled_name(fn)
+            cl = Rubinius::CodeLoader.new(cfn)
+            cm = cl.load_compiled_file(cfn, 0, 0)
+
+            script = Rubinius::CompiledMethod::Script.new(cm)
+            script.file_path = file
+
+            ss.script = script
+
+            Rubinius.attach_method(:__module_init__, cm, ss, mod)
+            mod.__module_init__
           end
 
-          vs, ss = mod.__module_init__
-          bnd = Binding.setup(
-            vs,
-            vs.method,
-            ss,
-            mod
-          )
-
-          CodeLoader.context = bnd
-          CodeLoader.compiled! true
-          Compiler.compile fn, nil, debug
-          LOADED[file] = mod
-        elsif mod = LOADED[file]
           mod
-        else
-          cfn = compiled_name(fn)
-          cl = Rubinius::CodeLoader.new(cfn)
-          cm = cl.load_compiled_file(cfn, 0, 0)
-          script = cm.create_script(false)
-          script.file_path = file
-
-          LOADED[file] = MAIN.__send__ :__script__
+        ensure
+          CodeLoader.reason = old_context
+          CodeLoader.compiled! old_compiled
+          CodeLoader.compiling = old_compiling
+          CodeLoader.context = old_context
+          CodeLoader.module = old_module
         end
-      ensure
-        CodeLoader.reason = old_context
-        CodeLoader.compiled! old_compiled
-        CodeLoader.compiling = old_compiling
-
-        CodeLoader.context = old_context
       end
     end
   end

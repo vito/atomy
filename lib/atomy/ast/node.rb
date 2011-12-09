@@ -584,7 +584,7 @@ EOF
             self.class,
             pattern,
             body,
-            Atomy::CodeLoader.compiling
+            file
           )
 
           return
@@ -610,8 +610,8 @@ EOF
           )
         ).evaluate(
           Binding.setup(
-            Rubinius::VariableScope.of_sender,
-            Rubinius::CompiledMethod.of_sender,
+            TOPLEVEL_BINDING.variables,
+            TOPLEVEL_BINDING.code,
             Rubinius::StaticScope.new(Atomy::AST)
           ), file.to_s, pattern.quoted.line
         )
@@ -657,7 +657,10 @@ EOF
       generate
 
       def bytecode(g)
-        @nodes.each { |n| n.compile(g) }
+        @nodes.each.with_index do |n, i|
+          n.compile(g)
+          g.pop unless i + 1 == @nodes.size
+        end
       end
 
       def collect
@@ -694,13 +697,15 @@ EOF
       def bytecode(g)
         pos(g)
 
-        @body.each do |n|
+        @body.each.with_index do |n, i|
           n.compile(g)
 
           # macros always evaluate during compilation
           unless n.is_a?(Macro)
             n.evaluate(CodeLoader.context, CodeLoader.compiling)
           end
+
+          g.pop unless i + 1 == @body.size
         end
       end
     end
@@ -708,58 +713,6 @@ EOF
     class Script < Rubinius::AST::Container
       def initialize(body)
         @body = ScriptBody.new(body.line, body.nodes)
-        @name = :__script__
-      end
-
-      def attach_and_call(g, arg_name, scoped=false, pass_block=false)
-        name = @name || arg_name
-        meth = new_generator(g, name)
-
-        meth.push_state self
-
-        if scoped
-          meth.push_self
-          meth.add_scope
-        end
-
-        meth.state.push_name name
-
-        meth.push_self
-        meth.send :private_module_function, 0
-        meth.pop
-
-        @body.bytecode meth
-
-        meth.state.pop_name
-
-        meth.ret
-        meth.close
-
-        meth.local_count = local_count
-        meth.local_names = local_names
-
-        meth.pop_state
-
-        g.dup
-        g.push_rubinius
-        g.swap
-        g.push_literal arg_name
-        g.swap
-        g.push_generator meth
-        g.swap
-        g.push_scope
-        g.swap
-        g.send :attach_method, 4
-        g.pop
-
-        if pass_block
-          g.push_block
-          g.send_with_block arg_name, 0
-        else
-          g.send arg_name, 0
-        end
-
-        return meth
       end
 
       def bytecode(g)
@@ -770,18 +723,18 @@ EOF
         container_bytecode(g) do
           g.push_state self
 
-          g.push_cpath_top
-          g.find_const :Module
-          g.send :new, 0
-          g.dup
-          g.swap
-          g.push_literal :Self
-          g.swap
-          g.send :const_set, 2
+          g.push_self
+          g.add_scope
 
-          g.dup
-          attach_and_call(g, :__module_init__, true)
+          g.state.push_name @name
+
+          g.push_self
+          g.send :private_module_function, 0
           g.pop
+
+          @body.bytecode g
+
+          g.state.pop_name
 
           g.ret
           g.pop_state

@@ -63,8 +63,8 @@ module Atomy::Macro
       )
     ).evaluate(
       Binding.setup(
-        Rubinius::VariableScope.of_sender,
-        Rubinius::CompiledMethod.of_sender,
+        TOPLEVEL_BINDING.variables,
+        TOPLEVEL_BINDING.code,
         Rubinius::StaticScope.new(Atomy::AST)
       ), file.to_s, pattern.quoted.line
     )
