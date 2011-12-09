@@ -134,6 +134,7 @@ module Atomy
 
         mod = Module.new
         mod.private_module_function
+        mod.file = file.to_sym
         mod.const_set(:Self, mod)
 
         mod.singleton_class.dynamic_method(:__module_init__, file) do |g|

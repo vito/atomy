@@ -7,7 +7,7 @@ Dynvar set(x) := Thread current [@name] = x
 macro(dynamic(~n, ~(root = 'nil))):
   names [local]:
     `(do:
-        @~n = Dynvar new(~(local text), ~root)
+        @~n = (~module)::Dynvar new(~(local text), ~root)
 
         class(<< self):
           attr-reader(#~n))

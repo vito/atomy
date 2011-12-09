@@ -5,6 +5,30 @@ module Rubinius
 end
 
 class Module
+  attr_accessor :file
+
+  def to_node
+    return super unless @file
+
+    Atomy::AST::Send.new(
+      0,
+      Atomy::AST::ScopedConstant.new(
+        0,
+        Atomy::AST::ScopedConstant.new(
+          0,
+          Atomy::AST::ToplevelConstant.new(
+            0,
+            :Atomy
+          ),
+          :CodeLoader
+        ),
+        :LOADED
+      ),
+      [@file.to_node],
+      :[]
+    )
+  end
+
   def use(path)
     x = require(path)
     extend(x)

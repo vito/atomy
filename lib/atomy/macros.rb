@@ -4,6 +4,13 @@ module Atomy::Macro
       Atomy::AST::Word.new(line, name.to_sym)
     end
 
+    def module
+      meth = Rubinius::VariableScope.of_sender.method
+      Atomy::CodeLoader::LOADED[
+        meth.file
+      ] || raise("not loaded?! #{meth.inspect}")
+    end
+
     # generate symbols
     def names(num = 0, &block)
       num = block.arity if block

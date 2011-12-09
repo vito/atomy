@@ -1,8 +1,6 @@
 use("dynamic")
 IO = use("io")
 
-ConditionsSystem = self
-
 -- registered handlers/restarts
 dynamic(handlers, [])
 dynamic(restarts, [])
@@ -51,7 +49,7 @@ EndOfFile message := "unexpected end-of-file for " + @port show
 macro(~body bind { ~*handlers }):
   names [a]:
     callback = `([~a]: ~a match: ~*handlers)
-    `(let(ConditionsSystem handlers = ~callback . ^(ConditionsSystem handlers)):
+    `(let(~module handlers = ~callback . ^(~module handlers)):
         ~body rescue:
           (e: StandardError) -> error(e))
 
@@ -62,13 +60,13 @@ macro(with-restarts(~*restarts) ~(block: Block)):
   rs = pairs collect [[n, e]]:
     n match:
       Word ->
-        `(ConditionsSystem::Restart new(#~n, { ~e }))
+        `((~module)::Restart new(#~n, { ~e }))
 
       `(~(n)(~*as)) ->
-        `(ConditionsSystem::Restart new(#~n, [~*as] { ~e }))
+        `((~module)::Restart new(#~n, [~*as] { ~e }))
 
       `(~(n)(~*as) &~b) ->
-        `(ConditionsSystem::Restart new(#~n, [~*as] &~b { ~e }))
+        `((~module)::Restart new(#~n, [~*as] &~b { ~e }))
 
   body =
     pairs reduce(
@@ -76,7 +74,7 @@ macro(with-restarts(~*restarts) ~(block: Block)):
     ) [x, [name, _]]:
       `{ catch(~catcher(name)) ~x }
 
-  `(let(ConditionsSystem restarts = [~*rs] + ^(ConditionsSystem restarts)) ~body)
+  `(let(~module restarts = [~*rs] + ^(~module restarts)) ~body)
 
 
 export
