@@ -56,7 +56,7 @@ class(ReplDebugger):
         #prompt -> restart(#use-prompt, "[!]> ")
 
         #special(n ? (=~ r"\d+")) ->
-          ^restarts [n to-i] invoke
+          ^(Condition restarts) [n to-i] invoke
 
         #quit -> exit(1)
 
