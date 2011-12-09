@@ -52,20 +52,6 @@
       resolve(a, binary(b, e, r), rest3)
     end
   end
-
-  def const_chain(l, ns, top = false)
-    p = nil
-    ns.each do |n|
-      if p
-        p = Atomy::AST::ScopedConstant.new(l, p, n)
-      elsif top
-        p = Atomy::AST::ToplevelConstant.new(l, n)
-      else
-        p = Atomy::AST::Constant.new(l, n)
-      end
-    end
-    p
-  end
 }
 
              sp = (" " | "\t" | comment)*
@@ -122,7 +108,8 @@
          level1 = call
                 | grouped
                 | level0
-         level2 = postfix
+         level2 = scoped_constant
+                | postfix
                 | level1
          level3 = compose
                 | level2
@@ -176,14 +163,15 @@
                     }
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text.to_sym }
-       constant = line:line constant_name:m ("::" constant_name)*:s {
-                    names = [m] + Array(s)
-                    const_chain(line, names)
-                  }
-                | line:line ("::" constant_name)+:s {
-                    names = Array(s)
-                    const_chain(line, names, true)
-                  }
+       constant = line:line "::" constant_name:n
+                  { Atomy::AST::ToplevelConstant.new(line, n) }
+                | line:line constant_name:n
+                  { Atomy::AST::Constant.new(line, n) }
+
+scoped_constant = line:line scoped_constant:p "::" constant_name:s
+                  { Atomy::AST::ScopedConstant.new(line, p, s) }
+                | line:line level1:p "::" constant_name:s
+                  { Atomy::AST::ScopedConstant.new(line, p, s) }
 
            word = line:line identifier:n
                     { Atomy::AST::Word.new(line, n) }
@@ -191,7 +179,7 @@
          prefix = line:line !":" op_letter:o level2:e
                     { Atomy::AST::Prefix.new(line, e, o) }
 
-        postfix = line:line level1:e operator:o {} # these brackets are significant (kpeg bug)
+        postfix = line:line level1:e operator:o
                     { Atomy::AST::Postfix.new(line, e, o) }
 
           block = line:line ":" !operator wsp expressions?:es (wsp ";")?
@@ -202,9 +190,9 @@
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomy::AST::List.new(line, Array(es)) }
 
-  composes(pos) = line:line compose:l cont(pos) level2:r
+  composes(pos) = line:line compose:l !"::" cont(pos) level2:r
                     { Atomy::AST::Compose.new(line, l, r) }
-                | line:line level2:l cont(pos) level2:r
+                | line:line level2:l !"::" cont(pos) level2:r
                     { Atomy::AST::Compose.new(line, l, r) }
         compose = @composes(current_position)
 
