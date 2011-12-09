@@ -132,10 +132,15 @@ module Atomy
         old_context = CodeLoader.context
         old_module = CodeLoader.module
 
-        mod = Module.new
-        mod.private_module_function
+        mod = Module.new do
+          private_module_function
+
+          def module
+            self
+          end
+        end
+
         mod.file = file.to_sym
-        mod.const_set(:Self, mod)
 
         mod.singleton_class.dynamic_method(:__module_init__, file) do |g|
           g.push_self
