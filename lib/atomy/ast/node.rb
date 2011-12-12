@@ -316,7 +316,7 @@ EOF
 
         class_eval <<EOF
           def to_sexp
-            [:"#{lower_name}"#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}]
+            [:"#{lower_name}"#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}#{required}#{many}#{optional}]
           end
 EOF
 
