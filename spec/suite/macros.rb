@@ -11,7 +11,7 @@ describe("expressions") do
   end
 
   it("can not expand via macros defined in modules used by used modules") do
-    proc { require("macros/same-module/user-user").res }.must_raise NameError
+    require("macros/same-module/user-user").res.must_equal "not-expanded"
   end
 
   describe("macros") do
