@@ -1,3 +1,10 @@
+use("core")
+use("define")
+use("comparison")
+use("control-flow")
+use("data-delta")
+use("meta")
+
 module(Atomy::Patterns):
   class(NamedRedirectedInstance < NamedInstance):
     attr-reader(#target, #identifier)

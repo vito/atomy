@@ -1,3 +1,11 @@
+use("core")
+use("define")
+use("data")
+use("data-delta")
+use("control-flow")
+use("loop")
+use("meta")
+
 use("dynamic")
 IO = use("io")
 
@@ -5,17 +13,16 @@ IO = use("io")
 dynamic(handlers, [])
 dynamic(restarts, [])
 
-for-macro:
-  catcher(x) :=
-    x match:
-      Atomy::AST::Word ->
-        #"restart:#{x text}"
+catcher(x) :=
+  x match:
+    Atomy::AST::Word ->
+      #"restart:#{x text}"
 
-      Atomy::AST::Compose ->
-        #"restart:#{x left text}"
+    Atomy::AST::Compose ->
+      #"restart:#{x left text}"
 
-      Atomy::AST::Call ->
-        #"restart:#{x name text}"
+    Atomy::AST::Call ->
+      #"restart:#{x name text}"
 
 data(Restart(@name, @action))
 

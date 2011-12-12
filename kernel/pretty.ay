@@ -1,5 +1,16 @@
+use("core")
+use("define")
+use("control-flow")
+use("data")
+use("data-delta")
+use("cosmetics")
+use("particles")
+use("data")
+use("comparison")
+
 use("dynamic")
 use("doc")
+
 IO = use("io")
 
 dynamic(printing, [])
@@ -37,6 +48,8 @@ Object pretty :=
       let(printing = self . ^printing):
         pretty-print
 
+Object show := pretty flatten render
+
 Array all-pretty := collect [x]: x pretty
 
 Doc colored(color) := do:
@@ -59,16 +72,13 @@ Doc colored(color) := do:
 
   raw("\e[9" + hash [color] to-s + "m") <> self <> raw("\e[0m")
 
+Object pretty-print := text(inspect)
 String pretty-print := text(inspect gsub("\\#", "#")) colored(#yellow)
-
 Integer pretty-print := super colored(#blue)
 Float pretty-print := super colored(#blue)
 TrueClass pretty-print := super colored(#green)
 FalseClass pretty-print := super colored(#red)
 NilClass pretty-print := super colored(#black)
-Object pretty-print := text(inspect)
-
-Object show := pretty flatten render
 
 Doc pretty-print := self
 

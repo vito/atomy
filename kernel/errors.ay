@@ -1,3 +1,6 @@
+use("core")
+use("define")
+
 Atomy::MethodFail message :=
   "method '" + @method-name to-s + "' does not understand " +
     "the given arguments"

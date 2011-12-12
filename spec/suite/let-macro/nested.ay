@@ -1,0 +1,40 @@
+use("define")
+use("meta")
+
+export
+
+macro(foo): '"module-foo"
+macro(bar): '"module-bar"
+macro(baz): '"module-baz"
+
+let-macro(bar = '"outer-bar"):
+  let-macro(foo = '"inner-foo"):
+    using-inner := foo
+    using-outer := bar
+    using-module := baz
+    using-both := [foo, bar]
+    using-all := [foo, bar, baz]
+
+let-macro(bar = '"outer-bar",
+          foo = '"outer-foo"):
+  let-macro(foo = '"inner-foo"):
+    shadowed-inner := foo
+    shadowed-outer := bar
+    shadowed-module := baz
+    shadowed-both := [foo, bar]
+    shadowed-all := [foo, bar, baz]
+
+  outer-let := foo
+
+let-macro(bar = '"outer-let-bar"):
+  let-macro(fizz = bar,
+            buzz = baz):
+    self-using-outer := fizz
+    self-using-module := buzz
+
+let-macro(bar = '"outer-let-bar-expansion"):
+  let-macro(fizz = 'bar):
+    expansion-using-outer := fizz
+
+outer := [foo, bar, baz]
+

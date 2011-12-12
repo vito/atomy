@@ -1,3 +1,8 @@
+use("core")
+use("define")
+use("block")
+use("control-flow")
+
 module(Atomy::Format):
   require(File expand-path("../../../lib/atomy/formatter.kpeg.rb", _FILE))
 

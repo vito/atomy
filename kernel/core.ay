@@ -1,0 +1,179 @@
+use("operators")
+
+-- a macro so we can actually, you know, send messages
+macro(~_ ~Word): make-send(node)
+
+macro(~_ ~(Word)(~*_)): make-send(node)
+
+macro(~(Word)(~*_)): node to-send
+
+macro(nil): Primitive new(node line, "nil" to-sym)
+
+macro(self): Primitive new(node line, "self" to-sym)
+
+macro(true): Primitive new(node line, "true" to-sym)
+
+macro(false): Primitive new(node line, "false" to-sym)
+
+macro(~x = ~y): Assign new(node line, x to-pattern to-node, y)
+
+-- [x, y] { x + y }
+macro([~*args] ~(b: Block)):
+  b arguments = args
+  b
+
+-- [x, y] &z { x + y }
+macro([~*args] &~blk ~(b: Block)):
+  b arguments = args
+  b block = blk
+  b
+
+-- &z { x + y }
+macro(&~blk ~(b: Block)):
+  b block = blk
+  b
+
+-- foo { bar }
+macro(~(w: Word) ~(b: Block)):
+  x = w to-send
+  x block = b
+  x
+
+-- foo(a) { bar }
+macro(~(Word)(~*_) ~(b: Block)):
+  x = node left to-send
+  x block = b
+  x
+
+-- x foo { bar }
+macro(~_ ~Word ~(b: Block)):
+  x = node left to-send
+  x block = b
+  x
+
+-- x foo(a) { bar }
+macro(~_ ~(Word)(~*_) ~(b: Block)):
+  x = node left to-send
+  x block = b
+  x
+
+-- collect [x] { x + 1 }
+macro(~Word [~*ys] ~(z: Block)):
+  z arguments = ys
+  x = node left left to-send
+  x block = z
+  x
+
+-- collect(a) [x] { x + 1 }
+macro(~(call: `(~(Word)(~*_))) [~*ys] ~(z: Block)):
+  z arguments = ys
+  x = call to-send
+  x block = z
+  x
+
+-- [1, 2, 3] collect [x] { x + 1 }
+macro(~(call: `(~_ ~Word)) [~*ys] ~(z: Block)):
+  z arguments = ys
+  x = call to-send
+  x block = z
+  x
+
+-- [1, 2, 3] collect(a) [x] { x + 1 }
+macro(~(call: `(~_ ~(Word)(~*_))) [~*ys] ~(z: Block)):
+  z arguments = ys
+  x = call to-send
+  x block = z
+  x
+
+-- particle/symbol block-passing shorthand
+macro(~x #~y): `(~x &#~y)
+
+-- block-passing
+macro(~_ ~Word &~_):
+  node left to-send tap [s]:
+    s block = node right
+
+macro(~(Word)(~*_) &~_):
+  node left to-send tap [x]:
+    x block = node right
+
+macro(~_ ~(Word)(~*_) &~_):
+  node left to-send tap [s]:
+    s block = node right
+
+-- foo [bar, ...]
+macro(~x [~*ys]):
+  `(~x ~(Word new(node line, "[]" to-sym))(~*ys))
+
+-- foo [bar, ...] &baz
+macro(~x [~*ys] &~x):
+  `(~x ~(Word new(node line, "[]" to-sym))(~*ys) &~x)
+
+-- Foo(...)
+macro(~(c: Constant)(~*args)):
+  node to-send tap [x]:
+    x message-name = c name
+
+-- Foo(...) &baz
+macro(~(c: Constant)(~*args) &~_):
+  node left to-send tap [x]:
+    x message-name = c name
+    x block = node right
+
+-- Bar::Foo(...)
+macro(~(c: ScopedConstant)(~*args)):
+  node to-send tap [x]:
+    x receiver = c parent
+    x message-name = c name
+
+-- Bar::Foo(...) &baz
+macro(~(c: ScopedConstant)(~*args) &~_):
+  node left to-send tap [x]:
+    x receiver = c parent
+    x message-name = c name
+    x block = node right
+
+macro(_LINE): node line
+macro(_FILE): File new(node line)
+
+macro(&~x):
+  BlockPass new(node line, x)
+
+macro(*~x):
+  Splat new(node line, x)
+
+macro(@~(x: Word)):
+  InstanceVariable new(node line, x text)
+
+macro(@@~(x: Word)):
+  ClassVariable new(node line, x text)
+
+macro($0):
+  GlobalVariable new(node line, "0" to-sym)
+
+macro($~(x: String)):
+  GlobalVariable new(node line, x value)
+
+macro($~(x: Constant)):
+  GlobalVariable new(node line, x name)
+
+macro($~(x: Word)):
+  GlobalVariable new(node line, x text)
+
+macro($exception):
+  GlobalVariable new(node line, "!" to-sym)
+
+macro($path):
+  GlobalVariable new(node line, ":" to-sym)
+
+macro($separator):
+  GlobalVariable new(node line, "/" to-sym)
+
+macro(#~(x: Constant)):
+  Literal new(node line, x name)
+
+macro(#~(x: Word)):
+  Literal new(node line, x text)
+
+macro(#~(x: String)):
+  Literal new(node line, x value to-sym)

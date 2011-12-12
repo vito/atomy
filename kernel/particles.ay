@@ -1,3 +1,10 @@
+use("core")
+use("define")
+use("data")
+use("data-delta")
+use("control-flow")
+use("cosmetics")
+
 Atomy = ::Atomy
 
 module(Atomy):
@@ -29,9 +36,8 @@ Symbol call(*args) := to-proc [*args]
 
 Symbol arity := 1
 
-for-macro:
-  wildcard('_) := '_undefined
-  wildcard(x) := x
+wildcard('_) := '_undefined
+wildcard(x) := x
 
 macro(#(~(x)(~*as))):
   `(Atomy::Particle new(

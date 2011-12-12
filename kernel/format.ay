@@ -1,8 +1,12 @@
+use("core")
+use("data-delta")
+use("block")
+
 base = File expand-path("../", _FILE)
 
-require(base + "/format/data")
-require(base + "/format/formatter")
-require(base + "/format/parser")
+use(base + "/format/data")
+use(base + "/format/formatter")
+use(base + "/format/parser")
 
 macro-quoter(f) [c]:
   Atomy::Format::Parser parse(c)

@@ -1,49 +1,39 @@
-macro(for-macro ~(b: Block)):
-  `(module(Atomy::Macro::Helpers):
-      ~*(b contents))
+use("core")
+use("define")
+use("control-flow")
 
 macro(when-compiling ~(b: Block)):
-  b body evaluate
+  b body evaluate(Atomy::CodeLoader context)
   'nil
 
+module(Atomy::AST):
+  class(LetMacro < Node):
+    children(#body, [#macros])
+    generate
+
+    bytecode(g) := do:
+      [mod, bnd] = Atomy make-wrapper-module
+      mod delegate-expansion-to(Atomy::CodeLoader module)
+
+      before-mod = Atomy::CodeLoader module
+      before-ctx = Atomy::CodeLoader context
+
+      { Atomy::CodeLoader module = mod
+        Atomy::CodeLoader context = bnd
+
+        @macros each [m]:
+          m compile(g)
+          g pop
+
+        body compile(g)
+      } ensuring:
+        Atomy::CodeLoader module = before-mod
+        Atomy::CodeLoader context = before-ctx
+
 macro(let-macro(~*ms) ~(b: Block)):
-  tripled = ms zip(names(ms size) zip(names(ms size)))
-
-  define =
-    tripled collect [[`(~p = ~b), [let, mac]]]:
-      `(do:
-          Atomy::STATE [#~mac] = ~mac = '(macro(~p): ~b)
-
-          Atomy::STATE [#~let] =
-            Atomy::Macro register(
-              ~mac pattern class
-              ~mac pattern macro-pattern
-              ~mac body
-              Atomy::CodeLoader compiling
-              true
-            ))
-
-  unwind =
-    tripled collect [[_, [let, mac]]]:
-      `(do:
-          ~mac = Atomy::STATE [#~mac] pattern
-
-          ~mac class remove-method(Atomy::STATE [#~let])
-
-          when(lets = Atomy::Macro::Environment let [~mac class]):
-            lets delete(Atomy::STATE [#~let])
-
-            when(lets empty?):
-              Atomy::Macro::Environment let delete(~mac class))
-
-  names [res]:
-    `(do:
-        when-compiling:
-          ~*define
-
-        ~res = ~(b body)
-
-        when-compiling:
-          ~*unwind
-
-        ~res)
+  LetMacro new(
+    node line
+    b body
+    ms collect [`(~p = ~b)]:
+      `(macro(~p): ~b)
+  )

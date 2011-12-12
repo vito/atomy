@@ -1,6 +1,18 @@
-Condition = use("condition")
+use("core")
+use("define")
+use("control-flow")
+use("loop")
+use("dynamic")
+use("data-delta")
+use("comparison")
+use("data")
+use("particles")
+
 use("doc")
+
+Condition = use("condition")
 Pretty = require("pretty")
+
 require("readline")
 
 basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=

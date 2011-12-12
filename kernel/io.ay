@@ -1,3 +1,7 @@
+use("core")
+use("define")
+use("control-flow")
+
 use("dynamic")
 
 dynamic(output-port, $stdout)
@@ -16,7 +20,8 @@ with-output-to((filename: String), mode = "w") &action :=
       ^output-port close
 
 with-output-to(io) &action :=
-  let(output-port = io): action call
+  let(output-port = io):
+    action call
 
 with-error-to((filename: String), mode = "w") &action :=
   let(error-port = File open(filename, mode)):
@@ -24,7 +29,8 @@ with-error-to((filename: String), mode = "w") &action :=
       ^error-port close
 
 with-error-to(io) &action :=
-  let(error-port = io) &action
+  let(error-port = io):
+    action call
 
 
 read-line(sep = $separator) := do:
@@ -62,4 +68,5 @@ with-input-from((filename: String), mode = "r") &action :=
       ^input-port close
 
 with-input-from(io) &action :=
-  let(input-port = io) &action
+  let(input-port = io):
+    action call

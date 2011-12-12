@@ -1,0 +1,6 @@
+use("define")
+use("macros/same-module/user")
+
+export
+
+res := foo

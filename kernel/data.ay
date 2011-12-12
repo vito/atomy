@@ -1,45 +1,5 @@
-macro(&~x):
-  BlockPass new(line, x)
-
-macro(*~x):
-  Splat new(line, x)
-
--- now in boot
---macro(@(x: Word)):
-  --InstanceVariable new(x line, x name)
-
-macro(@@~(x: Word)):
-  ClassVariable new(line, x text)
-
-macro($0):
-  GlobalVariable new(line, "0" to-sym)
-
-macro($~(x: String)):
-  GlobalVariable new(line, x value)
-
-macro($~(x: Constant)):
-  GlobalVariable new(line, x name)
-
-macro($~(x: Word)):
-  GlobalVariable new(line, x text)
-
-macro($exception):
-  GlobalVariable new(line, "!" to-sym)
-
---macro($path):
-  --GlobalVariable new(line, ":" to-sym)
-
-macro($separator):
-  GlobalVariable new(line, "/" to-sym)
-
-macro(#~(x: Constant)):
-  Literal new(line, x name)
-
-macro(#~(x: Word)):
-  Literal new(line, x text)
-
-macro(#~(x: String)):
-  Literal new(line, x value to-sym)
+use("core")
+use("define")
 
 macro(~x for(~e) in(~c)):
   `(~c collect [~e]: ~x)

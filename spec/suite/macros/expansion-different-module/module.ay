@@ -1,0 +1,3 @@
+use("macros/expansion-different-module/using")
+
+macro(foo): 'bar

@@ -1,3 +1,7 @@
+use("core")
+use("define")
+use("meta")
+use("control-flow")
 use("therie")
 
 describe("macros"):
@@ -21,9 +25,10 @@ describe("macros"):
       var-1 should-be(var-1)
       1 m-foo-3 should: != 2 m-foo-3
 
+  -- TODO: change these to spec #node instead
   describe("line information"):
     it("is provided during macroexpansion via #line"):
-      macro(~a m-foo-4): line
+      macro(~a m-foo-4): node line
       1 m-foo-4 should-be(_LINE)
       2 m-foo-4 should-be(_LINE)
 
@@ -74,11 +79,6 @@ describe("macros"):
       1 m-foo-120
       1 m-foo-121 should-be(42)
       : 2 m-foo-121 ; should-raise(NoMethodError)
-
-    it("can use for-macro in their expansion"):
-      macro(~x m-foo-13): `(for-macro: abc := ~x)
-      10 m-foo-13
-      'foo abc should-be(10)
 
     describe("varying argument lengths"):
       it("tries higher required argument counts first"):

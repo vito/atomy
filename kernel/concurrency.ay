@@ -1,3 +1,10 @@
+use("core")
+use("data")
+use("define")
+
+-- TODO: HACK: this gives us pairs-from
+use("control-flow")
+
 require("actor")
 
 Actor <- v := send(v)

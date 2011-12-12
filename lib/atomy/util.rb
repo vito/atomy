@@ -1,3 +1,4 @@
+# TODO: respond_to
 module Kernel
   alias :method_missing_old :method_missing
 
@@ -81,6 +82,69 @@ module Atomy
     else
       g.state.scope.new_local(name).reference
     end
+  end
+
+  def self.current_module
+    if CodeLoader.module and CodeLoader.module.delegating_expansion?
+      CodeLoader.module
+    else
+      scope = Rubinius::StaticScope.of_sender
+      CodeLoader::LOADED[scope.active_path.to_sym]
+    end
+  end
+
+  def self.make_wrapper_module(file = :local)
+    mod = Atomy::Module.new do
+      private_module_function
+
+      def self.module
+        self
+      end
+
+      # generate symbols
+      def names(num = 0, &block)
+        num = block.arity if block
+
+        as = []
+        num.times do
+          salt = Atomy::Macro::Environment.salt!
+          #raise("where") if salt == 689
+          as << Atomy::AST::Word.new(0, :"s:#{salt}")
+        end
+
+        if block
+          block.call(*as)
+        else
+          as
+        end
+      end
+    end
+
+    mod.file = file
+
+    mod.singleton_class.dynamic_method(:__module_init__, file) do |g|
+      g.push_self
+      g.add_scope
+
+      g.push_self
+      g.send :private_module_function, 0
+      g.pop
+
+      g.push_variables
+      g.push_scope
+      g.make_array 2
+      g.ret
+    end
+
+    vs, ss = mod.__module_init__
+    bnd = Binding.setup(
+      vs,
+      vs.method,
+      ss,
+      mod
+    )
+
+    [mod, bnd]
   end
 end
 

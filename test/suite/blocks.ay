@@ -1,3 +1,5 @@
+use("core")
+use("define")
 use("therie")
 
 describe("blocks"):

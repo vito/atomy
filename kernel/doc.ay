@@ -1,3 +1,10 @@
+use("core")
+use("data")
+use("define")
+use("control-flow")
+use("data-delta")
+use("comparison")
+
 -- operator precedence/associativity
 .infix right 5 </> <//> <$> <$$>
 .infix right 6 <> <+>

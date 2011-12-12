@@ -5,14 +5,15 @@ module Atomy
       generate
 
       def bytecode(g)
-        @pattern.define_macro(@body, Atomy::CodeLoader.compiling)
+        Atomy::CodeLoader.module.define_macro(@pattern, @body, Atomy::CodeLoader.compiling)
 
         pos(g)
+        g.push_self
         @pattern.construct(g)
         @body.construct(g)
         g.push_scope
         g.send :active_path, 0
-        g.send :define_macro, 2
+        g.send :define_macro, 3
       end
     end
   end

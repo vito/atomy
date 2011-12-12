@@ -1,0 +1,7 @@
+use("define")
+use("meta")
+
+export
+
+let-macro(foo = '"basic"):
+  res := foo

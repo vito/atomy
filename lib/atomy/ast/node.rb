@@ -1,81 +1,3 @@
-module Rubinius
-  class StaticScope
-    attr_accessor :atomy_visibility
-  end
-end
-
-class Module
-  attr_accessor :file
-
-  def to_node
-    return super unless @file
-
-    Atomy::AST::Send.new(
-      0,
-      Atomy::AST::ScopedConstant.new(
-        0,
-        Atomy::AST::ScopedConstant.new(
-          0,
-          Atomy::AST::ToplevelConstant.new(
-            0,
-            :Atomy
-          ),
-          :CodeLoader
-        ),
-        :LOADED
-      ),
-      [@file.to_node],
-      :[]
-    )
-  end
-
-  def use(path)
-    x = require(path)
-    extend(x)
-    include(x)
-    x
-  end
-
-  def export(*names)
-    if block_given?
-      scope = Rubinius::StaticScope.of_sender
-      old = scope.atomy_visibility
-      scope.atomy_visibility = :module
-
-      begin
-        yield
-      ensure
-        scope.atomy_visibility = old
-      end
-    elsif names.empty?
-      Rubinius::StaticScope.of_sender.atomy_visibility = :module
-    else
-      names.each do |meth|
-        singleton_class.set_visibility(meth, :public)
-      end
-    end
-
-    self
-  end
-
-  def private_module_function(*args)
-    if args.empty?
-      Rubinius::StaticScope.of_sender.atomy_visibility = :private_module
-    else
-      sc = Rubinius::Type.object_singleton_class(self)
-      args.each do |meth|
-        method_name = Rubinius::Type.coerce_to_symbol meth
-        mod, method = lookup_method(method_name)
-        sc.method_table.store method_name, method.method, :private
-        Rubinius::VM.reset_method_cache method_name
-        set_visibility method_name, :private
-      end
-
-      return self
-    end
-  end
-end
-
 module Atomy
   module AST
     module SentientNode
@@ -251,6 +173,12 @@ EOF
               }.join("; ")}
 
             g.send :new, #{all.size + 1}
+            g.dup
+            g.push_cpath_top
+            g.find_const :Atomy
+            g.send :current_module, 0
+            g.send :context=, 1
+            g.pop
           end
 EOF
 
@@ -444,6 +372,9 @@ EOF
     module NodeLike
       attr_accessor :line
 
+      # the module this node was constructed in
+      attr_accessor :context
+
       def through_quotes(stop = nil, &f)
         ThroughQuotes.new(f, stop).go(self)
       end
@@ -549,122 +480,20 @@ EOF
         Atomy::Compiler.eval(self, bnd, *args)
       end
 
-      # this is overridden by macro definitions
-      def _expand
-        self
-      end
-
-      def do_expand
-        _expand.to_node
-      end
-
-      def msg_expand
-        c = copy
-        return c.do_expand unless macro_name and respond_to?(macro_name)
-        c.send(macro_name)
-      rescue MethodFail
-        c.do_expand
-      end
-
-      def expand
-        if lets = Atomy::Macro::Environment.let[self.class]
-          x = copy
-          lets.reverse_each do |l|
-            begin
-              x = x.send(l)
-              return x.expand unless x.kind_of?(self.class)
-            rescue MethodFail
-            end
-          end
-          x.msg_expand.to_node
+      def compile(g)
+        if mod = CodeLoader.module
+          mod.expand(self).bytecode(g)
         else
-          msg_expand.to_node
+          bytecode(g)
         end
-      rescue
-        if respond_to?(:show)
-          begin
-            $stderr.puts "while expanding #{show}"
-          rescue
-            $stderr.puts "while expanding #{to_sexp.inspect}"
-          end
-        else
-          $stderr.puts "while expanding #{to_sexp.inspect}"
-        end
-
-        raise
-      end
-
-      alias :prepare :expand
-
-      def define_macro(body, file = :macro)
-        pattern = macro_pattern
-
-        unless macro_name
-          @@stats ||= {}
-          @@stats[self.class] ||= []
-          @@stats[self.class] << self
-
-          Atomy::Macro.register(
-            self.class,
-            pattern,
-            body,
-            file
-          )
-
-          return
-        end
-
-        Atomy::AST::Define.new(
-          0,
-          Atomy::AST::Compose.new(
-            0,
-            pattern.quoted,
-            Atomy::AST::Word.new(0, macro_name)
-          ),
-          Atomy::AST::Send.new(
-            body.line,
-            Atomy::AST::Send.new(
-              body.line,
-              body,
-              [],
-              :to_node
-            ),
-            [],
-            :expand
-          )
-        ).evaluate(
-          Binding.setup(
-            TOPLEVEL_BINDING.variables,
-            TOPLEVEL_BINDING.code,
-            Rubinius::StaticScope.new(Atomy::AST)
-          ), file.to_s, pattern.quoted.line
-        )
       end
 
       def macro_name
         nil
       end
-
-      def compile(g)
-        prepare.bytecode(g)
-      end
-
-      def load_bytecode(g)
-        compile(g)
-      end
-
-      def macro_pattern
-        Atomy::Patterns::QuasiQuote.new(
-          Atomy::AST::QuasiQuote.new(
-            @line,
-            self
-          )
-        )
-      end
     end
 
     class Node < Rubinius::AST::Node
-      include Atomy::Macro::Helpers
       include NodeLike
 
       def self.inherited(sub)

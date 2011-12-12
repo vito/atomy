@@ -1,3 +1,6 @@
+use("core")
+use("control-flow")
+use("define")
 use("therie")
 
 class(ZSuperA):

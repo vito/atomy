@@ -1,9 +1,12 @@
+use("core")
+
 macro(do ~(b: Block)): b body
 
 macro(~x =! ~y):
-  Set new(x line, x to-pattern to-node, y)
+  Set new(node line, x to-pattern to-node, y)
 
-macro(~x := ~y): Define new(line, x, y)
+macro(~x := ~y):
+  Define new(node line, x, y)
 
 macro(define(~x) ~(y: Block)):
   `(~x := ~(y body))
@@ -23,13 +26,13 @@ macro(~x ^= ~y): `(~x =! (~x ^ ~y))
 macro(~x %= ~y): `(~x =! (~x % ~y))
 
 macro(class(~name) ~(b: Block)):
-  Class new(name line, name, b body)
+  Class new(node line, name, b body)
 
 macro(class(<< ~obj) ~(b: Block)):
-  SingletonClass new(obj line, obj, b body)
+  SingletonClass new(node line, obj, b body)
 
 macro(class(~name < ~sup) ~(b: Block)):
-  Class new(name line, name, b body, sup)
+  Class new(node line, name, b body, sup)
 
 macro(module(~name) ~(b: Block)):
-  Module new(name line, name, b body)
+  Module new(node line, name, b body)

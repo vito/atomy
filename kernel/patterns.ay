@@ -1,3 +1,8 @@
+use("core")
+use("define")
+use("cosmetics")
+use("control-flow")
+
 module(Atomy::Patterns):
   class(Predicate < Pattern):
     children(#pattern)

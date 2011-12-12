@@ -1,3 +1,6 @@
+use("core")
+use("define")
+
 macro(~x $~(y: Block)):
   x to-send tap [z]:
     z arguments += y contents

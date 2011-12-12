@@ -1,48 +1,53 @@
-for-macro:
-  define-class(nil, e: Atomy::AST::Constant) := `(class(~e) {})
-  define-class(root, e: Atomy::AST::Constant) := `(class(~e < ~root) {})
-  define-class(root, `(~n { ~*cs })) :=
-    define-class(root, `(~(n)() { ~*cs }))
-  define-class(root, x: `(~(name)(~*as))) :=
-    define-class(root, `(~x {}))
-  define-class(root, `(~(name)(~*as): ~*cs)) := do:
-    attrs = Array[]
-    as each [a]:
-      a through-quotes [x]:
-        x match:
-          `@~_ -> attrs << x
+use("core")
+use("define")
+use("control-flow")
+use("comparison")
+use("cosmetics")
 
-        x
+define-class(nil, e: Atomy::AST::Constant) := `(class(~e) {})
+define-class(root, e: Atomy::AST::Constant) := `(class(~e < ~root) {})
+define-class(root, `(~n { ~*cs })) :=
+  define-class(root, `(~(n)() { ~*cs }))
+define-class(root, x: `(~(name)(~*as))) :=
+  define-class(root, `(~x {}))
+define-class(root, `(~(name)(~*as): ~*cs)) := do:
+  attrs = Array[]
+  as each [a]:
+    a through-quotes [x]:
+      x match:
+        `@~_ -> attrs << x
 
-    tmps = names(attrs size) collect [t]:
-      Atomy::AST::Unquote new(0, t)
+      x
 
-    pat = name
-    attrs zip(tmps) [[a, t]]:
-      pat =! `(~pat with(~a, ~t))
+  tmps = names(attrs size) collect [t]:
+    Atomy::AST::Unquote new(0, t)
 
-    cons = `(~(name)(~*tmps))
+  pat = name
+  attrs zip(tmps) [[a, t]]:
+    pat =! `(~pat with(~a, ~t))
 
-    pat-def =
-      `(~(Atomy::AST::QuasiQuote new(0, cons)) to-pattern :=
-          ~(Atomy::AST::QuasiQuote new(0, pat)) to-pattern)
+  cons = `(~(name)(~*tmps))
 
-    class =
-      if(root)
-        then: `(~name < ~root)
-        else: name
+  pat-def =
+    `(~(Atomy::AST::QuasiQuote new(0, cons)) to-pattern :=
+        ~(Atomy::AST::QuasiQuote new(0, pat)) to-pattern)
 
-    `(do:
-        class(~class):
-          attr-accessor $:
-            ~*(attrs collect [a]:
-                `#~(a receiver))
+  class =
+    if(root)
+      then: `(~name < ~root)
+      else: name
 
-          initialize(~*as) := nil
+  `(do:
+      class(~class):
+        attr-accessor $:
+          ~*(attrs collect [a]:
+              `#~(a receiver))
 
-        ~pat-def
+        initialize(~*as) := nil
 
-        ~*(cs collect [c]: define-class(name, c)))
+      ~pat-def
+
+      ~*(cs collect [c]: define-class(name, c)))
 
 macro(data ~(children: Block)):
   `(data(Object) ~children)
@@ -55,70 +60,70 @@ macro(data(~(root = 'Object)) ~(children: Block)):
       ~(define-class(nil, `(~(root) ~children)))
       nil)
 
-class(Atomy::AST::MacroQuote):
-  quote(n, *_) := raise("unknown quoter: " + n inspect)
+macro(macro-quoter(~n) [~*as]: ~*body):
+  names [str, args]:
+    strpat = Atomy::AST::Unquote new(0, `(~str: Atomy::AST::String))
+    argpat = Atomy::AST::Splice new(0, args)
 
-macro(~Word ~Atomy::AST::String):
-  MacroQuote new(
-    line,
-    @left text,
-    @right raw || @right value,
-    []
-    @right value
-  )
+    raw = as shift
+    when(raw):
+      raw =! `(~raw = ~str raw || ~str value)
 
-macro(~Word ~(s: Atomy::AST::String)(~*args)):
-  MacroQuote new(
-    line,
-    @left text,
-    s raw || s value,
-    args collect #text
-    s value
-  )
+    flags = as shift
+    when(flags):
+      flags =! `(~flags = ~args)
 
-macro(macro-quoter(~n) [~*as] { ~*cs }):
-  `(class(Atomy::AST::MacroQuote):
-      define(quote(#~n, ~*as)):
-        ~*cs)
+    val = as shift
+    when(val):
+      val =! `(~val = ~str value)
+
+    `(do:
+        macro(~n ~strpat):
+          ~args = []
+          ~*([raw, flags, val] compact)
+          ~*body
+
+        macro(~n ~(strpat)(~argpat)):
+          ~*([raw, flags, val] compact)
+          ~*body)
 
 macro(~a .. ~b): `(Range new(~a, ~b))
 macro(~a ... ~b): `(Range new(~a, ~b, true))
 
-for-macro:
-  intp-segments(s) :=
-    s split(Regexp new("(?<!\\\\)#\\{"), 2) match:
-      [] -> ['""]
+intp-segments(s) :=
+  s split(Regexp new("(?<!\\\\)#\\{"), 2) match:
+    [] -> ['""]
 
-      [x] -> [x to-node]
+    [x] -> [x to-node]
 
-      [pre, chunk]:
-        p = Atomy::Parser new(chunk)
+    [pre, chunk]:
+      p = Atomy::Parser new(chunk)
 
-        unless(p parse("interpolated")):
-          p raise-error
+      unless(p parse("interpolated")):
+        p raise-error
 
-        segments = [pre to-node, `(~(p result) to-s)]
+      segments = [pre to-node, `(~(p result) to-s)]
 
-        rest = p string [p pos .. -1]
+      rest = p string [p pos .. -1]
 
-        rest match:
-          nil -> segments
-          "" -> segments
-          _ -> segments + intp-segments(rest)
+      rest match:
+        nil -> segments
+        "" -> segments
+        _ -> segments + intp-segments(rest)
 
-  interpolated(x) :=
-    Atomy::AST::Interpolation new(0, intp-segments(x))
+interpolated(x) :=
+  Atomy::AST::Interpolation new(0, intp-segments(x))
 
-  code-from("}" . rest, 0 = 0) := ["", rest join]
-  code-from("}" . rest, depth = 0) := do:
-    [c, r] = code-from(rest, depth - 1)
-    ["{" + c, r]
-  code-from("{" . rest, depth = 0) := do:
-    [c, r] = code-from(rest, depth + 1)
-    ["{" + c, r]
-  code-from(x . rest, depth = 0) := do:
-    [xs, r] = code-from(rest, depth + 1)
-    [x + xs, r]
+code-from("}" . rest, 0 = 0) := ["", rest join]
+code-from("}" . rest, depth = 0) := do:
+  [c, r] = code-from(rest, depth - 1)
+  ["{" + c, r]
+code-from("{" . rest, depth = 0) := do:
+  [c, r] = code-from(rest, depth + 1)
+  ["{" + c, r]
+code-from(x . rest, depth = 0) := do:
+  [xs, r] = code-from(rest, depth + 1)
+  [x + xs, r]
 
 macro-quoter(w) [_, _, v]: v split
 
@@ -144,17 +149,17 @@ macro-quoter(raw) [r]: r
 macro-quoter(i) [_, _, v]: interpolated(v)
 
 macro(_undefined):
-  Undefined new(line)
+  Undefined new(node line)
 
 macro($~(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
-  NthRef new(line, x value)
+  NthRef new(node line, x value)
 
 -- redefine symbol literals to allow interpolation
 macro(#~(x: String)):
   i = interpolated(x value)
   if(i interpolated?)
     then: `(~i to-sym)
-    else: Literal new(line, x value to-sym)
+    else: Literal new(node line, x value to-sym)
 
 module(Atomy::AST):
   class(Undefined < Node):

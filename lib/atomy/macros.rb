@@ -1,33 +1,4 @@
 module Atomy::Macro
-  module Helpers
-    def word(name, line = 0)
-      Atomy::AST::Word.new(line, name.to_sym)
-    end
-
-    def module
-      meth = Rubinius::VariableScope.of_sender.method
-      Atomy::CodeLoader::LOADED[
-        meth.file
-      ] || raise("not loaded?! #{meth.inspect}")
-    end
-
-    # generate symbols
-    def names(num = 0, &block)
-      num = block.arity if block
-
-      as = []
-      num.times do
-        as << word(:"s:#{Atomy::Macro::Environment.salt!}")
-      end
-
-      if block
-        block.call(*as)
-      else
-        as
-      end
-    end
-  end
-
   class Environment
     @@salt = 0
     @@let = {}

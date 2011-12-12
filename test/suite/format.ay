@@ -1,3 +1,6 @@
+use("core")
+use("data-delta")
+use("format")
 use("therie")
 
 describe("formatting"):

@@ -6,36 +6,15 @@ module Atomy
     LOADED = {}
 
     class << self
+      # TODO: compiling -> loaded
+      attr_accessor :module, :context, :compiling
+
       def reason
         @reason ||= :run
       end
 
       def reason=(x)
         @reason = x
-      end
-
-      def module
-        @module
-      end
-
-      def module=(x)
-        @module = x
-      end
-
-      def context
-        @context
-      end
-
-      def context=(x)
-        @context = x
-      end
-
-      def compiling
-        @compiling
-      end
-
-      def compiling=(x)
-        @compiling = x
       end
 
       # TODO: make sure this works as expected with multiple loadings
@@ -119,7 +98,7 @@ module Atomy
       end
 
       def load_file(fn, r = :load, debug = false)
-        unless file = find_any_file(fn)
+        unless file = find_any_file(fn).to_sym
           raise LoadError, "no such file to load -- #{fn}"
         end
 
@@ -132,48 +111,16 @@ module Atomy
         old_context = CodeLoader.context
         old_module = CodeLoader.module
 
-        mod = Module.new do
-          private_module_function
-
-          def module
-            self
-          end
-        end
-
-        mod.file = file.to_sym
-
-        mod.singleton_class.dynamic_method(:__module_init__, file) do |g|
-          g.push_self
-          g.add_scope
-
-          g.push_self
-          g.send :private_module_function, 0
-          g.pop
-
-          g.push_variables
-          g.push_scope
-          g.make_array 2
-          g.ret
-        end
+        mod, bnd = Atomy.make_wrapper_module(file)
 
         LOADED[file] = mod
-
-        vs, ss = mod.__module_init__
-        bnd = Binding.setup(
-          vs,
-          vs.method,
-          ss,
-          mod
-        )
 
         begin
           CodeLoader.reason = r
           CodeLoader.compiled! false
-          CodeLoader.compiling = file.to_sym
+          CodeLoader.compiling = file
           CodeLoader.context = bnd
           CodeLoader.module = mod
-
-          LOADED[file.to_sym] = mod
 
           if compilation_needed?(fn)
             CodeLoader.compiled! true
@@ -184,11 +131,11 @@ module Atomy
             cm = cl.load_compiled_file(cfn, 0, 0)
 
             script = Rubinius::CompiledMethod::Script.new(cm)
-            script.file_path = file
+            script.file_path = file.to_s
 
-            ss.script = script
+            bnd.static_scope.script = script
 
-            Rubinius.attach_method(:__module_init__, cm, ss, mod)
+            Rubinius.attach_method(:__module_init__, cm, bnd.static_scope, mod)
             mod.__module_init__
           end
 

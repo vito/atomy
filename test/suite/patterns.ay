@@ -1,3 +1,5 @@
+use("core")
+use("control-flow")
 use("therie")
 
 describe("pattern-matching"):
