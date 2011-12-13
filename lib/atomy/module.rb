@@ -6,7 +6,7 @@ end
 
 module Atomy
   class Module < ::Module
-    attr_accessor :file
+    attr_accessor :file, :delegate
 
     def make_send(node)
       node.to_send
@@ -69,10 +69,8 @@ module Atomy
     end
 
     def expand_using(node)
-      if delegating_expansion?
-        if res = @delegate_expansion.expand_node(node)
-          return res
-        end
+      if @delegate and res = @delegate.expand_node(node)
+        return res
       end
 
       using.each do |u|
@@ -81,10 +79,6 @@ module Atomy
       end
 
       nil
-    end
-
-    def delegating_expansion?
-      !!@delegate_expansion
     end
 
     def expand_node(node)
@@ -117,10 +111,6 @@ module Atomy
       end
 
       raise
-    end
-
-    def delegate_expansion_to(mod)
-      @delegate_expansion = mod
     end
 
     def to_node

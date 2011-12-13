@@ -13,7 +13,7 @@ module(Atomy::AST):
 
     bytecode(g) := do:
       [mod, bnd] = Atomy make-wrapper-module
-      mod delegate-expansion-to(Atomy::CodeLoader module)
+      mod delegate = Atomy::CodeLoader module
 
       before-mod = Atomy::CodeLoader module
       before-ctx = Atomy::CodeLoader context
