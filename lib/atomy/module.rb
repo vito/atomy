@@ -137,9 +137,13 @@ module Atomy
 
     def use(path)
       x = require(path)
-      extend(x)
-      include(x)
-      using.unshift x, *x.exported_modules
+
+      ([x] + x.exported_modules).reverse_each do |m|
+        extend(m)
+        include(m)
+        using.unshift(m)
+      end
+
       x
     rescue
       $stderr.puts "while using #{path}..."
