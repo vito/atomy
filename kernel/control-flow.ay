@@ -1,6 +1,5 @@
 use("core")
 use("define")
-use("data")
 use("comparison")
 
 macro(if(~x) then ~(y: Block) else ~(z: Block)):
@@ -104,7 +103,7 @@ pair-from(p: `(~x { ~*ys })) := do:
     else: this
 
 pairs-from(es) :=
-  pair-from(e) for(e) in(es) flatten(1)
+  es collect [e] { pair-from(e) } flatten(1)
 
 macro(condition ~(b: Block)):
   pairs-from(b contents) reverse inject('nil) [acc, [x, y]]:

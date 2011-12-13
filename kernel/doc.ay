@@ -2,8 +2,8 @@ use("core")
 use("data")
 use("define")
 use("control-flow")
-use("data-delta")
 use("comparison")
+use("array")
 
 -- operator precedence/associativity
 .infix right 5 </> <//> <$> <$$>

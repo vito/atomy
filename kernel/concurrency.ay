@@ -1,6 +1,6 @@
 use("core")
-use("data")
 use("define")
+use("array")
 
 -- TODO: HACK: this gives us pairs-from
 use("control-flow")

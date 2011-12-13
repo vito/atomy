@@ -1,8 +1,8 @@
 use("core")
 use("define")
-use("data")
 use("comparison")
 use("control-flow")
+use("array")
 
 class(Dynvar):
   initialize(@name, @default) := nil

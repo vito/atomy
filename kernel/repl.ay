@@ -1,15 +1,6 @@
-use("core")
-use("define")
-use("control-flow")
-use("loop")
-use("dynamic")
-use("data-delta")
-use("comparison")
-use("data")
-use("particles")
+use("atomy")
 
 use("doc")
-
 Condition = use("condition")
 Pretty = require("pretty")
 

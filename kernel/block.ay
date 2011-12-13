@@ -2,8 +2,8 @@ use("core")
 use("define")
 use("comparison")
 use("control-flow")
-use("data-delta")
 use("meta")
+use("interpolation")
 
 module(Atomy::Patterns):
   class(NamedRedirectedInstance < NamedInstance):

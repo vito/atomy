@@ -1,3 +1,4 @@
+-- TODO: merge w/ control-flow
 use("core")
 use("define")
 
@@ -62,3 +63,5 @@ macro(~a || ~b): Or new(node line, a, b)
 macro(!~a): Negate new(node line, a)
 macro(~a != ~b): `!(~a == ~b)
 macro(~a !~ ~b): `!(~a =~ ~b)
+macro(~x ||= ~y): `(~x =! (~x || ~y))
+macro(~x &&= ~y): `(~x =! (~x && ~y))

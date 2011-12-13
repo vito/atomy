@@ -4,8 +4,6 @@ use("dynamic")
 use("control-flow")
 use("meta")
 
-Loop = self
-
 dynamic(labels, Hash new)
 
 module(Atomy::AST):

@@ -2,7 +2,7 @@ use("core")
 use("define")
 use("control-flow")
 use("loop")
-use("data-delta")
+use("regexp")
 use("comparison")
 use("particles")
 
