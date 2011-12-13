@@ -22,8 +22,7 @@ module(Atomy::AST):
         Atomy::CodeLoader context = bnd
 
         @macros each [m]:
-          m compile(g)
-          g pop
+          mod define-macro(m pattern, m body, Atomy::CodeLoader compiling)
 
         body compile(g)
       } ensuring:
