@@ -85,12 +85,17 @@ module Atomy
   end
 
   def self.current_module
-    if CodeLoader.module and CodeLoader.module.delegating_expansion?
-      CodeLoader.module
-    else
-      scope = Rubinius::StaticScope.of_sender
-      CodeLoader::LOADED[scope.active_path.to_sym]
+    scope = Rubinius::StaticScope.of_sender
+    mod = nil
+    while scope
+      if scope.module.is_a?(Atomy::Module)
+        return scope.module
+      end
+
+      scope = scope.parent
     end
+
+    nil
   end
 
   def self.make_wrapper_module(file = :local)
