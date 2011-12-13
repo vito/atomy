@@ -149,7 +149,7 @@ module Atomy
       x = require(path)
       extend(x)
       include(x)
-      using.unshift x
+      using.unshift x, *x.exported_modules
       x
     rescue
       $stderr.puts "while using #{path}..."
@@ -160,7 +160,11 @@ module Atomy
       @using ||= []
     end
 
-    def export(*names)
+    def exported_modules
+      @exported_modules ||= []
+    end
+
+    def export(*xs)
       if block_given?
         scope = Rubinius::StaticScope.of_sender
         old = scope.atomy_visibility
@@ -171,11 +175,18 @@ module Atomy
         ensure
           scope.atomy_visibility = old
         end
-      elsif names.empty?
+      elsif xs.empty?
         Rubinius::StaticScope.of_sender.atomy_visibility = :module
       else
-        names.each do |meth|
-          singleton_class.set_visibility(meth, :public)
+        xs.each do |x|
+          case x
+          when Symbol
+            singleton_class.set_visibility(meth, :public)
+          when self.class
+            exported_modules.unshift x
+          else
+            raise ArgumentError, "don't know how to export #{x.inspect}"
+          end
         end
       end
 
