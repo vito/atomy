@@ -177,7 +177,7 @@ EOF
             g.push_cpath_top
             g.find_const :Atomy
             g.send :current_module, 0
-            g.send :context=, 1
+            g.send :in_context, 1
             g.pop
           end
 EOF
@@ -373,7 +373,11 @@ EOF
       attr_accessor :line
 
       # the module this node was constructed in
-      attr_accessor :context
+      attr_reader :context
+
+      def in_context(x)
+        @context ||= x
+      end
 
       def through_quotes(stop = nil, &f)
         ThroughQuotes.new(f, stop).go(self)
