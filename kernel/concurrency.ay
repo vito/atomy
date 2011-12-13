@@ -31,6 +31,6 @@ export
 
 me := Actor current
 
-spawn &action := Actor send(#spawn) &action
+spawn &action := Actor spawn &action
 
-spawn-link &action := Actor send(#spawn-link) &action
+spawn-link &action := Actor spawn-link &action
