@@ -36,9 +36,6 @@ class Rubinius::Generator
 end
 
 module Atomy
-  # holds throwaway data used during compile time
-  STATE = {}
-
   # operator precedence/associativity table
   OPERATORS = {}
 
