@@ -152,8 +152,14 @@ module(::Atomy::AST):
   Splice unamb := pretty
   String unamb := pretty
   ToplevelConstant unamb := pretty
-  Prefix unamb := pretty
-  Postfix unamb := pretty
+  Prefix unamb :=
+    if(from?(#postfix))
+      then: parens(pretty)
+      else: pretty
+  Postfix unamb :=
+    if(from?(#postfix))
+      then: parens(pretty)
+      else: pretty
   Unquote unamb := pretty
   Word unamb :=
     if(from?(#postfix))
