@@ -91,9 +91,6 @@
     expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)?
                     { [x] + Array(xs) }
 
-   interpolated = wsp expressions:es wsp "}"
-                    { Atomy::AST::Tree.new(0, Array(es)) }
-
          level0 = number
                 | quote
                 | quasi_quote
