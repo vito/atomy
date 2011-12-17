@@ -1,0 +1,15 @@
+use("core")
+use("define")
+
+macro(_undefined):
+  Undefined new(node line)
+
+module(Atomy::AST):
+  class(Undefined < Node):
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+      g push-undef
+
+    to-pattern := Atomy::Patterns::Any new

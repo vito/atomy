@@ -2,37 +2,19 @@ require("stringio")
 
 module Atomy
   class CodeLoader
+    # TODO: make thread-safe
+    LOADED = {}
+
     class << self
+      # TODO: compiling -> loaded
+      attr_accessor :module, :context, :compiling
+
       def reason
         @reason ||= :run
       end
 
       def reason=(x)
         @reason = x
-      end
-
-      def when_load
-        @when_load ||= []
-      end
-
-      def when_load=(x)
-        @when_load = x
-      end
-
-      def compiling
-        @compiling ||= :macro
-      end
-
-      def compiling=(x)
-        @compiling = x
-      end
-
-      def when_run
-        @when_run ||= []
-      end
-
-      def when_run=(x)
-        @when_run = x
       end
 
       # TODO: make sure this works as expected with multiple loadings
@@ -54,18 +36,6 @@ module Atomy
         elsif fn.suffix? ".ayc"
           fn[0..-2]
         end
-      end
-
-      def compile_if_needed(fn, debug = false)
-        compiled = compiled_name(fn)
-
-        if !loadable?(compiled) ||
-            File.stat(compiled).mtime < File.stat(fn).mtime
-          CodeLoader.compiled! true
-          Compiler.compile fn, nil, debug
-        end
-
-        compiled
       end
 
       def find_file(fn)
@@ -120,26 +90,63 @@ module Atomy
         load_file(file)
       end
 
+      def compilation_needed?(fn)
+        compiled = compiled_name(fn)
+
+        !loadable?(compiled) ||
+          File.stat(compiled).mtime < File.stat(fn).mtime
+      end
+
       def load_file(fn, r = :load, debug = false)
-        unless file = find_any_file(fn)
+        unless file = find_any_file(fn).to_sym
           raise LoadError, "no such file to load -- #{fn}"
         end
 
-        CodeLoader.when_load = []
-        CodeLoader.when_run = []
-        CodeLoader.reason = r
-        CodeLoader.compiled! false
-        CodeLoader.compiling = file
+        loaded = LOADED[file]
+        return loaded if loaded
 
-        cfn = compile_if_needed(file, debug)
-        cl = Rubinius::CodeLoader.new(cfn)
-        cm = cl.load_compiled_file(cfn, 0, 0)
-        script = cm.create_script(false)
-        script.file_path = file
+        old_reason = CodeLoader.reason
+        old_compiled = CodeLoader.compiled?
+        old_compiling = CodeLoader.compiling
+        old_context = CodeLoader.context
+        old_module = CodeLoader.module
 
-        CodeLoader.compiling = nil
+        mod, bnd = Atomy.make_wrapper_module(file)
 
-        MAIN.__send__ :__script__
+        LOADED[file] = mod
+
+        begin
+          CodeLoader.reason = r
+          CodeLoader.compiled! false
+          CodeLoader.compiling = file
+          CodeLoader.context = bnd
+          CodeLoader.module = mod
+
+          if compilation_needed?(fn)
+            CodeLoader.compiled! true
+            Compiler.compile fn, nil, debug
+          else
+            cfn = compiled_name(fn)
+            cl = Rubinius::CodeLoader.new(cfn)
+            cm = cl.load_compiled_file(cfn, 0, 0)
+
+            script = Rubinius::CompiledMethod::Script.new(cm)
+            script.file_path = file.to_s
+
+            bnd.static_scope.script = script
+
+            Rubinius.attach_method(:__module_init__, cm, bnd.static_scope, mod)
+            mod.__module_init__
+          end
+
+          mod
+        ensure
+          CodeLoader.reason = old_context
+          CodeLoader.compiled! old_compiled
+          CodeLoader.compiling = old_compiling
+          CodeLoader.context = old_context
+          CodeLoader.module = old_module
+        end
       end
     end
   end

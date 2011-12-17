@@ -1,0 +1,92 @@
+use("core")
+use("define")
+use("dynamic")
+use("control-flow")
+use("meta")
+
+dynamic(labels, Hash new)
+
+module(Atomy::AST):
+  class(Labels < Node):
+    children([#tags])
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+
+      tags = ::Hash new
+
+      lbls =
+        @tags to-a collect [t]:
+          tags [t name] = g new-label
+
+      let(labels = tags):
+        lbls zip(@tags to-a) each [[l, t]]:
+          l set!
+          t body compile(g)
+          g pop
+
+      g push-nil
+
+  class(LabelBranch < Node):
+    children(#body)
+    attributes(#name)
+    generate
+
+  class(GoTo < Node):
+    attributes(#name)
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+      g goto(^labels fetch(@name))
+
+
+macro(labels ~(body: Block)):
+  branches = body contents collect [`(~n ~b)]:
+    LabelBranch new(n line, b body, n text)
+
+  `(let-macro(go(~'~name) = GoTo new(node line, name text)):
+      ~(Labels new(node line, branches)))
+
+macro(while(~test) ~(body: Block)):
+  names [loop, done]:
+    `(labels:
+        ~loop:
+          unless(~test):
+            go(~done)
+
+          let-macro(break = 'go(~done),
+                    next = 'go(~loop)):
+            ~(body body)
+
+          go(~loop)
+
+        ~done {})
+
+macro(until(~test) ~(body: Block)):
+  names [loop, done]:
+    `(labels:
+        ~loop:
+          when(~test):
+            go(~done)
+
+          let-macro(break = 'go(~done),
+                    next = 'go(~loop)):
+            ~(body body)
+
+          go(~loop)
+
+        ~done {})
+
+macro(loop: ~*body):
+  names [loop, done]:
+    `(labels:
+        ~loop:
+          let-macro(break = 'go(~done),
+                    next = 'go(~loop)):
+            ~*body
+
+          go(~loop)
+
+        ~done {})

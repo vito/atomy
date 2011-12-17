@@ -1,3 +1,17 @@
+use("core")
+use("define")
+
 macro(~x $~(y: Block)):
   x to-send tap [z]:
     z arguments += y contents
+
+macro(~(Word)(~*args)?):
+  node receiver tap [r]:
+    r name text = (r name text to-s + "?") to-sym
+
+macro(~x ~(Word)(~*args)?):
+  node right =
+    node right receiver tap [r]:
+      r name text = (r name text to-s + "?") to-sym
+
+  node

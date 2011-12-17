@@ -1,0 +1,36 @@
+use("core")
+use("define")
+use("control-flow")
+use("comparison")
+
+macro(macro-quoter(~n) [~*as]: ~*body):
+  names [str, args]:
+    strpat = Atomy::AST::Unquote new(0, `(~str: Atomy::AST::String))
+    argpat = Atomy::AST::Splice new(0, args)
+
+    raw = as shift
+    when(raw):
+      raw =! `(~raw = ~str raw || ~str value)
+
+    flags = as shift
+    when(flags):
+      flags =! `(~flags = ~args)
+
+    val = as shift
+    when(val):
+      val =! `(~val = ~str value)
+
+    `(do:
+        macro(~n ~strpat):
+          ~args = []
+          ~*([raw, flags, val] compact)
+          ~*body
+
+        macro(~n ~(strpat)(~argpat)):
+          ~*([raw, flags, val] compact)
+          ~*body)
+
+
+macro-quoter(w) [_, _, v]: v split
+
+macro-quoter(raw) [r]: r

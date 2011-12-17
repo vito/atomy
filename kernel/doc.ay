@@ -1,270 +1,268 @@
+use("core")
+use("data")
+use("define")
+use("control-flow")
+use("comparison")
+use("array")
+
 -- operator precedence/associativity
 .infix right 5 </> <//> <$> <$$>
 .infix right 6 <> <+>
 
-namespace(Atomy::Pretty):
-  -- combinatorial structures
-  data(Doc):
-    Empty
-    Cat(@x, @y)
-    Nest(@depth, @doc)
-    Text(@value)
-    Raw(@value)
-    Line(@space?)
-    Union(@x-thunk, @y-thunk)
-    Column(@thunk) -- @thunk is (Integer -> Doc)
-    Nesting(@thunk) -- @thunk is (Integer -> Doc)
+-- combinatorial structures
+data(Doc):
+  Empty
+  Cat(@x, @y)
+  Nest(@depth, @doc)
+  Text(@value)
+  Raw(@value)
+  Line(@space?)
+  Union(@x-thunk, @y-thunk)
+  Column(@thunk) -- @thunk is (Integer -> Doc)
+  Nesting(@thunk) -- @thunk is (Integer -> Doc)
 
-  class(Doc):
-    include(Atomy::Pretty)
+-- simple documents (used internally)
+data(SDoc):
+  SEmpty
+  SText(@value, @rest-thunk)
+  SRaw(@value, @rest-thunk)
+  SLine(@space?, @indentation, @rest-thunk)
 
-  -- simple documents (used internally)
-  data(SDoc):
-    SEmpty
-    SText(@value, @rest-thunk)
-    SRaw(@value, @rest-thunk)
-    SLine(@space?, @indentation, @rest-thunk)
+-- helpful for debugging
+SEmpty to-sexp := #sempty
+SText  to-sexp := [#stext, @value, @next-thunk [] to-sexp]
+SRaw   to-sexp := [#sraw, @value, @next-thunk [] to-sexp]
+SLine  to-sexp := [#sline, @space?, @indentation, @next-thunk [] to-sexp]
 
-  -- helpful for debugging
-  SEmpty to-sexp := #sempty
-  SText  to-sexp := [#stext, @value, @next-thunk [] to-sexp]
-  SRaw   to-sexp := [#sraw, @value, @next-thunk [] to-sexp]
-  SLine  to-sexp := [#sline, @space?, @indentation, @next-thunk [] to-sexp]
+Empty   to-sexp := #empty
+Cat     to-sexp := [#cat, @x to-sexp, @y to-sexp]
+Nest    to-sexp := [#nest, @depth, @doc]
+Text    to-sexp := [#text, @value]
+Raw     to-sexp := [#raw, @value]
+Line    to-sexp := [#line, @space?]
+Union   to-sexp := [#union, x to-sexp, y to-sexp]
+Column  to-sexp := #column
+Nesting to-sexp := #nesting
 
-  Empty   to-sexp := #empty
-  Cat     to-sexp := [#cat, @x to-sexp, @y to-sexp]
-  Nest    to-sexp := [#nest, @depth, @doc]
-  Text    to-sexp := [#text, @value]
-  Raw     to-sexp := [#raw, @value]
-  Line    to-sexp := [#line, @space?]
-  Union   to-sexp := [#union, x to-sexp, y to-sexp]
-  Column  to-sexp := #column
-  Nesting to-sexp := #nesting
+-- lazy values
+Union x := @x ||= @x-thunk call
+Union y := @y ||= @y-thunk call
+SText rest := @rest ||= @rest-thunk call
+SRaw  rest := @rest ||= @rest-thunk call
+SLine rest := @rest ||= @rest-thunk call
 
-  -- lazy values
-  Union x := @x ||= @x-thunk call
-  Union y := @y ||= @y-thunk call
-  SText rest := @rest ||= @rest-thunk call
-  SRaw  rest := @rest ||= @rest-thunk call
-  SLine rest := @rest ||= @rest-thunk call
+-- constructors
+Empty <> y   := y
+Doc <> Empty := self
+Doc <> y     := Cat new(self, y)
 
-  -- constructors
-  Empty <> y   := y
-  Doc <> Empty := self
-  Doc <> y     := Cat new(self, y)
+Proc <|> y := Union new(self, y)
+Doc  <|> y := Union new({ self }, { y })
 
-  Proc <|> y := Union new(self, y)
-  Doc  <|> y := Union new({ self }, { y })
+Doc nest(i) := Nest new(i, self)
 
-  Doc nest(i) := Nest new(i, self)
+-- flatten a document
+Empty       flatten := empty
+Cat(x, y)   flatten := x flatten <> y flatten
+Nest(i, x)  flatten := x flatten
+Text(s)     flatten := text(s)
+Raw(s)      flatten := raw(s)
+Line(true)  flatten := text(" ")
+Line(false) flatten := empty
+Union       flatten := x flatten
+Column(f)   flatten := column [x]: f [x] flatten
+Nesting(f)  flatten := nesting [x]: f [x] flatten
 
-  -- flatten a document
-  Empty       flatten := empty
-  Cat(x, y)   flatten := x flatten <> y flatten
-  Nest(i, x)  flatten := x flatten
-  Text(s)     flatten := text(s)
-  Raw(s)      flatten := raw(s)
-  Line(true)  flatten := text(" ")
-  Line(false) flatten := empty
-  Union       flatten := x flatten
-  Column(f)   flatten := column [x]: f [x] flatten
-  Nesting(f)  flatten := nesting [x]: f [x] flatten
+-- hanging indentation
+Doc hang(i) := align(self nest(i))
 
-  -- hanging indentation
-  Doc hang(i) := align(self nest(i))
+-- full indentation
+Doc indent(i) := (text(" " * i) <> self) hang(i)
 
-  -- full indentation
-  Doc indent(i) := (text(" " * i) <> self) hang(i)
+-- p punctuate([d1, d2, ..., dn]) => [d1 <> p, d2 <> p, ..., dn]
+Doc punctuate([])     := []
+Doc punctuate([d])    := [d]
+Doc punctuate(d . ds) := [d <> self] + self punctuate(ds)
 
-  -- p punctuate([d1, d2, ..., dn]) => [d1 <> p, d2 <> p, ..., dn]
-  Doc punctuate([])     := []
-  Doc punctuate([d])    := [d]
-  Doc punctuate(d . ds) := [d <> self] + self punctuate(ds)
+-- sep + punctuate
+Doc separate(ds) := align(sep(self punctuate(ds)))
 
-  -- sep + punctuate
-  Doc separate(ds) := align(sep(self punctuate(ds)))
+-- concatenate two documents, with a space in-between
+Empty <+> y     := y
+Doc   <+> Empty := self
+Doc   <+> y     := self <> space <> y
 
-  -- concatenate two documents, with a space in-between
-  Empty <+> y     := y
-  Doc   <+> Empty := self
-  Doc   <+> y     := self <> space <> y
+-- concatenates two documents, with a `softline' in between
+Empty </> y     := y
+Doc   </> Empty := self
+Doc   </> y     := self <> softline <> y
 
-  -- concatenates two documents, with a `softline' in between
-  Empty </> y     := y
-  Doc   </> Empty := self
-  Doc   </> y     := self <> softline <> y
+-- concatenates two documents, with a `softbreak' in between
+Empty <//> y     := y
+Doc   <//> Empty := self
+Doc   <//> y     := self <> softbreak <> y
 
-  -- concatenates two documents, with a `softbreak' in between
-  Empty <//> y     := y
-  Doc   <//> Empty := self
-  Doc   <//> y     := self <> softbreak <> y
+-- concatenates two documents, with a `line' in between
+Empty <$> y     := y
+Doc   <$> Empty := self
+Doc   <$> y     := self <> line <> y
 
-  -- concatenates two documents, with a `line' in between
-  Empty <$> y     := y
-  Doc   <$> Empty := self
-  Doc   <$> y     := self <> line <> y
+-- concatenates two documents, with a `linebreak' in between
+Empty <$$> y     := y
+Doc   <$$> Empty := self
+Doc   <$$> y     := self <> linebreak <> y
 
-  -- concatenates two documents, with a `linebreak' in between
-  Empty <$$> y     := y
-  Doc   <$$> Empty := self
-  Doc   <$$> y     := self <> linebreak <> y
+-- helper for `best' by linearizing documents
+[]                     be(_, _) := SEmpty new
+([i, Empty]      . ds) be(w, k) := ds be(w, k)
+([i, Cat(x, y)]  . ds) be(w, k) := ([[i, x], [i, y]] + ds) be(w, k)
+([i, Nest(j, x)] . ds) be(w, k) := ([i + j, x] . ds) be(w, k)
+([i, Text(s)]    . ds) be(w, k) := SText new(s, { ds be(w, k + s size) })
+([i, Raw(s)]     . ds) be(w, k) := SRaw new(s, { ds be(w, k) })
+([i, Line(s)]    . ds) be(w, k) := SLine new(s, i, { ds be(w, i) })
+([i, Column(f)]  . ds) be(w, k) := ([i, f [k]] . ds) be(w, k)
+([i, Nesting(f)] . ds) be(w, k) := ([i, f [i]] . ds) be(w, k)
+([i, u: Union]   . ds) be(w, k) := do:
+  flattened = ([i, u x] . ds) be(w, k)
+  if(flattened fits?(w - k))
+    then: flattened
+    else: ([i, u y] . ds) be(w, k)
 
-  -- helper for `best' by linearizing documents
-  []                     be(_, _) := SEmpty new
-  ([i, Empty]      . ds) be(w, k) := ds be(w, k)
-  ([i, Cat(x, y)]  . ds) be(w, k) := ([[i, x], [i, y]] + ds) be(w, k)
-  ([i, Nest(j, x)] . ds) be(w, k) := ([i + j, x] . ds) be(w, k)
-  ([i, Text(s)]    . ds) be(w, k) := SText new(s, { ds be(w, k + s size) })
-  ([i, Raw(s)]     . ds) be(w, k) := SRaw new(s, { ds be(w, k) })
-  ([i, Line(s)]    . ds) be(w, k) := SLine new(s, i, { ds be(w, i) })
-  ([i, Column(f)]  . ds) be(w, k) := ([i, f [k]] . ds) be(w, k)
-  ([i, Nesting(f)] . ds) be(w, k) := ([i, f [i]] . ds) be(w, k)
-  ([i, u: Union]   . ds) be(w, k) := do:
-    flattened = ([i, u x] . ds) be(w, k)
-    if(flattened fits?(w - k))
-      then: flattened
-      else: ([i, u y] . ds) be(w, k)
+-- find the best configuration to fit document X in width w
+Doc best(w, k) := [[0, self]] be(w, k)
 
-  -- find the best configuration to fit document X in width w
-  Doc best(w, k) := [[0, self]] be(w, k)
+-- test that a document can fit in a given width
+SText fits?(w) := w >= 0 && rest fits?(w - @value size)
+SDoc  fits?(w) := w >= 0
 
-  -- test that a document can fit in a given width
-  SText fits?(w) := w >= 0 && rest fits?(w - @value size)
-  SDoc  fits?(w) := w >= 0
+-- rendering to a string
+SEmpty layout := ""
+SText  layout := @value + rest layout
+SRaw   layout := @value + rest layout
+SLine  layout := "\n" + (" " * @indentation) + rest layout
 
-  -- rendering to a string
-  SEmpty layout := ""
-  SText  layout := @value + rest layout
-  SRaw   layout := @value + rest layout
-  SLine  layout := "\n" + (" " * @indentation) + rest layout
+-- rendering to a string
+Cat(x, y)  layout := x layout + y layout
+Empty      layout := ""
+Text(s)    layout := s
+Raw(s)     layout := s
+Line       layout := "\n"
+Union      layout := y layout
+Nest(i, d) layout :=
+  d match:
+    Cat(x, y)  -> x nest(i) layout + y nest(i) layout
+    Empty      -> ""
+    Text(s)    -> s
+    Raw(s)     -> s
+    Line       -> "\n" + (" " * i)
+    Nest(e, x) -> Nest new(i + e, x) layout
+    Union      -> Nest new(i, d y) layout
 
-  -- rendering to a string
-  Cat(x, y)  layout := x layout + y layout
-  Empty      layout := ""
-  Text(s)    layout := s
-  Raw(s)     layout := s
-  Line       layout := "\n"
-  Union      layout := y layout
-  Nest(i, d) layout :=
-    d match:
-      Cat(x, y)  -> x nest(i) layout + y nest(i) layout
-      Empty      -> ""
-      Text(s)    -> s
-      Raw(s)     -> s
-      Line       -> "\n" + (" " * i)
-      Nest(e, x) -> Nest new(i + e, x) layout
-      Union      -> Nest new(i, d y) layout
+-- trivial emptiness check
+Empty empty? := true
+Doc   empty? := false
 
-  -- trivial emptiness check
-  Empty empty? := true
-  Doc   empty? := false
+-- pretty-printing with a maximum width
+Doc render(width = 70) := best(width, 0) layout
 
-  -- pretty-printing with a maximum width
-  Doc render(width = 70) := best(width, 0) layout
+export
 
-  module-function
+-- trivial constructors
+empty := Empty new
+text(s) := Text new(s to-s)
+raw(s) := Raw new(s to-s)
+line := Line new(true)
+linebreak := Line new(false)
+column &f := Column new(f)
+nesting &f := Nesting new(f)
+group(x) := { x flatten } <|> { x }
+softline := group(line)
+softbreak := group(linebreak)
 
-  -- trivial constructors
-  empty := Atomy::Pretty::Empty new
-  text(s) := Atomy::Pretty::Text new(s to-s)
-  raw(s) := Atomy::Pretty::Raw new(s to-s)
-  line := Atomy::Pretty::Line new(true)
-  linebreak := Atomy::Pretty::Line new(false)
-  column &f := Atomy::Pretty::Column new(f)
-  nesting &f := Atomy::Pretty::Nesting new(f)
-  group(x) := { x flatten } <|> { x }
-  softline := group(line)
-  softbreak := group(linebreak)
+-- render x with the nesting level set to the current column
+align(x) :=
+  column [k]:
+    nesting [i]:
+      x nest(k - i)
 
-  -- render x with the nesting level set to the current column
-  align(x) :=
-    column [k]:
-      nesting [i]:
-        x nest(k - i)
+-- wrap `x' in `left' and `right'
+enclose(left, right, x) := left <> x <> right
 
-  -- wrap `x' in `left' and `right'
-  enclose(left, right, x) := left <> x <> right
+-- punctuate `xs' with `delim', separating with a space, and wrapping with
+-- `left` and `right`
+enclose-sep(left, right, delim, xs) :=
+  enclose(left, right, align(sep(delim punctuate(xs))))
 
-  -- punctuate `xs' with `delim', separating with a space, and wrapping with
-  -- `left` and `right`
-  enclose-sep(left, right, delim, xs) :=
-    enclose(left, right, align(sep(delim punctuate(xs))))
+-- punctuate `xs' with `delim', and wrapping with `left` and `right`
+enclose-cat(left, right, delim, xs) :=
+  enclose(left, right, align(cat(delim punctuate(xs))))
 
-  -- punctuate `xs' with `delim', and wrapping with `left` and `right`
-  enclose-cat(left, right, delim, xs) :=
-    enclose(left, right, align(cat(delim punctuate(xs))))
+-- separating lists
+hsep(xs) := xs inject-right(empty) [x, y]: x <+> y
+vsep(xs) := xs inject-right(empty) [x, y]: x <$> y
+sep(xs) := group(vsep(xs))
+fill-sep(xs) := xs inject-right(empty) [x, y]: x </> y
 
-  -- separating lists
-  hsep(xs) := xs inject-right(empty) [x, y]: x <+> y
-  vsep(xs) := xs inject-right(empty) [x, y]: x <$> y
-  sep(xs) := group(vsep(xs))
-  fill-sep(xs) := xs inject-right(empty) [x, y]: x </> y
+-- concatenating lists
+hcat(xs) := xs inject-right(empty) [x, y]: x <> y
+vcat(xs) := xs inject-right(empty) [x, y]: x <$$> y
+cat(xs) := group(vcat(xs))
+fill-cat(xs) := xs inject-right(empty) [x, y]: x <//> y
 
-  -- concatenating lists
-  hcat(xs) := xs inject-right(empty) [x, y]: x <> y
-  vcat(xs) := xs inject-right(empty) [x, y]: x <$$> y
-  cat(xs) := group(vcat(xs))
-  fill-cat(xs) := xs inject-right(empty) [x, y]: x <//> y
+-- fill a document with whitespace to width `i'
+fill(i, d) :=
+  width(d) [w]:
+    if(w >= i)
+      then: empty
+      else: text(" " * (i - w))
 
-  -- fill a document with whitespace to width `i'
-  fill(i, d) :=
-    width(d) [w]:
-      if(w >= i)
-        then: empty
-        else: text(" " * (i - w))
+-- fill a document with whitespace to width `i', breaking onto a new line if
+-- the document gets too long
+fill-break(i, d) :=
+  width(d) [w]:
+    if(w > i)
+      then: linebreak nest(i)
+      else: text(" " * (i - w))
 
-  -- fill a document with whitespace to width `i', breaking onto a new line if
-  -- the document gets too long
-  fill-break(i, d) :=
-    width(d) [w]:
-      if(w > i)
-        then: linebreak nest(i)
-        else: text(" " * (i - w))
+-- call `f' with the width of the passed document, and render the result
+-- after it
+width(d) &f :=
+  column [c1]: d <> column [c2]: f [c2 - c1]
 
-  -- call `f' with the width of the passed document, and render the result
-  -- after it
-  width(d) &f :=
-    column [c1]: d <> column [c2]: f [c2 - c1]
+-- helper documents
+lparen := text("(")
+rparen := text(")")
+langle := text("<")
+rangle := text(">")
+lbrace := text("{")
+rbrace := text("}")
+lbracket := text("[")
+rbracket := text("]")
+squote := text("'")
+dquote := text("\"")
+semi := text(";")
+colon := text(":")
+comma := text(",")
+space := text(" ")
+dot := text(".")
+backslash := text("\\")
+equals := text("=")
 
-  -- helper documents
-  lparen := text("(")
-  rparen := text(")")
-  langle := text("<")
-  rangle := text(">")
-  lbrace := text("{")
-  rbrace := text("}")
-  lbracket := text("[")
-  rbracket := text("]")
-  squote := text("'")
-  dquote := text("\"")
-  semi := text(";")
-  colon := text(":")
-  comma := text(",")
-  space := text(" ")
-  dot := text(".")
-  backslash := text("\\")
-  equals := text("=")
+-- helper for creating text from a string that may contain newlines
+string(s) := hcat(line punctuate(s split("\n") collect [x]: text(x)))
 
-  -- helper for creating text from a string that may contain newlines
-  string(s) := hcat(line punctuate(s split("\n") collect [x]: text(x)))
+-- wrappers
+parens(x) := lparen <> x <> rparen
+angles(x) := langle <> x <> rangle
+braces(x) := lbrace <> x <> rbrace
+brackets(x) := lbracket <> x <> rbracket
+squotes(x) := squote <> x <> squote
+dquotes(x) := dquote <> x <> dquote
 
-  -- wrappers
-  parens(x) := lparen <> x <> rparen
-  angles(x) := langle <> x <> rangle
-  braces(x) := lbrace <> x <> rbrace
-  brackets(x) := lbracket <> x <> rbracket
-  squotes(x) := squote <> x <> squote
-  dquotes(x) := dquote <> x <> dquote
-
-  -- helpers for common syntax
-  list(xs) :=
-    enclose(lbracket, rbracket, align(fill-sep(comma punctuate(xs))))
-  tupled(xs) :=
-    enclose(lparen, rparen, align(fill-sep(comma punctuate(xs))))
-  semi-braces(xs) :=
-    enclose-sep(lbrace, rbrace, semi, xs)
-
-
--- quick access to the above helpers
-macro(doc ~(f: Block)):
-  `(using(::Atomy::Pretty) ~f)
+-- helpers for common syntax
+list(xs) :=
+  enclose(lbracket, rbracket, align(fill-sep(comma punctuate(xs))))
+tupled(xs) :=
+  enclose(lparen, rparen, align(fill-sep(comma punctuate(xs))))
+semi-braces(xs) :=
+  enclose-sep(lbrace, rbrace, semi, xs)

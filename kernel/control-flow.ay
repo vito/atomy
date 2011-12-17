@@ -1,187 +1,109 @@
-dynamic(labels, Hash new)
+use("core")
+use("define")
+use("comparison")
 
 macro(if(~x) then ~(y: Block) else ~(z: Block)):
-  IfThenElse new(line, x, y body, z body)
+  IfThenElse new(node line, x, y body, z body)
 
 macro(otherwise): 'true
 
 macro(return(~y)):
-  Return new(line, y)
+  Return new(node line, y)
 
 macro(~x ensuring ~(y: Block)):
-  Ensure new(line, x caller, y body)
+  Ensure new(node line, x caller, y body)
 
 macro(when(~c) ~(b: Block)):
-  When new(line, c, b body)
+  When new(node line, c, b body)
 
 macro(unless(~c) ~(b: Block)):
-  When new(line, `!~c, b body)
+  When new(node line, `!~c, b body)
 
 macro(super):
-  ZSuper new(line)
+  ZSuper new(node line)
 
-for-macro:
-  splat-from(arguments) := do:
-    args = arguments dup
+splat-from(arguments) := do:
+  args = arguments dup
 
-    splat =
-      if(args last is-a?(Atomy::AST::Prefix) && args last receiver == "*" to-sym)
-        then: args pop receiver
-        else: nil
+  splat =
+    if(args last is-a?(Atomy::AST::Prefix) && args last receiver == "*" to-sym)
+      then: args pop receiver
+      else: nil
 
-    [args, splat]
+  [args, splat]
 
 macro(super &~blk):
-  Super new(line, [], nil, blk)
+  Super new(node line, [], nil, blk)
 
 macro(super ~(blk: Block)):
-  Super new(line, [], nil, blk)
-
-macro(super(~*as) ~(blk: Block)):
-  [args, splat] = splat-from(as)
-  Super new(line, args, splat, blk)
+  Super new(node line, [], nil, blk)
 
 macro(super(~*as)):
   [args, splat] = splat-from(as)
-  Super new(line, args, splat)
+  Super new(node line, args, splat)
+
+macro(super(~*as) ~(blk: Block)):
+  [args, splat] = splat-from(as)
+  Super new(node line, args, splat, blk)
+
+macro(super(~*as) &~blk):
+  [args, splat] = splat-from(as)
+  Super new(node line, args, splat, blk)
+
+
+module(Atomy::AST):
+  class(Break < Node):
+    children(#value)
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+      @value compile(g)
+      g raise-break
+
+  class(Next < Node):
+    children(#value)
+    generate
+
+    bytecode(g) := do:
+      pos(g)
+      @value compile(g)
+      g ret
+
 
 macro(break):
-  Break new(line, 'nil)
+  Break new(node line, 'nil)
 
 macro(break(~x)):
-  Break new(line, x)
+  Break new(node line, x)
 
 macro(next):
-  Next new(line, 'nil)
+  Next new(node line, 'nil)
 
 macro(next(~x)):
-  Next new(line, x)
+  Next new(node line, x)
 
-evaluate-when(compile, run, load):
-  module(Atomy::AST):
-    class(Labels < Node):
-      children([#tags])
-      generate
+key-from(x) := x
+key-from(x: Atomy::AST::Compose) :=
+  if(x right is-a?(Atomy::AST::Block))
+    then: x
+    else: x right
 
-      bytecode(g) := do:
-        pos(g)
+pair-from(x) :=
+  raise("unknown pair `" + x inspect + "'")
 
-        tags = ::Hash new
+pair-from(`(~k -> ~v)) :=
+  [[k, v]]
 
-        labels =
-          @tags to-a collect [t]:
-            tags [t name] = g new-label
+pair-from(p: `(~x { ~*ys })) := do:
+  this = [[key-from(x), `(do: ~*ys)]]
 
-        let(labels = tags):
-          labels zip(@tags to-a) each [[l, t]]:
-            l set!
-            t body compile(g)
-            g pop
+  if(x is-a?(Atomy::AST::Compose) && !(x right is-a?(Atomy::AST::Block)))
+    then: pair-from(x left) + this
+    else: this
 
-        g push-nil
-
-    class(LabelBranch < Node):
-      children(#body)
-      attributes(#name)
-      generate
-
-    class(GoTo < Node):
-      attributes(#name)
-      generate
-
-      bytecode(g) := do:
-        pos(g)
-        g goto(^labels fetch(@name))
-
-    class(Break < Node):
-      children(#value)
-      generate
-
-      bytecode(g) := do:
-        pos(g)
-        @value compile(g)
-        g raise-break
-
-    class(Next < Node):
-      children(#value)
-      generate
-
-      bytecode(g) := do:
-        pos(g)
-        @value compile(g)
-        g ret
-
-macro(labels ~(body: Block)):
-  branches = body contents collect [`(~n ~b)]:
-    LabelBranch new(n line, b body, n text)
-
-  `(let-macro(go(~'~name) = GoTo new(line, name text)):
-      ~(Labels new(line, branches)))
-
-macro(while(~test) ~(body: Block)):
-  names [loop, done]:
-    `(labels:
-        ~loop:
-          unless(~test):
-            go(~done)
-
-          let-macro(break = 'go(~done),
-                    next = 'go(~loop)):
-            ~(body body)
-
-          go(~loop)
-
-        ~done {})
-
-macro(until(~test) ~(body: Block)):
-  names [loop, done]:
-    `(labels:
-        ~loop:
-          when(~test):
-            go(~done)
-
-          let-macro(break = 'go(~done),
-                    next = 'go(~loop)):
-            ~(body body)
-
-          go(~loop)
-
-        ~done {})
-
-macro(loop ~(body: Block)):
-  names [loop, done]:
-    `(labels:
-        ~loop:
-          let-macro(break = 'go(~done),
-                    next = 'go(~loop)):
-            ~(body body)
-
-          go(~loop)
-
-        ~done {})
-
-for-macro:
-  key-from(x) := x
-  key-from(x: Atomy::AST::Compose) :=
-    if(x right is-a?(Atomy::AST::Block))
-      then: x
-      else: x right
-
-  pair-from(x) :=
-    raise("unknown pair `" + x inspect + "'")
-
-  pair-from(`(~k -> ~v)) :=
-    [[k, v]]
-
-  pair-from(p: `(~x { ~*ys })) := do:
-    this = [[key-from(x), `(do: ~*ys)]]
-
-    if(x is-a?(Atomy::AST::Compose) && !(x right is-a?(Atomy::AST::Block)))
-      then: pair-from(x left) + this
-      else: this
-
-  pairs-from(es) :=
-    pair-from(e) for(e) in(es) flatten(1)
+pairs-from(es) :=
+  es collect [e] { pair-from(e) } flatten(1)
 
 macro(condition ~(b: Block)):
   pairs-from(b contents) reverse inject('nil) [acc, [x, y]]:
@@ -191,19 +113,19 @@ macro(~val match ~(b: Block)):
   branches = pairs-from(b contents) collect [[x, y]]:
     MatchBranch new(x line, x to-pattern to-node, y)
 
-  Match new(line, val, branches)
+  Match new(node line, val, branches)
 
 macro(~x rescue ~(y: Block)):
   branches = pairs-from(y contents) collect [[p, e]]:
     RescueHandler new(p line, p, e)
 
-  Catch new(line, x caller, branches)
+  Catch new(node line, x caller, branches)
 
 macro(~x rescue ~(y: Block) else ~(z: Block)):
   branches = pairs-from(y contents) collect [[p, e]]:
     RescueHandler new(p line, p, e)
 
-  Catch new(line, x caller, branches, z body)
+  Catch new(node line, x caller, branches, z body)
 
 module(Atomy::AST):
   class(Super < Node):

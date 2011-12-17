@@ -1,18 +1,28 @@
+use("core")
+use("define")
+use("data")
+use("control-flow")
+use("loop")
+use("interpolation")
+use("array")
+
+use("dynamic")
+IO = use("io")
+
 -- registered handlers/restarts
 dynamic(handlers, [])
 dynamic(restarts, [])
 
-for-macro:
-  catcher(x) :=
-    x match:
-      Atomy::AST::Word ->
-        #"restart:#{x text}"
+catcher(x) :=
+  x match:
+    Atomy::AST::Word ->
+      #"restart:#{x text}"
 
-      Atomy::AST::Compose ->
-        #"restart:#{x left text}"
+    Atomy::AST::Compose ->
+      #"restart:#{x left text}"
 
-      Atomy::AST::Call ->
-        #"restart:#{x name text}"
+    Atomy::AST::Call ->
+      #"restart:#{x name text}"
 
 data(Restart(@name, @action))
 
@@ -43,20 +53,12 @@ NoRestartError message := "unknown restart " + @restart show
 EndOfFile message := "unexpected end-of-file for " + @port show
 
 
-restart(name, *args) := do:
-  ^restarts each [r]:
-    when(r name == name):
-      r invoke(*args)
-
-  error(NoRestartError new(name))
-
-
 macro(~body bind { ~*handlers }):
   names [a]:
     callback = `([~a]: ~a match: ~*handlers)
-    `(let(handlers = ~callback . ^handlers):
+    `(let(~module handlers = ~callback . ^(~module handlers)):
         ~body rescue:
-          (e: StandardError) -> error(e))
+          (e: StandardError) -> ~module error(e))
 
 
 macro(with-restarts(~*restarts) ~(block: Block)):
@@ -65,21 +67,31 @@ macro(with-restarts(~*restarts) ~(block: Block)):
   rs = pairs collect [[n, e]]:
     n match:
       Word ->
-        `(Restart new(#~n, { ~e }))
+        `((~module)::Restart new(#~n, { ~e }))
 
       `(~(n)(~*as)) ->
-        `(Restart new(#~n, [~*as] { ~e }))
+        `((~module)::Restart new(#~n, [~*as] { ~e }))
 
       `(~(n)(~*as) &~b) ->
-        `(Restart new(#~n, [~*as] &~b { ~e }))
+        `((~module)::Restart new(#~n, [~*as] &~b { ~e }))
 
   body =
     pairs reduce(
-      `{ ~block rescue: (e: StandardError) -> error(e) }
+      `{ ~block rescue: (e: StandardError) -> ~module error(e) }
     ) [x, [name, _]]:
       `{ catch(~catcher(name)) ~x }
 
-  `(let(restarts = [~*rs] + ^restarts) ~body)
+  `(let(~module restarts = [~*rs] + ^(~module restarts)) ~body)
+
+
+export
+
+restart(name, *args) := do:
+  ^restarts each [r]:
+    when(r name == name):
+      r invoke(*args)
+
+  error(NoRestartError new(name))
 
 
 signal(c) := do:
@@ -110,7 +122,7 @@ error(x) := do:
 
   signal(e)
 
-  with-output-to(^error-port):
+  with-output-to(^(IO error-port)):
     ^debugger run(e)
 
 
@@ -128,7 +140,7 @@ warning(x) :=
 
     signal(w)
 
-    with-output-to(^error-port):
+    with-output-to(^(IO error-port)):
       (w name + ": " + w message) println
 
     nil

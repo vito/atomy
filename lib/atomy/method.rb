@@ -131,8 +131,6 @@ module Atomy
 
       build_methods(g, @branches, done)
 
-      # call super. note that we keep the original sender's static
-      # scope for use in namespace checks
       unless @name == :initialize
         g.invoke_primitive :vm_check_super_callable, 0
         g.gif mismatch
@@ -353,9 +351,7 @@ module Atomy
   # build a method from the given branches and add it to
   # the target
   def self.add_method(target, name, method, visibility = :public)
-    cm = method.build
-
-    Rubinius.add_method name, cm, target, visibility
+    Rubinius.add_method name, method.build, target, visibility
   end
 
   # define a new method branch
@@ -370,13 +366,26 @@ module Atomy
       methods[name] = method
     end
 
+    avis = scope.atomy_visibility
+
+    if defn && avis == :module
+      visibility = :module
+    end
+
     if defn
       Rubinius.add_defn_method branch.name, code, scope, visibility
     else
       Rubinius.add_method branch.name, code, target, visibility
     end
 
-    add_method(target, name, method, visibility)
+    res = add_method(target, name, method, visibility)
+
+    if defn && avis == :private_module
+      target.private_module_function name
+      target.private_module_function branch.name
+    end
+
+    res
   end
 
   def self.dynamic_branch(target, name, branch, visibility = :public,

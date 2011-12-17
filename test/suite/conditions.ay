@@ -1,3 +1,10 @@
+use("core")
+use("define")
+use("control-flow")
+
+use("therie")
+use("condition")
+
 describe("condition"):
   describe(#signal):
     it("triggers matching handlers"):

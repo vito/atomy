@@ -1,3 +1,7 @@
+use("core")
+use("define")
+use("therie")
+
 describe("blocks"):
   describe(#call):
     it("evaluates with the block's context available"):

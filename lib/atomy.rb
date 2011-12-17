@@ -14,6 +14,7 @@ require "rubygems"
 require "set"
 
 require base + "/version"
+require base + "/module"
 require base + "/macros"
 require base + "/method"
 require base + "/exceptions"

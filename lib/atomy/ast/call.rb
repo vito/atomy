@@ -3,6 +3,10 @@ module Atomy::AST
     children :name, [:arguments]
     generate
 
+    def bytecode(g)
+      to_send.bytecode(g)
+    end
+
     def to_send
       args = @arguments.dup
       s = @arguments.last

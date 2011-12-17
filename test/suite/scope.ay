@@ -1,3 +1,8 @@
+use("core")
+use("define")
+use("block")
+use("therie")
+
 describe("assignment"):
   describe("="):
     it("introduces a new local"):
@@ -13,7 +18,7 @@ describe("assignment"):
       { a =! 1, a } call should-be(1)
       a should-be(1)
 
-    it("introduces a new local if undefined"):
+    it("introduces a new local if not defined"):
       { a =! 1, a } call should-be(1)
       { a } should-raise(NameError)
 

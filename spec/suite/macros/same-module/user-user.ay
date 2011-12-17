@@ -1,0 +1,7 @@
+use("define")
+use("macros/same-module/user")
+
+export
+
+foo := "not-expanded"
+res := foo

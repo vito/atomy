@@ -1,4 +1,8 @@
+use("atomy")
+IO = require("io")
+
 dynamic(nesting-level, 0)
+dynamic(stats)
 
 class(Stats):
   attr-accessor(#passed, #failed)
@@ -9,8 +13,30 @@ class(Stats):
 
   inspect := f"Stats(@passed = %d, @failed = %d)" [@passed, @failed]
 
-dynamic(stats, nil)
+indented(s) := " " * (^nesting-level * 2) + s
 
+colored(color, s) := do:
+  -- only makes sense to colorize if we're outputting to a terminal
+  unless(^(IO output-port) tty?):
+    return(s)
+
+  codes =
+    [ #black
+      #red
+      #green
+      #yellow
+      #blue
+      #magenta
+      #cyan
+      #white
+    ] to-a zip((0 .. 7) to-a)
+
+  hash = Hash [codes]
+
+  "\e[3" + hash [color] to-s + "m" + s + "\e[0m"
+
+
+export
 
 theorize &tests :=
   let(stats = Stats new):
@@ -20,10 +46,10 @@ theorize &tests :=
     ^stats onto:
       f"total of %d tests (%s passed, %s failed)" [
         failed + passed
-        passed to-s colored(#green)
+        colored(#green, passed to-s)
         if(failed == 0)
           then: "0"
-          else: failed to-s colored(#red)
+          else: colored(#red, failed to-s)
       ] display
 
       "\n" display
@@ -32,7 +58,7 @@ theorize &tests :=
 
 
 describe(what) &body := do:
-  f"- %s" [what] indented println
+  indented(f"- %s" [what]) println
 
   let(nesting-level = ^nesting-level + 1):
     body call
@@ -42,20 +68,25 @@ describe(what) &body := do:
 
 it(description) &tests := do:
   { tests call
-    f"✓ %s" [description] indented colored(#green) println
+    indented(colored(#green, f"✓ %s" [description])) println
   } rescue {
     e:
       when(^stats):
         ^stats failed += 1
 
-      f"✗ %s" [description] indented colored(#red) println
-      f"  ` %s: %s" [
-        e class name
-        e message
-      ] indented colored(#yellow) println
+      indented(colored(#red, f"✗ %s" [description])) println
+      indented(
+        colored(
+          #yellow
+          f"  ` %s: %s" [
+            e class name
+            e message
+          ]
+        )
+      ) println
 
       e backtrace first((ENV["THERIE_BT_LIMIT"] || 5) to-i) each [l]:
-        f"    %s" [l colored(#cyan)] indented println
+        indented(f"    %s" [colored(#cyan, l)]) println
   } else:
     when(^stats):
       ^stats passed += 1
@@ -96,27 +127,3 @@ x should-error(y) :=
 
       raise(f"expected error %s, got: %s" [y, e message])
   }
-
-
--- helpers
-String indented := " " * (^nesting-level * 2) + self
-
-String colored(color) := do:
-  -- only makes sense to colorize if we're outputting to a terminal
-  unless(^output-port tty?):
-    return(self)
-
-  codes =
-    [ #black
-      #red
-      #green
-      #yellow
-      #blue
-      #magenta
-      #cyan
-      #white
-    ] to-a zip((0 .. 7) to-a)
-
-  hash = Hash [codes]
-
-  "\e[3" + hash [color] to-s + "m" + self + "\e[0m"
