@@ -1,3 +1,13 @@
+use("core")
+use("define")
+use("control-flow")
+use("loop")
+use("regexp")
+use("comparison")
+use("particles")
+
+require("pretty")
+
 module(Atomy::Format):
   class(Formatter):
     attr-accessor(#position)

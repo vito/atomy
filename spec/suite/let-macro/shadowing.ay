@@ -1,0 +1,11 @@
+use("define")
+use("meta")
+
+export
+
+macro(foo): "from-macro"
+
+let-macro(foo = '"shadowed"):
+  res := foo
+
+outer := foo

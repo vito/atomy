@@ -1,0 +1,67 @@
+use("core")
+use("define")
+use("control-flow")
+use("quotes")
+use("range")
+use("grammar")
+
+module(::Atomy):
+  parser(InterpolationParser):
+    %atomy := Atomy::Parser
+
+    root := %atomy.wsp =es(%atomy.expressions) %atomy.wsp "}" {
+      Atomy::AST::Tree new(0, Array(es))
+    }
+
+
+intp-segments(s) :=
+  s split(Regexp new("(?<!\\\\)#\\{"), 2) match:
+    [] -> ['""]
+
+    [x] -> [x to-node]
+
+    [pre, chunk]:
+      p = Atomy::InterpolationParser new(chunk)
+
+      unless(p parse):
+        p raise-error
+
+      segments = [pre to-node, `(~(p result) to-s)]
+
+      rest = p string [p pos .. -1]
+
+      rest match:
+        nil -> segments
+        "" -> segments
+        _ -> segments + intp-segments(rest)
+
+export
+
+module(::Atomy::AST):
+  class(Interpolation < Node):
+    children([#segments])
+    generate
+
+    interpolated? := @segments size > 1
+
+    bytecode(g) := do:
+      pos(g)
+
+      @segments each [s]:
+        s compile(g)
+
+      when(interpolated?):
+        g string-build(@segments size)
+
+
+interpolated(x) :=
+  Atomy::AST::Interpolation new(0, intp-segments(x))
+
+macro-quoter(i) [_, _, v]: interpolated(v)
+
+-- symbol literals with interpolation
+macro(#~(x: String)):
+  i = interpolated(x value)
+  if(i interpolated?)
+    then: `(~i to-sym)
+    else: Literal new(node line, x value to-sym)

@@ -1,3 +1,7 @@
+-- TODO: merge w/ control-flow
+use("core")
+use("define")
+
 module(Atomy::AST):
   class(And < Node):
     children(#a, #b)
@@ -54,8 +58,10 @@ module(Atomy::AST):
 
       done set!
 
-macro(~a && ~b): And new(line, a, b)
-macro(~a || ~b): Or new(line, a, b)
-macro(!~a): Negate new(line, a)
+macro(~a && ~b): And new(node line, a, b)
+macro(~a || ~b): Or new(node line, a, b)
+macro(!~a): Negate new(node line, a)
 macro(~a != ~b): `!(~a == ~b)
 macro(~a !~ ~b): `!(~a =~ ~b)
+macro(~x ||= ~y): `(~x =! (~x || ~y))
+macro(~x &&= ~y): `(~x =! (~x && ~y))

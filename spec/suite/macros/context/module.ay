@@ -1,0 +1,4 @@
+use("core")
+use("define")
+
+macro(foo): '(res := "defined!")

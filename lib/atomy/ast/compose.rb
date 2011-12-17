@@ -9,6 +9,7 @@ module Atomy
         when Call
           @right.to_send.tap do |s|
             s.receiver = @left
+            s.private = false
           end
         when List
           args = @right.elements

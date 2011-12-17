@@ -1,3 +1,8 @@
+use("core")
+use("define")
+use("array")
+use("control-flow")
+
 macro(ast { ~*nodes }):
   `(ast(Atomy::AST::Node) { ~*nodes })
 

@@ -1,6 +1,11 @@
-require("actor")
+use("core")
+use("define")
+use("array")
 
-me := Actor current
+-- TODO: HACK: this gives us pairs-from
+use("control-flow")
+
+require("actor")
 
 Actor <- v := send(v)
 
@@ -22,6 +27,10 @@ macro(receive ~(body: Block) after(~timeout) ~(action: Block)):
     `(Actor receive [~e]: ~*bs)
 
 
-spawn &action := Actor send(#spawn) &action
+export
 
-spawn-link &action := Actor send(#spawn-link) &action
+me := Actor current
+
+spawn &action := Actor spawn &action
+
+spawn-link &action := Actor spawn-link &action

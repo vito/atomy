@@ -1,3 +1,23 @@
+# TODO: respond_to
+module Kernel
+  alias :method_missing_old :method_missing
+
+  def method_missing_atomy(meth, *args, &blk)
+    scope = Rubinius::StaticScope.of_sender
+    while scope
+      if scope.module.respond_to?(meth, true)
+        return scope.module.send(meth, *args, &blk)
+      else
+        scope = scope.parent
+      end
+    end
+
+    method_missing_old(meth, *args, &blk)
+  end
+
+  alias :method_missing :method_missing_atomy
+end
+
 class Rubinius::Generator
   def debug(name = "", quiet = false)
     if quiet
@@ -16,9 +36,6 @@ class Rubinius::Generator
 end
 
 module Atomy
-  # holds throwaway data used during compile time
-  STATE = {}
-
   # operator precedence/associativity table
   OPERATORS = {}
 
@@ -62,6 +79,74 @@ module Atomy
     else
       g.state.scope.new_local(name).reference
     end
+  end
+
+  def self.current_module
+    scope = Rubinius::StaticScope.of_sender
+    mod = nil
+    while scope
+      if scope.module.is_a?(Atomy::Module)
+        return scope.module
+      end
+
+      scope = scope.parent
+    end
+
+    nil
+  end
+
+  def self.make_wrapper_module(file = :local)
+    mod = Atomy::Module.new do
+      private_module_function
+
+      def self.module
+        self
+      end
+
+      # generate symbols
+      def names(num = 0, &block)
+        num = block.arity if block
+
+        as = []
+        num.times do
+          salt = Atomy::Macro::Environment.salt!
+          #raise("where") if salt == 689
+          as << Atomy::AST::Word.new(0, :"s:#{salt}")
+        end
+
+        if block
+          block.call(*as)
+        else
+          as
+        end
+      end
+    end
+
+    mod.file = file
+
+    mod.singleton_class.dynamic_method(:__module_init__, file) do |g|
+      g.push_self
+      g.add_scope
+
+      g.push_self
+      g.send :private_module_function, 0
+      g.pop
+
+      g.push_variables
+      g.push_scope
+      g.make_array 2
+      g.ret
+    end
+
+    vs, ss = mod.__module_init__
+    bnd = Binding.setup(
+      vs,
+      vs.method,
+      ss,
+      mod
+    )
+
+    [mod, bnd]
   end
 end
 

@@ -9,6 +9,8 @@ end
 base = File.expand_path "../../lib/", __FILE__
 kernel = File.expand_path "../../kernel/", __FILE__
 
+$LOAD_PATH.unshift kernel
+
 require 'readline'
 require 'optparse'
 require 'profiler'
@@ -54,8 +56,8 @@ end
 
 unless options[:skip_kernel]
   a = Time.now
-  puts "loading kernel"
-  Atomy.load(kernel + "/boot.ay")
+  puts "loading core"
+  require("boot")
   puts Time.now - a
 end
 
@@ -92,46 +94,12 @@ def run_atomy(options)
     return if run
   end
 
-  if respond_to?(:repl, true)
-    send(:repl, File.expand_path("~/.atomy_history"), TOPLEVEL_BINDING, options[:debug])
-  else
-    $stderr.puts("main REPL startup failed! here's a basic one:")
 
-    history_file = File.expand_path("~/.atomy_history")
-
-    if File.exists?(history_file)
-      File.open(history_file, "r") do |f|
-        f.readlines.each do |l|
-          Readline::HISTORY << l.strip
-        end
-      end
-    end
-
-    begin
-      sane_history = []
-      while str = Readline.readline("> ")
-        next if str.empty?
-
-        sane_history << str
-
-        begin
-          res = Atomy::Compiler.eval str, TOPLEVEL_BINDING, "(eval)", 1, options[:debug]
-          if res.respond_to?(:pretty)
-            puts "=> #{res.pretty.render}"
-          else
-            puts "=> #{res.inspect}"
-          end
-        rescue StandardError => e
-          puts "#{e.class.name}: #{e.message}"
-          puts Rubinius::Backtrace.backtrace(e.locations).show
-        end
-      end
-    ensure
-      File.open(history_file, "a") do |f|
-        f.puts(*sane_history)
-      end
-    end
-  end
+  require("repl").repl(
+    File.expand_path("~/.atomy_history"),
+    TOPLEVEL_BINDING,
+    options[:debug]
+  )
 end
 
 begin

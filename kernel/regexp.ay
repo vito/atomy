@@ -1,0 +1,36 @@
+use("core")
+use("define")
+use("comparison")
+use("quotes")
+use("patterns")
+use("control-flow")
+use("interpolation")
+
+
+module(Atomy::AST):
+  class(NthRef < Rubinius::AST::NthRef):
+    include(NodeLike)
+    extend(SentientNode)
+    attributes(#which)
+    generate
+
+
+macro($~(x: Primitive ? @value is-a?(::Integer) && @value > 0)):
+  NthRef new(node line, x value)
+
+macro-quoter(r) [r, fs]:
+  flags = 0
+
+  when(fs include?(#m)):
+    flags |= Regexp::MULTILINE
+
+  when(fs include?(#i)):
+    flags |= Regexp::IGNORECASE
+
+  when(fs include?(#x)):
+    flags |= Regexp::EXTENDED
+
+  when(fs include?(#u)):
+    flags |= Regexp::KCODE_UTF8
+
+  `(::Regexp new(~interpolated(r), ~flags))

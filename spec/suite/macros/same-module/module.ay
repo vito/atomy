@@ -1,0 +1,7 @@
+use("define")
+
+macro(foo): '"same-module"
+
+export
+
+res := foo

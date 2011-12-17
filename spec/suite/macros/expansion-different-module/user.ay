@@ -1,0 +1,7 @@
+use("define")
+
+use("macros/expansion-different-module/module")
+
+export
+
+res := foo

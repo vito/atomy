@@ -1,3 +1,12 @@
+use("core")
+use("define")
+use("data")
+use("control-flow")
+use("cosmetics")
+use("undefined")
+
+Atomy = ::Atomy
+
 module(Atomy):
   data(Particle(@receiver, @message, @arguments))
 
@@ -27,9 +36,8 @@ Symbol call(*args) := to-proc [*args]
 
 Symbol arity := 1
 
-for-macro:
-  wildcard('_) := '_undefined
-  wildcard(x) := x
+wildcard('_) := '_undefined
+wildcard(x) := x
 
 macro(#(~(x)(~*as))):
   `(Atomy::Particle new(

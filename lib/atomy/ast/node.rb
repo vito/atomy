@@ -65,6 +65,7 @@ module Atomy
         spec(@children, specs)
       end
 
+      # TODO: spec for multi-splice
       def many_construct(n)
         x = <<END
 
@@ -72,11 +73,10 @@ module Atomy
           size = 0
           @#{n}.each do |e|
             if e.kind_of?(::Atomy::AST::Splice) && d == 1
-              if size > 0
-                g.make_array size
-              end
+              g.make_array size
+              g.send :+, 1 if spliced
               e.construct(g, d)
-              g.send :+, 1 if size > 0 || spliced
+              g.send :+, 1
               spliced = true
               size = 0
             else
@@ -173,6 +173,12 @@ EOF
               }.join("; ")}
 
             g.send :new, #{all.size + 1}
+            g.dup
+            g.push_cpath_top
+            g.find_const :Atomy
+            g.send :current_module, 0
+            g.send :in_context, 1
+            g.pop
           end
 EOF
 
@@ -357,7 +363,9 @@ EOF
           def copy
             #{name}.new(
               @line#{copyreq_cs + copymany_cs + copyreq_as + copyreq_ss + copyopt_cs + copyopt_as + copyopt_ss}
-            )
+            ).tap do |x|
+              x.in_context(@context)
+            end
           end
 EOF
       end
@@ -365,6 +373,13 @@ EOF
 
     module NodeLike
       attr_accessor :line
+
+      # the module this node was constructed in
+      attr_reader :context
+
+      def in_context(x)
+        @context ||= x
+      end
 
       def through_quotes(stop = nil, &f)
         ThroughQuotes.new(f, stop).go(self)
@@ -471,118 +486,20 @@ EOF
         Atomy::Compiler.eval(self, bnd, *args)
       end
 
-      # this is overridden by macro definitions
-      def _expand
-        self
-      end
-
-      def do_expand
-        _expand.to_node
-      end
-
-      def msg_expand
-        c = copy
-        return c.do_expand unless macro_name and respond_to?(macro_name)
-        c.send(macro_name)
-      rescue MethodFail
-        c.do_expand
-      end
-
-      def expand
-        if lets = Atomy::Macro::Environment.let[self.class]
-          x = copy
-          lets.reverse_each do |l|
-            begin
-              x = x.send(l)
-              return x.expand unless x.kind_of?(self.class)
-            rescue MethodFail
-            end
-          end
-          x.msg_expand.to_node
+      def compile(g)
+        if mod = CodeLoader.module
+          mod.expand(self).bytecode(g)
         else
-          msg_expand.to_node
+          bytecode(g)
         end
-      rescue
-        if respond_to?(:show)
-          $stderr.puts "while expanding #{show}"
-        else
-          $stderr.puts "while expanding a #{to_sexp.inspect}"
-        end
-
-        raise
-      end
-
-      alias :prepare :expand
-
-      def define_macro(body, file = :macro)
-        pattern = macro_pattern
-
-        unless macro_name
-          @@stats ||= {}
-          @@stats[self.class] ||= []
-          @@stats[self.class] << self
-
-          Atomy::Macro.register(
-            self.class,
-            pattern,
-            body,
-            Atomy::CodeLoader.compiling
-          )
-
-          return
-        end
-
-        Atomy::AST::Define.new(
-          0,
-          Atomy::AST::Compose.new(
-            0,
-            pattern.quoted,
-            Atomy::AST::Word.new(0, macro_name)
-          ),
-          Atomy::AST::Send.new(
-            body.line,
-            Atomy::AST::Send.new(
-              body.line,
-              body,
-              [],
-              :to_node
-            ),
-            [],
-            :expand
-          )
-        ).evaluate(
-          Binding.setup(
-            Rubinius::VariableScope.of_sender,
-            Rubinius::CompiledMethod.of_sender,
-            Rubinius::StaticScope.new(Atomy::AST)
-          ), file.to_s, pattern.quoted.line
-        )
       end
 
       def macro_name
         nil
       end
-
-      def compile(g)
-        prepare.bytecode(g)
-      end
-
-      def load_bytecode(g)
-        compile(g)
-      end
-
-      def macro_pattern
-        Atomy::Patterns::QuasiQuote.new(
-          Atomy::AST::QuasiQuote.new(
-            @line,
-            self
-          )
-        )
-      end
     end
 
     class Node < Rubinius::AST::Node
-      include Atomy::Macro::Helpers
       include NodeLike
 
       def self.inherited(sub)
@@ -599,7 +516,10 @@ EOF
       generate
 
       def bytecode(g)
-        @nodes.each { |n| n.compile(g) }
+        @nodes.each.with_index do |n, i|
+          n.compile(g)
+          g.pop unless i + 1 == @nodes.size
+        end
       end
 
       def collect
@@ -607,10 +527,10 @@ EOF
       end
     end
 
-    class Script < Rubinius::AST::Container
-      def initialize(body)
-        super body
-        @name = :__script__
+    class ScriptBody < Node
+      def initialize(line, body)
+        @line = line
+        @body = body
       end
 
       def sprinkle_salt(g, by)
@@ -634,94 +554,47 @@ EOF
       end
 
       def bytecode(g)
+        pos(g)
+
+        @body.each.with_index do |n, i|
+          n.compile(g)
+
+          # macros always evaluate during compilation
+          unless n.is_a?(Macro)
+            n.evaluate(CodeLoader.context, CodeLoader.compiling)
+          end
+
+          g.pop unless i + 1 == @body.size
+        end
+      end
+    end
+
+    class Script < Rubinius::AST::Container
+      def initialize(body)
+        @body = ScriptBody.new(body.line, body.nodes)
+      end
+
+      def bytecode(g)
+        @body.pos(g)
+
         super(g)
 
         container_bytecode(g) do
           g.push_state self
 
-          when_load = g.new_label
-          done_loading = g.new_label
-          when_run = g.new_label
-          start = g.new_label
-          done = g.new_label
+          g.push_self
+          g.add_scope
 
-          g.push_cpath_top
-          g.find_const :Atomy
-          g.find_const :CodeLoader
-          g.send :reason, 0
-          g.push_literal :load
-          g.send :==, 1
-          g.git when_load
+          g.state.push_name @name
 
-          done_loading.set!
+          g.push_self
+          g.send :private_module_function, 0
+          g.pop
 
-          g.push_cpath_top
-          g.find_const :Atomy
-          g.find_const :CodeLoader
-          g.send :reason, 0
-          g.push_literal :run
-          g.send :==, 1
-          g.git when_run
-
-          before = Atomy::Macro::Environment.salt
-
-          start.set!
           @body.bytecode g
 
-          after = Atomy::Macro::Environment.salt
-          g.goto done
+          g.state.pop_name
 
-          when_load.set!
-
-          sprinkle_salt(g, after - before) if after > before
-
-          Atomy::CodeLoader.when_load.each do |e, c|
-            if c
-              skip = g.new_label
-
-              g.push_cpath_top
-              g.find_const :Atomy
-              g.find_const :CodeLoader
-              g.send :compiled?, 0
-              g.git skip
-
-              e.load_bytecode(g)
-              g.pop
-
-              skip.set!
-            else
-              e.load_bytecode(g)
-              g.pop
-            end
-          end
-          g.goto done_loading
-
-          when_run.set!
-
-          sprinkle_salt(g, after - before) if after > before
-
-          Atomy::CodeLoader.when_run.each do |e, c|
-            if c
-              skip = g.new_label
-
-              g.push_cpath_top
-              g.find_const :Atomy
-              g.find_const :CodeLoader
-              g.send :compiled?, 0
-              g.git skip
-
-              e.load_bytecode(g)
-              g.pop
-
-              skip.set!
-            else
-              e.load_bytecode(g)
-              g.pop
-            end
-          end
-          g.goto start
-
-          done.set!
           g.ret
           g.pop_state
         end

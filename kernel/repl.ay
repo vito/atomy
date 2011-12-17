@@ -1,3 +1,9 @@
+use("atomy")
+
+use("doc")
+Condition = use("condition")
+Pretty = require("pretty")
+
 require("readline")
 
 basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=
@@ -41,25 +47,34 @@ class(ReplDebugger):
       debug(e)
 
     run(e) := do:
-      DefaultDebugger show-error-banner(e)
+      Condition::DefaultDebugger show-error-banner(e)
 
       with-restarts(backtrace -> show-backtrace(e)):
         debug(e)
 
     debug(e) := do:
-      DefaultDebugger show-options-for(e)
+      Condition::DefaultDebugger show-options-for(e)
 
       { send(#basic-repl) } bind:
         #prompt -> restart(#use-prompt, "[!]> ")
 
         #special(n ? (=~ r"\d+")) ->
-          ^restarts [n to-i] invoke
+          ^(Condition restarts) [n to-i] invoke
 
         #quit -> exit(1)
 
-dynamic(debugger, ReplDebugger)
+export
 
-repl(history = nil, bnd = TOPLEVEL_BINDING, debug = false) := do:
+repl(history = nil, bnd = nil, debug = false) := do:
+  [mod, bnd] = Atomy make-wrapper-module
+  mod use("atomy")
+
+  before-mod = Atomy::CodeLoader module
+  before-bnd = Atomy::CodeLoader context
+
+  Atomy::CodeLoader module = mod
+  Atomy::CodeLoader context = bnd
+
   when(history && File exists?(history)):
     File open(history, "r") [f]:
       f readlines each [l]:
@@ -67,9 +82,9 @@ repl(history = nil, bnd = TOPLEVEL_BINDING, debug = false) := do:
 
   sane-history = Array[]
 
-  { let(debugger = ReplDebugger,
-        atomy-pretty-multiline? = true,
-        atomy-pretty-colored? = true):
+  { let(Condition debugger = ReplDebugger,
+        Pretty multiline? = true,
+        Pretty colored? = true):
       frame = 0
 
       { basic-repl(bnd, debug)
@@ -87,9 +102,12 @@ repl(history = nil, bnd = TOPLEVEL_BINDING, debug = false) := do:
         #special("h") ->
           ":h\thelp" println
 
-        #evaluated(r) -> doc:
+        #evaluated(r) ->
           (text(" =>") <+> r pretty) render(76) println
   } ensuring:
+    Atomy::CodeLoader module = before-mod
+    Atomy::CodeLoader context = before-bnd
+
     when(history):
       File open(history, "a") [f]:
         f puts(*sane-history)
