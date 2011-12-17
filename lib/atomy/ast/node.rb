@@ -363,7 +363,9 @@ EOF
           def copy
             #{name}.new(
               @line#{copyreq_cs + copymany_cs + copyreq_as + copyreq_ss + copyopt_cs + copyopt_as + copyopt_ss}
-            )
+            ).tap do |x|
+              x.in_context(@context)
+            end
           end
 EOF
       end

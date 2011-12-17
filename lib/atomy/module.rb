@@ -73,8 +73,9 @@ module Atomy
         return res
       end
 
+      safe = node.copy
       using.each do |u|
-        expanded = u.execute_macro(node)
+        expanded = u.execute_macro(safe)
         return expanded if expanded
       end
 
