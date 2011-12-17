@@ -58,7 +58,7 @@ module Atomy
         blk.push_self
         blk.push_cpath_top
         blk.find_const :ArgumentError
-        blk.push_literal "wrong number of arguments"
+        blk.push_literal "block given too few arguments"
         blk.send :new, 1
         blk.send :raise, 1, true
 

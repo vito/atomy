@@ -3,6 +3,12 @@ module Atomy::Patterns
     attributes(:body)
     generate
 
+    def construct(g)
+      get(g)
+      @body.construct(g)
+      g.send :new, 1
+    end
+
     def target(g)
       @body.compile(g)
       g.send :singleton_class, 0

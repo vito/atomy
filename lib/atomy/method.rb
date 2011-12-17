@@ -113,7 +113,7 @@ module Atomy
     def build
       g = Rubinius::Generator.new
       g.name = @name
-      g.file = :dynamic
+      g.file = :wrapper
       g.set_line 0
 
       done = g.new_label
