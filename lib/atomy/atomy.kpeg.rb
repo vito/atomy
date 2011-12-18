@@ -739,86 +739,6 @@ class Atomy::Parser
     return _tmp
   end
 
-  # ident_start = < /[\p{Ll}_]/ > { text }
-  def _ident_start
-
-    _save = self.pos
-    while true # sequence
-      _text_start = self.pos
-      _tmp = scan(/\A(?-mix:[\p{Ll}_])/u)
-      if _tmp
-        text = get_text(_text_start)
-      end
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  text ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_ident_start unless _tmp
-    return _tmp
-  end
-
-  # ident_letter = < (/[\p{L}\d]/ | !":" op_letter) > { text }
-  def _ident_letter
-
-    _save = self.pos
-    while true # sequence
-      _text_start = self.pos
-
-      _save1 = self.pos
-      while true # choice
-        _tmp = scan(/\A(?-mix:[\p{L}\d])/u)
-        break if _tmp
-        self.pos = _save1
-
-        _save2 = self.pos
-        while true # sequence
-          _save3 = self.pos
-          _tmp = match_string(":")
-          _tmp = _tmp ? nil : true
-          self.pos = _save3
-          unless _tmp
-            self.pos = _save2
-            break
-          end
-          _tmp = apply(:_op_letter)
-          unless _tmp
-            self.pos = _save2
-          end
-          break
-        end # end sequence
-
-        break if _tmp
-        self.pos = _save1
-        break
-      end # end choice
-
-      if _tmp
-        text = get_text(_text_start)
-      end
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  text ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_ident_letter unless _tmp
-    return _tmp
-  end
-
   # op_letter = < /[\p{S}!@#%&*\-\\:.\/\?]/ > { text.to_sym }
   def _op_letter
 
@@ -888,31 +808,13 @@ class Atomy::Parser
     return _tmp
   end
 
-  # identifier = < ident_start ident_letter* > { text.tr("-", "_").to_sym }
+  # identifier = < /[\p{Ll}_][\p{L}\d\-_]*[!\?]?/ > { text.tr("-", "_").to_sym }
   def _identifier
 
     _save = self.pos
     while true # sequence
       _text_start = self.pos
-
-      _save1 = self.pos
-      while true # sequence
-        _tmp = apply(:_ident_start)
-        unless _tmp
-          self.pos = _save1
-          break
-        end
-        while true
-          _tmp = apply(:_ident_letter)
-          break unless _tmp
-        end
-        _tmp = true
-        unless _tmp
-          self.pos = _save1
-        end
-        break
-      end # end sequence
-
+      _tmp = scan(/\A(?-mix:[\p{Ll}_][\p{L}\d\-_]*[!\?]?)/u)
       if _tmp
         text = get_text(_text_start)
       end
@@ -3949,11 +3851,9 @@ class Atomy::Parser
   Rules[:_shebang] = rule_info("shebang", "\"\#!\" /.*?$/")
   Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })? | &.)")
   Rules[:_line] = rule_info("line", "{ current_line }")
-  Rules[:_ident_start] = rule_info("ident_start", "< /[\\p{Ll}_]/ > { text }")
-  Rules[:_ident_letter] = rule_info("ident_letter", "< (/[\\p{L}\\d]/ | !\":\" op_letter) > { text }")
   Rules[:_op_letter] = rule_info("op_letter", "< /[\\p{S}!@\#%&*\\-\\\\:.\\/\\?]/ > { text.to_sym }")
   Rules[:_operator] = rule_info("operator", "< op_letter+ > &{ text !~ /[@:]$/ } { text.to_sym }")
-  Rules[:_identifier] = rule_info("identifier", "< ident_start ident_letter* > { text.tr(\"-\", \"_\").to_sym }")
+  Rules[:_identifier] = rule_info("identifier", "< /[\\p{Ll}_][\\p{L}\\d\\-_]*[!\\?]?/ > { text.tr(\"-\", \"_\").to_sym }")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
   Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")
   Rules[:_multi_comment] = rule_info("multi_comment", "\"{-\" in_multi")

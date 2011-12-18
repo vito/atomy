@@ -18,6 +18,29 @@ const-name(c: Atomy::AST::Constant) := c name to-s
 const-name(c: Atomy::AST::ScopedConstant) := const-name(c parent) + "::" + c name to-s
 const-name(c: Atomy::AST::ToplevelConstant) := "::" + c name to-s
 
+process-val(g, `(%((~grammar).) ~(x)(~*args))) := do:
+  `(~g foreign-invoke(
+      ~(grammar text)
+      ~(x text)
+      ~(args collect #show join(", "))
+    ))
+
+process-val(g, `(~a %((~grammar).) ~(x)(~*args))) := do:
+  `(~g seq(
+      ~process-val(g, a),
+      ~g foreign-invoke(
+        ~(grammar text)
+        ~(x text)
+        ~(args collect #show join(", "))
+      )
+    ))
+
+process-val(g, `(%((~grammar).) ~x)) := do:
+  `(~g foreign-invoke(~(grammar text), ~(x text)))
+
+process-val(g, `(~a %((~grammar).) ~x)) := do:
+  `(~g seq(~process-val(g, a), ~g foreign-invoke(~(grammar text), ~(x text))))
+
 process-val(g, `(~a ~b)) :=
   `(~g seq(~process-val(g, a), ~process-val(g, b)))
 
@@ -65,12 +88,6 @@ process-val(g, `^~(c: Atomy::AST::Call)) := do:
 
   `(~g foreign-invoke("parent", ~(c name text to-s), ~args))
 
-process-val(g, `%~(c: Atomy::AST::Call)) := do:
-  [gram, name] = c name text to-s split(".")
-  args = "(" + c arguments collect #show join(", ") + ")"
-
-  `(~g foreign-invoke(~gram, ~name, ~args))
-
 process-val(g, w: Atomy::AST::Word) :=
   `(~g ref(~(w text to-s)))
 
@@ -79,10 +96,6 @@ process-val(g, `@~(w: Atomy::AST::Word)) := do:
 
 process-val(g, `^~(w: Atomy::AST::Word)) := do:
   `(~g foreign-invoke("parent", ~(w text to-s)))
-
-process-val(g, `%~(w: Atomy::AST::Word)) := do:
-  [gram, name] = w text to-s split(".")
-  `(~g foreign-invoke(~gram, ~name))
 
 process-val(g, `=~(name)(~v)) := do:
   when(^rule-vars): ^rule-vars << name text

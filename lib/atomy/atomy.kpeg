@@ -65,15 +65,12 @@
 
            line = { current_line }
 
-    ident_start = < /[\p{Ll}_]/u > { text }
-   ident_letter = < /[\p{L}\d]/u | !":" op_letter > { text }
-
       # \p{S} matches ["$", "+", "<", "=", ">", "^", "`", "|", "~"]
       op_letter = < /[\p{S}!@#%&*\-\\:.\/\?]/u > { text.to_sym }
 
        operator = < op_letter+ > &{ text !~ /[@:]$/ } { text.to_sym }
 
-     identifier = < ident_start ident_letter* > { text.tr("-", "_").to_sym }
+     identifier = < /[\p{Ll}_][\p{L}\d\-_]*[!\?]?/ > { text.tr("-", "_").to_sym }
 
         grouped = "(" wsp expression:x wsp ")" { x }
 
