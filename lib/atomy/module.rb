@@ -54,11 +54,12 @@ module Atomy
     end
 
     def execute_macro(node)
+      safe = node.copy
       [node.macro_name, :_expand].each do |meth|
         next unless meth and respond_to?(meth)
 
         begin
-          return send(meth, node)
+          return send(meth, safe)
         rescue Atomy::MethodFail => e
           # TODO: make sure this is never a false-positive
           raise unless e.method_name == meth
@@ -73,9 +74,8 @@ module Atomy
         return res
       end
 
-      safe = node.copy
       using.each do |u|
-        expanded = u.execute_macro(safe)
+        expanded = u.execute_macro(node)
         return expanded if expanded
       end
 
