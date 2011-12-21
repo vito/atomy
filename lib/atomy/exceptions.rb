@@ -2,13 +2,14 @@ module Atomy
   class MethodFail < ArgumentError
     attr_reader :method_name
 
-    def initialize(mn)
+    def initialize(mn, a)
       @method_name = mn
+      @arguments = a
     end
 
     def message
       "method #{@method_name} did not understand " +
-        "its arguments (non-exhaustive patterns)"
+        "the given arguments: #{@arguments.inspect}"
     end
   end
 

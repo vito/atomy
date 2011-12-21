@@ -152,7 +152,8 @@ module Atomy
       g.find_const :Atomy
       g.find_const :MethodFail
       g.push_literal @name
-      g.send :new, 1
+      g.push_local 0
+      g.send :new, 2
       g.allow_private
       g.send :raise, 1
 

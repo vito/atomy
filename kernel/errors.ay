@@ -3,7 +3,7 @@ use("define")
 
 Atomy::MethodFail message :=
   "method '" + @method-name to-s + "' does not understand " +
-    "the given arguments"
+    "the given arguments: " + @arguments inspect
 
 Atomy::PatternMismatch message :=
   "pattern of type `" + @pattern class name split("::") last +
