@@ -135,7 +135,14 @@ end
 def for_every_pattern
   10.times do
     PATTERN_TYPES.each do |cls|
-      yield cls.arbitrary
+      x = cls.arbitrary
+
+      begin
+        yield x
+      rescue Exception
+        puts "failed with #{x.inspect}"
+        raise
+      end
     end
   end
 end
