@@ -36,9 +36,17 @@ module Atomy::Patterns
       case other
       when Default, Named, BlockPass, Splat
         self <=> other.pattern
+      when Predicate
+        -1
       else
         precision <=> other.precision
       end
+    end
+  end
+
+  class Predicate
+    def <=>(other)
+      1
     end
   end
 
