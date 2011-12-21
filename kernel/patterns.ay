@@ -4,45 +4,6 @@ use("cosmetics")
 use("control-flow")
 
 module(Atomy::Patterns):
-  class(Predicate < Pattern):
-    children(#pattern)
-    attributes(#test)
-    generate
-
-    construct(g) := do:
-      get(g)
-      @pattern construct(g)
-      @test construct(g)
-      g send(#new, 2)
-
-    target(g) := @pattern target(g)
-
-    matches?(g) := do:
-      mismatch = g new-label
-      done = g new-label
-
-      g dup
-      @pattern matches?(g)
-      g gif(mismatch)
-
-      `{ ~@test } bytecode(g)
-      g send(#block, 0)
-      g swap
-      g send(#call-on-instance, 1)
-      g goto(done)
-
-      mismatch set!
-      g pop
-      g push-false
-
-      done set!
-
-    deconstruct(g, locals = ::Hash new) :=
-      @pattern deconstruct(g, locals)
-
-    precision := @pattern precision + 1
-
-
   class(With < Pattern):
     children(#pattern, #sub-pattern)
     attributes(#expression)
