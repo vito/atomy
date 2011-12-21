@@ -29,8 +29,8 @@ module(Atomy::AST):
   `(with(~e, ~y)) to-pattern :=
     Atomy::Patterns::With new(Atomy::Patterns::Any new, y to-pattern, e)
 
-  `@@~(n: Atomy::AST::Word) to-pattern :=
-    Atomy::Patterns::NamedClass new(n text)
+  `@@~(n: ? to-word) to-pattern :=
+    Atomy::Patterns::NamedClass new(n to-word text)
 
   `$0 to-pattern :=
     Atomy::Patterns::NamedGlobal new("0")
@@ -50,11 +50,11 @@ module(Atomy::AST):
   `$~(n: Atomy::AST::String) to-pattern :=
     Atomy::Patterns::NamedGlobal new(n value)
 
-  `$~(n: Atomy::AST::Word) to-pattern :=
-    Atomy::Patterns::NamedGlobal new(n text)
+  `$~(n: ? to-word) to-pattern :=
+    Atomy::Patterns::NamedGlobal new(n to-word text)
 
-  `@~(n: Atomy::AST::Word) to-pattern :=
-    Atomy::Patterns::NamedInstance new(n text)
+  `@~(n: ? to-word) to-pattern :=
+    Atomy::Patterns::NamedInstance new(n to-word text)
 
   `&~x to-pattern :=
     Atomy::Patterns::BlockPass new(x to-pattern)
@@ -74,8 +74,8 @@ module(Atomy::AST):
   'nil to-pattern :=
     Atomy::Patterns::Match new(#nil)
 
-  `#~(x: Atomy::AST::Word) to-pattern :=
-    Atomy::Patterns::Literal new(x text)
+  `#~(x: ? to-word) to-pattern :=
+    Atomy::Patterns::Literal new(x to-word text)
 
   `#~(x: Atomy::AST::Constant) to-pattern :=
     Atomy::Patterns::Literal new(x name)

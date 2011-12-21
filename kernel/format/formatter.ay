@@ -29,7 +29,7 @@ module(Atomy::Format):
     scan(*@input) := do:
       @segments each [s]:
         s match:
-          Break ? symbol?(".") ->
+          Break ? symbol(".")? ->
             when(@iterating empty?):
               @stop? = true
               break
@@ -97,7 +97,7 @@ module(Atomy::Format):
     process(p: Pluralize) := do:
       word = sub-format(p singular)
       num =
-        if(p symbol?(">"))
+        if(p symbol(">")?)
           then: peek-input
           else: next-input
 
@@ -129,21 +129,21 @@ module(Atomy::Format):
       @output << sub-format(u content) upcase
 
     process(s: Skip) :=
-      if(s symbol?("<"))
+      if(s symbol("<")?)
         then: @position -= number(s)
         else: @position += number(s)
 
     process(i: Indirection) :=
-      if(i symbol?("*"))
+      if(i symbol("*")?)
         then:
           @output << sub-format(next-input)
         else:
           @output << next-input format(*next-input)
 
     process(i: Iterate) := do:
-      splat? = i symbol?("*")
-      sub? = i symbol?(".")
-      always-run? = i symbol?("+")
+      splat? = i symbol("*")?
+      sub? = i symbol(".")?
+      always-run? = i symbol("+")?
       iterations = number(i, nil)
 
       inputs =
@@ -179,7 +179,7 @@ module(Atomy::Format):
         else: [@input, @position] = before
 
     process(c: Conditional) :=
-      [c symbol?("?"), c branches] match:
+      [c symbol("?")?, c branches] match:
         [true, t . (f . _)] ->
           @output << sub-format(if(next-input) then: t; else: f)
 
@@ -272,7 +272,7 @@ module(Atomy::Format):
 
     number(s, default = 1) := do:
       s flags each [f]:
-        when(f is-a?(Number)):
+        when(f is-a(Number)?):
           return(f value || next-inputs size)
 
       default
@@ -285,10 +285,10 @@ module(Atomy::Format):
           padding = if(j zero-pad?) then: "0"; else: " "
 
           condition:
-            j symbol?("=") || j symbol?("<") && j symbol?(">") ->
+            j symbol("=")? || j symbol("<")? && j symbol(">")? ->
               s center(w, padding)
 
-            left? && !(j symbol?(">")) || j symbol?("<") ->
+            left? && !(j symbol(">")?) || j symbol("<")? ->
               s ljust(w, padding)
 
             otherwise ->
@@ -306,13 +306,13 @@ module(Atomy::Format):
 
       spacings =
         condition:
-          j symbol?("<") && j symbol?(">") || j symbol?("=") ->
+          j symbol("<")? && j symbol(">")? || j symbol("=")? ->
             all size + 1
 
-          j symbol?("<") ->
+          j symbol("<")? ->
             all size
 
-          j symbol?(">") ->
+          j symbol(">")? ->
             all size
 
           otherwise ->
@@ -326,7 +326,7 @@ module(Atomy::Format):
           else: naive-average
 
       condition:
-        j symbol?("<") || j symbol?("=") ->
+        j symbol("<")? || j symbol("=")? ->
           [ " " * naive-average
             s
             " " * average
@@ -341,7 +341,7 @@ module(Atomy::Format):
 
     spaced(_, _, _, []) := ""
     spaced(j, _, left, [s]) :=
-      if(j symbol?(">") || j symbol?("="))
+      if(j symbol(">")? || j symbol("=")?)
         then: s + " " * left
         else: " " * left + s
     spaced(j, average, left, s . ss) :=

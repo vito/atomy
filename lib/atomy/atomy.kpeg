@@ -70,7 +70,7 @@
 
        operator = < op_letter+ > &{ text !~ /[@:]$/ } { text.to_sym }
 
-     identifier = < /[\p{Ll}_][\p{L}\d\-_]*[!\?]?/ > { text.tr("-", "_").to_sym }
+     identifier = < /[\p{Ll}_][\p{L}\d\-_]*/ > { text.tr("-", "_").to_sym }
 
         grouped = "(" wsp expression:x wsp ")" { x }
 
@@ -137,13 +137,15 @@
     set_lang(n) = { @_grammar_lang = require("#{n}/language/parser").new(nil) }
        language = ".language" wsp identifier:n set_lang(n) %lang.root
 
-          quote = line:line "'" level2:e
+         quoted = (scoped_constant | level1):e { e }
+
+          quote = line:line "'" quoted:e
                     { Atomy::AST::Quote.new(line, e) }
-    quasi_quote = line:line "`" level2:e
+    quasi_quote = line:line "`" quoted:e
                     { Atomy::AST::QuasiQuote.new(line, e) }
-         splice = line:line "~*" level2:e
+         splice = line:line "~*" quoted:e
                     { Atomy::AST::Splice.new(line, e) }
-        unquote = line:line "~" level2:e
+        unquote = line:line "~" quoted:e
                     { Atomy::AST::Unquote.new(line, e) }
 
          escape = number_escapes | escapes

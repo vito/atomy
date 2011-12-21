@@ -497,6 +497,10 @@ EOF
       def macro_name
         nil
       end
+
+      def to_word
+        nil
+      end
     end
 
     class Node < Rubinius::AST::Node

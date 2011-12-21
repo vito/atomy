@@ -808,13 +808,13 @@ class Atomy::Parser
     return _tmp
   end
 
-  # identifier = < /[\p{Ll}_][\p{L}\d\-_]*[!\?]?/ > { text.tr("-", "_").to_sym }
+  # identifier = < /[\p{Ll}_][\p{L}\d\-_]*/ > { text.tr("-", "_").to_sym }
   def _identifier
 
     _save = self.pos
     while true # sequence
       _text_start = self.pos
-      _tmp = scan(/\A(?-mix:[\p{Ll}_][\p{L}\d\-_]*[!\?]?)/u)
+      _tmp = scan(/\A(?-mix:[\p{Ll}_][\p{L}\d\-_]*)/u)
       if _tmp
         text = get_text(_text_start)
       end
@@ -1726,7 +1726,41 @@ class Atomy::Parser
     return _tmp
   end
 
-  # quote = line:line "'" level2:e { Atomy::AST::Quote.new(line, e) }
+  # quoted = (scoped_constant | level1):e { e }
+  def _quoted
+
+    _save = self.pos
+    while true # sequence
+
+      _save1 = self.pos
+      while true # choice
+        _tmp = apply(:_scoped_constant)
+        break if _tmp
+        self.pos = _save1
+        _tmp = apply(:_level1)
+        break if _tmp
+        self.pos = _save1
+        break
+      end # end choice
+
+      e = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  e ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_quoted unless _tmp
+    return _tmp
+  end
+
+  # quote = line:line "'" quoted:e { Atomy::AST::Quote.new(line, e) }
   def _quote
 
     _save = self.pos
@@ -1742,7 +1776,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_level2)
+      _tmp = apply(:_quoted)
       e = @result
       unless _tmp
         self.pos = _save
@@ -1760,7 +1794,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # quasi_quote = line:line "`" level2:e { Atomy::AST::QuasiQuote.new(line, e) }
+  # quasi_quote = line:line "`" quoted:e { Atomy::AST::QuasiQuote.new(line, e) }
   def _quasi_quote
 
     _save = self.pos
@@ -1776,7 +1810,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_level2)
+      _tmp = apply(:_quoted)
       e = @result
       unless _tmp
         self.pos = _save
@@ -1794,7 +1828,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # splice = line:line "~*" level2:e { Atomy::AST::Splice.new(line, e) }
+  # splice = line:line "~*" quoted:e { Atomy::AST::Splice.new(line, e) }
   def _splice
 
     _save = self.pos
@@ -1810,7 +1844,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_level2)
+      _tmp = apply(:_quoted)
       e = @result
       unless _tmp
         self.pos = _save
@@ -1828,7 +1862,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # unquote = line:line "~" level2:e { Atomy::AST::Unquote.new(line, e) }
+  # unquote = line:line "~" quoted:e { Atomy::AST::Unquote.new(line, e) }
   def _unquote
 
     _save = self.pos
@@ -1844,7 +1878,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_level2)
+      _tmp = apply(:_quoted)
       e = @result
       unless _tmp
         self.pos = _save
@@ -3853,7 +3887,7 @@ class Atomy::Parser
   Rules[:_line] = rule_info("line", "{ current_line }")
   Rules[:_op_letter] = rule_info("op_letter", "< /[\\p{S}!@\#%&*\\-\\\\:.\\/\\?]/ > { text.to_sym }")
   Rules[:_operator] = rule_info("operator", "< op_letter+ > &{ text !~ /[@:]$/ } { text.to_sym }")
-  Rules[:_identifier] = rule_info("identifier", "< /[\\p{Ll}_][\\p{L}\\d\\-_]*[!\\?]?/ > { text.tr(\"-\", \"_\").to_sym }")
+  Rules[:_identifier] = rule_info("identifier", "< /[\\p{Ll}_][\\p{L}\\d\\-_]*/ > { text.tr(\"-\", \"_\").to_sym }")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
   Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")
   Rules[:_multi_comment] = rule_info("multi_comment", "\"{-\" in_multi")
@@ -3873,10 +3907,11 @@ class Atomy::Parser
   Rules[:_infix] = rule_info("infix", "line:line \".infix\" op_assoc?:assoc op_prec:prec (sig_sp operator)+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }")
   Rules[:_set_lang] = rule_info("set_lang", "{ @_grammar_lang = require(\"\#{n}/language/parser\").new(nil) }")
   Rules[:_language] = rule_info("language", "\".language\" wsp identifier:n set_lang(n) %lang.root")
-  Rules[:_quote] = rule_info("quote", "line:line \"'\" level2:e { Atomy::AST::Quote.new(line, e) }")
-  Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level2:e { Atomy::AST::QuasiQuote.new(line, e) }")
-  Rules[:_splice] = rule_info("splice", "line:line \"~*\" level2:e { Atomy::AST::Splice.new(line, e) }")
-  Rules[:_unquote] = rule_info("unquote", "line:line \"~\" level2:e { Atomy::AST::Unquote.new(line, e) }")
+  Rules[:_quoted] = rule_info("quoted", "(scoped_constant | level1):e { e }")
+  Rules[:_quote] = rule_info("quote", "line:line \"'\" quoted:e { Atomy::AST::Quote.new(line, e) }")
+  Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" quoted:e { Atomy::AST::QuasiQuote.new(line, e) }")
+  Rules[:_splice] = rule_info("splice", "line:line \"~*\" quoted:e { Atomy::AST::Splice.new(line, e) }")
+  Rules[:_unquote] = rule_info("unquote", "line:line \"~\" quoted:e { Atomy::AST::Unquote.new(line, e) }")
   Rules[:_escape] = rule_info("escape", "(number_escapes | escapes)")
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
   Rules[:_string] = rule_info("string", "line:line \"\\\"\" < (\"\\\\\" escape | str_seq)*:c > \"\\\"\" { Atomy::AST::String.new(                         line,                         c.join,                         text.gsub(\"\\\\\\\"\", \"\\\"\")                       )                     }")

@@ -124,7 +124,7 @@ Doc   <$$> y     := self <> linebreak <> y
 ([i, Nesting(f)] . ds) be(w, k) := ([i, f [i]] . ds) be(w, k)
 ([i, u: Union]   . ds) be(w, k) := do:
   flattened = ([i, u x] . ds) be(w, k)
-  if(flattened fits?(w - k))
+  if(flattened fits(w - k)?)
     then: flattened
     else: ([i, u y] . ds) be(w, k)
 
@@ -132,8 +132,8 @@ Doc   <$$> y     := self <> linebreak <> y
 Doc best(w, k) := [[0, self]] be(w, k)
 
 -- test that a document can fit in a given width
-SText fits?(w) := w >= 0 && rest fits?(w - @value size)
-SDoc  fits?(w) := w >= 0
+SText fits(w)? := w >= 0 && rest fits(w - @value size)?
+SDoc  fits(w)? := w >= 0
 
 -- rendering to a string
 SEmpty layout := ""

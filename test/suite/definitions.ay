@@ -50,12 +50,12 @@ describe("definitions"):
         res = baz(1) &x
         res at(0) should-be(1)
         res at(1) should-be([])
-        res at(2) should: kind-of?(Proc)
+        res at(2) should: kind-of(Proc)?
 
         res = baz(1, 2, 3) &x
         res at(0) should-be(1)
         res at(1) should-be([2, 3])
-        res at(2) should: kind-of?(Proc)
+        res at(2) should: kind-of(Proc)?
 
     describe("default"):
       it("doesn't have to be passed"):

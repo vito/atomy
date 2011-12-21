@@ -18,7 +18,7 @@ module(Atomy::Patterns):
       g send(#new, 2)
 
     (== b) :=
-      b kind-of?(NamedRedirectedInstance) &&
+      b is-a(NamedRedirectedInstance)? &&
         @target == b target &&
         @identifier == b identifier
 
@@ -42,7 +42,7 @@ module(Atomy::Patterns):
       g send(#new, 2)
 
     (== b) :=
-      b kind-of?(NamedRedirectedClass) &&
+      b is-a(NamedRedirectedClass)? &&
         @target == b target &&
         @identifier == b identifier
 
@@ -121,11 +121,11 @@ macro(with-variables-of(~x) ~(b: Block)):
     body = b contents collect [c]:
       c through-quotes([n]: n match: `@@~_ -> true) [n]:
         n match:
-          `@@~(name: Word) ->
-            RedirectedClassVariable new(n line, val, name text)
+          `@@~(name: ? to-word) ->
+            RedirectedClassVariable new(n line, val, name to-word text)
 
-          `@~(name: Word) ->
-            RedirectedInstanceVariable new(n line, val, name text)
+          `@~(name: ? to-word) ->
+            RedirectedInstanceVariable new(n line, val, name to-word text)
 
           _ -> n
 

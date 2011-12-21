@@ -42,6 +42,20 @@ module Atomy::Patterns
     end
   end
 
+  class Match
+    def <=>(other)
+      return 0 if other.is_a?(self.class)
+      1
+    end
+  end
+
+  class Literal
+    def <=>(other)
+      return 0 if other.is_a?(self.class)
+      1
+    end
+  end
+
   class BlockPass
     def <=>(other)
       case other
@@ -234,6 +248,13 @@ module Atomy::Patterns
     end
   end
 
+  class Quote
+    def <=>(other)
+      return 0 if other.is_a?(self.class)
+      1
+    end
+  end
+
 
   class Pattern
     def =~(other)
@@ -241,7 +262,7 @@ module Atomy::Patterns
       when Default, Named
         self =~ other.pattern
       else
-        false
+        self == other
       end
     end
   end

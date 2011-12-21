@@ -14,13 +14,13 @@ module(Atomy):
 
   Particle to-proc := [*args]:
     [recv, cur] =
-      if(@receiver equal?(_undefined))
+      if(@receiver equal(_undefined)?)
         then: [args[0], 1]
         else: [@receiver, 0]
 
     filled =
       @arguments collect [v]:
-        if(v equal?(_undefined))
+        if(v equal(_undefined)?)
           then:
             cur += 1
             args[cur - 1]
@@ -30,7 +30,7 @@ module(Atomy):
     recv send(@message, *filled)
 
   Particle arity :=
-    (@receiver . @arguments) select #equal?(_undefined) size
+    (@receiver . @arguments) select #equal(_undefined)? size
 
 Symbol call(*args) := to-proc [*args]
 
@@ -46,10 +46,38 @@ macro(#(~(x)(~*as))):
       ~(as collect [c]: wildcard(c))
     ))
 
+macro(#(~(x)(~*as))?):
+  `(Atomy::Particle new(
+      _undefined
+      #(~x)?
+      ~(as collect [c]: wildcard(c))
+    ))
+
+macro(#(~(x)(~*as))!):
+  `(Atomy::Particle new(
+      _undefined
+      #(~x)!
+      ~(as collect [c]: wildcard(c))
+    ))
+
 macro(#(~r ~(x)(~*as))):
   `(Atomy::Particle new(
       ~(wildcard(r))
       #~x
+      ~(as collect [c]: wildcard(c))
+    ))
+
+macro(#(~r ~(x)(~*as))?):
+  `(Atomy::Particle new(
+      ~(wildcard(r))
+      #(~x)?
+      ~(as collect [c]: wildcard(c))
+    ))
+
+macro(#(~r ~(x)(~*as))!):
+  `(Atomy::Particle new(
+      ~(wildcard(r))
+      #(~x)!
       ~(as collect [c]: wildcard(c))
     ))
 
@@ -81,7 +109,7 @@ module(Atomy::Patterns):
       g send(#new, 3)
 
     (== b) :=
-      b kind-of?(Particle) &&
+      b kind-of(Particle)? &&
         @receiver == b receiver &&
         @message == b message &&
         @arguments == b arguments
@@ -91,7 +119,7 @@ module(Atomy::Patterns):
       g find-const(#Atomy)
       g find-const(#Particle)
 
-    matches?(g) := do:
+    matches(g)? := do:
       mismatch = g new-label
       done = g new-label
 
@@ -109,11 +137,11 @@ module(Atomy::Patterns):
 
       g dup
       g send(#receiver, 0)
-      @receiver matches?(g)
+      @receiver matches(g)?
       g gif(mismatch)
 
       g send(#arguments, 0)
-      @arguments matches?(g)
+      @arguments matches(g)?
       g dup
       g git(done)
 
@@ -151,8 +179,32 @@ module(Atomy::Patterns):
     x text
     `[~*as] to-pattern
 
+`#(~(x: Atomy::AST::Word)(~*as)?) to-pattern :=
+  Atomy::Patterns::Particle new $:
+    '_ to-pattern
+    `((~x)?) to-word text
+    `[~*as] to-pattern
+
+`#(~(x: Atomy::AST::Word)(~*as)!) to-pattern :=
+  Atomy::Patterns::Particle new $:
+    '_ to-pattern
+    `((~x)!) to-word text
+    `[~*as] to-pattern
+
 `#(~r ~(x: Atomy::AST::Word)(~*as)) to-pattern :=
   Atomy::Patterns::Particle new $:
     r to-pattern
     x text
+    `[~*as] to-pattern
+
+`#(~r ~(x: Atomy::AST::Word)(~*as)?) to-pattern :=
+  Atomy::Patterns::Particle new $:
+    r to-pattern
+    `((~x)?) to-word text
+    `[~*as] to-pattern
+
+`#(~r ~(x: Atomy::AST::Word)(~*as)!) to-pattern :=
+  Atomy::Patterns::Particle new $:
+    r to-pattern
+    `((~x)!) to-word text
     `[~*as] to-pattern

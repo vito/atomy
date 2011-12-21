@@ -18,6 +18,14 @@ module Atomy
       def macro_name
         :"atomy_macro::#{@operator}@@"
       end
+
+      def to_word
+        return unless @receiver.is_a?(Word)
+        case @operator
+        when :"!", :"?"
+          Word.new(@line, :"#{@receiver.text}#{@operator}")
+        end
+      end
     end
   end
 end

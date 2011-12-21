@@ -1,11 +1,11 @@
 use("operators")
 
 -- a macro so we can actually, you know, send messages
-macro(~_ ~Word): make-send(node)
+macro(~_ ~(? to-word)): make-send(node)
 
-macro(~_ ~(Word)(~*_)): make-send(node)
+macro(~_ ~(? to-word)(~*_)): make-send(node)
 
-macro(~(Word)(~*_)): node to-send
+macro(~(? to-word)(~*_)): node to-send
 
 macro(nil): Primitive new(node line, "nil" to-sym)
 
@@ -34,52 +34,52 @@ macro(&~blk ~(b: Block)):
   b
 
 -- foo { bar }
-macro(~(w: Word) ~(b: Block)):
+macro(~(w: ? to-word) ~(b: Block)):
   x = w to-send
   x block = b
   x
 
 -- foo(a) { bar }
-macro(~(Word)(~*_) ~(b: Block)):
+macro(~(? to-word)(~*_) ~(b: Block)):
   x = node left to-send
   x block = b
   x
 
 -- x foo { bar }
-macro(~_ ~Word ~(b: Block)):
+macro(~_ ~(? to-word) ~(b: Block)):
   x = node left to-send
   x block = b
   x
 
 -- x foo(a) { bar }
-macro(~_ ~(Word)(~*_) ~(b: Block)):
+macro(~_ ~(? to-word)(~*_) ~(b: Block)):
   x = node left to-send
   x block = b
   x
 
 -- collect [x] { x + 1 }
-macro(~Word [~*ys] ~(z: Block)):
+macro(~(? to-word) [~*ys] ~(z: Block)):
   z arguments = ys
   x = node left left to-send
   x block = z
   x
 
 -- collect(a) [x] { x + 1 }
-macro(~(call: `(~(Word)(~*_))) [~*ys] ~(z: Block)):
+macro(~(call: `(~(? to-word)(~*_))) [~*ys] ~(z: Block)):
   z arguments = ys
   x = call to-send
   x block = z
   x
 
 -- [1, 2, 3] collect [x] { x + 1 }
-macro(~(call: `(~_ ~Word)) [~*ys] ~(z: Block)):
+macro(~(call: `(~_ ~(? to-word))) [~*ys] ~(z: Block)):
   z arguments = ys
   x = call to-send
   x block = z
   x
 
 -- [1, 2, 3] collect(a) [x] { x + 1 }
-macro(~(call: `(~_ ~(Word)(~*_))) [~*ys] ~(z: Block)):
+macro(~(call: `(~_ ~(? to-word)(~*_))) [~*ys] ~(z: Block)):
   z arguments = ys
   x = call to-send
   x block = z
@@ -89,15 +89,15 @@ macro(~(call: `(~_ ~(Word)(~*_))) [~*ys] ~(z: Block)):
 macro(~x #~y): `(~x &#~y)
 
 -- block-passing
-macro(~_ ~Word &~_):
+macro(~_ ~(? to-word) &~_):
   node left to-send tap [s]:
     s block = node right
 
-macro(~(Word)(~*_) &~_):
+macro(~(? to-word)(~*_) &~_):
   node left to-send tap [x]:
     x block = node right
 
-macro(~_ ~(Word)(~*_) &~_):
+macro(~_ ~(? to-word)(~*_) &~_):
   node left to-send tap [s]:
     s block = node right
 
@@ -142,11 +142,11 @@ macro(&~x):
 macro(*~x):
   Splat new(node line, x)
 
-macro(@~(x: Word)):
-  InstanceVariable new(node line, x text)
+macro(@~(x: ? to-word)):
+  InstanceVariable new(node line, x to-word text)
 
-macro(@@~(x: Word)):
-  ClassVariable new(node line, x text)
+macro(@@~(x: ? to-word)):
+  ClassVariable new(node line, x to-word text)
 
 macro($0):
   GlobalVariable new(node line, "0" to-sym)
@@ -157,8 +157,8 @@ macro($~(x: String)):
 macro($~(x: Constant)):
   GlobalVariable new(node line, x name)
 
-macro($~(x: Word)):
-  GlobalVariable new(node line, x text)
+macro($~(x: ? to-word)):
+  GlobalVariable new(node line, x to-word text)
 
 macro($exception):
   GlobalVariable new(node line, "!" to-sym)
@@ -172,8 +172,60 @@ macro($separator):
 macro(#~(x: Constant)):
   Literal new(node line, x name)
 
-macro(#~(x: Word)):
-  Literal new(node line, x text)
+macro(#~(x: ? to-word)):
+  Literal new(node line, x to-word text)
 
 macro(#~(x: String)):
   Literal new(node line, x value to-sym)
+
+-- bar?
+macro((~Word)?):
+  node receiver tap [r]:
+    r text = (r text to-s + "?") to-sym
+
+-- x bar?
+macro(~x (~Word)?):
+  node right =
+    node right receiver tap [r]:
+      r text = (r text to-s + "?") to-sym
+
+  node
+
+-- bar(...)?
+macro(~(Word)(~*args)?):
+  node receiver tap [r]:
+    r name text = (r name text to-s + "?") to-sym
+
+-- foo bar(...)?
+macro(~x ~(Word)(~*args)?):
+  node right =
+    node right receiver tap [r]:
+      r name text = (r name text to-s + "?") to-sym
+
+  node
+
+-- bar!
+macro((~Word)!):
+  node receiver tap [r]:
+    r text = (r text to-s + "!") to-sym
+
+-- x bar!
+macro(~x (~Word)!):
+  node right =
+    node right receiver tap [r]:
+      r text = (r text to-s + "!") to-sym
+
+  node
+
+-- bar(...)!
+macro(~(Word)(~*args)!):
+  node receiver tap [r]:
+    r name text = (r name text to-s + "!") to-sym
+
+-- foo bar(...)!
+macro(~x ~(Word)(~*args)!):
+  node right =
+    node right receiver tap [r]:
+      r name text = (r name text to-s + "!") to-sym
+
+  node

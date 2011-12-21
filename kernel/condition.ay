@@ -1,5 +1,5 @@
 use("core")
-use("define")
+Define = use("define")
 use("data")
 use("control-flow")
 use("loop")
@@ -13,21 +13,15 @@ IO = use("io")
 dynamic(handlers, [])
 dynamic(restarts, [])
 
-catcher(x) :=
-  x match:
-    Atomy::AST::Word ->
-      #"restart:#{x text}"
-
-    Atomy::AST::Compose ->
-      #"restart:#{x left text}"
-
-    Atomy::AST::Call ->
-      #"restart:#{x name text}"
+catcher(x) := #"restart:#{Define message-name(x)}"
+message-name(x) := Define message-name(x)
+arguments(x) := Define arguments(x)
+block(x) := Define block(x)
 
 data(Restart(@name, @action))
 
 Restart invoke(*args) :=
-  throw(#"restart:#{name}", @action [*args])
+  throw(#"restart:#{@name}", @action [*args])
 
 data(Condition):
   Error(@backtrace):
@@ -65,15 +59,10 @@ macro(with-restarts(~*restarts) ~(block: Block)):
   pairs = pairs-from(restarts)
 
   rs = pairs collect [[n, e]]:
-    n match:
-      Word ->
-        `((~module)::Restart new(#~n, { ~e }))
-
-      `(~(n)(~*as)) ->
-        `((~module)::Restart new(#~n, [~*as] { ~e }))
-
-      `(~(n)(~*as) &~b) ->
-        `((~module)::Restart new(#~n, [~*as] &~b { ~e }))
+    `((~module)::Restart new(
+        ~message-name(n)
+        [~*arguments(n)] &~block(n) { ~e }
+      ))
 
   body =
     pairs reduce(

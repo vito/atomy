@@ -74,7 +74,7 @@ module(Atomy::Format):
   ast:
     Formatter([#segments])
 
-  Segment symbol?(m) :=
+  Segment symbol(m)? :=
     @flags any? [f]:
       f match:
         Symbol -> f character == m
@@ -82,7 +82,7 @@ module(Atomy::Format):
 
   Segment precision := do:
     @flags each [f]:
-      when(f is-a?(Precision)):
+      when(f is-a(Precision)?):
         return(f value)
 
     nil

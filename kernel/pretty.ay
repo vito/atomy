@@ -31,25 +31,27 @@ from(*where) &y :=
   let(context = where flatten):
     y call
 
-from?(*where) :=
+from(*where)? :=
   [^context, where] match:
     [(a: Array), (b: Array)] ->
-      a any? [x]: b include?(x)
+      a any? [x]: b include(x)?
     [(a: Array), b] ->
-      a include?(b)
+      a include(b)?
     [a, (b: Array)] ->
-      b include?(a)
+      b include(a)?
     [a, b] ->
       a == b
 
 Object pretty :=
-  if(^printing member?(self))
+  if(^printing member(self)?)
     then: text("...")
     else:
       let(printing = self . ^printing):
         pretty-print
 
-Object show := pretty flatten render
+Object show :=
+  let(colored? = false):
+    pretty flatten render
 
 Array all-pretty := collect [x]: x pretty
 
@@ -87,7 +89,7 @@ Array pretty-print := list(all-pretty)
 
 Atomy::Particle pretty-print := do:
   wildcard = [c]:
-    if(c equal?(_undefined))
+    if(c equal(_undefined)?)
       then: '_
       else: c
 
@@ -104,7 +106,7 @@ Atomy::Particle pretty-print := do:
           tupled(args all-pretty)
 
   partial =
-    if(@receiver equal?(_undefined))
+    if(@receiver equal(_undefined)?)
       then:
         if(operator?)
           then: parens(msg+args)
@@ -133,7 +135,7 @@ module(::Atomy::AST):
   ClassVariable unamb := pretty
   Call unamb := pretty
   Compose unamb :=
-    if(from?(#binary, #compose))
+    if(from(#binary, #compose)?)
       then: pretty
       else: parens(pretty)
   Constant unamb := pretty
@@ -146,25 +148,22 @@ module(::Atomy::AST):
   Quote unamb := pretty
   ScopedConstant unamb := pretty
   Send unamb :=
-    if(from?(#binary, #compose))
+    if(from(#binary, #compose)?)
       then: pretty
       else: parens(pretty)
   Splice unamb := pretty
   String unamb := pretty
   ToplevelConstant unamb := pretty
   Prefix unamb :=
-    if(from?(#postfix))
+    if(from(#postfix)?)
       then: parens(pretty)
       else: pretty
   Postfix unamb :=
-    if(from?(#postfix))
+    if(from(#postfix)?)
       then: parens(pretty)
       else: pretty
   Unquote unamb := pretty
-  Word unamb :=
-    if(from?(#postfix))
-      then: parens(pretty)
-      else: pretty
+  Word unamb := pretty
   Pattern unamb := @pattern unamb
   Node unamb := parens(pretty)
 
@@ -180,7 +179,7 @@ module(::Atomy::AST):
 
     contents = comma separate(pretty-body(@contents))
 
-    if(from?(#send-block) && from?(#top))
+    if(from(#send-block)? && from(#top)?)
       then: args <> colon <+> contents
       else: align(args <+> (lbrace </> contents) nest(2) </> rbrace)
 
@@ -269,7 +268,7 @@ module(::Atomy::Patterns):
   Literal pretty-print := @value pretty
   Match pretty-print := @value pretty
   Named pretty-print :=
-    if(@pattern is-a?(Any))
+    if(@pattern is-a(Any)?)
       then: text(@name)
       else: text(@name) <> text(":") <+> @pattern pretty
   NamedClass pretty-print :=
@@ -297,7 +296,7 @@ module(::Atomy::Patterns):
   Default unamb := parens(pretty)
   HeadTail unamb := parens(pretty)
   Named unamb :=
-    if(@pattern is-a?(Any))
+    if(@pattern is-a(Any)?)
       then: pretty
       else: parens(pretty)
   Or unamb := parens(pretty)

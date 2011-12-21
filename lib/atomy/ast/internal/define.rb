@@ -1,42 +1,33 @@
 module Atomy
   module AST
     class Define < Node
-      children :pattern, :body
+      children :body, :receiver, [:arguments], :block?
+      attributes :method_name, [:defn, "false"]
       generate
 
-      def arguments
-        @arguments ||=
-          get_arguments(@pattern).collect(&:to_pattern) ||
-            raise("unknown pattern #{@pattern.inspect}")
+      def argument_patterns
+        @argument_patterns ||= @arguments.collect(&:to_pattern)
       end
 
-      def receiver
-        @receiver ||=
-          get_receiver(@pattern).to_pattern ||
-            raise("unknown pattern #{@pattern.inspect}")
+      def receiver_pattern
+        @receiver_pattern ||= @receiver.to_pattern
       end
 
-      def message_name
-        @message_name ||=
-          get_message_name(@pattern) ||
-            raise("unknown pattern #{@pattern.inspect}")
-      end
-
-      def block
-        @block ||= get_block(@pattern)
+      def block_pattern
+        @block && @block.to_pattern
       end
 
       def compile_body(g)
-        meth = new_generator(g, message_name)
+        meth = new_generator(g, @method_name)
 
         pos(meth)
 
         meth.push_state Rubinius::AST::ClosedScope.new(@line)
-        # TODO: push a super that calls message_name, not the branch's name
+        # TODO: push a super that calls method_name, not the branch's name
         #meth.state.push_super self
         meth.definition_line(@line)
 
-        meth.state.push_name message_name
+        meth.state.push_name @method_name
 
         meth.state.scope.new_local(:arguments)
 
@@ -44,19 +35,19 @@ module Atomy
         meth.total_args = 0
         meth.required_args = 0
 
-        if receiver.binds?
+        if receiver_pattern.binds?
           meth.push_self
-          receiver.deconstruct(meth)
+          receiver_pattern.deconstruct(meth)
         end
 
-        if block
+        if block_pattern
           meth.push_block_arg
-          block.deconstruct(meth)
+          block_pattern.deconstruct(meth)
         end
 
-        if arguments.size > 0
+        if argument_patterns.size > 0
           meth.push_local(0)
-          arguments.each do |a|
+          argument_patterns.each do |a|
             case a
             when Patterns::Splat
               meth.dup
@@ -94,7 +85,7 @@ module Atomy
         req = []
         dfs = []
         spl = nil
-        arguments.each do |a|
+        argument_patterns.each do |a|
           case a
           when Patterns::Splat
             spl = a
@@ -109,7 +100,7 @@ module Atomy
         g.find_const :Atomy
         g.find_const :Branch
 
-        receiver.construct(g)
+        receiver_pattern.construct(g)
 
         req.each do |r|
           r.construct(g)
@@ -127,8 +118,8 @@ module Atomy
           g.push_nil
         end
 
-        if block
-          block.construct(g)
+        if block_pattern
+          block_pattern.construct(g)
         else
           g.push_nil
         end
@@ -139,12 +130,14 @@ module Atomy
       def bytecode(g)
         pos(g)
 
-        defn = receiver.kind_of?(Patterns::Match) && receiver.value == :self
-
         g.push_cpath_top
         g.find_const :Atomy
-        receiver.target(g)
-        g.push_literal message_name
+        if @defn
+          g.push_self
+        else
+          receiver_pattern.target(g)
+        end
+        g.push_literal @method_name
         push_method(g)
 
         g.push_generator compile_body(g)
@@ -153,14 +146,14 @@ module Atomy
         g.send :"scope=", 1
         g.pop
 
-        if defn
+        if @defn
           g.push_variables
           g.send :method_visibility, 0
         else
           g.push_literal :public
         end
         g.push_scope
-        g.push_literal defn
+        g.push_literal @defn
         g.send :define_branch, 7
       end
 
@@ -169,93 +162,8 @@ module Atomy
       end
 
       def local_names
-        arguments.inject(receiver.local_names) do |acc, a|
+        argument_patterns.inject(receiver_pattern.local_names) do |acc, a|
           acc + a.local_names
-        end
-      end
-
-    private
-
-      def get_arguments(x)
-        case x
-        when Binary
-          [x.rhs]
-        when Word, Prefix, Postfix
-          []
-        when Call
-          x.arguments
-        when Compose
-          case x.right
-          when Call
-            x.right.arguments
-          when Word
-            []
-          when List
-            x.right.elements
-          when Compose
-            if x.right.right.is_a?(Prefix) and x.right.right.operator == :&
-              get_arguments(x.right.left)
-            end
-          when Prefix, Postfix
-            get_arguments(x.left)
-          end
-        end
-      end
-
-      def get_receiver(x)
-        case x
-        when Binary
-          x.lhs
-        when Prefix, Postfix
-          x.receiver
-        when Call, Word
-          Primitive.new(x.line, :self)
-        when Compose
-          if x.right.is_a?(Prefix) and x.right.operator == :&
-            get_receiver(x.left)
-          else
-            x.left
-          end
-        end
-      end
-
-      def get_message_name(x)
-        case x
-        when Word
-          x.text
-        when Call
-          x.name.text
-        when Compose
-          case x.right
-          when Word
-            x.right.text
-          when Call
-            x.right.name.text
-          when List
-            :[]
-          when Compose
-            if x.right.right.is_a?(Prefix) and x.right.right.operator == :&
-              get_message_name(x.right.left)
-            end
-          when Prefix, Postfix
-            get_message_name(x.left)
-          end
-        else
-          x.message_name
-        end
-      end
-
-      def get_block(x)
-        case x
-        when Compose
-          case x.right
-          when Compose
-            if x.right.right.is_a?(Prefix) and x.right.right.operator == :&
-              x.right.right.to_pattern
-            end
-          when Prefix
-            x.right.to_pattern
-          end
         end
       end
     end

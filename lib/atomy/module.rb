@@ -12,43 +12,43 @@ module Atomy
       node.to_send
     end
 
-    def define_macro(pattern, body, file)
+    def macro_definer(pattern, body)
       name = pattern.macro_name || :_expand
 
       Atomy::AST::Define.new(
         0,
-        Atomy::AST::Compose.new(
-          0,
-          Atomy::AST::Block.new(
-            0,
-            [Atomy::AST::Literal.new(0, self)],
-            []
-          ),
-          Atomy::AST::Call.new(
-            0,
-            Atomy::AST::Word.new(0, name),
-            [Atomy::AST::Compose.new(
-              0,
-              Atomy::AST::Word.new(0, :node),
-              Atomy::AST::Block.new(
-                0,
-                [Atomy::AST::QuasiQuote.new(0, pattern)],
-                []
-              )
-            )]
-          )
-        ),
         Atomy::AST::Send.new(
           body.line,
           body,
           [],
           :to_node
-        )
-      ).evaluate(
+        ),
+        Atomy::AST::Block.new(
+          0,
+          [Atomy::AST::Primitive.new(0, :self)],
+          []
+        ),
+        [ Atomy::AST::Compose.new(
+            0,
+            Atomy::AST::Word.new(0, :node),
+            Atomy::AST::Block.new(
+              0,
+              [Atomy::AST::QuasiQuote.new(0, pattern)],
+              []
+            )
+          )
+        ],
+        name
+      )
+    end
+
+    def define_macro(pattern, body, file)
+      macro_definer(pattern, body).evaluate(
         Binding.setup(
           TOPLEVEL_BINDING.variables,
           TOPLEVEL_BINDING.code,
-          Rubinius::StaticScope.new(Atomy::AST, Rubinius::StaticScope.new(self))
+          Rubinius::StaticScope.new(Atomy::AST, Rubinius::StaticScope.new(self)),
+          self
         ), file.to_s, pattern.line
       )
     end

@@ -18,14 +18,14 @@ module(Atomy::Patterns):
 
     target(g) := @pattern target(g)
 
-    matches?(g) := do:
+    matches(g)? := do:
       mismatch = g new-label
       done = g new-label
 
       @result = g new-stack-local
 
       g dup
-      @pattern matches?(g)
+      @pattern matches(g)?
       g gif(mismatch)
 
       `{ ~@expression } bytecode(g)
@@ -35,7 +35,7 @@ module(Atomy::Patterns):
       g send(#call-under, 2)
       g set-stack-local(@result)
 
-      @sub-pattern matches?(g)
+      @sub-pattern matches(g)?
       g dup
       g git(done)
 
@@ -45,19 +45,19 @@ module(Atomy::Patterns):
 
       done set!
 
-    matches-self?(g) := do:
+    matches-self(g)? := do:
       mismatch = g new-label
       done = g new-label
 
       @result = g new-stack-local
 
-      @pattern matches-self?(g)
+      @pattern matches-self(g)?
       g gif(mismatch)
 
       @expression compile(g)
       g set-stack-local(@result)
 
-      @sub-pattern matches?(g)
+      @sub-pattern matches(g)?
       g dup
       g git(done)
 
@@ -90,15 +90,15 @@ module(Atomy::Patterns):
 
     target(g) := @a target(g)
 
-    matches?(g) := do:
+    matches(g)? := do:
       mismatch = g new-label
       done = g new-label
 
       g dup
-      @a matches?(g)
+      @a matches(g)?
       g gif(mismatch)
 
-      @b matches?(g)
+      @b matches(g)?
       g dup
       g git(done)
 
@@ -120,15 +120,15 @@ module(Atomy::Patterns):
 
     target(g) := @a target(g)
 
-    matches?(g) := do:
+    matches(g)? := do:
       matched = g new-label
       done = g new-label
 
       g dup
-      @a matches?(g)
+      @a matches(g)?
       g git(matched)
 
-      @b matches?(g)
+      @b matches(g)?
       g dup
       g gif(done)
 
@@ -144,7 +144,7 @@ module(Atomy::Patterns):
 
       g dup
       g dup
-      @a matches?(g)
+      @a matches(g)?
       g gif(b)
 
       @a deconstruct(g, locals)
@@ -160,10 +160,10 @@ module(Atomy::Patterns):
 
 -- base patterns
 module(Atomy::AST):
-  Word to-pattern :=
+  (Node ? to-word) to-pattern :=
     Atomy::Patterns::Named new $:
       Atomy::Patterns::Any new
-      @text
+      to-word text
 
   Primitive to-pattern :=
     Atomy::Patterns::Match new(@value)
@@ -196,11 +196,17 @@ module(Atomy::AST):
   `(~x { ~y }) to-pattern :=
     Atomy::Patterns::Named new(y to-pattern, x text)
 
-  `(~x ~(y: Atomy::AST::Word)) to-pattern :=
-    Atomy::Patterns::Attribute new(x, y text, [])
+  `(~x ~(y: ? to-word)) to-pattern :=
+    Atomy::Patterns::Attribute new(x, y to-word text, [])
 
-  `(~x ~(y: Atomy::AST::Word)(~*as)) to-pattern :=
-    Atomy::Patterns::Attribute new(x, y text, as)
+  `(~x ~(y: ? to-word)(~*as)) to-pattern :=
+    Atomy::Patterns::Attribute new(x, y to-word text, as)
+
+  `(~x ~(y: Word)(~*as)?) to-pattern :=
+    Atomy::Patterns::Attribute new(x, `((~y)?) to-word text, as)
+
+  `(~x ~(y: Word)(~*as)!) to-pattern :=
+    Atomy::Patterns::Attribute new(x, `((~y)!) to-word text, as)
 
   `(~x [~*as]) to-pattern :=
     Atomy::Patterns::Attribute new(x, #"[]", as)

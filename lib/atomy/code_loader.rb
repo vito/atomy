@@ -140,6 +140,9 @@ module Atomy
           end
 
           mod
+        rescue
+          puts "when loading #{file}..."
+          raise
         ensure
           CodeLoader.reason = old_context
           CodeLoader.compiled! old_compiled

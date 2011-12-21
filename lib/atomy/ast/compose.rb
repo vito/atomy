@@ -29,11 +29,13 @@ module Atomy
             splat
           )
         else
+          word = @right.to_word
+
           Send.new(
             @line,
             @left,
             [],
-            @right.is_a?(Word) && @right.text
+            word && word.text
           )
         end
       end

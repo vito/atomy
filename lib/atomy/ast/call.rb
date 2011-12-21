@@ -18,11 +18,12 @@ module Atomy::AST
         splat = nil
       end
 
+      word = @name.to_word
       Send.new(
         @line,
         Primitive.new(@line, :self),
         args,
-        @name.is_a?(Word) && @name.text,
+        word && word.text,
         splat,
         nil,
         true
@@ -30,7 +31,8 @@ module Atomy::AST
     end
 
     def macro_name
-      return :"atomy_macro::#{@name.text}" if @name.is_a? Word
+      word = @name.to_word
+      return :"atomy_macro::#{word.text}" if word
       @name.macro_name
     end
   end

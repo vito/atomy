@@ -25,6 +25,10 @@ module Atomy
       def to_send
         Send.new(@line, Primitive.new(@line, :self), [], @text, nil, nil, true)
       end
+
+      def to_word
+        self
+      end
     end
   end
 end
