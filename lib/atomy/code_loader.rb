@@ -98,12 +98,14 @@ module Atomy
       end
 
       def load_file(fn, r = :load, debug = false)
-        unless file = find_any_file(fn).to_sym
+        unless found = find_any_file(fn)
           raise LoadError, "no such file to load -- #{fn}"
         end
 
+        file = found.to_sym
         loaded = LOADED[file]
-        return loaded if loaded
+        needs_loading = compilation_needed?(found)
+        return loaded if loaded and not needs_loading
 
         old_reason = CodeLoader.reason
         old_compiled = CodeLoader.compiled?
@@ -113,16 +115,16 @@ module Atomy
 
         mod, bnd = Atomy.make_wrapper_module(file)
 
-        LOADED[file] = mod
-
         begin
+          LOADED[file] = mod
+
           CodeLoader.reason = r
           CodeLoader.compiled! false
           CodeLoader.compiling = file
           CodeLoader.context = bnd
           CodeLoader.module = mod
 
-          if compilation_needed?(fn)
+          if needs_loading
             CodeLoader.compiled! true
             Compiler.compile fn, nil, debug
           else
@@ -141,6 +143,12 @@ module Atomy
 
           mod
         rescue
+          if loaded
+            LOADED[file] = loaded
+          else
+            LOADED.delete file
+          end
+
           puts "when loading #{file}..."
           raise
         ensure

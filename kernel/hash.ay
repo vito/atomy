@@ -1,6 +1,8 @@
 use("core")
 use("define")
 use("control-flow")
+use("comparison")
+use("array")
 
 hash-key-from(x) := x
 hash-key-from(x: ? to-word) := `#~(x to-word)
@@ -46,8 +48,8 @@ class(Atomy::AST::Hash < Atomy::AST::Node):
       g pop
 
 
-macro(#~(l: List)):
-  pairs = hash-pairs-from(l elements)
+macro(#: ~*elements):
+  pairs = hash-pairs-from(elements)
   keys = pairs collect [[k, _]]: k
   values = pairs collect [[_, v]]: v
-  Atomy::AST::Hash new(line, keys, values)
+  Atomy::AST::Hash new(node line, keys, values)
