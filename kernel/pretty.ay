@@ -123,10 +123,14 @@ Symbol pretty-print := do:
 
 Hash pretty-print :=
   text("#") <>
-    brackets $:
-      comma separate $:
-        to-a collect [[k, v]]:
-          k unamb <+> text("->") <+> v unamb
+    align $:
+      (lbrace </>
+        comma separate $:
+          to-a collect [[k, v]]:
+            from(#binary):
+              k unamb <+> text("->") <+> v unamb
+      ) nest(2) </>
+        rbrace
 
 module(::Atomy::AST):
   Block unamb := pretty
