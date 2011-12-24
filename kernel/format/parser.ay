@@ -3,11 +3,11 @@ use("define")
 use("block")
 use("control-flow")
 
-module(Atomy::Format):
+Atomy::Format open:
   require(File expand-path("../../../lib/atomy/formatter.kpeg.rb", _FILE))
 
-  class(Parser):
-    class(<< self):
+  Parser open:
+    singleton:
       parse(source) :=
         new(source) onto:
           unless(parse):

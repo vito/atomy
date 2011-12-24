@@ -7,8 +7,8 @@ use("control-flow")
 use("interpolation")
 
 
-module(Atomy::AST):
-  class(NthRef < Rubinius::AST::NthRef):
+Atomy::AST open:
+  NthRef = Rubinius::AST::NthRef class:
     include(NodeLike)
     extend(SentientNode)
     attributes(#which)

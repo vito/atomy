@@ -7,7 +7,7 @@ use("undefined")
 
 Atomy = ::Atomy
 
-module(Atomy):
+Atomy open:
   data(Particle(@receiver, @message, @arguments))
 
   Particle call(*args) := to-proc [*args]
@@ -97,8 +97,8 @@ macro(#~(x: Binary)):
       [~(wildcard(x rhs))]
     ))
 
-module(Atomy::Patterns):
-  class(Particle < Pattern):
+Atomy::Patterns open:
+  Particle = Pattern class:
     initialize(@receiver, @message, @arguments) := #ok
 
     construct(g) := do:

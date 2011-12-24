@@ -184,7 +184,7 @@ EOF
 
         class_eval <<EOF
           def eql?(b)
-            b.kind_of?(#{name}) \\
+            b.kind_of?(self.class) \\
             #{non_slots.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
           end
 
@@ -236,7 +236,7 @@ EOF
         class_eval <<EOF
           def children(&f)
             if block_given?
-              #{name}.new(
+              self.class.new(
                 @line#{creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss}
               )
             else
@@ -249,7 +249,7 @@ EOF
           def walk_with(b, stop = nil, &f)
             f.call(self, b)
 
-            return if !b.is_a?(#{name}) || (stop && stop.call(self, b))
+            return if !b.is_a?(self.class) || (stop && stop.call(self, b))
 
             #{attrs.collect { |a| "return if @#{a} != b.#{a}" }.join("; ")}
 
@@ -296,12 +296,12 @@ EOF
           end
 EOF
 
-        lower_name = name.split("::").last.downcase
-
         class_eval <<EOF
           def accept(x)
-            if x.respond_to?(:#{lower_name})
-              x.#{lower_name}(self)
+            name = self.class.name
+            meth = name && name.split("::").last.downcase.to_sym
+            if x.respond_to?(meth)
+              x.send(meth, self)
             else
               x.visit(self)
             end
@@ -322,7 +322,9 @@ EOF
 
         class_eval <<EOF
           def to_sexp
-            [:"#{lower_name}"#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}#{required}#{many}#{optional}]
+            name = self.class.name
+            meth = name ? name.split("::").last.downcase.to_sym : :anonymous
+            [meth#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}#{required}#{many}#{optional}]
           end
 EOF
 
@@ -361,7 +363,7 @@ EOF
 
         class_eval <<EOF
           def copy
-            #{name}.new(
+            self.class.new(
               @line#{copyreq_cs + copymany_cs + copyreq_as + copyreq_ss + copyopt_cs + copyopt_as + copyopt_ss}
             ).tap do |x|
               x.in_context(@context)

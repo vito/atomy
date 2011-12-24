@@ -130,7 +130,7 @@ Hash pretty-print :=
         to-a collect [[k, v]]:
           k unamb <+> text("->") <+> v unamb
 
-module(::Atomy::AST):
+Atomy::AST open:
   Block unamb := pretty
   ClassVariable unamb := pretty
   Call unamb := pretty
@@ -256,7 +256,7 @@ module(::Atomy::AST):
   Pattern pretty-print := @pattern pretty
 
 
-module(::Atomy::Patterns):
+Atomy::Patterns open:
   And pretty-print := `(~@a & ~@b) pretty
   Any pretty-print := text("_")
   Attribute pretty-print := `(~@receiver ~(Atomy::AST::Word new(-1, @name))) pretty

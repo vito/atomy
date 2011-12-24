@@ -6,11 +6,11 @@ use("therie")
 describe("definitions"):
   describe("static scope"):
     it("retains the proper static scope for each branch"):
-      module(DefinitionsA):
+      module:
         Foo = 1
         0 fizz := Foo
 
-      module(DefinitionsB):
+      module:
         Foo = 2
         1 fizz := Foo
 

@@ -8,8 +8,8 @@ use("particles")
 
 require("pretty")
 
-module(Atomy::Format):
-  class(Formatter):
+Atomy::Format open:
+  Formatter open:
     attr-accessor(#position)
 
     initialize(@line, @segments) :=

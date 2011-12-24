@@ -3,7 +3,7 @@ use("control-flow")
 use("define")
 use("therie")
 
-class(ZSuperA):
+ZSuperA = class:
   test-1 := #super
   test-2(x) := [#super, x]
   test-3 &x := [#super, x call]
@@ -11,7 +11,7 @@ class(ZSuperA):
   test-5(x = 1) &y := [#super, x, y call]
   test-6(x) := [#super, x]
 
-class(ZSuperB < ZSuperA):
+ZSuperB = ZSuperA class:
   test-1 := super
   test-2(x) := super
   test-3 &x := super
@@ -40,7 +40,7 @@ describe("zsuper"):
   it("works from inside of a block"):
     ZSuperB new test-6(1) should-be([#super, 1])
 
-class(SuperA):
+SuperA = class:
   test-1 := #super
   test-2(x) := [#super, x]
   test-3 &x := [#super, x call]
@@ -50,7 +50,7 @@ class(SuperA):
   test-7(x = 1) &y := [#super, x, y call]
   test-8(x) := [#super, x]
 
-class(SuperB < SuperA):
+SuperB = SuperA class:
   test-1 := super()
   test-2(x) := super(x + 1)
   test-3 &x := super &x

@@ -51,8 +51,8 @@ macro(super(~*as) &~blk):
   Super new(node line, args, splat, blk)
 
 
-module(Atomy::AST):
-  class(Break < Node):
+Atomy::AST open:
+  Break = Node class:
     children(#value)
     generate
 
@@ -61,7 +61,7 @@ module(Atomy::AST):
       @value compile(g)
       g raise-break
 
-  class(Next < Node):
+  Next = Node class:
     children(#value)
     generate
 
@@ -127,8 +127,8 @@ macro(~x rescue ~(y: Block) else ~(z: Block)):
 
   Catch new(node line, x caller, branches, z body)
 
-module(Atomy::AST):
-  class(Super < Node):
+Atomy::AST open:
+  Super = Node class:
     children([#arguments], #splat?, #block?)
     generate
 
@@ -148,7 +148,7 @@ module(Atomy::AST):
 
       g send-super(nil, @arguments size, !!@splat)
 
-  class(ZSuper < Node):
+  ZSuper = Node class:
     generate
 
     bytecode(g) := do:

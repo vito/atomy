@@ -135,8 +135,8 @@ warning(x) :=
     nil
 
 
-class(DefaultDebugger):
-  class(<< self):
+DefaultDebugger = class:
+  singleton:
     define(show-error-banner(e)):
       ("-" * 78) println
       (e name + ": " + e message) each-line [l]:

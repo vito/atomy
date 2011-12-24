@@ -122,7 +122,7 @@ process-val(g, '_) :=
 process-val(_, s) :=
   raise(ArgumentError, "unknown operator: " + s to-sexp inspect)
 
-class(Atomy::AST::ParserDefiner < Atomy::AST::Node):
+Atomy::AST::ParserDefiner = Atomy::AST::Node class:
   attributes(#source)
   generate
 
@@ -201,7 +201,7 @@ macro(parser(~name): ~*grammar):
     )
 
     `(do:
-        class(~name < ::KPeg::CompiledParser):
+        ~name = ::KPeg::CompiledParser class:
           { self } setups := @setups ||= ~^setups
           { self } vars := @vars ||= ~^vars
 

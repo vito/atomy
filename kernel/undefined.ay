@@ -4,8 +4,8 @@ use("define")
 macro(_undefined):
   Undefined new(node line)
 
-module(Atomy::AST):
-  class(Undefined < Node):
+Atomy::AST open:
+  Undefined = Node class:
     generate
 
     bytecode(g) := do:

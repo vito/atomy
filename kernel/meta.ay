@@ -6,8 +6,8 @@ macro(when-compiling ~(b: Block)):
   b body evaluate(Atomy::CodeLoader context)
   'nil
 
-module(Atomy::AST):
-  class(LetMacro < Node):
+Atomy::AST open:
+  LetMacro = Node class:
     children(#body, [#macros])
     generate
 

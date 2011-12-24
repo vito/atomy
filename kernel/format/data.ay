@@ -24,23 +24,23 @@ macro(ast(~root) { ~*nodes }):
             _ ->
               children << a
 
-        `(class(~name < ~root):
+        `(~name = ~root class:
             children(~*children)
             attributes(~*attributes)
             generate)
 
       _ ->
-        `(class(~e < ~root):
+        `(~e = ~root class:
             generate)
 
   all =
     if(root != 'Atomy::AST::Node)
-      then: `(class(~root < Atomy::AST::Node) {}) . cs
+      then: `(~root = Class new(Atomy::AST::Node)) . cs
       else: cs
 
   `(do: ~*all)
 
-module(Atomy::Format):
+Atomy::Format open:
   ast(Segment):
     Chunk([#flags], @text)
     String([#flags])

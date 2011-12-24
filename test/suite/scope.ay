@@ -24,7 +24,7 @@ describe("assignment"):
 
 describe("with-variables-of"):
   it("redirects instance variable access to the target"):
-    class(InstanceVariableUser):
+    InstanceVariableUser = class:
       initialize(@x) := nil
       get-x := @x
 
@@ -39,7 +39,7 @@ describe("with-variables-of"):
     x get-x should-be(43)
 
   it("redirects class variable access to the target"):
-    class(ClassVariableUser):
+    ClassVariableUser = class:
       @@x = 42
       get-x := @@x
 
@@ -63,14 +63,14 @@ describe("onto"):
     1 onto { 3 + 2 } should-be(5)
 
   it("treats 'self' as the original 'self'"):
-    class(OntoWithSelf):
+    OntoWithSelf = class:
       go := 1 onto: [self, + 2]
 
     x = OntoWithSelf new
     x go should-be([x, 3])
 
   it("treats instance variables as belonging to the original 'self'"):
-    class(OntoWithInstanceVariable):
+    OntoWithInstanceVariable = class:
       initialize(@x) := nil
       go := 1 onto: @x
       set := 1 onto: @x = 43
@@ -81,7 +81,7 @@ describe("onto"):
     x go should-be(43)
 
   it("treats class variables as belonging to the original 'self'"):
-    class(OntoWithClassVariable):
+    OntoWithClassVariable = class:
       @@foo = 42
       go := 1 onto: @@foo
       set := 1 onto: @@foo = 43

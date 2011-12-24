@@ -2,8 +2,8 @@
 use("core")
 use("define")
 
-module(Atomy::AST):
-  class(And < Node):
+Atomy::AST open:
+  And = Node class:
     children(#a, #b)
     generate
 
@@ -21,7 +21,7 @@ module(Atomy::AST):
 
       done set!
 
-  class(Or < Node):
+  Or = Node class:
     children(#a, #b)
     generate
 
@@ -38,7 +38,7 @@ module(Atomy::AST):
 
       done set!
 
-  class(Negate < Node):
+  Negate = Node class:
     children(#expression)
     generate
 

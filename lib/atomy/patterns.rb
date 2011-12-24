@@ -147,7 +147,7 @@ EOF
 
       class_eval <<EOF
         def eql?(b)
-          b.kind_of?(#{self.name})#{non_slots.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
+          b.kind_of?(self.class)#{non_slots.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
         end
 
         alias :== :eql?
@@ -198,7 +198,7 @@ EOF
       class_eval <<EOF
         def children(&f)
           if block_given?
-            #{self.name}.new(
+            self.class.new(
               #{(creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss).join ", "}
             )
           else
@@ -211,7 +211,7 @@ EOF
         def walk_with(b, stop = nil, &f)
           f.call(self, b)
 
-          return if !b.is_a?(#{self.name}) || (stop && stop.call(self, b))
+          return if !b.is_a?(self.class) || (stop && stop.call(self, b))
 
           #{attrs.collect { |a| "return if @#{a} != b.#{a}" }.join("; ")}
 
@@ -272,7 +272,9 @@ EOF
 
       class_eval <<EOF
         def to_sexp
-          [:"#{self.name.split("::").last.downcase}"#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}]
+          name = self.class.name
+          meth = name ? name.split("::").last.downcase.to_sym : :anonymous
+          [meth#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}]
         end
 EOF
 

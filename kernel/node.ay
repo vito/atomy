@@ -1,7 +1,7 @@
 use("core")
 use("define")
 
-module(Atomy::AST):
+Atomy::AST open:
   '_ to-pattern :=
     Atomy::Patterns::Any new
 

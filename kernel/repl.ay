@@ -40,8 +40,8 @@ basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=
     signal(#loop)
 
 
-class(ReplDebugger):
-  class(<< self):
+ReplDebugger = class:
+  singleton:
     show-backtrace(e) := do:
       Rubinius::Backtrace backtrace(e backtrace) show println
       debug(e)

@@ -5,7 +5,7 @@ use("quotes")
 use("range")
 use("grammar")
 
-module(::Atomy):
+Atomy open:
   parser(InterpolationParser):
     %atomy := Atomy::Parser
 
@@ -37,8 +37,8 @@ intp-segments(s) :=
 
 export
 
-module(::Atomy::AST):
-  class(Interpolation < Node):
+Atomy::AST open:
+  Interpolation = Node class:
     children([#segments])
     generate
 

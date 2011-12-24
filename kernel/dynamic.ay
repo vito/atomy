@@ -4,7 +4,7 @@ use("comparison")
 use("control-flow")
 use("array")
 
-class(Dynvar):
+Dynvar = class:
   initialize(@name, @default) := nil
 
 ^Dynvar := Thread current [@name] || @default
@@ -15,7 +15,7 @@ macro(dynamic(~n, ~(root = 'nil))):
     `(do:
         @~n = (~module)::Dynvar new(~(local text), ~root)
 
-        class(<< self):
+        singleton:
           attr-reader(#~n))
 
 macro(let(~*bindings) { ~*body }):

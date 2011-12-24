@@ -3,8 +3,8 @@ use("define")
 use("cosmetics")
 use("control-flow")
 
-module(Atomy::Patterns):
-  class(With < Pattern):
+Atomy::Patterns open:
+  With = Pattern class:
     children(#pattern, #sub-pattern)
     attributes(#expression)
     generate
@@ -84,7 +84,7 @@ module(Atomy::Patterns):
       @sub-pattern deconstruct(g, locals)
 
 
-  class(And < Pattern):
+  And = Pattern class:
     children(#a, #b)
     generate
 
@@ -114,7 +114,7 @@ module(Atomy::Patterns):
       @b deconstruct(g, locals)
 
 
-  class(Or < Pattern):
+  Or = Pattern class:
     children(#a, #b)
     generate
 
@@ -159,7 +159,7 @@ module(Atomy::Patterns):
 
 
 -- base patterns
-module(Atomy::AST):
+Atomy::AST open:
   (Node ? to-word) to-pattern :=
     Atomy::Patterns::Named new $:
       Atomy::Patterns::Any new

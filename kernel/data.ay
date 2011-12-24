@@ -2,9 +2,10 @@ use("core")
 use("define")
 use("control-flow")
 use("cosmetics")
+use("comparison")
 
-define-class(nil, e: Atomy::AST::Constant) := `(class(~e) {})
-define-class(root, e: Atomy::AST::Constant) := `(class(~e < ~root) {})
+define-class(nil, e: Atomy::AST::Constant) := `(~e = class:)
+define-class(root, e: Atomy::AST::Constant) := `(~e = ~root class:)
 define-class(root, `(~n { ~*cs })) :=
   define-class(root, `(~(n)() { ~*cs }))
 define-class(root, x: `(~(name)(~*as))) :=
@@ -31,13 +32,10 @@ define-class(root, `(~(name)(~*as): ~*cs)) := do:
     `(~(Atomy::AST::QuasiQuote new(0, cons)) to-pattern :=
         ~(Atomy::AST::QuasiQuote new(0, pat)) to-pattern)
 
-  class =
-    if(root)
-      then: `(~name < ~root)
-      else: name
+  parent = root || 'Object
 
   `(do:
-      class(~class):
+      ~name = ~parent class:
         attr-accessor $:
           ~*(attrs collect [a]:
               `#~(a receiver))

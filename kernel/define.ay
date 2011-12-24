@@ -92,14 +92,34 @@ macro(~x /= ~y): `(~x =! (~x / ~y))
 macro(~x ^= ~y): `(~x =! (~x ^ ~y))
 macro(~x %= ~y): `(~x =! (~x % ~y))
 
-macro(class(~name) ~(b: Block)):
-  Class new(node line, name, b body)
+WithModule = Class new(Atomy::AST::Node) module-eval:
+  generate
 
-macro(class(<< ~obj) ~(b: Block)):
-  SingletonClass new(node line, obj, b body)
+  bytecode(g) := do:
+    pos(g)
+    g push-self
+    g add-scope
+    g push-nil
 
-macro(class(~name < ~sup) ~(b: Block)):
-  Class new(node line, name, b body, sup)
+  self
 
-macro(module(~name) ~(b: Block)):
-  Module new(node line, name, b body)
+macro(class: ~*body):
+  `(::Class new open: ~*body, self)
+
+macro(~super class: ~*body):
+  `(::Class new(~super) open: ~*body, self)
+
+macro(module: ~*body):
+  `(::Module new open: ~*body, self)
+
+macro(~x open: ~*body):
+  names [mod]:
+    `(~x module-eval:
+        ~(module::WithModule new(node line))
+        ~*body)
+
+macro(~x singleton: ~*body):
+  `(~x singleton-class open: ~*body)
+
+macro(singleton: ~*body):
+  `(self singleton-class open: ~*body)

@@ -4,6 +4,8 @@ use("quotes")
 
 base = File expand-path("../", _FILE)
 
+Atomy::Format = Module new
+
 use(base + "/format/data")
 use(base + "/format/formatter")
 use(base + "/format/parser")

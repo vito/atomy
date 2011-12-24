@@ -1,7 +1,7 @@
 require("rubygems")
 require("benchmark/ips")
 
-class(Fixnum):
+Fixnum open:
   define(fib-cond):
     if(self == 0)
       then: 1
