@@ -57,11 +57,11 @@ process-val(g, a: `{ ~*bs }) :=
     else:
       `(~g action({ ~*bs }))
 
-process-val(g, `<(~x)) := do:
+process-val(g, `(<(~x)>)) := do:
   when(^rule-vars): ^rule-vars << "text"
   `(~g collect(~process-val(g, x)))
 
-process-val(g, `@<(~x)) :=
+process-val(g, `(@<(~x)>)) :=
   `(~g bounds(~process-val(g, x)))
 
 process-val(g, `[~*xs]) :=
@@ -70,7 +70,7 @@ process-val(g, `[~*xs]) :=
 process-val(g, s: Atomy::AST::String) :=
   `(~g str(~s))
 
-process-val(g, `/~(b: Atomy::AST::String)) :=
+process-val(g, `(/(~(b: Atomy::AST::String))/)) :=
   `(~g reg(~(b raw)))
 
 process-val(g, c: Atomy::AST::Call) := do:
@@ -101,13 +101,13 @@ process-val(g, `=~(name)(~v)) := do:
   when(^rule-vars): ^rule-vars << name text
   `(~g t(~process-val(g, v), ~(name text to-s)))
 
-process-val(g, `?~v) :=
+process-val(g, `((~v)?)) :=
   `(~g maybe(~process-val(g, v)))
 
-process-val(g, `+~v) :=
+process-val(g, `((~v)+)) :=
   `(~g many(~process-val(g, v)))
 
-process-val(g, `*~v) :=
+process-val(g, `((~v)*)) :=
   `(~g kleene(~process-val(g, v)))
 
 process-val(g, `&~v) :=
