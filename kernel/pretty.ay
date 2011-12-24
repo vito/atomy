@@ -97,7 +97,7 @@ Atomy::Particle pretty-print := do:
 
   args = @arguments collect #(wildcard [_])
 
-  msg+args =
+  msg-args =
     if(operator?)
       then:
         text(@message to-s) <+> args first unamb
@@ -109,9 +109,9 @@ Atomy::Particle pretty-print := do:
     if(@receiver equal(_undefined)?)
       then:
         if(operator?)
-          then: parens(msg+args)
-          else: msg+args
-      else: parens(@receiver unamb <+> msg+args)
+          then: parens(msg-args)
+          else: msg-args
+      else: parens(@receiver unamb <+> msg-args)
 
   text("#") <> partial
 
@@ -119,16 +119,20 @@ Atomy::Particle to-s := show
 
 Symbol pretty-print := do:
   s = to-s
-  if(s =~ r"[A-Z][a-zA-Z0-9_]*|^[\p{Ll}_]([\p{L}\d\p{S}!@#%&*\-_\\.\/\?])*$"(u))
+  if(s =~ r"[A-Z][a-zA-Z0-9_]*|^[\p{Ll}_][\p{L}_\d\-]*$"(u))
     then: text("#") <> ident(s)
     else: text("#") <> s pretty
 
 Hash pretty-print :=
   text("#") <>
-    brackets $:
-      comma separate $:
-        to-a collect [[k, v]]:
-          k unamb <+> text("->") <+> v unamb
+    align $:
+      (lbrace </>
+        comma separate $:
+          to-a collect [[k, v]]:
+            from(#binary):
+              k unamb <+> text("->") <+> v unamb
+      ) nest(2) </>
+        rbrace
 
 Atomy::AST open:
   Block unamb := pretty
