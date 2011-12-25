@@ -5,11 +5,13 @@ use("quotes")
 use("range")
 use("grammar")
 
+-- TODO: localize all this to this module
+
 Atomy open:
   parser(InterpolationParser):
     %atomy := Atomy::Parser
 
-    root := %atomy.wsp =es(%atomy.expressions) %atomy.wsp "}" {
+    root := %atomy.wsp (%atomy.expressions)=es %atomy.wsp "}" {
       Atomy::AST::Tree new(0, Array(es))
     }
 
