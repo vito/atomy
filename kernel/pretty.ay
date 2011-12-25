@@ -21,9 +21,11 @@ Colored = dynamic(false)
 
 ident(n) := text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
 
-pretty-body([]) := []
-pretty-body([x]) := [from(#top): x pretty]
-pretty-body(x . xs) := [from(#list) { x pretty }] + pretty-body(xs)
+pretty-sequence([]) := []
+pretty-sequence([x]) := [from(#top): x pretty]
+pretty-sequence(x . xs) := [from(#list) { x pretty }] + pretty-sequence(xs)
+
+tree(xs) := align(fill-sep(comma punctuate(xs)))
 
 _ unamb := pretty
 
@@ -52,8 +54,6 @@ Object pretty :=
 Object show :=
   let(Colored = false):
     pretty flatten render
-
-Array all-pretty := collect [x]: x pretty
 
 Doc colored(color) := do:
   -- only makes sense to colorize if we're outputting to a terminal
@@ -85,7 +85,7 @@ NilClass pretty-print := super colored(#black)
 
 Doc pretty-print := self
 
-Array pretty-print := list(all-pretty)
+Array pretty-print := list(pretty-sequence(self))
 
 Atomy::Particle pretty-print := do:
   wildcard = [c]:
@@ -103,7 +103,7 @@ Atomy::Particle pretty-print := do:
         text(@message to-s) <+> args first unamb
       else:
         ident(@message to-s) <>
-          tupled(args all-pretty)
+          tupled(pretty-sequence(args))
 
   partial =
     if(@receiver equal(_undefined)?)
@@ -127,7 +127,7 @@ Hash pretty-print :=
   text("#") <>
     align $:
       (lbrace </>
-        comma separate $:
+        tree $:
           to-a collect [[k, v]]:
             from(#binary):
               k unamb <+> text("->") <+> v unamb
@@ -179,15 +179,13 @@ Atomy::AST open:
     args =
       if(@arguments empty?)
         then: empty
-        else: list(@arguments all-pretty)
+        else: list(pretty-sequence(@arguments))
 
-    contents = comma separate(pretty-body(@contents))
+    contents = tree(pretty-sequence(@contents))
 
-    if(from(#send-block)? && from(#top)?)
-      then: args <> colon <+> contents
-      else: align(args <+> (lbrace </> contents) nest(2) </> rbrace)
+    align(args <+> (lbrace </> contents) nest(2) </> rbrace)
 
-  Call pretty-print := @name pretty <> tupled(@arguments all-pretty)
+  Call pretty-print := @name pretty <> tupled(pretty-sequence(@arguments))
 
   Compose pretty-print := @left pretty <+> @right pretty
 
@@ -203,7 +201,7 @@ Atomy::AST open:
 
   List pretty-print :=
     from(#list):
-      list(@elements all-pretty)
+      list(pretty-sequence(@elements))
 
   Literal pretty-print := @value pretty
 
@@ -254,8 +252,8 @@ Atomy::AST open:
 
   Tree pretty-print :=
     if(^Multiline)
-      then: from(#top): vcat(@nodes all-pretty)
-      else: from(#list): comma separate(@nodes all-pretty)
+      then: from(#top): vcat(pretty-sequence(@nodes))
+      else: from(#list): tree(pretty-sequence(@nodes))
 
   Pattern pretty-print := @pattern pretty
 
