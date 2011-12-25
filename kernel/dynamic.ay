@@ -5,18 +5,15 @@ use("control-flow")
 use("array")
 
 Dynvar = class:
-  initialize(@name, @default) := nil
+  initialize(@name, @default = nil) := nil
 
 ^Dynvar := Thread current [@name] || @default
 Dynvar set(x) := Thread current [@name] = x
 
-macro(dynamic(~n, ~(root = 'nil))):
+macro(dynamic): `dynamic()
+macro(dynamic(~(root = 'nil))):
   names [local]:
-    `(do:
-        @~n = (~module)::Dynvar new(~(local text), ~root)
-
-        singleton:
-          attr-reader(#~n))
+    `((~Self)::Dynvar new(~(local text), ~root))
 
 macro(let(~*bindings) { ~*body }):
   tmps = bindings zip(names(bindings size))

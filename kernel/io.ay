@@ -4,69 +4,69 @@ use("control-flow")
 
 use("dynamic")
 
-dynamic(output-port, $stdout)
-dynamic(input-port, $stdin)
-dynamic(error-port, $stderr)
+OutputPort = dynamic($stdout)
+InputPort = dynamic($stdin)
+ErrorPort = dynamic($stderr)
 
-x println := x tap: ^output-port puts(x to-s)
-x dump := x tap: ^output-port print(x to-s)
-x write := x tap: ^output-port puts(x show)
+x println := x tap: ^OutputPort puts(x to-s)
+x dump := x tap: ^OutputPort print(x to-s)
+x write := x tap: ^OutputPort puts(x show)
 
 export
 
 with-output-to((filename: String), mode = "w") &action :=
-  let(output-port = File open(filename, mode)):
+  let(OutputPort = File open(filename, mode)):
     action ensuring:
-      ^output-port close
+      ^OutputPort close
 
 with-output-to(io) &action :=
-  let(output-port = io):
+  let(OutputPort = io):
     action call
 
 with-error-to((filename: String), mode = "w") &action :=
-  let(error-port = File open(filename, mode)):
+  let(ErrorPort = File open(filename, mode)):
     action ensuring:
-      ^error-port close
+      ^ErrorPort close
 
 with-error-to(io) &action :=
-  let(error-port = io):
+  let(ErrorPort = io):
     action call
 
 
 read-line(sep = $separator) := do:
-  x = ^input-port gets(sep)
+  x = ^InputPort gets(sep)
 
   unless(x):
-    error(EndOfFile new(^input-port))
+    error(EndOfFile new(^InputPort))
 
   x
 
 read-lines(sep = $separator) := do:
-  x = ^input-port readlines(sep)
+  x = ^InputPort readlines(sep)
 
   unless(x):
-    error(EndOfFile new(^input-port))
+    error(EndOfFile new(^InputPort))
 
   x
 
 read-byte := do:
-  x = ^input-port getc
+  x = ^InputPort getc
 
   unless(x):
-    error(EndOfFile new(^input-port))
+    error(EndOfFile new(^InputPort))
 
   x
 
 read-char := read-byte chr
 
 read(length = nil, buffer = nil) :=
-  ^input-port send(#read, length, buffer)
+  ^InputPort send(#read, length, buffer)
 
 with-input-from((filename: String), mode = "r") &action :=
-  let(input-port = File open(filename, mode)):
+  let(InputPort = File open(filename, mode)):
     action ensuring:
-      ^input-port close
+      ^InputPort close
 
 with-input-from(io) &action :=
-  let(input-port = io):
+  let(InputPort = io):
     action call

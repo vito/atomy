@@ -122,10 +122,6 @@ module Atomy
     mod = Atomy::Module.new do
       private_module_function
 
-      def self.module
-        self
-      end
-
       # generate symbols
       def names(num = 0, &block)
         num = block.arity if block
@@ -144,6 +140,8 @@ module Atomy
         end
       end
     end
+
+    mod.const_set(:Self, mod)
 
     mod.file = file
 

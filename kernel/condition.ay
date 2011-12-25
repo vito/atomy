@@ -10,8 +10,8 @@ use("dynamic")
 IO = use("io")
 
 -- registered handlers/restarts
-dynamic(handlers, [])
-dynamic(restarts, [])
+Handlers = dynamic([])
+Restarts = dynamic([])
 
 catcher(x) := #"restart:#{Define message-name(x)}"
 message-name(x) := Define message-name(x)
@@ -50,33 +50,33 @@ EndOfFile message := "unexpected end-of-file for " + @port show
 macro(~body bind { ~*handlers }):
   names [a]:
     callback = `([~a]: ~a match: ~*handlers)
-    `(let(~module handlers = ~callback . ^(~module handlers)):
+    `(let((~Self)::Handlers = ~callback . ^(~Self)::Handlers):
         ~body rescue:
-          (e: StandardError) -> ~module error(e))
+          (e: StandardError) -> ~Self error(e))
 
 
 macro(with-restarts(~*restarts) ~(block: Block)):
   pairs = pairs-from(restarts)
 
   rs = pairs collect [[n, e]]:
-    `((~module)::Restart new(
+    `((~Self)::Restart new(
         ~message-name(n)
         [~*arguments(n)] &~block(n) { ~e }
       ))
 
   body =
     pairs reduce(
-      `{ ~block rescue: (e: StandardError) -> ~module error(e) }
+      `{ ~block rescue: (e: StandardError) -> ~Self error(e) }
     ) [x, [name, _]]:
       `{ catch(~catcher(name)) ~x }
 
-  `(let(~module restarts = [~*rs] + ^(~module restarts)) ~body)
+  `(let((~Self)::Restarts = [~*rs] + ^(~Self)::Restarts) ~body)
 
 
 export
 
 restart(name, *args) := do:
-  ^restarts each [r]:
+  ^Restarts each [r]:
     when(r name == name):
       r invoke(*args)
 
@@ -84,11 +84,11 @@ restart(name, *args) := do:
 
 
 signal(c) := do:
-  hs = ^handlers dup
+  hs = ^Handlers dup
 
   until(hs empty?):
     callback = hs shift
-    let(handlers = hs):
+    let(Handlers = hs):
       callback [c]
 
   nil
@@ -111,8 +111,8 @@ error(x) := do:
 
   signal(e)
 
-  with-output-to(^(IO error-port)):
-    ^debugger run(e)
+  with-output-to(^IO::ErrorPort):
+    ^Debugger run(e)
 
 
 warning(x) :=
@@ -129,7 +129,7 @@ warning(x) :=
 
     signal(w)
 
-    with-output-to(^(IO error-port)):
+    with-output-to(^IO::ErrorPort):
       (w name + ": " + w message) println
 
     nil
@@ -145,12 +145,12 @@ DefaultDebugger = class:
       "\n" display
 
     define(show-options-for(e)):
-      when(^restarts empty?):
+      when(^Restarts empty?):
         exit(1)
 
       "\n" display
       "restarts:" println
-      ^restarts each-with-index [r, i]:
+      ^Restarts each-with-index [r, i]:
         ("  :" + i to-s + " -> " + r name to-s) println
 
     define(run(e)):
@@ -159,6 +159,6 @@ DefaultDebugger = class:
       show-options-for(e)
 
       "!> " display
-      ^restarts [gets to-i] invoke
+      ^Restarts [gets to-i] invoke
 
-dynamic(debugger, DefaultDebugger)
+Debugger = dynamic(DefaultDebugger)

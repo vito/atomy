@@ -1,8 +1,8 @@
 use("atomy")
 IO = require("io")
 
-dynamic(nesting-level, 0)
-dynamic(stats)
+NestingLevel = dynamic(0)
+RunningStats = dynamic
 
 Stats = class:
   attr-accessor(#passed, #failed)
@@ -13,11 +13,11 @@ Stats = class:
 
   inspect := f"Stats(@passed = %d, @failed = %d)" [@passed, @failed]
 
-indented(s) := " " * (^nesting-level * 2) + s
+indented(s) := " " * (^NestingLevel * 2) + s
 
 colored(color, s) := do:
   -- only makes sense to colorize if we're outputting to a terminal
-  unless(^(IO output-port) tty?):
+  unless(^IO::OutputPort tty?):
     return(s)
 
   codes =
@@ -39,11 +39,11 @@ colored(color, s) := do:
 export
 
 theorize &tests :=
-  let(stats = Stats new):
+  let(RunningStats = Stats new):
     tests call
     "\n" display
 
-    ^stats onto:
+    ^RunningStats onto:
       f"total of %d tests (%s passed, %s failed)" [
         failed + passed
         colored(#green, passed to-s)
@@ -54,13 +54,13 @@ theorize &tests :=
 
       "\n" display
 
-    ^stats
+    ^RunningStats
 
 
 describe(what) &body := do:
   indented(f"- %s" [what]) println
 
-  let(nesting-level = ^nesting-level + 1):
+  let(NestingLevel = ^NestingLevel + 1):
     body call
 
   nil
@@ -71,8 +71,8 @@ it(description) &tests := do:
     indented(colored(#green, f"✓ %s" [description])) println
   } rescue {
     e:
-      when(^stats):
-        ^stats failed += 1
+      when(^RunningStats):
+        ^RunningStats failed += 1
 
       indented(colored(#red, f"✗ %s" [description])) println
       indented(
@@ -88,8 +88,8 @@ it(description) &tests := do:
       e backtrace first((ENV["THERIE_BT_LIMIT"] || 5) to-i) each [l]:
         indented(f"    %s" [colored(#cyan, l)]) println
   } else:
-    when(^stats):
-      ^stats passed += 1
+    when(^RunningStats):
+      ^RunningStats passed += 1
 
   nil
 

@@ -82,9 +82,9 @@ repl(history = nil, bnd = nil, debug = false) := do:
 
   sane-history = Array[]
 
-  { let(Condition debugger = ReplDebugger,
-        Pretty multiline? = true,
-        Pretty colored? = true):
+  { let(Condition::Debugger = ReplDebugger,
+        Pretty::Multiline = true,
+        Pretty::Colored = true):
       frame = 0
 
       { basic-repl(bnd, debug)

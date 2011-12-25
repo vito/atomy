@@ -115,7 +115,7 @@ macro(module: ~*body):
 macro(~x open: ~*body):
   names [mod]:
     `(~x module-eval:
-        ~(module::WithModule new(node line))
+        ~(WithModule new(node line))
         ~*body)
 
 macro(~x singleton: ~*body):

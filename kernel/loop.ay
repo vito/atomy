@@ -4,7 +4,7 @@ use("dynamic")
 use("control-flow")
 use("meta")
 
-dynamic(labels, Hash new)
+Tags = dynamic(Hash new)
 
 Atomy::AST open:
   Labels = Node class:
@@ -20,7 +20,7 @@ Atomy::AST open:
         @tags to-a collect [t]:
           tags [t name] = g new-label
 
-      let(labels = tags):
+      let(Tags = tags):
         lbls zip(@tags to-a) each [[l, t]]:
           l set!
           t body compile(g)
@@ -39,7 +39,7 @@ Atomy::AST open:
 
     bytecode(g) := do:
       pos(g)
-      g goto(^labels fetch(@name))
+      g goto(^Tags fetch(@name))
 
 
 macro(labels ~(body: Block)):

@@ -8,11 +8,11 @@ use("comparison")
 require("kpeg")
 require("set")
 
-dynamic(actions)
-dynamic(setups)
-dynamic(vars)
-dynamic(rule)
-dynamic(rule-vars)
+Actions = dynamic
+Setups = dynamic
+Vars = dynamic
+Rule = dynamic
+RuleVars = dynamic
 
 const-name(c: Atomy::AST::Constant) := c name to-s
 const-name(c: Atomy::AST::ScopedConstant) := const-name(c parent) + "::" + c name to-s
@@ -48,17 +48,17 @@ process-val(g, `(~a | ~b)) :=
   `(~g any(~process-val(g, a), ~process-val(g, b)))
 
 process-val(g, a: `{ ~*bs }) :=
-  if(^actions)
+  if(^Actions)
     then:
-      vars = ^rule-vars to-a
-      call = "actions[" + ^actions size to-s + "][" + vars join(", ") + "]"
-      ^actions << [a, ^rule-vars to-a]
+      vars = ^RuleVars to-a
+      call = "actions[" + ^Actions size to-s + "][" + vars collect #to-s join(", ") + "]"
+      ^Actions << [a, vars]
       `(~g action(~call))
     else:
       `(~g action({ ~*bs }))
 
 process-val(g, `(<(~x)>)) := do:
-  when(^rule-vars): ^rule-vars << "text"
+  when(^RuleVars): ^RuleVars << #text
   `(~g collect(~process-val(g, x)))
 
 process-val(g, `(@<(~x)>)) :=
@@ -144,10 +144,10 @@ macro(grammar: ~*body): names [g]:
     n match:
       `%%{ ~*xs } -> do:
         call =
-          if(^setups)
+          if(^Setups)
             then:
-              ^setups << `{ ~*xs }
-              "setups[" + (^setups size - 1) to-s + "][]"
+              ^Setups << `{ ~*xs }
+              "setups[" + (^Setups size - 1) to-s + "][]"
             else:
               `{ ~*xs }
 
@@ -159,25 +159,25 @@ macro(grammar: ~*body): names [g]:
       `(%~name = ~expr) -> do:
         -- TODO: fix this, yo
         call =
-          if(^vars)
+          if(^Vars)
             then:
-              ^vars << `{ ~*xs }
-              "vars[" + (^vars size - 1) to-s + "][]"
+              ^Vars << `{ ~*xs }
+              "vars[" + (^Vars size - 1) to-s + "][]"
             else:
               `{ ~*xs }
 
         `(~g set-variable(~(name text to-s), call))
 
       `(~(name)(~*args) := ~val) -> do:
-        let(rule = name text,
-            rule-vars = ::Set new(args to-a collect #text)):
+        let(Rule = name text,
+            RuleVars = ::Set new(args collect #text)):
           `(~g set(~(name text to-s)
                    ~process-val(g, val)
                    ~(args collect [x]: x text to-s)))
 
       `(~name := ~val) -> do:
-        let(rule = name text,
-            rule-vars = ::Set new):
+        let(Rule = name text,
+            RuleVars = ::Set new):
           `(~g set(~(name text to-s), ~process-val(g, val)))
 
       _ -> `unknown(~n)
@@ -186,14 +186,14 @@ macro(grammar: ~*body): names [g]:
 
 
 macro(parser(~name): ~*grammar):
-  let(actions = Array[],
-      setups = Array[],
-      vars = Array[]):
+  let(Actions = Array[],
+      Setups = Array[],
+      Vars = Array[]):
     g = `(grammar: ~*grammar) evaluate
 
-    acts = ^actions collect [[a, as]]:
+    acts = ^Actions collect [[action, as]]:
       args = as collect [a]: Atomy::AST::Word new(0, a)
-      `([~*args] ~a)
+      `([~*args] ~action)
 
     def = Atomy::AST::ParserDefiner new(
       node line
@@ -202,8 +202,8 @@ macro(parser(~name): ~*grammar):
 
     `(do:
         ~name = ::KPeg::CompiledParser class:
-          { self } setups := @setups ||= ~^setups
-          { self } vars := @vars ||= ~^vars
+          { self } setups := @setups ||= ~^Setups
+          { self } vars := @vars ||= ~^Vars
 
           actions := @actions ||= ~acts
 
