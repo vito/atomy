@@ -129,7 +129,6 @@ module Atomy
         as = []
         num.times do
           salt = Atomy::Macro::Environment.salt!
-          #raise("where") if salt == 689
           as << Atomy::AST::Word.new(0, :"s:#{salt}")
         end
 
