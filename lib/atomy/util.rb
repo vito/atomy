@@ -39,6 +39,29 @@ module Atomy
   # operator precedence/associativity table
   OPERATORS = {}
 
+  def self.find_const(name, ctx)
+    scope = ctx
+    while scope
+      if scope.module.const_defined?(name, false)
+        return scope.module.const_get(name)
+      end
+
+      scope = scope.parent
+    end
+
+    scope = ctx
+    while scope
+      # TODO: use const_defined? once it searches parents
+      begin
+        return scope.module.const_get(name)
+      rescue NameError
+        scope = scope.parent
+      end
+    end
+
+    ctx.module.const_missing(name)
+  end
+
   def self.copy(x)
     case x
     when Symbol, Integer, true, false, nil

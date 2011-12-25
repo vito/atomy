@@ -6,7 +6,11 @@ module Atomy
 
       def bytecode(g)
         pos(g)
-        g.push_const @name
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.push_literal @name
+        g.push_scope
+        g.send :find_const, 2
       end
 
       def assign(g, v)
