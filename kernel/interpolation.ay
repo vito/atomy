@@ -5,15 +5,12 @@ use("quotes")
 use("range")
 use("grammar")
 
--- TODO: localize all this to this module
+parser(Parser):
+  %atomy := Atomy::Parser
 
-Atomy open:
-  parser(InterpolationParser):
-    %atomy := Atomy::Parser
-
-    root := %atomy.wsp (%atomy.expressions)=es %atomy.wsp "}" {
-      Atomy::AST::Tree new(0, Array(es))
-    }
+  root := %atomy.wsp (%atomy.expressions)=es %atomy.wsp "}" {
+    Atomy::AST::Tree new(0, Array(es))
+  }
 
 
 intp-segments(s) :=
@@ -23,7 +20,7 @@ intp-segments(s) :=
     [x] -> [x to-node]
 
     [pre, chunk]:
-      p = Atomy::InterpolationParser new(chunk)
+      p = Parser new(chunk)
 
       unless(p parse):
         p raise-error
@@ -39,25 +36,24 @@ intp-segments(s) :=
 
 export
 
-Atomy::AST open:
-  Interpolation = Node class:
-    children([#segments])
-    generate
+Interpolation = Atomy::AST::Node class:
+  children([#segments])
+  generate
 
-    interpolated? := @segments size > 1
+  interpolated? := @segments size > 1
 
-    bytecode(g) := do:
-      pos(g)
+  bytecode(g) := do:
+    pos(g)
 
-      @segments each [s]:
-        s compile(g)
+    @segments each [s]:
+      s compile(g)
 
-      when(interpolated?):
-        g string-build(@segments size)
+    when(interpolated?):
+      g string-build(@segments size)
 
 
 interpolated(x) :=
-  Atomy::AST::Interpolation new(0, intp-segments(x))
+  Interpolation new(0, intp-segments(x))
 
 macro-quoter(i) [_, _, v]: interpolated(v)
 
