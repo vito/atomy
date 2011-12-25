@@ -175,7 +175,9 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
          prefix = line:line !":" op_letter:o level2:e
                     { Atomy::AST::Prefix.new(line, e, o) }
 
-        postfix = line:line level1:e operator:o
+        postfix = line:line postfix:e !":" op_letter:o
+                    { Atomy::AST::Postfix.new(line, e, o) }
+                | line:line level1:e !":" op_letter:o
                     { Atomy::AST::Postfix.new(line, e, o) }
 
           block = line:line ":" !operator wsp expressions?:es (wsp ";")?

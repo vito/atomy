@@ -2269,36 +2269,91 @@ class Atomy::Parser
     return _tmp
   end
 
-  # postfix = line:line level1:e operator:o { Atomy::AST::Postfix.new(line, e, o) }
+  # postfix = (line:line postfix:e !":" op_letter:o { Atomy::AST::Postfix.new(line, e, o) } | line:line level1:e !":" op_letter:o { Atomy::AST::Postfix.new(line, e, o) })
   def _postfix
 
     _save = self.pos
-    while true # sequence
-      _tmp = apply(:_line)
-      line = @result
-      unless _tmp
-        self.pos = _save
+    while true # choice
+
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_postfix)
+        e = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _save2 = self.pos
+        _tmp = match_string(":")
+        _tmp = _tmp ? nil : true
+        self.pos = _save2
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_op_letter)
+        o = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin;  Atomy::AST::Postfix.new(line, e, o) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
         break
-      end
-      _tmp = apply(:_level1)
-      e = @result
-      unless _tmp
-        self.pos = _save
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save3 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _tmp = apply(:_level1)
+        e = @result
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _save4 = self.pos
+        _tmp = match_string(":")
+        _tmp = _tmp ? nil : true
+        self.pos = _save4
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        _tmp = apply(:_op_letter)
+        o = @result
+        unless _tmp
+          self.pos = _save3
+          break
+        end
+        @result = begin;  Atomy::AST::Postfix.new(line, e, o) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save3
+        end
         break
-      end
-      _tmp = apply(:_operator)
-      o = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  Atomy::AST::Postfix.new(line, e, o) ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
       break
-    end # end sequence
+    end # end choice
 
     set_failed_rule :_postfix unless _tmp
     return _tmp
@@ -3920,7 +3975,7 @@ class Atomy::Parser
   Rules[:_scoped_constant] = rule_info("scoped_constant", "(line:line scoped_constant:p \"::\" constant_name:s { Atomy::AST::ScopedConstant.new(line, p, s) } | line:line level1:p \"::\" constant_name:s { Atomy::AST::ScopedConstant.new(line, p, s) })")
   Rules[:_word] = rule_info("word", "line:line identifier:n { Atomy::AST::Word.new(line, n) }")
   Rules[:_prefix] = rule_info("prefix", "line:line !\":\" op_letter:o level2:e { Atomy::AST::Prefix.new(line, e, o) }")
-  Rules[:_postfix] = rule_info("postfix", "line:line level1:e operator:o { Atomy::AST::Postfix.new(line, e, o) }")
+  Rules[:_postfix] = rule_info("postfix", "(line:line postfix:e !\":\" op_letter:o { Atomy::AST::Postfix.new(line, e, o) } | line:line level1:e !\":\" op_letter:o { Atomy::AST::Postfix.new(line, e, o) })")
   Rules[:_block] = rule_info("block", "(line:line \":\" !operator wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), []) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), []) })")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
   Rules[:_composes] = rule_info("composes", "(line:line compose:l !\"::\" cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) } | line:line level2:l !\"::\" cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) })")
