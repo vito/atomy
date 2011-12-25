@@ -2,9 +2,72 @@ use("core")
 use("define")
 use("block")
 use("control-flow")
+use("grammar")
 
 Atomy::Format open:
-  require(File expand-path("../../../lib/atomy/formatter.kpeg.rb", _FILE))
+  parser(Parser):
+    %%:
+      create(x, *as) := do:
+        as << []
+        x send(#new, 1, *as)
+
+    %atomy := Atomy::Parser
+
+    text(e) := [
+      -- TODO
+      <(/"[^\\%#{Regexp.quote(e)}]+"/)> { text }
+      "\\" <(/"[%\(\)\{\}\[\]]"/)> { text }
+      "\\" (%atomy.escape)=e { e }
+    ]
+
+    nested(e) := text(e)+=c { Chunk new(0, [], c join) }
+
+    chunk := nested("")
+
+    flagged := "%" flag*=fs segment=s { s flags = fs, s }
+
+    flag := [
+      "#" { Number new(0, nil) }
+      "0" &("." /"\d"/ | /"\d"/) { ZeroPad new(0) }
+      "." <(/"\d+"/)> { Precision new(0, text to-i) }
+      <(/"\d+"/)> { Number new(0, text to-i) }
+      <(/"[\.\+\*=<>,\?]"/)> { Symbol new(0, text) }
+    ]
+
+    segment := [
+      "p" "(" sub(")")=s ")" ("(" sub(")")=p ")")? {
+        Pluralize new(0, s, [], p)
+      }
+      "l" "(" sub(")")=c ")" { create(Lowercase, c) }
+      "c" "(" sub(")")=c ")" { create(Capitalize, c) }
+      "u" "(" sub(")")=c ")" { create(Uppercase, c) }
+      "j" ("(" sub(")")=c ")" { c })+=cs { create(Justify, cs) }
+      "{" sub("}")=c "}" { create(Iterate, c) }
+      ("[" sub("]")=c "]" { c })+=bs ("(" sub(")")=d ")")? {
+        Conditional new(0, Array(bs), [], d)
+      }
+      "_" { create(Skip) }
+      "^" { create(Break) }
+      "%" { create(Indirection) }
+      "s" { create(String) }
+      "d" { create(Decimal) }
+      "x" { create(Hex) }
+      "o" { create(Octal) }
+      "b" { create(Binary) }
+      "r" { create(Radix) }
+      "f" { create(Float) }
+      "e" { create(Exponent) }
+      "g" { create(General) }
+      "c" { create(Character) }
+      "v" { create(Any) }
+    ]
+
+    sub(e) := (flagged | nested(e))*=as {
+      Formatter new(0, Array(as))
+    }
+
+    root := sub("")
+
 
   Parser open:
     singleton:
