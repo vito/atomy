@@ -140,6 +140,11 @@ module Atomy
       end
     end
 
+    # just to make debugging a bit easier
+    unless file == :local
+      mod.set_name_if_necessary File.basename(file.to_s).to_sym, Object
+    end
+
     mod.const_set(:Self, mod)
 
     mod.file = file
