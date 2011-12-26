@@ -50,27 +50,27 @@ EndOfFile message := "unexpected end-of-file for " + @port show
 macro(~body bind { ~*handlers }):
   names [a]:
     callback = `([~a]: ~a match: ~*handlers)
-    `(let((~Self)::Handlers = ~callback . ^(~Self)::Handlers):
+    `(let(Handlers = ~callback . ^Handlers):
         ~body rescue:
-          (e: StandardError) -> ~Self error(e))
+          (e: StandardError) -> error(e))
 
 
 macro(with-restarts(~*restarts) ~(block: Block)):
   pairs = pairs-from(restarts)
 
   rs = pairs collect [[n, e]]:
-    `((~Self)::Restart new(
+    `(Restart new(
         ~message-name(n)
         [~*arguments(n)] &~block(n) { ~e }
       ))
 
   body =
     pairs reduce(
-      `{ ~block rescue: (e: StandardError) -> ~Self error(e) }
+      `{ ~block rescue: (e: StandardError) -> error(e) }
     ) [x, [name, _]]:
       `{ catch(~catcher(name)) ~x }
 
-  `(let((~Self)::Restarts = [~*rs] + ^(~Self)::Restarts) ~body)
+  `(let(Restarts = [~*rs] + ^Restarts) ~body)
 
 
 export

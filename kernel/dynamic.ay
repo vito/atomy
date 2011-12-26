@@ -15,7 +15,7 @@ Dynvar set(x) := Thread current [@name] = x
 macro(dynamic): `dynamic()
 macro(dynamic(~(root = 'nil))):
   names [local]:
-    `((~Self)::Dynvar new(~(local text), ~root))
+    `(Dynvar new(~(local text), ~root))
 
 macro(let(~*bindings) { ~*body }):
   tmps = bindings zip(names(bindings size))
