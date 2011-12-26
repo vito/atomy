@@ -5,29 +5,32 @@ use("control-flow")
 use("cosmetics")
 use("undefined")
 
-data(Particle(@receiver, @message, @arguments))
+Atomy = ::Atomy
 
-Particle call(*args) := to-proc [*args]
+Atomy open:
+  data(Particle(@receiver, @message, @arguments))
 
-Particle to-proc := [*args]:
-  [recv, cur] =
-    if(@receiver equal(_undefined)?)
-      then: [args[0], 1]
-      else: [@receiver, 0]
+  Particle call(*args) := to-proc [*args]
 
-  filled =
-    @arguments collect [v]:
-      if(v equal(_undefined)?)
-        then:
-          cur += 1
-          args[cur - 1]
-        else:
-          v
+  Particle to-proc := [*args]:
+    [recv, cur] =
+      if(@receiver equal(_undefined)?)
+        then: [args[0], 1]
+        else: [@receiver, 0]
 
-  recv send(@message, *filled)
+    filled =
+      @arguments collect [v]:
+        if(v equal(_undefined)?)
+          then:
+            cur += 1
+            args[cur - 1]
+          else:
+            v
 
-Particle arity :=
-  (@receiver . @arguments) select #equal(_undefined)? size
+    recv send(@message, *filled)
+
+  Particle arity :=
+    (@receiver . @arguments) select #equal(_undefined)? size
 
 Symbol call(*args) := to-proc [*args]
 
@@ -37,56 +40,56 @@ wildcard('_) := '_undefined
 wildcard(x) := x
 
 macro(#(~(x)(~*as))):
-  `(Particle new(
+  `(Atomy::Particle new(
       _undefined
       #~x
       ~(as collect [c]: wildcard(c))
     ))
 
 macro(#(~(x)(~*as))?):
-  `(Particle new(
+  `(Atomy::Particle new(
       _undefined
       #(~x)?
       ~(as collect [c]: wildcard(c))
     ))
 
 macro(#(~(x)(~*as))!):
-  `(Particle new(
+  `(Atomy::Particle new(
       _undefined
       #(~x)!
       ~(as collect [c]: wildcard(c))
     ))
 
 macro(#(~r ~(x)(~*as))):
-  `(Particle new(
+  `(Atomy::Particle new(
       ~(wildcard(r))
       #~x
       ~(as collect [c]: wildcard(c))
     ))
 
 macro(#(~r ~(x)(~*as))?):
-  `(Particle new(
+  `(Atomy::Particle new(
       ~(wildcard(r))
       #(~x)?
       ~(as collect [c]: wildcard(c))
     ))
 
 macro(#(~r ~(x)(~*as))!):
-  `(Particle new(
+  `(Atomy::Particle new(
       ~(wildcard(r))
       #(~x)!
       ~(as collect [c]: wildcard(c))
     ))
 
 macro(#(~r [~*as])):
-  `(Particle new(
+  `(Atomy::Particle new(
       ~(wildcard(r))
       #"[]"
       ~(as collect [c]: wildcard(c))
     ))
 
 macro(#~(x: Binary)):
-  `(Particle new(
+  `(Atomy::Particle new(
       ~(if(x private)
           then: '_undefined
           else: wildcard(x lhs))
