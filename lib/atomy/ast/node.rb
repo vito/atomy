@@ -21,18 +21,9 @@ module Atomy
         }
       end
 
-      def reset_slots
-        @slots = {
-          :required => [],
-          :many => [],
-          :optional => []
-        }
-      end
-
       def self.extended(sub)
         sub.reset_children
         sub.reset_attributes
-        sub.reset_slots
       end
 
       def spec(into, specs)
@@ -55,10 +46,6 @@ module Atomy
 
       def attributes(*specs)
         spec(@attributes, specs)
-      end
-
-      def slots(*specs)
-        spec(@slots, specs)
       end
 
       def children(*specs)
@@ -96,21 +83,14 @@ END
         all = []
         args = ""
         (@children[:required] + @children[:many] +
-         @attributes[:required] + @attributes[:many] +
-         @slots[:required] + @slots[:many]).each do |x|
+         @attributes[:required] + @attributes[:many]).each do |x|
           all << x.to_s
           args << ", #{x}_"
         end
 
-        lists = @children[:many] + @attributes[:many] + @slots[:many]
+        lists = @children[:many] + @attributes[:many]
 
         (@children[:optional] + @attributes[:optional]).each do |x, d|
-          all << x.to_s
-          args << ", #{x}_ = #{d}"
-        end
-
-        non_slots = all.dup
-        @slots[:optional].each do |x, d|
           all << x.to_s
           args << ", #{x}_ = #{d}"
         end
@@ -152,23 +132,11 @@ EOF
                 "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
               }.join("; ")}
 
-            #{@slots[:required].collect { |a|
-                "g.push_literal(@#{a})"
-              }.join("; ")}
-
-            #{@slots[:many].collect { |a|
-                "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
-              }.join("; ")}
-
             #{@children[:optional].collect { |n, _|
                 "if @#{n}; @#{n}.construct(g, d); else; g.push_nil; end"
               }.join("; ")}
 
             #{@attributes[:optional].collect { |a, _|
-                "g.push_literal(@#{a})"
-              }.join("; ")}
-
-            #{@slots[:optional].collect { |a, _|
                 "g.push_literal(@#{a})"
               }.join("; ")}
 
@@ -185,7 +153,7 @@ EOF
         class_eval <<EOF
           def eql?(b)
             b.kind_of?(self.class) \\
-            #{non_slots.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
+            #{all.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
           end
 
           alias :== :eql?
@@ -197,15 +165,6 @@ EOF
           }.join
 
         opt_as = @attributes[:optional].collect { |a, _|
-            ", @#{a}"
-          }.join
-
-        req_ss =
-          (@slots[:required] + @slots[:many]).collect { |a|
-            ", @#{a}"
-          }.join
-
-        opt_ss = @slots[:optional].collect { |a, _|
             ", @#{a}"
           }.join
 
@@ -237,7 +196,7 @@ EOF
           def children(&f)
             if block_given?
               self.class.new(
-                @line#{creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss}
+                @line#{creq_cs + cmany_cs + req_as + copt_cs + opt_as}
               )
             else
               [#{all.join(", ")}]
@@ -286,16 +245,6 @@ EOF
           end
 EOF
 
-        slots =
-          @slots[:required] + @slots[:many] +
-            @slots[:optional].collect(&:first)
-
-        class_eval <<EOF
-          def slots
-            #{slots.inspect}
-          end
-EOF
-
         class_eval <<EOF
           def accept(x)
             name = self.class.name
@@ -316,15 +265,11 @@ EOF
         a_many = @attributes[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
         a_optional = @attributes[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
 
-        s_required = @slots[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
-        s_many = @slots[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
-        s_optional = @slots[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
-
         class_eval <<EOF
           def to_sexp
             name = self.class.name
             meth = name ? name.split("::").last.downcase.to_sym : :anonymous
-            [meth#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}#{required}#{many}#{optional}]
+            [meth#{a_required}#{a_many}#{a_optional}#{required}#{many}#{optional}]
           end
 EOF
 
@@ -334,15 +279,6 @@ EOF
           }.join
 
         copyopt_as = @attributes[:optional].collect { |a, _|
-            ", Atomy.copy(@#{a})"
-          }.join
-
-        copyreq_ss =
-          (@slots[:required] + @slots[:many]).collect { |a|
-            ", Atomy.copy(@#{a})"
-          }.join
-
-        copyopt_ss = @slots[:optional].collect { |a, _|
             ", Atomy.copy(@#{a})"
           }.join
 
@@ -364,7 +300,7 @@ EOF
         class_eval <<EOF
           def copy
             self.class.new(
-              @line#{copyreq_cs + copymany_cs + copyreq_as + copyreq_ss + copyopt_cs + copyopt_as + copyopt_ss}
+              @line#{copyreq_cs + copymany_cs + copyreq_as + copyopt_cs + copyopt_as}
             ).tap do |x|
               x.in_context(@context)
             end

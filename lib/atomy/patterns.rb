@@ -20,18 +20,9 @@ module Atomy::Patterns
       }
     end
 
-    def reset_slots
-      @slots = {
-        :required => [],
-        :many => [],
-        :optional => []
-      }
-    end
-
     def self.extended(sub)
       sub.reset_children
       sub.reset_attributes
-      sub.reset_slots
     end
 
     def spec(into, specs)
@@ -56,10 +47,6 @@ module Atomy::Patterns
       spec(@attributes, specs)
     end
 
-    def slots(*specs)
-      spec(@slots, specs)
-    end
-
     def children(*specs)
       spec(@children, specs)
     end
@@ -68,21 +55,14 @@ module Atomy::Patterns
       all = []
       args = []
       (@children[:required] + @children[:many] +
-        @attributes[:required] + @attributes[:many] +
-        @slots[:required] + @slots[:many]).each do |x|
+        @attributes[:required] + @attributes[:many]).each do |x|
         all << x.to_s
         args << "#{x}_"
       end
 
-      lists = @children[:many] + @attributes[:many] + @slots[:many]
+      lists = @children[:many] + @attributes[:many]
 
       (@children[:optional] + @attributes[:optional]).each do |x, d|
-        all << x.to_s
-        args << "#{x}_ = #{d}"
-      end
-
-      non_slots = all.dup
-      @slots[:optional].each do |x, d|
         all << x.to_s
         args << "#{x}_ = #{d}"
       end
@@ -121,23 +101,11 @@ EOF
               "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
             }.join("; ")}
 
-          #{@slots[:required].collect { |a|
-              "g.push_literal(@#{a})"
-            }.join("; ")}
-
-          #{@slots[:many].collect { |a|
-              "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
-            }.join("; ")}
-
           #{@children[:optional].collect { |n, _|
               "if @#{n}; @#{n}.construct(g, d); else; g.push_nil; end"
             }.join("; ")}
 
           #{@attributes[:optional].collect { |a, _|
-              "g.push_literal(@#{a})"
-            }.join("; ")}
-
-          #{@slots[:optional].collect { |a, _|
               "g.push_literal(@#{a})"
             }.join("; ")}
 
@@ -147,7 +115,7 @@ EOF
 
       class_eval <<EOF
         def eql?(b)
-          b.kind_of?(self.class)#{non_slots.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
+          b.kind_of?(self.class)#{all.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
         end
 
         alias :== :eql?
@@ -159,15 +127,6 @@ EOF
         }
 
       opt_as = @attributes[:optional].collect { |a, _|
-          "@#{a}"
-        }
-
-      req_ss =
-        (@slots[:required] + @slots[:many]).collect { |a|
-          "@#{a}"
-        }
-
-      opt_ss = @slots[:optional].collect { |a, _|
           "@#{a}"
         }
 
@@ -199,7 +158,7 @@ EOF
         def children(&f)
           if block_given?
             self.class.new(
-              #{(creq_cs + cmany_cs + req_as + req_ss + copt_cs + opt_as + opt_ss).join ", "}
+              #{(creq_cs + cmany_cs + req_as + copt_cs + opt_as).join ", "}
             )
           else
             [#{all.join(", ")}]
@@ -248,16 +207,6 @@ EOF
         end
 EOF
 
-      slots =
-        @slots[:required] + @slots[:many] +
-          @slots[:optional].collect(&:first)
-
-      class_eval <<EOF
-        def slots
-          #{slots.inspect}
-        end
-EOF
-
       required = @children[:required].collect { |c| ", [:\"#{c}\", @#{c}.to_sexp]" }.join
       many = @children[:many].collect { |c| ", [:\"#{c}\", @#{c}.collect(&:to_sexp)]" }.join
       optional = @children[:optional].collect { |c, _| ", [:\"#{c}\", @#{c} && @#{c}.to_sexp]" }.join
@@ -266,15 +215,11 @@ EOF
       a_many = @attributes[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
       a_optional = @attributes[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
 
-      s_required = @slots[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
-      s_many = @slots[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
-      s_optional = @slots[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
-
       class_eval <<EOF
         def to_sexp
           name = self.class.name
           meth = name ? name.split("::").last.downcase.to_sym : :anonymous
-          [meth#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}#{s_required}#{s_many}#{s_optional}]
+          [meth#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}]
         end
 EOF
 

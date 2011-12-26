@@ -11,8 +11,7 @@ module Atomy
       }
 
       children :lhs, :rhs
-      attributes :operator
-      slots [:private, "false"]
+      attributes :operator, [:private, "false"]
       generate
 
       alias :message_name :operator

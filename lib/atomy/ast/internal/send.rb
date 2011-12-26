@@ -2,8 +2,7 @@ module Atomy
   module AST
     class Send < Node
       children :receiver, [:arguments], :splat?, :block?
-      attributes :message_name
-      slots [:private, "false"]
+      attributes :message_name, [:private, "false"]
       generate
 
       def bytecode(g)
