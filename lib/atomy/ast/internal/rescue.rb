@@ -1,6 +1,6 @@
 module Atomy
   module AST
-    class Catch < Node
+    class Rescue < Node
       children :body, [:handlers], :else?
       generate
 
