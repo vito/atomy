@@ -63,10 +63,6 @@ module Atomy::Patterns
         args << val
       end
 
-      slots[:required].each do
-        args << rand(16)
-      end
-
       children[:optional].each do
         if rand(2) == 0
           args << nil
@@ -80,14 +76,6 @@ module Atomy::Patterns
           args << nil
         else
           args << random_symbol
-        end
-      end
-
-      slots[:optional].each do
-        if rand(2) == 0
-          args << nil
-        else
-          args << rand(16)
         end
       end
 
