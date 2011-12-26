@@ -13,6 +13,7 @@ use("dynamic")
 use("doc")
 
 IO = use("io")
+Particles = use("particles")
 
 Printing = dynamic([])
 Multiline = dynamic(false)
@@ -87,7 +88,7 @@ Doc pretty-print := self
 
 Array pretty-print := list(pretty-sequence(self))
 
-Atomy::Particle pretty-print := do:
+Particles::Particle pretty-print := do:
   wildcard = [c]:
     if(c equal(_undefined)?)
       then: '_
@@ -115,7 +116,7 @@ Atomy::Particle pretty-print := do:
 
   text("#") <> partial
 
-Atomy::Particle to-s := show
+Particles::Particle to-s := show
 
 Symbol pretty-print := do:
   s = to-s
@@ -281,7 +282,7 @@ Atomy::Patterns open:
     `($~(Atomy::AST::Word new(-1, @identifier))) pretty
   Or pretty-print := `(~@a | ~@b) pretty
   Particle pretty-print :=
-    Atomy::Particle new(
+    Particles::Particle new(
       @receiver
       @message
       @arguments patterns
