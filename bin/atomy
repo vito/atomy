@@ -55,10 +55,7 @@ unless ARGV.empty? || ARGV[0][0] != ?-
 end
 
 unless options[:skip_kernel]
-  a = Time.now
-  puts "loading core"
   require("boot")
-  puts Time.now - a
 end
 
 if options[:profile]

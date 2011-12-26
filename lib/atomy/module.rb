@@ -120,9 +120,6 @@ module Atomy
       end
 
       x
-    rescue
-      $stderr.puts "while using #{path}..."
-      raise
     end
 
     def using
