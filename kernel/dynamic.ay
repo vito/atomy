@@ -4,6 +4,8 @@ use("comparison")
 use("control-flow")
 use("array")
 
+-- TODO: include file info in nodes, rather than just line
+
 Dynvar = class:
   initialize(@name, @default = nil) := nil
 

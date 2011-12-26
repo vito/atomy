@@ -3,6 +3,7 @@ use("define")
 use("control-flow")
 use("comparison")
 use("array")
+use("node")
 
 hash-key-from(x) := x
 hash-key-from(x: ? to-word) := `#~(x to-word)
@@ -28,11 +29,10 @@ hash-pairs-from(es) :=
   hash-pair-from(e) for(e) in(es) flatten(1)
 
 
-Atomy::AST::Hash = Atomy::AST::Node class:
-  children([#keys], [#values])
-  generate
+Atomy::AST open:
+  ast(Hash([#keys], [#values]))
 
-  bytecode(g) := do:
+  Hash bytecode(g) := do:
     pos(g)
 
     g push-cpath-top
@@ -52,4 +52,4 @@ macro(#: ~*elements):
   pairs = hash-pairs-from(elements)
   keys = pairs collect [[k, _]]: k
   values = pairs collect [[_, v]]: v
-  Atomy::AST::Hash new(node line, keys, values)
+  Hash new(node line, keys, values)

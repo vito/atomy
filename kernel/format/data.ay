@@ -2,76 +2,40 @@ use("core")
 use("define")
 use("array")
 use("control-flow")
-
-macro(ast { ~*nodes }):
-  `(ast(Atomy::AST::Node) { ~*nodes })
-
-macro(ast(~root) { ~*nodes }):
-  cs = nodes map [e]:
-    e match:
-      `(~(name)(~*args)):
-        children = Array[]
-        attributes = Array[]
-
-        args each [a]:
-          a match:
-            `[@~name] ->
-              attributes << `[#~name]
-
-            `@~name ->
-              attributes << `#~name
-
-            _ ->
-              children << a
-
-        `(~name = ~root class:
-            children(~*children)
-            attributes(~*attributes)
-            generate)
-
-      _ ->
-        `(~e = ~root class:
-            generate)
-
-  all =
-    if(root != 'Atomy::AST::Node)
-      then: `(~root = Class new(Atomy::AST::Node)) . cs
-      else: cs
-
-  `(do: ~*all)
+use("node")
 
 Atomy::Format open:
-  ast(Segment):
-    Chunk([#flags], @text)
-    String([#flags])
-    Decimal([#flags])
-    Hex([#flags])
-    Octal([#flags])
-    Binary([#flags])
-    Radix([#flags])
-    Float([#flags])
-    Exponent([#flags])
-    General([#flags])
-    Character([#flags])
-    Any([#flags])
-    Pluralize(#singular, [#flags], #plural?)
-    Lowercase(#content, [#flags])
-    Capitalize(#content, [#flags])
-    Uppercase(#content, [#flags])
-    Justify([#segments], [#flags])
-    Skip([#flags])
-    Indirection([#flags])
-    Iterate(#content, [#flags])
-    Break([#flags])
-    Conditional([#branches], [#flags], #default?)
-
-  ast(Flag):
-    Number(@value?)
-    Symbol(@character)
-    ZeroPad
-    Precision(@value)
-
   ast:
+    Segment:
+      Chunk([#flags], @text)
+      String([#flags])
+      Decimal([#flags])
+      Hex([#flags])
+      Octal([#flags])
+      Binary([#flags])
+      Radix([#flags])
+      Float([#flags])
+      Exponent([#flags])
+      General([#flags])
+      Character([#flags])
+      Any([#flags])
+      Pluralize(#singular, [#flags], #plural?)
+      Lowercase(#content, [#flags])
+      Capitalize(#content, [#flags])
+      Uppercase(#content, [#flags])
+      Justify([#segments], [#flags])
+      Skip([#flags])
+      Indirection([#flags])
+      Iterate(#content, [#flags])
+      Break([#flags])
+      Conditional([#branches], [#flags], #default?)
+
+    Flag:
+      Number(@value?)
+      Symbol(@character)
+      ZeroPad
+      Precision(@value)
+
     Formatter([#segments])
 
   Segment symbol(m)? :=

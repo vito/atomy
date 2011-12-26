@@ -1,62 +1,56 @@
 -- TODO: merge w/ control-flow
 use("core")
 use("define")
+use("node")
 
 Atomy::AST open:
-  And = Node class:
-    children(#a, #b)
-    generate
+  ast:
+    And(#a, #b)
+    Or(#a, #b)
+    Negate(#expression)
 
-    bytecode(g) := do:
-      pos(g)
-      done = g new-label
-      no = g new-label
+  And bytecode(g) := do:
+    pos(g)
+    done = g new-label
+    no = g new-label
 
-      @a compile(g)
-      g dup
-      g gif(done)
+    @a compile(g)
+    g dup
+    g gif(done)
 
-      g pop
-      @b compile(g)
+    g pop
+    @b compile(g)
 
-      done set!
+    done set!
 
-  Or = Node class:
-    children(#a, #b)
-    generate
+  Or bytecode(g) := do:
+    pos(g)
+    done = g new-label
 
-    bytecode(g) := do:
-      pos(g)
-      done = g new-label
+    @a compile(g)
+    g dup
+    g git(done)
 
-      @a compile(g)
-      g dup
-      g git(done)
+    g pop
+    @b compile(g)
 
-      g pop
-      @b compile(g)
+    done set!
 
-      done set!
+  Negate bytecode(g) := do:
+    pos(g)
+    done = g new-label
+    yes = g new-label
 
-  Negate = Node class:
-    children(#expression)
-    generate
+    @expression compile(g)
+    g git(yes)
 
-    bytecode(g) := do:
-      pos(g)
-      done = g new-label
-      yes = g new-label
+    g push-true
+    g goto(done)
 
-      @expression compile(g)
-      g git(yes)
+    yes set!
+    g push-false
 
-      g push-true
-      g goto(done)
-
-      yes set!
-      g push-false
-
-      done set!
+    done set!
 
 macro(~a && ~b): And new(node line, a, b)
 macro(~a || ~b): Or new(node line, a, b)

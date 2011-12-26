@@ -1,6 +1,7 @@
 use("core")
 use("define")
 use("comparison")
+use("node")
 
 macro(if(~x) then ~(y: Block) else ~(z: Block)):
   IfThenElse new(node line, x, y body, z body)
@@ -52,23 +53,19 @@ macro(super(~*as) &~blk):
 
 
 Atomy::AST open:
-  Break = Node class:
-    children(#value)
-    generate
+  ast:
+    Break(#value)
+    Next(#value)
 
-    bytecode(g) := do:
-      pos(g)
-      @value compile(g)
-      g raise-break
+  Break bytecode(g) := do:
+    pos(g)
+    @value compile(g)
+    g raise-break
 
-  Next = Node class:
-    children(#value)
-    generate
-
-    bytecode(g) := do:
-      pos(g)
-      @value compile(g)
-      g ret
+  Next bytecode(g) := do:
+    pos(g)
+    @value compile(g)
+    g ret
 
 
 macro(break):
@@ -128,36 +125,31 @@ macro(~x rescue ~(y: Block) else ~(z: Block)):
   Catch new(node line, x caller, branches, z body)
 
 Atomy::AST open:
-  Super = Node class:
-    children([#arguments], #splat?, #block?)
-    generate
+  ast:
+    Super([#arguments], #splat?, #block?)
+    ZSuper
 
-    bytecode(g) := do:
-      pos(g)
+  Super bytecode(g) := do:
+    pos(g)
 
-      @arguments each [a]:
-        a compile(g)
+    @arguments each [a]:
+      a compile(g)
 
-      when(@splat):
-        @splat compile(g)
-        g cast-array
+    when(@splat):
+      @splat compile(g)
+      g cast-array
 
-      if(@block)
-        then: @block compile(g)
-        else: g push-nil
+    if(@block)
+      then: @block compile(g)
+      else: g push-nil
 
-      g send-super(nil, @arguments size, !!@splat)
+    g send-super(nil, @arguments size, !!@splat)
 
-  ZSuper = Node class:
-    generate
+  ZSuper bytecode(g) := do:
+    pos(g)
 
-    bytecode(g) := do:
-      pos(g)
+    g push-block
 
-      g push-block
-
-      if(g state super?)
-        then:
-          g zsuper(g state super name)
-        else:
-          g zsuper(nil)
+    if(g state super?)
+      then: g zsuper(g state super name)
+      else: g zsuper(nil)

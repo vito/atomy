@@ -1,6 +1,5 @@
 require("operators")
 require("patterns")
-require("node")
 require("errors")
 
 export(

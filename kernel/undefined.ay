@@ -1,15 +1,15 @@
 use("core")
 use("define")
+use("node")
+
+Atomy::AST open:
+  ast(Undefined)
+
+  Undefined bytecode(g) := do:
+    pos(g)
+    g push-undef
+
+  Undefined to-pattern := Atomy::Patterns::Any new
 
 macro(_undefined):
   Undefined new(node line)
-
-Atomy::AST open:
-  Undefined = Node class:
-    generate
-
-    bytecode(g) := do:
-      pos(g)
-      g push-undef
-
-    to-pattern := Atomy::Patterns::Any new

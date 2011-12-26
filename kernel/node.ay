@@ -1,84 +1,40 @@
 use("core")
 use("define")
 
-Atomy::AST open:
-  '_ to-pattern :=
-    Atomy::Patterns::Any new
+process-arg(`[@~name], as, cs) := as << `[#~name]
+process-arg(`(@~name = ~default), as, cs) := as << `[#~name, ~default]
+process-arg(`@~name, as, cs) := as << `#~name
+process-arg(`(#~name = ~default), as, cs) := cs << `[#~name, ~default]
+process-arg(c, as, cs) := cs << c
 
-  `(~h . ~t) to-pattern :=
-    Atomy::Patterns::HeadTail new(h to-pattern, t to-pattern)
+define-class(root, `(~n { ~*cs })) := define-class(root, `(~(n)() { ~*cs }))
+define-class(root, x: `(~(name)(~*as))) := define-class(root, `(~x {}))
+define-class(root, e: Atomy::AST::Constant) :=
+  `(~e = ~root class:
+      generate)
+define-class(root, `(~(name)(~*as): ~*cs)) := do:
+  children = []
+  attributes = []
 
-  `(~p = ~d) to-pattern :=
-    Atomy::Patterns::Default new(p to-pattern, d)
+  as each [a]:
+    process-arg(a, attributes, children)
 
-  `(? ~t) to-pattern :=
-    Atomy::Patterns::Predicate new(Atomy::Patterns::Any new, t)
+  `(do:
+      ~name = ~root class:
+        children(~*children)
+        attributes(~*attributes)
+        generate
 
-  `(~p ? ~t) to-pattern :=
-    Atomy::Patterns::Predicate new(p to-pattern, t)
+      ~*(cs collect [c]: define-class(name, c)))
 
-  `(~a & ~b) to-pattern :=
-    Atomy::Patterns::And new(a to-pattern, b to-pattern)
+macro(ast(~x)):
+  `(ast: ~x)
 
-  `(~a | ~b) to-pattern :=
-    Atomy::Patterns::Or new(a to-pattern, b to-pattern)
+macro(ast: ~*nodes):
+  `(ast(::Atomy::AST::Node): ~*nodes)
 
-  `(~x with(~e, ~y)) to-pattern :=
-    Atomy::Patterns::With new(x to-pattern, y to-pattern, e)
-
-  `(with(~e, ~y)) to-pattern :=
-    Atomy::Patterns::With new(Atomy::Patterns::Any new, y to-pattern, e)
-
-  `@@~(n: ? to-word) to-pattern :=
-    Atomy::Patterns::NamedClass new(n to-word text)
-
-  `$0 to-pattern :=
-    Atomy::Patterns::NamedGlobal new("0")
-
-  `$exception to-pattern :=
-    Atomy::Patterns::NamedGlobal new("!")
-
-  `$path to-pattern :=
-    Atomy::Patterns::NamedGlobal new(":")
-
-  `$separator to-pattern :=
-    Atomy::Patterns::NamedGlobal new("/")
-
-  `$~(n: Atomy::AST::Constant) to-pattern :=
-    Atomy::Patterns::NamedGlobal new(n name)
-
-  `$~(n: Atomy::AST::String) to-pattern :=
-    Atomy::Patterns::NamedGlobal new(n value)
-
-  `$~(n: ? to-word) to-pattern :=
-    Atomy::Patterns::NamedGlobal new(n to-word text)
-
-  `@~(n: ? to-word) to-pattern :=
-    Atomy::Patterns::NamedInstance new(n to-word text)
-
-  `&~x to-pattern :=
-    Atomy::Patterns::BlockPass new(x to-pattern)
-
-  `*~x to-pattern :=
-    Atomy::Patterns::Splat new(x to-pattern)
-
-  'self to-pattern :=
-    Atomy::Patterns::Match new(#self)
-
-  'true to-pattern :=
-    Atomy::Patterns::Match new(#true)
-
-  'false to-pattern :=
-    Atomy::Patterns::Match new(#false)
-
-  'nil to-pattern :=
-    Atomy::Patterns::Match new(#nil)
-
-  `#~(x: ? to-word) to-pattern :=
-    Atomy::Patterns::Literal new(x to-word text)
-
-  `#~(x: Atomy::AST::Constant) to-pattern :=
-    Atomy::Patterns::Literal new(x name)
-
-  `#~(x: Atomy::AST::String) to-pattern :=
-    Atomy::Patterns::Literal new(x value to-sym)
+macro(ast(~root): ~*nodes):
+  `(do:
+      ~*(nodes collect [n]:
+          define-class(root, n))
+      nil)

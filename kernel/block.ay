@@ -4,6 +4,7 @@ use("comparison")
 use("control-flow")
 use("meta")
 use("interpolation")
+use("node")
 
 Atomy::Patterns open:
   NamedRedirectedInstance = NamedInstance class:
@@ -55,44 +56,40 @@ Atomy::Patterns open:
 
 
 Atomy::AST open:
-  RedirectedInstanceVariable = Node class:
-    children(#target)
-    attributes(#name)
-    generate
+  ast:
+    RedirectedInstanceVariable(#target, @name)
+    RedirectedClassVariable(#target, @name)
 
-    bytecode(g) := do:
-      pos(g)
-      @target compile(g)
-      g push-literal(#"@#{@name}")
-      g send(#instance-variable-get, 1)
 
-    to-pattern :=
-      Atomy::Patterns::NamedRedirectedInstance new(@target, @name)
+  RedirectedInstanceVariable bytecode(g) := do:
+    pos(g)
+    @target compile(g)
+    g push-literal(#"@#{@name}")
+    g send(#instance-variable-get, 1)
 
-  RedirectedClassVariable = Node class:
-    children(#target)
-    attributes(#name)
-    generate
+  RedirectedClassVariable bytecode(g) := do:
+    pos(g)
+    have-class = g new-label
 
-    bytecode(g) := do:
-      pos(g)
-      have-class = g new-label
+    @target compile(g)
+    g dup
+    g push-cpath-top
+    g find-const(#Class)
+    g kind-of
+    g git(have-class)
 
-      @target compile(g)
-      g dup
-      g push-cpath-top
-      g find-const(#Class)
-      g kind-of
-      g git(have-class)
+    g send(#class, 0)
 
-      g send(#class, 0)
+    have-class set!
+    g push-literal(#"@@#{@name}")
+    g send(#class-variable-get, 1)
 
-      have-class set!
-      g push-literal(#"@@#{@name}")
-      g send(#class-variable-get, 1)
 
-    to-pattern :=
-      Atomy::Patterns::NamedRedirectedClass new(@target, @name)
+  RedirectedInstanceVariable to-pattern :=
+    Atomy::Patterns::NamedRedirectedInstance new(@target, @name)
+
+  RedirectedClassVariable to-pattern :=
+    Atomy::Patterns::NamedRedirectedClass new(@target, @name)
 
 
 macro(~x onto ~(b: Block)):

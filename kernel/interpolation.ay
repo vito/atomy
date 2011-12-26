@@ -4,6 +4,7 @@ use("control-flow")
 use("quotes")
 use("range")
 use("grammar")
+use("node")
 
 parser(Parser):
   %atomy := Atomy::Parser
@@ -36,13 +37,12 @@ intp-segments(s) :=
 
 export
 
-Interpolation = Atomy::AST::Node class:
-  children([#segments])
-  generate
+Atomy::AST open:
+  ast(Interpolation([#segments]))
 
-  interpolated? := @segments size > 1
+  Interpolation interpolated? := @segments size > 1
 
-  bytecode(g) := do:
+  Interpolation bytecode(g) := do:
     pos(g)
 
     @segments each [s]:
@@ -53,7 +53,7 @@ Interpolation = Atomy::AST::Node class:
 
 
 interpolated(x) :=
-  Interpolation new(0, intp-segments(x))
+  Atomy::AST::Interpolation new(0, intp-segments(x))
 
 macro-quoter(i) [_, _, v]: interpolated(v)
 

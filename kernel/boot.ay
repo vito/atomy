@@ -1,5 +1,5 @@
 use("core")
 
-"operators patterns node errors" split each [k]:
+"operators patterns errors" split each [k]:
   puts("loading " + k)
   use(k)

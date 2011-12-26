@@ -3,43 +3,36 @@ use("define")
 use("dynamic")
 use("control-flow")
 use("meta")
+use("node")
 
 Tags = dynamic(Hash new)
 
 Atomy::AST open:
-  Labels = Node class:
-    children([#tags])
-    generate
+  ast:
+    Labels([#branches])
+    LabelBranch(#body, @name)
+    GoTo(@name)
 
-    bytecode(g) := do:
-      pos(g)
+  Labels bytecode(g) := do:
+    pos(g)
 
-      tags = ::Hash new
+    tags = ::Hash new
 
-      lbls =
-        @tags to-a collect [t]:
-          tags [t name] = g new-label
+    lbls =
+      @branches to-a collect [t]:
+        tags [t name] = g new-label
 
-      let(Tags = tags):
-        lbls zip(@tags to-a) each [[l, t]]:
-          l set!
-          t body compile(g)
-          g pop
+    let(Tags = tags):
+      lbls zip(@branches to-a) each [[l, t]]:
+        l set!
+        t body compile(g)
+        g pop
 
-      g push-nil
+    g push-nil
 
-  LabelBranch = Node class:
-    children(#body)
-    attributes(#name)
-    generate
-
-  GoTo = Node class:
-    attributes(#name)
-    generate
-
-    bytecode(g) := do:
-      pos(g)
-      g goto(^Tags fetch(@name))
+  GoTo bytecode(g) := do:
+    pos(g)
+    g goto(^Tags fetch(@name))
 
 
 macro(labels ~(body: Block)):
