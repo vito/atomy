@@ -116,13 +116,6 @@ module Atomy::Patterns
       it("targets Object for definition") do
         BlockPass.new(Any.new).definition_target.must_equal Object
       end
-
-      it("uses its pattern for precision comparison") do
-        for_every_pattern do |p|
-          x = BlockPass.arbitrary
-          (x <=> p).must_equal(x.pattern <=> p)
-        end
-      end
     end
 
     describe(Constant) do
@@ -182,13 +175,6 @@ module Atomy::Patterns
       it("targets its pattern's target for definition") do
         Default.new(Any.new, nil).definition_target.must_equal Object
         Default.new(List.new([]), nil).definition_target.must_equal Array
-      end
-
-      it("uses its pattern for precision comparison") do
-        for_every_pattern do |p|
-          x = Default.arbitrary
-          (x <=> p).must_equal(x.pattern <=> p)
-        end
       end
     end
 
@@ -429,13 +415,6 @@ module Atomy::Patterns
       it("targets its pattern's target for definition") do
         Named.new(Any.new, :foo).definition_target.must_equal Object
         Named.new(List.new([]), :foo).definition_target.must_equal Array
-      end
-
-      it("uses its pattern for precision comparison") do
-        for_every_pattern do |p|
-          x = Named.arbitrary
-          (x <=> p).must_equal(x.pattern <=> p)
-        end
       end
     end
 
@@ -716,13 +695,6 @@ module Atomy::Patterns
 
       it("targets Object for definition") do
         Splat.new(Any.new).definition_target.must_equal Object
-      end
-
-      it("uses its pattern for precision comparison") do
-        for_every_pattern do |p|
-          x = Splat.arbitrary
-          (x <=> p).must_equal(x.pattern <=> p)
-        end
       end
     end
 
