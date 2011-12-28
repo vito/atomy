@@ -5,9 +5,9 @@ use("node")
 
 Atomy::AST open:
   ast:
-    And(#a, #b)
-    Or(#a, #b)
-    Negate(#expression)
+    And(.a, .b)
+    Or(.a, .b)
+    Negate(.expression)
 
   And bytecode(g) := do:
     pos(g)

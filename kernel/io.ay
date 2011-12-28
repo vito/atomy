@@ -60,7 +60,7 @@ read-byte := do:
 read-char := read-byte chr
 
 read(length = nil, buffer = nil) :=
-  ^InputPort send(#read, length, buffer)
+  ^InputPort read(length, buffer)
 
 with-input-from((filename: String), mode = "r") &action :=
   let(InputPort = File open(filename, mode)):

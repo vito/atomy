@@ -11,12 +11,12 @@ start(token) := do:
 roundtrip(id, pid) :=
   loop:
     receive:
-      #done ->
+      .done ->
         return(nil)
 
       1 -> do:
         id println
-        $main <- #done
+        $main <- .done
 
       token ->
         (pid <- (token - 1))

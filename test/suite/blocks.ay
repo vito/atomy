@@ -3,7 +3,7 @@ use("define")
 use("therie")
 
 describe("blocks"):
-  describe(#call):
+  describe(.call):
     it("evaluates with the block's context available"):
       a = 1
       { a + 1 } call should-be(2)

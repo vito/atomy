@@ -86,7 +86,7 @@ macro(~(call: `(~_ ~(? to-word)(~*_))) [~*ys] ~(z: Block)):
   x
 
 -- particle/symbol block-passing shorthand
-macro(~x #~y): `(~x &#~y)
+macro(~x .~y): `(~x &.~y)
 
 -- block-passing
 macro(~_ ~(? to-word) &~_):
@@ -169,13 +169,13 @@ macro($path):
 macro($separator):
   GlobalVariable new(node line, "/" to-sym)
 
-macro(#~(x: Constant)):
+macro(.~(x: Constant)):
   Literal new(node line, x name)
 
-macro(#~(x: ? to-word)):
+macro(.~(x: ? to-word)):
   Literal new(node line, x to-word text)
 
-macro(#~(x: String)):
+macro(.~(x: String)):
   Literal new(node line, x value to-sym)
 
 -- bar?

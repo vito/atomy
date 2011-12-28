@@ -13,7 +13,7 @@ IO = use("io")
 Handlers = dynamic([])
 Restarts = dynamic([])
 
-catcher(x) := #"restart:#{Define message-name(x)}"
+catcher(x) := ."restart:#{Define message-name(x)}"
 message-name(x) := Define message-name(x)
 arguments(x) := Define arguments(x)
 block(x) := Define block(x)
@@ -21,7 +21,7 @@ block(x) := Define block(x)
 data(Restart(@name, @action))
 
 Restart invoke(*args) :=
-  throw(#"restart:#{@name}", @action [*args])
+  throw(."restart:#{@name}", @action [*args])
 
 data(Condition):
   Error(@backtrace):

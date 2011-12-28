@@ -30,7 +30,7 @@ Atomy open:
     recv send(@message, *filled)
 
   Particle arity :=
-    (@receiver . @arguments) select #equal(_undefined)? size
+    (@receiver . @arguments) select .equal(_undefined)? size
 
 Symbol call(*args) := to-proc [*args]
 
@@ -39,56 +39,65 @@ Symbol arity := 1
 wildcard('_) := '_undefined
 wildcard(x) := x
 
-macro(#(~(x)(~*as))):
+macro(.[]): ."[]"
+
+macro(.[~*(as: _ . _)]):
   `(Atomy::Particle new(
       _undefined
-      #~x
+      ."[]"
       ~(as collect [c]: wildcard(c))
     ))
 
-macro(#(~(x)(~*as))?):
+macro(.(~(x)(~*as))):
   `(Atomy::Particle new(
       _undefined
-      #(~x)?
+      .~x
       ~(as collect [c]: wildcard(c))
     ))
 
-macro(#(~(x)(~*as))!):
+macro(.(~(x)(~*as))?):
   `(Atomy::Particle new(
       _undefined
-      #(~x)!
+      .(~x)?
       ~(as collect [c]: wildcard(c))
     ))
 
-macro(#(~r ~(x)(~*as))):
+macro(.(~(x)(~*as))!):
+  `(Atomy::Particle new(
+      _undefined
+      .(~x)!
+      ~(as collect [c]: wildcard(c))
+    ))
+
+macro(.(~r ~(x)(~*as))):
   `(Atomy::Particle new(
       ~(wildcard(r))
-      #~x
+      .~x
       ~(as collect [c]: wildcard(c))
     ))
 
-macro(#(~r ~(x)(~*as))?):
+macro(.(~r ~(x)(~*as))?):
   `(Atomy::Particle new(
       ~(wildcard(r))
-      #(~x)?
+      .(~x)?
       ~(as collect [c]: wildcard(c))
     ))
 
-macro(#(~r ~(x)(~*as))!):
+macro(.(~r ~(x)(~*as))!):
   `(Atomy::Particle new(
       ~(wildcard(r))
-      #(~x)!
+      .(~x)!
       ~(as collect [c]: wildcard(c))
     ))
 
-macro(#(~r [~*as])):
+macro(.(~r [~*as])):
   `(Atomy::Particle new(
       ~(wildcard(r))
-      #"[]"
+      ."[]"
       ~(as collect [c]: wildcard(c))
     ))
 
-macro(#~(x: Binary)):
+macro(.~(x: Binary)):
   `(Atomy::Particle new(
       ~(if(x private)
           then: '_undefined
@@ -99,14 +108,14 @@ macro(#~(x: Binary)):
 
 Atomy::Patterns open:
   Particle = Pattern class:
-    initialize(@receiver, @message, @arguments) := #ok
+    initialize(@receiver, @message, @arguments) := .ok
 
     construct(g) := do:
       get(g)
       @receiver construct(g)
       g push-literal(@message)
       @arguments construct(g)
-      g send(#new, 3)
+      g send(.new, 3)
 
     (== b) :=
       b kind-of(Particle)? &&
@@ -116,8 +125,8 @@ Atomy::Patterns open:
 
     target(g) := do:
       g push-cpath-top
-      g find-const(#Atomy)
-      g find-const(#Particle)
+      g find-const(.Atomy)
+      g find-const(.Particle)
 
     matches(g)? := do:
       mismatch = g new-label
@@ -130,17 +139,17 @@ Atomy::Patterns open:
       g gif(mismatch)
 
       g dup
-      g send(#message, 0)
+      g send(.message, 0)
       g push-literal(@message)
-      g send(#"==", 1)
+      g send(."==", 1)
       g gif(mismatch)
 
       g dup
-      g send(#receiver, 0)
+      g send(.receiver, 0)
       @receiver matches(g)?
       g gif(mismatch)
 
-      g send(#arguments, 0)
+      g send(.arguments, 0)
       @arguments matches(g)?
       g dup
       g git(done)
@@ -153,19 +162,29 @@ Atomy::Patterns open:
 
     deconstruct(g, locals = ::Hash new) := do:
       g dup
-      g send(#receiver, 0)
+      g send(.receiver, 0)
       @receiver deconstruct(g, locals)
 
-      g send(#arguments, 0)
+      g send(.arguments, 0)
       @arguments deconstruct(g, locals)
 
-`#(~r [~*as]) to-pattern :=
+`.(~r [~*as]) to-pattern :=
   Atomy::Patterns::Particle new $:
     r to-pattern
-    #"[]"
+    .[]
     `[~*as] to-pattern
 
-`#~(x: Atomy::AST::Binary) to-pattern :=
+`.[] to-pattern :=
+  Atomy::Patterns::Literal new $:
+    .[]
+
+`.[~*as] to-pattern :=
+  Atomy::Patterns::Particle new $:
+    '_ to-pattern
+    .[]
+    `[~*as] to-pattern
+
+`.~(x: Atomy::AST::Binary) to-pattern :=
   Atomy::Patterns::Particle new $:
     if(x private)
       then: '_ to-pattern
@@ -173,37 +192,37 @@ Atomy::Patterns open:
     x operator
     `[~(x rhs)] to-pattern
 
-`#(~(x: Atomy::AST::Word)(~*as)) to-pattern :=
+`.(~(x: Atomy::AST::Word)(~*as)) to-pattern :=
   Atomy::Patterns::Particle new $:
     '_ to-pattern
     x text
     `[~*as] to-pattern
 
-`#(~(x: Atomy::AST::Word)(~*as)?) to-pattern :=
+`.(~(x: Atomy::AST::Word)(~*as)?) to-pattern :=
   Atomy::Patterns::Particle new $:
     '_ to-pattern
     `((~x)?) to-word text
     `[~*as] to-pattern
 
-`#(~(x: Atomy::AST::Word)(~*as)!) to-pattern :=
+`.(~(x: Atomy::AST::Word)(~*as)!) to-pattern :=
   Atomy::Patterns::Particle new $:
     '_ to-pattern
     `((~x)!) to-word text
     `[~*as] to-pattern
 
-`#(~r ~(x: Atomy::AST::Word)(~*as)) to-pattern :=
+`.(~r ~(x: Atomy::AST::Word)(~*as)) to-pattern :=
   Atomy::Patterns::Particle new $:
     r to-pattern
     x text
     `[~*as] to-pattern
 
-`#(~r ~(x: Atomy::AST::Word)(~*as)?) to-pattern :=
+`.(~r ~(x: Atomy::AST::Word)(~*as)?) to-pattern :=
   Atomy::Patterns::Particle new $:
     r to-pattern
     `((~x)?) to-word text
     `[~*as] to-pattern
 
-`#(~r ~(x: Atomy::AST::Word)(~*as)!) to-pattern :=
+`.(~r ~(x: Atomy::AST::Word)(~*as)!) to-pattern :=
   Atomy::Patterns::Particle new $:
     r to-pattern
     `((~x)!) to-word text

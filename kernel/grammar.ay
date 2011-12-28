@@ -23,7 +23,7 @@ process-val(g, `(%((~grammar).) ~(x)(~*args))) := do:
   `(~g foreign-invoke(
       ~(grammar text)
       ~(x text)
-      ~(args collect #show join(", "))
+      ~(args collect .show join(", "))
     ))
 
 process-val(g, `(~a %((~grammar).) ~(x)(~*args))) := do:
@@ -32,7 +32,7 @@ process-val(g, `(~a %((~grammar).) ~(x)(~*args))) := do:
       ~g foreign-invoke(
         ~(grammar text)
         ~(x text)
-        ~(args collect #show join(", "))
+        ~(args collect .show join(", "))
       )
     ))
 
@@ -71,7 +71,7 @@ process-val(g, a: `{ ~*bs }) :=
   if(^Actions)
     then:
       vars = ^RuleVars to-a
-      call = "actions[" + ^Actions size to-s + "][" + vars collect #to-s join(", ") + "]"
+      call = "actions[" + ^Actions size to-s + "][" + vars collect .to-s join(", ") + "]"
       ^Actions << [a, vars]
       `(~g action(~call))
     else:
@@ -79,7 +79,7 @@ process-val(g, a: `{ ~*bs }) :=
 
 process-val(g, `(<(~x)>)) := do:
   val = process-val(g, x)
-  when(^RuleVars): ^RuleVars << #text
+  when(^RuleVars): ^RuleVars << .text
   `(~g collect(~val))
 
 process-val(g, `(@<(~x)>)) :=
@@ -92,17 +92,17 @@ process-val(g, `(/(~(b: Atomy::AST::String))/)) :=
   `(~g reg(~(b raw)))
 
 process-val(g, c: Atomy::AST::Call) := do:
-  args = "(" + c arguments collect #show join(", ") + ")"
+  args = "(" + c arguments collect .show join(", ") + ")"
 
   `(~g ref(~(c name text to-s), nil, ~args))
 
 process-val(g, `@~(c: Atomy::AST::Call)) := do:
-  args = "(" + c arguments collect #show join(", ") + ")"
+  args = "(" + c arguments collect .show join(", ") + ")"
 
   `(~g invoke(~(c name text to-s), ~args))
 
 process-val(g, `^~(c: Atomy::AST::Call)) := do:
-  args = "(" + c arguments collect #show join(", ") + ")"
+  args = "(" + c arguments collect .show join(", ") + ")"
 
   `(~g foreign-invoke("parent", ~(c name text to-s), ~args))
 
@@ -141,15 +141,15 @@ Atomy::AST open:
 
   ParserDefiner bytecode(g) := do:
     g push-rubinius
-    g push-literal(#"__parser_init__")
+    g push-literal(.__parser_init__)
     g push-literal(Rubinius::Compiler compile-string(@source))
     g push-scope
     g push-self
-    g send(#attach-method, 4)
+    g send(.attach-method, 4)
     g pop
 
     g push-self
-    g send(#"__parser_init__", 0)
+    g send(.__parser_init__, 0)
 
 
 macro(grammar: ~*body): names [g]:
@@ -183,7 +183,7 @@ macro(grammar: ~*body): names [g]:
 
       `(~(name)(~*args) := ~val) -> do:
         let(Rule = name text,
-            RuleVars = ::Set new(args collect #text)):
+            RuleVars = ::Set new(args collect .text)):
           `(~g set(~(name text to-s)
                    ~process-val(g, val)
                    ~(args collect [x]: x text to-s)))

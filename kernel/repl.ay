@@ -10,34 +10,34 @@ basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=
   loop:
     prompt =
       with-restarts(use-prompt(p) -> p):
-        signal(#prompt)
+        signal(.prompt)
         ">> "
 
     in =
       { Readline readline(prompt)
       } rescue:
-        Interrupt: signal(#quit), ""
+        Interrupt: signal(.quit), ""
 
     in match:
-      nil -> signal(#quit)
+      nil -> signal(.quit)
 
-      "" -> #ok
+      "" -> .ok
 
       String ? (=~ r"^:[[:alnum:]]") ->
-        signal(#special(in [1 .. -1]))
+        signal(.special(in [1 .. -1]))
 
       source:
-        signal(#input(source))
+        signal(.input(source))
 
         try = {
-          with-restarts(retry -> try [], abort -> #ok):
+          with-restarts(retry -> try [], abort -> .ok):
             res = Atomy::Compiler eval(source, bnd, "(eval)", 1, debug)
-            signal(#evaluated(res))
+            signal(.evaluated(res))
         }
 
         try []
 
-    signal(#loop)
+    signal(.loop)
 
 
 ReplDebugger = class:
@@ -55,13 +55,13 @@ ReplDebugger = class:
     debug(e) := do:
       Condition::DefaultDebugger show-options-for(e)
 
-      { send(#basic-repl) } bind:
-        #prompt -> restart(#use-prompt, "[!]> ")
+      { send(.basic-repl) } bind:
+        .prompt -> restart(.use-prompt, "[!]> ")
 
-        #special(n ? (=~ r"\d+")) ->
+        .special(n ? (=~ r"\d+")) ->
           ^Condition::Restarts [n to-i] invoke
 
-        #quit -> exit(1)
+        .quit -> exit(1)
 
 export
 
@@ -89,20 +89,20 @@ repl(history = nil, bnd = nil, debug = false) := do:
 
       { basic-repl(bnd, debug)
       } bind:
-        #prompt ->
-          restart(#use-prompt, "[" + frame to-s + "]> ")
+        .prompt ->
+          restart(.use-prompt, "[" + frame to-s + "]> ")
 
-        #loop ->
+        .loop ->
           (frame += 1)
 
-        #quit -> exit(0)
+        .quit -> exit(0)
 
-        #input(str) -> (sane-history << str)
+        .input(str) -> (sane-history << str)
 
-        #special("h") ->
+        .special("h") ->
           ":h\thelp" println
 
-        #evaluated(r) ->
+        .evaluated(r) ->
           (text(" =>") <+> r pretty) render(76) println
   } ensuring:
     Atomy::CodeLoader module = before-mod

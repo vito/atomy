@@ -38,7 +38,7 @@ intp-segments(s) :=
 export
 
 Atomy::AST open:
-  ast(Interpolation([#segments]))
+  ast(Interpolation([.segments]))
 
   Interpolation interpolated? := @segments size > 1
 
@@ -58,7 +58,7 @@ interpolated(x) :=
 macro-quoter(i) [_, _, v]: interpolated(v)
 
 -- symbol literals with interpolation
-macro(#~(x: String)):
+macro(.~(x: String)):
   i = interpolated(x value)
   if(i interpolated?)
     then: `(~i to-sym)

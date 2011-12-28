@@ -9,7 +9,7 @@ Atomy::Format open:
     %%:
       create(x, *as) := do:
         as << []
-        x send(#new, 1, *as)
+        x send(.new, 1, *as)
 
     %atomy := Atomy::Parser
 

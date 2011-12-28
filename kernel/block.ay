@@ -8,32 +8,32 @@ use("node")
 
 Atomy::Patterns open:
   NamedRedirectedInstance = NamedInstance class:
-    attributes(#target, #identifier)
+    attributes(.target, .identifier)
     generate
 
     construct(g) := do:
       get(g)
       @target construct(g)
       g push-literal(@identifier)
-      g send(#new, 2)
+      g send(.new, 2)
 
     deconstruct(g, locals = {}) := do:
       @target compile(g)
       g swap
       g push-literal(name)
       g swap
-      g send(#instance-variable-set, 2)
+      g send(.instance-variable-set, 2)
       g pop
 
   NamedRedirectedClass = NamedClass class:
-    attributes(#target, #identifier)
+    attributes(.target, .identifier)
     generate
 
     construct(g) := do:
       get(g)
       @target construct(g)
       g push-literal(@identifier)
-      g send(#new, 2)
+      g send(.new, 2)
 
     deconstruct(g, locals = {}) := do:
       have-class = g new-label
@@ -41,31 +41,31 @@ Atomy::Patterns open:
       @target compile(g)
       g dup
       g push-cpath-top
-      g find-const(#Class)
+      g find-const(.Class)
       g kind-of
       g git(have-class)
 
-      g send(#class, 0)
+      g send(.class, 0)
 
       have-class set!
       g swap
       g push-literal(name)
       g swap
-      g send(#class-variable-set, 2)
+      g send(.class-variable-set, 2)
       g pop
 
 
 Atomy::AST open:
   ast:
-    RedirectedInstanceVariable(#target, @name)
-    RedirectedClassVariable(#target, @name)
+    RedirectedInstanceVariable(.target, @name)
+    RedirectedClassVariable(.target, @name)
 
 
   RedirectedInstanceVariable bytecode(g) := do:
     pos(g)
     @target compile(g)
-    g push-literal(#"@#{@name}")
-    g send(#instance-variable-get, 1)
+    g push-literal(."@#{@name}")
+    g send(.instance-variable-get, 1)
 
   RedirectedClassVariable bytecode(g) := do:
     pos(g)
@@ -74,15 +74,15 @@ Atomy::AST open:
     @target compile(g)
     g dup
     g push-cpath-top
-    g find-const(#Class)
+    g find-const(.Class)
     g kind-of
     g git(have-class)
 
-    g send(#class, 0)
+    g send(.class, 0)
 
     have-class set!
-    g push-literal(#"@@#{@name}")
-    g send(#class-variable-get, 1)
+    g push-literal(."@@#{@name}")
+    g send(.class-variable-get, 1)
 
 
   RedirectedInstanceVariable to-pattern :=

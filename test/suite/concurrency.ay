@@ -16,14 +16,14 @@ describe("concurrency"):
     it("sends a message to an actor"):
       main = me
       p = spawn:
-        receive: n -> main << #ok;
+        receive: n -> main << .ok;
           after(1):
-            main <- #timeout-inner
+            main <- .timeout-inner
 
       p <- 0
 
       res =
         receive: x -> x;
-          after(2): #timeout-outer
+          after(2): .timeout-outer
 
-      res should-be(#ok)
+      res should-be(.ok)

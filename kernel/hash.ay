@@ -6,7 +6,7 @@ use("array")
 use("node")
 
 hash-key-from(x) := x
-hash-key-from(x: ? to-word) := `#~(x to-word)
+hash-key-from(x: ? to-word) := `.~(x to-word)
 hash-key-from(x: Atomy::AST::Compose) :=
   if(x right is-a(Atomy::AST::Block)?)
     then: x
@@ -30,15 +30,15 @@ hash-pairs-from(es) :=
 
 
 Atomy::AST open:
-  ast(Hash([#keys], [#values]))
+  ast(Hash([.keys], [.values]))
 
   Hash bytecode(g) := do:
     pos(g)
 
     g push-cpath-top
-    g find-const(#Hash)
+    g find-const(.Hash)
     g push-int(@keys size)
-    g send(#new-from-literal, 1)
+    g send(.new-from-literal, 1)
 
     @keys each-with-index [n, i]:
       g dup

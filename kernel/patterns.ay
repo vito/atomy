@@ -5,8 +5,8 @@ use("control-flow")
 
 Atomy::Patterns open:
   With = Pattern class:
-    children(#pattern, #sub-pattern)
-    attributes(#expression)
+    children(.pattern, .sub-pattern)
+    attributes(.expression)
     generate
 
     construct(g) := do:
@@ -14,7 +14,7 @@ Atomy::Patterns open:
       @pattern construct(g)
       @sub-pattern construct(g)
       @expression construct(g)
-      g send(#new, 3)
+      g send(.new, 3)
 
     target(g) := @pattern target(g)
 
@@ -29,10 +29,10 @@ Atomy::Patterns open:
       g gif(mismatch)
 
       `{ ~@expression } bytecode(g)
-      g send(#block, 0)
+      g send(.block, 0)
       g swap
       g push-scope
-      g send(#call-under, 2)
+      g send(.call-under, 2)
       g set-stack-local(@result)
 
       @sub-pattern matches(g)?
@@ -76,16 +76,16 @@ Atomy::Patterns open:
         then: g push-stack-local(@result)
         else:
           `{ ~@expression } bytecode(g)
-          g send(#block, 0)
+          g send(.block, 0)
           g swap
           g push-scope
-          g send(#call-under, 2)
+          g send(.call-under, 2)
 
       @sub-pattern deconstruct(g, locals)
 
 
   And = Pattern class:
-    children(#a, #b)
+    children(.a, .b)
     generate
 
     target(g) := @a target(g)
@@ -115,7 +115,7 @@ Atomy::Patterns open:
 
 
   Or = Pattern class:
-    children(#a, #b)
+    children(.a, .b)
     generate
 
     target(g) := @a target(g)
@@ -230,7 +230,7 @@ Atomy::Patterns open:
     With new(Any new, y to-pattern, e)
 
   `(~x [~*as]) to-pattern :=
-    Attribute new(x, #"[]", as)
+    Attribute new(x, ."[]", as)
 
   '_ to-pattern :=
     Any new
@@ -272,24 +272,24 @@ Atomy::Patterns open:
     Splat new(x to-pattern)
 
   'self to-pattern :=
-    Match new(#self)
+    Match new(.self)
 
   'true to-pattern :=
-    Match new(#true)
+    Match new(.true)
 
   'false to-pattern :=
-    Match new(#false)
+    Match new(.false)
 
   'nil to-pattern :=
-    Match new(#nil)
+    Match new(.nil)
 
-  `#~(x: ? to-word) to-pattern :=
+  `.~(x: ? to-word) to-pattern :=
     Literal new(x to-word text)
 
-  `#~(x: Atomy::AST::Constant) to-pattern :=
+  `.~(x: Atomy::AST::Constant) to-pattern :=
     Literal new(x name)
 
-  `#~(x: Atomy::AST::String) to-pattern :=
+  `.~(x: Atomy::AST::String) to-pattern :=
     Literal new(x value to-sym)
 
   Atomy::AST::Node to-pattern :=

@@ -9,8 +9,8 @@ Tags = dynamic(Hash new)
 
 Atomy::AST open:
   ast:
-    Labels([#branches])
-    LabelBranch(#body, @name)
+    Labels([.branches])
+    LabelBranch(.body, @name)
     GoTo(@name)
 
   Labels bytecode(g) := do:

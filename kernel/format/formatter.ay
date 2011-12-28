@@ -10,7 +10,7 @@ require("pretty")
 
 Atomy::Format open:
   Formatter open:
-    attr-accessor(#position)
+    attr-accessor(.position)
 
     initialize(@line, @segments) :=
       reset!
@@ -47,7 +47,7 @@ Atomy::Format open:
       reset!
       res
 
-    alias-method(#"[]", #format)
+    alias-method(.[], .format)
 
     peek-input := @input [@position]
 
@@ -302,7 +302,7 @@ Atomy::Format open:
 
     justify-to(_, _, []) := ""
     justify-to(j, to, all: s . ss) := do:
-      needed = to - all collect #size inject #(+ _)
+      needed = to - all collect .size inject .(+ _)
 
       spacings =
         condition:

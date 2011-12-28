@@ -16,14 +16,14 @@ IO = use("io")
 
 Printing = dynamic([])
 Multiline = dynamic(false)
-Context = dynamic(#top)
+Context = dynamic(.top)
 Colored = dynamic(false)
 
 ident(n) := text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
 
 pretty-sequence([]) := []
-pretty-sequence([x]) := [from(#top): x pretty]
-pretty-sequence(x . xs) := [from(#list) { x pretty }] + pretty-sequence(xs)
+pretty-sequence([x]) := [from(.top): x pretty]
+pretty-sequence(x . xs) := [from(.list) { x pretty }] + pretty-sequence(xs)
 
 tree(xs) := align(fill-sep(comma punctuate(xs)))
 
@@ -61,14 +61,14 @@ Doc colored(color) := do:
     return(self)
 
   codes =
-    [ #black
-      #red
-      #green
-      #yellow
-      #blue
-      #magenta
-      #cyan
-      #white
+    [ .black
+      .red
+      .green
+      .yellow
+      .blue
+      .magenta
+      .cyan
+      .white
     ] to-a zip((0 .. 7) to-a)
 
   hash = Hash [codes]
@@ -76,12 +76,12 @@ Doc colored(color) := do:
   raw("\e[9" + hash [color] to-s + "m") <> self <> raw("\e[0m")
 
 Object pretty-print := text(inspect)
-String pretty-print := text(inspect gsub("\\#", "#")) colored(#yellow)
-Integer pretty-print := super colored(#blue)
-Float pretty-print := super colored(#blue)
-TrueClass pretty-print := super colored(#green)
-FalseClass pretty-print := super colored(#red)
-NilClass pretty-print := super colored(#black)
+String pretty-print := text(inspect gsub("\\#", "#")) colored(.yellow)
+Integer pretty-print := super colored(.blue)
+Float pretty-print := super colored(.blue)
+TrueClass pretty-print := super colored(.green)
+FalseClass pretty-print := super colored(.red)
+NilClass pretty-print := super colored(.black)
 
 Doc pretty-print := self
 
@@ -95,7 +95,7 @@ Atomy::Particle pretty-print := do:
 
   operator? = @message to-s !~ r"^[a-z_]"
 
-  args = @arguments collect #(wildcard [_])
+  args = @arguments collect .(wildcard [_])
 
   msg-args =
     if(operator?)
@@ -113,15 +113,15 @@ Atomy::Particle pretty-print := do:
           else: msg-args
       else: parens(@receiver unamb <+> msg-args)
 
-  text("#") <> partial
+  text(".") <> partial
 
 Atomy::Particle to-s := show
 
 Symbol pretty-print := do:
   s = to-s
   if(s =~ r"[A-Z][a-zA-Z0-9_]*|^[\p{Ll}_][\p{L}_\d\-]*$"(u))
-    then: text("#") <> ident(s)
-    else: text("#") <> s pretty
+    then: text(".") <> ident(s)
+    else: text(".") <> s pretty
 
 Hash pretty-print :=
   text("#") <>
@@ -129,7 +129,7 @@ Hash pretty-print :=
       (lbrace </>
         tree $:
           to-a collect [[k, v]]:
-            from(#binary):
+            from(.binary):
               k unamb <+> text("->") <+> v unamb
       ) nest(2) </>
         rbrace
@@ -139,7 +139,7 @@ Atomy::AST open:
   ClassVariable unamb := pretty
   Call unamb := pretty
   Compose unamb :=
-    if(from(#binary, #compose)?)
+    if(from(.binary, .compose)?)
       then: pretty
       else: parens(pretty)
   Constant unamb := pretty
@@ -152,18 +152,18 @@ Atomy::AST open:
   Quote unamb := pretty
   ScopedConstant unamb := pretty
   Send unamb :=
-    if(from(#binary, #compose)?)
+    if(from(.binary, .compose)?)
       then: pretty
       else: parens(pretty)
   Splice unamb := pretty
   String unamb := pretty
   ToplevelConstant unamb := pretty
   Prefix unamb :=
-    if(from(#postfix)?)
+    if(from(.postfix)?)
       then: parens(pretty)
       else: pretty
   Postfix unamb :=
-    if(from(#postfix)?)
+    if(from(.postfix)?)
       then: parens(pretty)
       else: pretty
   Unquote unamb := pretty
@@ -172,7 +172,7 @@ Atomy::AST open:
   Node unamb := parens(pretty)
 
   Binary pretty-print :=
-    from(#binary):
+    from(.binary):
       ((@lhs unamb <+> text(@operator)) </> @rhs unamb) hang(2)
 
   Block pretty-print := do:
@@ -200,7 +200,7 @@ Atomy::AST open:
     ])
 
   List pretty-print :=
-    from(#list):
+    from(.list):
       list(pretty-sequence(@elements))
 
   Literal pretty-print := @value pretty
@@ -209,35 +209,35 @@ Atomy::AST open:
     text("macro") <+> parens(@pattern pretty) <+> @body pretty
 
   Postfix pretty-print :=
-    from(#postfix):
+    from(.postfix):
       @receiver unamb <> text(@operator)
 
   Prefix pretty-print :=
-    from(#prefix):
+    from(.prefix):
       text(@operator) <> @receiver unamb
 
   Primitive pretty-print :=
     @value match:
-      #self -> text("self")
-      #true -> text("true")
-      #false -> text("false")
-      #nil -> text("nil")
+      .self -> text("self")
+      .true -> text("true")
+      .false -> text("false")
+      .nil -> text("nil")
       x -> text(x inspect)
 
   QuasiQuote pretty-print :=
-    from(#prefix):
+    from(.prefix):
       text("`") <> @expression unamb
 
   Quote pretty-print :=
-    from(#prefix):
+    from(.prefix):
       text("'") <> @expression unamb
 
   ScopedConstant pretty-print :=
-    from(#scoped-constant):
+    from(.scoped-constant):
       @parent unamb <> text("::") <> text(@name)
 
   Splice pretty-print :=
-    from(#prefix):
+    from(.prefix):
       text("~*") <> @expression unamb
 
   String pretty-print := text(@value inspect gsub("\\#", "#"))
@@ -245,15 +245,15 @@ Atomy::AST open:
   ToplevelConstant pretty-print := text("::") <> text(@name)
 
   Unquote pretty-print :=
-    from(#prefix):
+    from(.prefix):
       text("~") <> @expression unamb
 
   Word pretty-print := ident(@text to-s)
 
   Tree pretty-print :=
     if(^Multiline)
-      then: from(#top): vcat(pretty-sequence(@nodes))
-      else: from(#list): tree(pretty-sequence(@nodes))
+      then: from(.top): vcat(pretty-sequence(@nodes))
+      else: from(.list): tree(pretty-sequence(@nodes))
 
   Pattern pretty-print := @pattern pretty
 
@@ -266,7 +266,7 @@ Atomy::Patterns open:
   Constant pretty-print := @constant pretty
   Default pretty-print := `(~@pattern = ~@default) pretty
   HeadTail pretty-print := `(~@head . ~@tail) pretty
-  List pretty-print := `[~*(@patterns collect #to-node)] pretty
+  List pretty-print := `[~*(@patterns collect .to-node)] pretty
   Literal pretty-print := @value pretty
   Match pretty-print := @value pretty
   Named pretty-print :=

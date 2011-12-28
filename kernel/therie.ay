@@ -4,14 +4,10 @@ IO = require("io")
 NestingLevel = dynamic(0)
 RunningStats = dynamic
 
-Stats = class:
-  attr-accessor(#passed, #failed)
+data(Stats(@passed = 0, @failed = 0))
 
-  initialize := do:
-    @passed = 0
-    @failed = 0
-
-  inspect := f"Stats(@passed = %d, @failed = %d)" [@passed, @failed]
+Stats inspect :=
+  f"Stats(@passed = %d, @failed = %d)" [@passed, @failed]
 
 indented(s) := " " * (^NestingLevel * 2) + s
 
@@ -21,14 +17,14 @@ colored(color, s) := do:
     return(s)
 
   codes =
-    [ #black
-      #red
-      #green
-      #yellow
-      #blue
-      #magenta
-      #cyan
-      #white
+    [ .black
+      .red
+      .green
+      .yellow
+      .blue
+      .magenta
+      .cyan
+      .white
     ] to-a zip((0 .. 7) to-a)
 
   hash = Hash [codes]
@@ -46,10 +42,10 @@ theorize &tests :=
     ^RunningStats onto:
       f"total of %d tests (%s passed, %s failed)" [
         failed + passed
-        colored(#green, passed to-s)
+        colored(.green, passed to-s)
         if(failed == 0)
           then: "0"
-          else: colored(#red, failed to-s)
+          else: colored(.red, failed to-s)
       ] display
 
       "\n" display
@@ -68,16 +64,16 @@ describe(what) &body := do:
 
 it(description) &tests := do:
   { tests call
-    indented(colored(#green, f"✓ %s" [description])) println
+    indented(colored(.green, f"✓ %s" [description])) println
   } rescue {
     e:
       when(^RunningStats):
         ^RunningStats failed += 1
 
-      indented(colored(#red, f"✗ %s" [description])) println
+      indented(colored(.red, f"✗ %s" [description])) println
       indented(
         colored(
-          #yellow
+          .yellow
           f"  ` %s: %s" [
             e class name
             e message
@@ -86,7 +82,7 @@ it(description) &tests := do:
       ) println
 
       e backtrace first((ENV["THERIE_BT_LIMIT"] || 5) to-i) each [l]:
-        indented(f"    %s" [colored(#cyan, l)]) println
+        indented(f"    %s" [colored(.cyan, l)]) println
   } else:
     when(^RunningStats):
       ^RunningStats passed += 1
@@ -123,7 +119,7 @@ x should-error(y) :=
 
     (e: Error):
       when(e kind-of(y)?):
-        restart(#errored)
+        restart(.errored)
 
       raise(f"expected error %s, got: %s" [y, e message])
   }

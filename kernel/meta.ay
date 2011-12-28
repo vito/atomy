@@ -8,7 +8,7 @@ macro(when-compiling ~(b: Block)):
   'nil
 
 Atomy::AST open:
-  ast(LetMacro(#body, [#macros]))
+  ast(LetMacro(.body, [.macros]))
 
   LetMacro bytecode(g) := do:
     [mod, bnd] = Atomy make-wrapper-module

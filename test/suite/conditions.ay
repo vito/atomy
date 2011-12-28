@@ -6,56 +6,56 @@ use("therie")
 use("condition")
 
 describe("condition"):
-  describe(#signal):
+  describe(.signal):
     it("triggers matching handlers"):
       x = 0
-      { signal(#foo) } bind: #foo -> (x =! 1)
+      { signal(.foo) } bind: .foo -> (x =! 1)
       x should-be(1)
 
     it("does not trigger non-matching handlers"):
       x = 0
-      { signal(#foo) } bind: #bar -> (x =! 1)
+      { signal(.foo) } bind: .bar -> (x =! 1)
       x should-be(0)
 
     it("goes through all handlers, nearest-first"):
       x = Array[]
-      { { signal(#foo) } bind:
-          #foo -> x << 1
+      { { signal(.foo) } bind:
+          .foo -> x << 1
       } bind:
-        #foo -> x << 2
+        .foo -> x << 2
 
       x should-be(Array[1, 2])
 
     it("does not trigger active handlers"):
       a = 0
-      { signal(#foo) } bind:
+      { signal(.foo) } bind:
         _:
           a += 1
           when(a < 2):
-            signal(#bar)
+            signal(.bar)
 
       a should-be(1)
 
-  describe(#restart):
+  describe(.restart):
     it("calls a named restart"):
       { with-restarts(ok -> 1):
-          signal(#foo)
+          signal(.foo)
           0
-      } bind: #foo -> restart(#ok);
+      } bind: .foo -> restart(.ok);
           should-be(1)
 
     it("fails for an unknown restart name"):
       { { with-restarts(ok -> 1):
-            signal(#foo)
+            signal(.foo)
             0
-        } bind: #foo -> restart(#not-ok)
+        } bind: .foo -> restart(.not-ok)
       } should-error(NoRestartError)
 
     it("can send arguments to the restart"):
       { with-restarts(ok(x) -> x + 1):
-          signal(#foo)
+          signal(.foo)
           0
-      } bind: #foo -> restart(#ok, 41);
+      } bind: .foo -> restart(.ok, 41);
           should-be(42)
 
     it("may be nested"):
@@ -64,7 +64,7 @@ describe("condition"):
         r2 =
           with-restarts(use-value(v) -> do { a << 2, v }):
             with-restarts(use-square-of-value(v) -> do { a << 3, v * v }):
-              signal(#foo)
+              signal(.foo)
               raise("inner: should be unreachable")
 
             raise("outer: should be unreachable")
@@ -74,9 +74,9 @@ describe("condition"):
         a << 4
         5
       } bind:
-        #foo -> do:
+        .foo -> do:
           a << 1
-          restart(#use-value, 42)
+          restart(.use-value, 42)
 
       a should-be(Array[1, 2, 4])
       r should-be(5)
@@ -86,10 +86,10 @@ describe("condition"):
         { with-restarts(a(r) -> r):
             x =
               with-restarts(a(r) -> r):
-                signal(#foo)
+                signal(.foo)
 
             [x, 2]
         } bind:
-          #foo -> restart(#a, 0)
+          .foo -> restart(.a, 0)
 
       res should-be([0, 2])

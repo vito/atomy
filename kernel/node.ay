@@ -1,10 +1,10 @@
 use("core")
 use("define")
 
-process-arg(`[@~name], as, cs) := as << `[#~name]
-process-arg(`(@~name = ~default), as, cs) := as << `[#~name, ~default]
-process-arg(`@~name, as, cs) := as << `#~name
-process-arg(`(#~name = ~default), as, cs) := cs << `[#~name, ~default]
+process-arg(`[@~name], as, cs) := as << `[.~name]
+process-arg(`(@~name = ~default), as, cs) := as << `[.~name, ~default]
+process-arg(`@~name, as, cs) := as << `.~name
+process-arg(`(.~name = ~default), as, cs) := cs << `[.~name, ~default]
 process-arg(c, as, cs) := cs << c
 
 define-class(root, `(~n { ~*cs })) := define-class(root, `(~(n)() { ~*cs }))

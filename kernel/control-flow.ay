@@ -54,8 +54,8 @@ macro(super(~*as) &~blk):
 
 Atomy::AST open:
   ast:
-    Break(#value)
-    Next(#value)
+    Break(.value)
+    Next(.value)
 
   Break bytecode(g) := do:
     pos(g)
@@ -126,7 +126,7 @@ macro(~x rescue ~(y: Block) else ~(z: Block)):
 
 Atomy::AST open:
   ast:
-    Super([#arguments], #splat?, #block?)
+    Super([.arguments], .splat?, .block?)
     ZSuper
 
   Super bytecode(g) := do:
