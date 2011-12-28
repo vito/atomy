@@ -84,6 +84,7 @@
        delim(c) = (wsp "," wsp) | (sp "\n" sp)+ &{ current_column >= c }
 
      expression = level4
+ one_expression = wsp expression:e wsp !. { e }
 
     expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)?
                     { [x] + Array(xs) }

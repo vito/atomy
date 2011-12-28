@@ -6,7 +6,7 @@ module Atomy
   class Parser
     def self.parse_node(source)
       p = new(source)
-      p.raise_error unless p.parse("expression")
+      p.raise_error unless p.parse("one_expression")
       p.result
     end
 

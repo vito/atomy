@@ -1107,6 +1107,47 @@ class Atomy::Parser
     return _tmp
   end
 
+  # one_expression = wsp expression:e wsp !. { e }
+  def _one_expression
+
+    _save = self.pos
+    while true # sequence
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_expression)
+      e = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = get_byte
+      _tmp = _tmp ? nil : true
+      self.pos = _save1
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  e ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_one_expression unless _tmp
+    return _tmp
+  end
+
   # expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }
   def _expressions
 
@@ -3949,6 +3990,7 @@ class Atomy::Parser
   Rules[:_in_multi] = rule_info("in_multi", "(/[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ \"{-\" in_multi /[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ /[-{}]/ in_multi)")
   Rules[:_delim] = rule_info("delim", "(wsp \",\" wsp | (sp \"\\n\" sp)+ &{ current_column >= c })")
   Rules[:_expression] = rule_info("expression", "level4")
+  Rules[:_one_expression] = rule_info("one_expression", "wsp expression:e wsp !. { e }")
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs delim(c)? { [x] + Array(xs) }")
   Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | splice | unquote | string | constant | word | block | list | prefix)")
   Rules[:_level1] = rule_info("level1", "(call | grouped | level0)")
