@@ -23,7 +23,7 @@ define-class(root, `(~(name)(~*as): ~*cs)) := do:
     Atomy::AST::Unquote new(0, t)
 
   pat = name
-  attrs zip(tmps) [[a, t]]:
+  attrs zip(tmps) [a, t]:
     pat =! `(~pat with(~a, ~t))
 
   cons = `(~(name)(~*tmps))

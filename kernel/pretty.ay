@@ -128,7 +128,7 @@ Hash pretty-print :=
     align $:
       (lbrace </>
         tree $:
-          to-a collect [[k, v]]:
+          to-a collect [k, v]:
             from(.binary):
               k unamb <+> text("->") <+> v unamb
       ) nest(2) </>

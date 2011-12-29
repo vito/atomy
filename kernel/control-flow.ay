@@ -107,19 +107,19 @@ macro(condition ~(b: Block)):
     `(if(~x) then: ~y; else: ~acc)
 
 macro(~val match ~(b: Block)):
-  branches = pairs-from(b contents) collect [[x, y]]:
+  branches = pairs-from(b contents) collect [x, y]:
     MatchBranch new(x line, x to-pattern to-node, y)
 
   Match new(node line, val, branches)
 
 macro(~x rescue ~(y: Block)):
-  branches = pairs-from(y contents) collect [[p, e]]:
+  branches = pairs-from(y contents) collect [p, e]:
     RescueHandler new(p line, p, e)
 
   Rescue new(node line, x caller, branches)
 
 macro(~x rescue ~(y: Block) else ~(z: Block)):
-  branches = pairs-from(y contents) collect [[p, e]]:
+  branches = pairs-from(y contents) collect [p, e]:
     RescueHandler new(p line, p, e)
 
   Rescue new(node line, x caller, branches, z body)

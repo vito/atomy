@@ -204,7 +204,7 @@ macro(parser(~name): ~*grammar):
       Vars = Array[]):
     g = `(grammar: ~*grammar) evaluate
 
-    acts = ^Actions collect [[action, as]]:
+    acts = ^Actions collect [action, as]:
       args = as collect [a]: Atomy::AST::Word new(0, a)
       `([~*args] ~action)
 

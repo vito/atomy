@@ -50,6 +50,6 @@ Atomy::AST open:
 
 macro(#: ~*elements):
   pairs = hash-pairs-from(elements)
-  keys = pairs collect [[k, _]]: k
-  values = pairs collect [[_, v]]: v
+  keys = pairs collect [k, _]: k
+  values = pairs collect [_, v]: v
   Hash new(node line, keys, values)

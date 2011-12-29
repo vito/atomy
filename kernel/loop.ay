@@ -23,7 +23,7 @@ Atomy::AST open:
         tags [t name] = g new-label
 
     let(Tags = tags):
-      lbls zip(@branches to-a) each [[l, t]]:
+      lbls zip(@branches to-a) each [l, t]:
         l set!
         t body compile(g)
         g pop
