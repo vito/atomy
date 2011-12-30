@@ -4,7 +4,7 @@ module Atomy
       children :value
       generate
 
-      def bytecode(g, force = false)
+      def bytecode(g)
         if @value
           @value.compile(g)
         else
@@ -16,9 +16,7 @@ module Atomy
           g.restore_exception_state
         end
 
-        if g.state.block?
-          g.raise_return
-        elsif !force and g.state.ensure?
+        if g.state.ensure?
           g.ensure_return
         else
           g.ret
