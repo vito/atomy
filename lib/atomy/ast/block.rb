@@ -1,48 +1,21 @@
+require "delegate"
+
 module Atomy
   module AST
-    class DefaultArguments
-      attr_accessor :arguments, :names
-
-      def initialize(line, defaults)
-        @line = line
-        @defaults = defaults
-      end
-
-      def map_arguments(scope)
-        @defaults.each do |d|
-          n, v = d
-          d << scope.new_local(n).reference
-        end
-      end
-
-      def bytecode(g)
-        @defaults.each do |n, a, r|
-          done = g.new_label
-
-          g.passed_arg r.slot
-          g.git done
-          a.compile(g)
-          g.pop
-
-          done.set!
-        end
-      end
-
-      def names
-        @defaults.collect do |d|
-          d[0]
-        end
-      end
-    end
-
     class FormalArguments < Rubinius::AST::FormalArguments19
       def initialize(line, required, optional, splat, post, block, patterns)
-        super(line, required, nil, splat, post, block)
+        defaults = optional && Rubinius::AST::Block.new(
+          line,
+          optional.collect do |n, d|
+            Rubinius::AST::LocalVariableAssignment.new(
+              line,
+              n,
+              CompileWrapper.new(d)
+            )
+          end
+        )
 
-        if optional
-          @defaults = DefaultArguments.new line, optional
-          @optional = @defaults.names
-        end
+        super(line, required, defaults, splat, post, block)
 
         @patterns = patterns
       end
@@ -51,6 +24,12 @@ module Atomy
         @patterns.each do |n, p|
           g.state.scope.search_local(n).get_bytecode(g)
           p.match(g)
+        end
+      end
+
+      class CompileWrapper < SimpleDelegator
+        def bytecode(g)
+          __getobj__.compile(g)
         end
       end
     end
@@ -73,11 +52,12 @@ module Atomy
         optional = nil
         post = nil
         splat = nil
+        block = nil
 
         locals = []
 
         @arguments.collect(&:to_pattern).each.with_index do |p, i|
-          name = :"_arg:#{i + 1}"
+          name = :"@arg:#{i + 1}"
           locals << [name, p]
 
           if p.is_a?(Patterns::Splat)
@@ -93,7 +73,12 @@ module Atomy
           end
         end
 
-        FormalArguments.new(@line, required, optional, splat, post, nil, locals)
+        if @block
+          block = :@block
+          locals << [block, @block.to_pattern]
+        end
+
+        FormalArguments.new(@line, required, optional, splat, post, block, locals)
       end
 
       def bytecode(g)
@@ -131,11 +116,6 @@ module Atomy
 
         args.set_patterns(blk)
 
-        if @block
-          blk.push_block_arg
-          @block.to_pattern.deconstruct(blk)
-        end
-
         body.compile(blk)
 
         blk.goto done
@@ -152,6 +132,7 @@ module Atomy
 
         blk.pop_modifiers
         blk.state.pop_block
+
         blk.ret
         blk.close
         blk.pop_state
