@@ -3,6 +3,8 @@ use("define")
 use("array")
 use("control-flow")
 use("node")
+use("cosmetics")
+use("particles")
 
 Atomy::Format open:
   ast:
@@ -44,12 +46,8 @@ Atomy::Format open:
         Symbol -> f character == m
         _ -> false
 
-  Segment precision := do:
-    @flags each [f]:
-      when(f is-a(Precision)?):
-        return(f value)
-
-    nil
+  Segment precision :=
+    @flags find .is-a(Precision)? ?value()
 
   Segment zero-pad? :=
     @flags any? [f]:

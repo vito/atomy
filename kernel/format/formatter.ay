@@ -270,12 +270,10 @@ Atomy::Format open:
       sub reset!
       out
 
-    number(s, default = 1) := do:
-      s flags each [f]:
-        when(f is-a(Number)?):
-          return(f value || next-inputs size)
-
-      default
+    number(s, default = 1) :=
+      if(num = s flags find .is-a(Number)?)
+        then: num value || next-inputs size
+        else: default
 
     justified(j, s, left? = false) :=
       number(j, nil) match:
