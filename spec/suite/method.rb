@@ -12,8 +12,8 @@ describe(Module) do
       Atomy.dynamic_branch(
         x,
         :foo,
-        Atomy::Branch.new(Atomy::Patterns::Any.new)
-      ) { 42 }
+        Atomy::Branch.new(Atomy::Patterns::Any.new) { 42 }
+      )
 
       x.atomy_methods[:foo].must_be_kind_of Atomy::Method
       x.atomy_methods[:foo].size.must_equal 1
@@ -21,8 +21,8 @@ describe(Module) do
       Atomy.dynamic_branch(
         x,
         :bar,
-        Atomy::Branch.new(Atomy::Patterns::Any.new)
-      ) { 41 }
+        Atomy::Branch.new(Atomy::Patterns::Any.new) { 41 }
+      )
 
       x.atomy_methods[:foo].must_be_kind_of Atomy::Method
       x.atomy_methods[:foo].size.must_equal 1
@@ -75,9 +75,7 @@ describe(Atomy) do
     it("adds a method branch to the target module") do
       x = Class.new
 
-      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(wildcard)) do
-        42
-      end
+      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(wildcard) { 42 })
 
       x.atomy_methods[:foo].wont_be_nil
       x.atomy_methods[:foo].size.must_equal 1
@@ -87,13 +85,9 @@ describe(Atomy) do
     it("replaces branches with equivalent patterns") do
       x = Class.new
 
-      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(wildcard)) do
-        42
-      end
+      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(wildcard) { 42 })
 
-      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(wildcard)) do
-        43
-      end
+      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(wildcard) { 43 })
 
       x.atomy_methods[:foo].must_be_kind_of Atomy::Method
       x.atomy_methods[:foo].size.must_equal 1

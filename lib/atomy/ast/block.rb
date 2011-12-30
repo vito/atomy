@@ -39,6 +39,7 @@ module Atomy
       extend SentientNode
 
       children [:contents], [:arguments], :block?
+      attributes :name?
       generate
 
       def body
@@ -81,7 +82,7 @@ module Atomy
         FormalArguments.new(@line, required, optional, splat, post, block, locals)
       end
 
-      def bytecode(g)
+      def create_block(g)
         pos(g)
 
         state = g.state
@@ -90,10 +91,14 @@ module Atomy
         args = make_arguments
 
         blk = new_block_generator g, args
+        blk.name = @name if @name
 
         blk.push_state self
+
         blk.state.push_super state.super
         blk.state.push_eval state.eval
+
+        blk.definition_line(@line)
 
         blk.state.push_name blk.name
 
@@ -142,6 +147,10 @@ module Atomy
         blk.local_names = local_names
 
         g.create_block blk
+      end
+
+      def bytecode(g)
+        create_block g
 
         g.push_cpath_top
         g.find_const :Proc

@@ -18,70 +18,29 @@ module Atomy
       end
 
       def compile_body(g)
-        meth = new_generator(g, @method_name)
+        Block.new(
+          @line,
+          [@body],
+          [@receiver, Word.new(0, :arguments)] + @arguments,
+          @block,
+          @method_name
+        ).create_block(g)
+        g.dup
 
-        pos(meth)
+        # set the block's module so that super works
+        g.push_literal :@module
 
-        meth.push_state Rubinius::AST::ClosedScope.new(@line)
-        # TODO: push a super that calls method_name, not the branch's name
-        #meth.state.push_super self
-        meth.definition_line(@line)
-
-        meth.state.push_name @method_name
-
-        meth.state.scope.new_local(:arguments)
-
-        meth.splat_index = 0
-        meth.total_args = 0
-        meth.required_args = 0
-
-        if receiver_pattern.binds?
-          meth.push_self
-          receiver_pattern.deconstruct(meth)
+        if @defn
+          g.push_self
+        else
+          receiver_pattern.target(g)
         end
 
-        if block_pattern
-          meth.push_block_arg
-          block_pattern.deconstruct(meth)
-        end
-
-        if argument_patterns.size > 0
-          meth.push_local(0)
-          argument_patterns.each do |a|
-            case a
-            when Patterns::Splat
-              meth.dup
-              a.deconstruct(meth)
-            else
-              meth.shift_array
-              a.deconstruct(meth)
-            end
-          end
-
-          meth.pop
-        end
-
-        @body.compile(meth)
-
-        meth.state.pop_name
-
-        meth.ret
-        meth.close
-
-        meth.local_count = 1
-        meth.local_names = meth.state.scope.local_names
-        meth.use_detected
-
-        unless meth.local_names.size == meth.local_count
-          raise "locals mismatch: (#{meth.local_names}, #{meth.local_count})" 
-        end
-
-        meth.pop_state
-
-        meth
+        g.send :instance_variable_set, 2
+        g.pop
       end
 
-      def push_method(g)
+      def push_branch(g)
         req = []
         dfs = []
         spl = nil
@@ -124,7 +83,9 @@ module Atomy
           g.push_nil
         end
 
-        g.send :new, 5
+        compile_body(g)
+
+        g.send_with_block :new, 5
       end
 
       def bytecode(g)
@@ -138,13 +99,8 @@ module Atomy
           receiver_pattern.target(g)
         end
         g.push_literal @method_name
-        push_method(g)
 
-        g.push_generator compile_body(g)
-        g.dup
-        g.push_scope
-        g.send :"scope=", 1
-        g.pop
+        push_branch(g)
 
         if @defn
           g.push_variables
@@ -154,7 +110,7 @@ module Atomy
         end
         g.push_scope
         g.push_literal @defn
-        g.send :define_branch, 7
+        g.send :define_branch, 6
       end
 
       def local_count

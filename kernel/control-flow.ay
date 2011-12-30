@@ -143,13 +143,25 @@ Atomy::AST open:
       then: @block compile(g)
       else: g push-nil
 
-    g send-super(nil, @arguments size, !!@splat)
+    name = nil
+    when(g state super?):
+      name =! g state super name
+
+    g send-super(name, @arguments size, !!@splat)
 
   ZSuper bytecode(g) := do:
     pos(g)
 
-    g push-block
+    args = g state scope search-local(.arguments)
+    unless(args):
+      raise("cannot find arguments")
 
-    if(g state super?)
-      then: g zsuper(g state super name)
-      else: g zsuper(nil)
+    args get-bytecode(g)
+
+    g push-proc
+
+    name = nil
+    when(g state super?):
+      name =! g state super name
+
+    g send-super(name, 0, true)

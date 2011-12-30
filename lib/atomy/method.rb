@@ -7,11 +7,12 @@ end
 module Atomy
   # TODO: visibility?
   class Branch
-    attr_accessor :receiver, :required, :defaults,
-                  :splat, :block, :name
+    attr_accessor :body, :receiver, :required, :defaults,
+                  :splat, :block
 
     def initialize(receiver, required = [], defaults = [],
-                   splat = nil, block = nil)
+                   splat = nil, block = nil, &body)
+      @body = (body && body.block) || proc { raise "branch has no body " }
       @receiver = receiver
       @required = required
       @defaults = defaults
@@ -93,10 +94,6 @@ module Atomy
       @sorted = false
     end
 
-    def new_name
-      :"#{@name}:#{Macro::Environment.salt!}"
-    end
-
     def add(branch)
       insert(branch, @branches)
       nil
@@ -135,7 +132,7 @@ module Atomy
         g.invoke_primitive :vm_check_super_callable, 0
         g.gif mismatch
 
-        g.push_block
+        g.push_proc
         if g.state.super?
           g.zsuper g.state.super.name
         else
@@ -197,18 +194,15 @@ module Atomy
       branches.each_with_index do |branch, i|
         case new <=> branch
         when 1
-          new.name = new_name
           return branches.insert(i, new)
         when 0
           if new =~ branch
-            new.name = branch.name
             branches[i] = new
             return branches
           end
         end
       end
 
-      new.name = new_name
       branches << new
     end
 
@@ -221,6 +215,7 @@ module Atomy
         defs = meth.defaults
         splat = meth.splat
         block = meth.block
+        body = meth.body
 
         has_args = meth.total_args > 0
 
@@ -295,16 +290,20 @@ module Atomy
           end
         end
 
+        g.push_literal body
         g.push_self
+        g.push_literal body.static_scope
+        g.push_self
+        g.push_local 0
         if has_args or splat
           g.push_local 0
-          g.push_block
-          g.send_with_splat meth.name, 0, true
+          g.push_proc
+          g.send_with_splat :call_under, 4, true
         elsif block
-          g.push_block
-          g.send_with_block meth.name, 0, true
+          g.push_proc
+          g.send_with_block :call_under, 4, true
         else
-          g.send_vcall meth.name
+          g.send :call_under, 4
         end
         g.goto done
 
@@ -356,7 +355,7 @@ module Atomy
   end
 
   # define a new method branch
-  def self.define_branch(target, name, branch, code, visibility, scope, defn)
+  def self.define_branch(target, name, branch, visibility, scope, defn)
     methods = target.atomy_methods
 
     if method = methods[name]
@@ -373,28 +372,19 @@ module Atomy
       visibility = :module
     end
 
-    if defn
-      Rubinius.add_defn_method branch.name, code, scope, visibility
-    else
-      Rubinius.add_method branch.name, code, target, visibility
-    end
-
     res = add_method(target, name, method, visibility)
 
     if defn && avis == :private_module
       target.private_module_function name
-      target.private_module_function branch.name
     end
 
     res
   end
 
   def self.dynamic_branch(target, name, branch, visibility = :public,
-                          scope = nil, defn = false, &body)
-    body.block.code.name = name
-
+                          scope = nil, defn = false)
     define_branch(
-      target, name, branch, body.block.code,
+      target, name, branch,
       visibility, scope || Rubinius::StaticScope.of_sender, defn
     )
   end
