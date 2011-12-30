@@ -13,8 +13,7 @@ module Atomy
         if var
           var.get_bytecode(g)
         else
-          g.push_self
-          g.send_vcall message_name
+          to_send.bytecode(g)
         end
       end
 

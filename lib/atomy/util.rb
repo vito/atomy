@@ -1,25 +1,3 @@
-# TODO: anything but this
-module Kernel
-  alias :method_missing_old :method_missing
-
-  def method_missing_atomy(meth, *args, &blk)
-    if Rubinius.method_missing_reason != :super && Rubinius::VariableScope.of_sender.self.equal?(self)
-      scope = Rubinius::StaticScope.of_sender
-      while scope
-        if scope.module.respond_to?(meth, true)
-          return scope.module.send(meth, *args, &blk)
-        else
-          scope = scope.parent
-        end
-      end
-    end
-
-    method_missing_old(meth, *args, &blk)
-  end
-
-  alias :method_missing :method_missing_atomy
-end
-
 class Rubinius::Generator
   def debug(name = "", quiet = false)
     if quiet
@@ -62,6 +40,29 @@ module Atomy
     end
 
     ctx.module.const_missing(name)
+  end
+
+  # note that this is only used for `foo' and `foo(...)' forms
+  def self.send_message(recv, ctx, name, *args, &blk)
+    Rubinius::CompiledMethod.current.scope =
+      Rubinius::StaticScope.of_sender
+
+    if recv.respond_to?(name, true)
+      recv.__send__(name, *args, &blk)
+    else
+      scope = ctx
+      while scope
+        if scope.module.respond_to?(name, true) &&
+            !scope.module.class.method_defined?(name)
+          return scope.module.__send__(name, *args, &blk)
+        end
+
+        scope = scope.parent
+      end
+
+      # TODO: this is to just trigger method_missing
+      recv.__send__(name, *args, &blk)
+    end
   end
 
   def self.copy(x)
@@ -124,6 +125,7 @@ module Atomy
     mod = Atomy::Module.new do
       private_module_function
 
+      # TODO: put this somewhere more sane
       # generate symbols
       def names(num = 0, &block)
         num = block.arity if block
