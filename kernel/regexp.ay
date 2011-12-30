@@ -30,7 +30,7 @@ macro-quoter(r) [r, fs]:
   when(fs include(.x)?):
     flags |= Regexp::EXTENDED
 
-  when(fs include(.u)?):
-    flags |= Regexp::KCODE_UTF8
+  -- UTF8 by default
+  flags |= Regexp::KCODE_UTF8
 
   `(::Regexp new(~interpolated(r), ~flags))

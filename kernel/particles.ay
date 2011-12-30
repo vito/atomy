@@ -108,20 +108,9 @@ macro(.~(x: Binary)):
 
 Atomy::Patterns open:
   Particle = Pattern class:
-    initialize(@receiver, @message, @arguments) := .ok
-
-    construct(g) := do:
-      get(g)
-      @receiver construct(g)
-      g push-literal(@message)
-      @arguments construct(g)
-      g send(.new, 3)
-
-    (== b) :=
-      b kind-of(Particle)? &&
-        @receiver == b receiver &&
-        @message == b message &&
-        @arguments == b arguments
+    children(.receiver, .arguments)
+    attributes(.message)
+    generate
 
     target(g) := do:
       g push-cpath-top
@@ -175,8 +164,7 @@ Atomy::Patterns open:
     `[~*as] to-pattern
 
 `.[] to-pattern :=
-  Atomy::Patterns::Literal new $:
-    .[]
+  Atomy::Patterns::Literal new(.[])
 
 `.[~*as] to-pattern :=
   Atomy::Patterns::Particle new $:
@@ -189,41 +177,41 @@ Atomy::Patterns open:
     if(x private)
       then: '_ to-pattern
       else: x lhs to-pattern
-    x operator
     `[~(x rhs)] to-pattern
+    x operator
 
 `.(~(x: Atomy::AST::Word)(~*as)) to-pattern :=
   Atomy::Patterns::Particle new $:
     '_ to-pattern
-    x text
     `[~*as] to-pattern
+    x text
 
 `.(~(x: Atomy::AST::Word)(~*as)?) to-pattern :=
   Atomy::Patterns::Particle new $:
     '_ to-pattern
-    `((~x)?) to-word text
     `[~*as] to-pattern
+    `((~x)?) to-word text
 
 `.(~(x: Atomy::AST::Word)(~*as)!) to-pattern :=
   Atomy::Patterns::Particle new $:
     '_ to-pattern
-    `((~x)!) to-word text
     `[~*as] to-pattern
+    `((~x)!) to-word text
 
 `.(~r ~(x: Atomy::AST::Word)(~*as)) to-pattern :=
   Atomy::Patterns::Particle new $:
     r to-pattern
-    x text
     `[~*as] to-pattern
+    x text
 
 `.(~r ~(x: Atomy::AST::Word)(~*as)?) to-pattern :=
   Atomy::Patterns::Particle new $:
     r to-pattern
-    `((~x)?) to-word text
     `[~*as] to-pattern
+    `((~x)?) to-word text
 
 `.(~r ~(x: Atomy::AST::Word)(~*as)!) to-pattern :=
   Atomy::Patterns::Particle new $:
     r to-pattern
-    `((~x)!) to-word text
     `[~*as] to-pattern
+    `((~x)!) to-word text
