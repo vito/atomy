@@ -14,7 +14,7 @@ macro(macro-quoter(~n) [~*as]: ~*body):
 
     flags = as shift
     when(flags):
-      flags =! `(~flags = ~args)
+      flags =! `(~flags = ~args collect .text)
 
     val = as shift
     when(val):
