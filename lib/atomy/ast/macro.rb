@@ -10,6 +10,7 @@ module Atomy
         pos(g)
 
         blk = new_generator(g, :macro_definition)
+        blk.push_state Rubinius::AST::ClosedScope.new(@line)
 
         pos(blk)
 
