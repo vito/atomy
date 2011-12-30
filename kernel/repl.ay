@@ -55,7 +55,7 @@ ReplDebugger = class:
     debug(e) := do:
       Condition::DefaultDebugger show-options-for(e)
 
-      { send(.basic-repl) } bind:
+      { basic-repl } bind:
         .prompt -> restart(.use-prompt, "[!]> ")
 
         .special(n ? (=~ r"\d+")) ->
