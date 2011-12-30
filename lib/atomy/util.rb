@@ -1,14 +1,16 @@
-# TODO: respond_to
+# TODO: anything but this
 module Kernel
   alias :method_missing_old :method_missing
 
   def method_missing_atomy(meth, *args, &blk)
-    scope = Rubinius::StaticScope.of_sender
-    while scope
-      if scope.module.respond_to?(meth, true)
-        return scope.module.send(meth, *args, &blk)
-      else
-        scope = scope.parent
+    if Rubinius.method_missing_reason != :super && Rubinius::VariableScope.of_sender.self.equal?(self)
+      scope = Rubinius::StaticScope.of_sender
+      while scope
+        if scope.module.respond_to?(meth, true)
+          return scope.module.send(meth, *args, &blk)
+        else
+          scope = scope.parent
+        end
       end
     end
 
