@@ -102,12 +102,18 @@ macro(~_ ~(? to-word)(~*_) &~_):
     s block = node right
 
 -- foo [bar, ...]
-macro(~x [~*ys]):
-  `(~x ~(Word new(node line, "[]" to-sym))(~*ys))
+macro(~x [~*ys]): node to-send
 
 -- foo [bar, ...] &baz
 macro(~x [~*ys] &~x):
-  `(~x ~(Word new(node line, "[]" to-sym))(~*ys) &~x)
+  node left to-send tap [s]:
+    s block = node right
+
+-- [bar, ...] &baz
+macro([~*_] &~_):
+  `(self ~(node left)) to-send tap [s]:
+    s private = true
+    s block = node right
 
 -- Foo(...)
 macro(~(c: Constant)(~*args)):
