@@ -29,11 +29,10 @@ basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=
       source:
         signal(.input(source))
 
-        try = {
+        try = :
           with-restarts(retry -> try [], abort -> .ok):
             res = Atomy::Compiler eval(source, bnd, "(eval)", 1, debug)
             signal(.evaluated(res))
-        }
 
         try []
 

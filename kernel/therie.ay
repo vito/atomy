@@ -1,45 +1,39 @@
 use("atomy")
 IO = require("io")
 
-NestingLevel = dynamic(0)
-RunningStats = dynamic
+nesting-level = dynamic(0)
+running-stats = dynamic
 
 data(Stats(@passed = 0, @failed = 0))
 
-Stats inspect :=
-  f"Stats(@passed = %d, @failed = %d)" [@passed, @failed]
-
-indented(s) := " " * (^NestingLevel * 2) + s
+indented(s) := " " * (^nesting-level * 2) + s
 
 colored(color, s) := do:
-  -- only makes sense to colorize if we're outputting to a terminal
   unless(^IO::OutputPort tty?):
     return(s)
 
-  codes =
-    [ .black
-      .red
-      .green
-      .yellow
-      .blue
-      .magenta
-      .cyan
-      .white
-    ] to-a zip((0 .. 7) to-a)
+  codes = [
+    .black
+    .red
+    .green
+    .yellow
+    .blue
+    .magenta
+    .cyan
+    .white
+  ]
 
-  hash = Hash [codes]
-
-  "\e[3" + hash [color] to-s + "m" + s + "\e[0m"
+  i"\e[3#{codes index(color)}m#{s}\e[0m"
 
 
 export
 
 theorize &tests :=
-  let(RunningStats = Stats new):
+  let(running-stats = Stats new):
     tests call
     "\n" display
 
-    ^RunningStats onto:
+    ^running-stats onto:
       f"total of %d tests (%s passed, %s failed)" [
         failed + passed
         colored(.green, passed to-s)
@@ -50,13 +44,13 @@ theorize &tests :=
 
       "\n" display
 
-    ^RunningStats
+    ^running-stats
 
 
 describe(what) &body := do:
   indented(f"- %s" [what]) println
 
-  let(NestingLevel = ^NestingLevel + 1):
+  let(nesting-level = ^nesting-level + 1):
     body call
 
   nil
@@ -67,8 +61,8 @@ it(description) &tests := do:
     indented(colored(.green, f"✓ %s" [description])) println
   } rescue {
     e:
-      when(^RunningStats):
-        ^RunningStats failed += 1
+      when(^running-stats):
+        ^running-stats failed += 1
 
       indented(colored(.red, f"✗ %s" [description])) println
       indented(
@@ -84,8 +78,8 @@ it(description) &tests := do:
       e backtrace first((ENV["THERIE_BT_LIMIT"] || 5) to-i) each [l]:
         indented(f"    %s" [colored(.cyan, l)]) println
   } else:
-    when(^RunningStats):
-      ^RunningStats passed += 1
+    when(^running-stats):
+      ^running-stats passed += 1
 
   nil
 

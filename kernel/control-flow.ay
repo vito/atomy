@@ -39,8 +39,8 @@ macro(super &~blk):
 macro(super ~(blk: Block)):
   Super new(node line, [], nil, blk)
 
-macro(super(~*as)):
-  [args, splat] = splat-from(as)
+macro(super(~*pRiNcEsS)):
+  [args, splat] = splat-from(pRiNcEsS)
   Super new(node line, args, splat)
 
 macro(super(~*as) ~(blk: Block)):

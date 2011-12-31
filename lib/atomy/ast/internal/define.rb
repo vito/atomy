@@ -25,9 +25,9 @@ module Atomy
           @block,
           @method_name
         ).create_block(g)
-        g.dup
 
         # set the block's module so that super works
+        g.dup
         g.push_literal :@module
 
         if @defn

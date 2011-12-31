@@ -31,7 +31,7 @@ module Atomy
 
     scope = ctx
     while scope
-      # TODO: use const_defined? once it searches parents
+      # TODO: use const_defined? once it's fixed to search
       begin
         return scope.module.const_get(name)
       rescue NameError

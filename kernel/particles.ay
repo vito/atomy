@@ -39,72 +39,61 @@ Symbol arity := 1
 wildcard('_) := '_undefined
 wildcard(x) := x
 
-macro(.[]): ."[]"
-
 macro(.[~*(as: _ . _)]):
-  `(Atomy::Particle new(
+  `(Atomy::Particle new $:
       _undefined
       ."[]"
-      ~(as collect [c]: wildcard(c))
-    ))
+      ~(as collect [c]: wildcard(c)))
 
 macro(.(~(x)(~*as))):
-  `(Atomy::Particle new(
+  `(Atomy::Particle new $:
       _undefined
       .~x
-      ~(as collect [c]: wildcard(c))
-    ))
+      ~(as collect [c]: wildcard(c)))
 
 macro(.(~(x)(~*as))?):
-  `(Atomy::Particle new(
+  `(Atomy::Particle new $:
       _undefined
       .(~x)?
-      ~(as collect [c]: wildcard(c))
-    ))
+      ~(as collect [c]: wildcard(c)))
 
 macro(.(~(x)(~*as))!):
-  `(Atomy::Particle new(
+  `(Atomy::Particle new $:
       _undefined
       .(~x)!
-      ~(as collect [c]: wildcard(c))
-    ))
+      ~(as collect [c]: wildcard(c)))
 
 macro(.(~r ~(x)(~*as))):
-  `(Atomy::Particle new(
+  `(Atomy::Particle new $:
       ~(wildcard(r))
       .~x
-      ~(as collect [c]: wildcard(c))
-    ))
+      ~(as collect [c]: wildcard(c)))
 
 macro(.(~r ~(x)(~*as))?):
-  `(Atomy::Particle new(
+  `(Atomy::Particle new $:
       ~(wildcard(r))
       .(~x)?
-      ~(as collect [c]: wildcard(c))
-    ))
+      ~(as collect [c]: wildcard(c)))
 
 macro(.(~r ~(x)(~*as))!):
-  `(Atomy::Particle new(
+  `(Atomy::Particle new $:
       ~(wildcard(r))
       .(~x)!
-      ~(as collect [c]: wildcard(c))
-    ))
+      ~(as collect [c]: wildcard(c)))
 
 macro(.(~r [~*as])):
-  `(Atomy::Particle new(
+  `(Atomy::Particle new $:
       ~(wildcard(r))
       ."[]"
-      ~(as collect [c]: wildcard(c))
-    ))
+      ~(as collect [c]: wildcard(c)))
 
 macro(.~(x: Binary)):
-  `(Atomy::Particle new(
+  `(Atomy::Particle new $:
       ~(if(x private)
           then: '_undefined
           else: wildcard(x lhs))
       ~(x operator)
-      [~(wildcard(x rhs))]
-    ))
+      [~(wildcard(x rhs))])
 
 Atomy::Patterns open:
   Particle = Pattern class:
