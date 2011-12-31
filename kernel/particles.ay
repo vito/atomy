@@ -5,14 +5,15 @@ use("control-flow")
 use("cosmetics")
 use("undefined")
 
-Atomy = ::Atomy
-
 Atomy open:
   data(Particle(@receiver, @message, @arguments))
 
-  Particle call(*args) := to-proc [*args]
+  Particle call(*args) &blk := to-proc [*args] &blk
 
-  Particle to-proc := [*args]:
+  Particle open:
+    alias-method(.[], .call)
+
+  Particle to-proc := [*args] &blk:
     [recv, cur] =
       if(@receiver equal(_undefined)?)
         then: [args[0], 1]
@@ -27,12 +28,12 @@ Atomy open:
           else:
             v
 
-    recv send(@message, *filled)
+    recv __send__(@message, *filled) &blk
 
   Particle arity :=
     (@receiver . @arguments) select .equal(_undefined)? size
 
-Symbol call(*args) := to-proc [*args]
+Symbol call(*args) &blk := to-proc [*args] &blk
 
 Symbol arity := 1
 
@@ -94,6 +95,7 @@ macro(.~(x: Binary)):
           else: wildcard(x lhs))
       ~(x operator)
       [~(wildcard(x rhs))])
+
 
 Atomy::Patterns open:
   Particle = Pattern class:
