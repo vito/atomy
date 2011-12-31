@@ -22,7 +22,7 @@ module Atomy
       def to_word
         return unless @receiver.is_a?(Word)
         case @operator
-        when :"!", :"?"
+        when :"!", :"?", :"="
           Word.new(@line, :"#{@receiver.text}#{@operator}")
         end
       end

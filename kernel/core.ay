@@ -178,6 +178,9 @@ macro(.~(x: ? to-word)):
 macro(.~(x: String)):
   Literal new(node line, x value to-sym)
 
+macro(.[]): ."[]"
+macro(.[]=): ."[]="
+
 -- bar?
 macro((~Word)?):
   node receiver tap [r]:
