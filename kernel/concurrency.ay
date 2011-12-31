@@ -13,7 +13,7 @@ macro(receive ~(body: Block)):
   names [e]:
     bs =
       `(~e when('~pat to-pattern) [~pat]: ~exp)
-        for([pat, exp]) in(pairs-from(body contents))
+        for(pat, exp) in(pairs-from(body contents))
 
     `(Actor receive [~e]: ~*bs)
 
@@ -21,7 +21,7 @@ macro(receive ~(body: Block) after(~timeout) ~(action: Block)):
   names [e]:
     bs =
       `(~e when('~pat to-pattern) [~pat]: ~exp)
-        for([pat, exp]) in(pairs-from(body contents)) +
+        for(pat, exp) in(pairs-from(body contents)) +
           [`(~e after(~timeout) ~action)]
 
     `(Actor receive [~e]: ~*bs)

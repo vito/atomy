@@ -3,14 +3,14 @@ use("define")
 use("undefined")
 use("control-flow")
 
-macro(~x for(~e) in(~c)):
-  `(~c collect [~e]: ~x)
+macro(~x for(~*args) in(~c)):
+  `(~c collect [~*args]: ~x)
 
-macro(~x for(~e) in(~c) if(~t)):
+macro(~x for(~*args) in(~c) if(~t)):
   names [tmp]:
     `(do:
         ~tmp = []
-        ~c collect [~e]:
+        ~c collect [~*args]:
           when(~t):
             ~tmp << ~x
 
