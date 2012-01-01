@@ -1,5 +1,5 @@
 use("atomy")
-IO = require("io")
+io = require("io")
 
 nesting-level = dynamic(0)
 running-stats = dynamic
@@ -9,7 +9,7 @@ data(Stats(@passed = 0, @failed = 0))
 indented(s) := " " * (^nesting-level * 2) + s
 
 colored(color, s) := do:
-  unless(^IO::OutputPort tty?):
+  unless(^io::OutputPort tty?):
     return(s)
 
   codes = [

@@ -1,8 +1,8 @@
 use("atomy")
 
 use("doc")
-Condition = use("condition")
-Pretty = require("pretty")
+condition = use("condition")
+pretty = require("pretty")
 
 require("readline")
 
@@ -46,19 +46,19 @@ ReplDebugger = class:
       debug(e)
 
     run(e) := do:
-      Condition::DefaultDebugger show-error-banner(e)
+      condition::DefaultDebugger show-error-banner(e)
 
       with-restarts(backtrace -> show-backtrace(e)):
         debug(e)
 
     debug(e) := do:
-      Condition::DefaultDebugger show-options-for(e)
+      condition::DefaultDebugger show-options-for(e)
 
       { basic-repl } bind:
         .prompt -> restart(.use-prompt, "[!]> ")
 
         .special(n ? (=~ r"\d+")) ->
-          ^Condition::Restarts [n to-i] invoke
+          ^condition::Restarts [n to-i] invoke
 
         .quit -> exit(1)
 
@@ -81,9 +81,9 @@ repl(history = nil, bnd = nil, debug = false) := do:
 
   sane-history = Array[]
 
-  { let(Condition::Debugger = ReplDebugger,
-        Pretty::Multiline = true,
-        Pretty::Colored = true):
+  { let(condition::Debugger = ReplDebugger,
+        pretty::Multiline = true,
+        pretty::Colored = true):
       frame = 0
 
       { basic-repl(bnd, debug)

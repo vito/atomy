@@ -1,5 +1,5 @@
 use("core")
-Define = use("define")
+define = use("define")
 use("data")
 use("control-flow")
 use("loop")
@@ -7,16 +7,16 @@ use("interpolation")
 use("array")
 
 use("dynamic")
-IO = use("io")
+io = use("io")
 
 -- registered handlers/restarts
 Handlers = dynamic([])
 Restarts = dynamic([])
 
-catcher(x) := ."restart:#{Define message-name(x)}"
-message-name(x) := Define message-name(x)
-arguments(x) := Define arguments(x)
-block(x) := Define block(x)
+catcher(x) := ."restart:#{define message-name(x)}"
+message-name(x) := define message-name(x)
+arguments(x) := define arguments(x)
+block(x) := define block(x)
 
 data(Restart(@name, @action))
 
@@ -111,7 +111,7 @@ error(x) := do:
 
   signal(e)
 
-  with-output-to(^IO::ErrorPort):
+  with-output-to(^io::ErrorPort):
     ^Debugger run(e)
 
 
@@ -129,7 +129,7 @@ warning(x) :=
 
     signal(w)
 
-    with-output-to(^IO::ErrorPort):
+    with-output-to(^io::ErrorPort):
       (w name + ": " + w message) println
 
     nil
