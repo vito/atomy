@@ -177,13 +177,3 @@ module Atomy
     [mod, bnd]
   end
 end
-
-class Array
-  alias :head :first
-
-  def tail
-    drop(1)
-  end
-
-  alias :rest :tail
-end
