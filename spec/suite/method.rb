@@ -12,8 +12,7 @@ describe(Module) do
       Atomy.dynamic_branch(
         x,
         :foo,
-        Atomy::Branch.new(Atomy::Patterns::Any.new) { 42 }
-      )
+        Atomy::Branch.new(Atomy::Patterns::Any.new) { 42 })
 
       x.atomy_methods[:foo].must_be_kind_of Atomy::Method
       x.atomy_methods[:foo].size.must_equal 1
@@ -21,8 +20,7 @@ describe(Module) do
       Atomy.dynamic_branch(
         x,
         :bar,
-        Atomy::Branch.new(Atomy::Patterns::Any.new) { 41 }
-      )
+        Atomy::Branch.new(Atomy::Patterns::Any.new) { 41 })
 
       x.atomy_methods[:foo].must_be_kind_of Atomy::Method
       x.atomy_methods[:foo].size.must_equal 1
@@ -40,14 +38,12 @@ describe(Atomy::Branch) do
 
       Atomy::Branch.new(
         wildcard,
-        [wildcard]
-      ).total_args.must_equal 1
+        [wildcard]).total_args.must_equal 1
 
       Atomy::Branch.new(
         wildcard,
         [wildcard],
-        [wildcard, wildcard]
-      ).total_args.must_equal 3
+        [wildcard, wildcard]).total_args.must_equal 3
     end
 
     it("does not reflect splatiness") do
@@ -55,8 +51,7 @@ describe(Atomy::Branch) do
         wildcard,
         [wildcard],
         [wildcard, wildcard],
-        wildcard
-      ).total_args.must_equal 3
+        wildcard).total_args.must_equal 3
     end
   end
 

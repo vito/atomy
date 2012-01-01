@@ -23,8 +23,7 @@ process-val(g, `(%((~grammar).) ~(x)(~*args))) := do:
   `(~g foreign-invoke(
       ~(grammar text)
       ~(x text)
-      ~(args collect .show join(", "))
-    ))
+      ~(args collect .show join(", "))))
 
 process-val(g, `(~a %((~grammar).) ~(x)(~*args))) := do:
   `(~g seq(
@@ -32,9 +31,7 @@ process-val(g, `(~a %((~grammar).) ~(x)(~*args))) := do:
       ~g foreign-invoke(
         ~(grammar text)
         ~(x text)
-        ~(args collect .show join(", "))
-      )
-    ))
+        ~(args collect .show join(", ")))))
 
 process-val(g, `(%((~grammar).) ~x)) := do:
   `(~g foreign-invoke(~(grammar text), ~(x text)))
@@ -204,14 +201,15 @@ macro(parser(~name): ~*grammar):
       Vars = Array[]):
     g = `(grammar: ~*grammar) evaluate
 
-    acts = ^Actions collect [action, as]:
-      args = as collect [a]: Atomy::AST::Word new(0, a)
-      `([~*args] ~action)
+    acts =
+      ^Actions collect [action, as]:
+        args = as collect [a]: Atomy::AST::Word new(0, a)
+        `([~*args] ~action)
 
-    def = Atomy::AST::ParserDefiner new(
-      node line
-      ::KPeg::CodeGenerator new(const-name(name), g) output
-    )
+    def =
+      Atomy::AST::ParserDefiner new(
+        node line
+        ::KPeg::CodeGenerator new(const-name(name), g) output)
 
     `(do:
         ~name = ::KPeg::CompiledParser class:

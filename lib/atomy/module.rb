@@ -21,25 +21,20 @@ module Atomy
           body.line,
           body,
           [],
-          :to_node
-        ),
+          :to_node),
         Atomy::AST::Block.new(
           0,
           [Atomy::AST::Primitive.new(0, :self)],
-          []
-        ),
+          []),
         [ Atomy::AST::Compose.new(
             0,
             Atomy::AST::Word.new(0, :node),
             Atomy::AST::Block.new(
               0,
               [Atomy::AST::QuasiQuote.new(0, pattern)],
-              []
-            )
-          )
+              []))
         ],
-        name
-      )
+        name)
     end
 
     def define_macro(pattern, body, file)
@@ -48,9 +43,9 @@ module Atomy
           TOPLEVEL_BINDING.variables,
           TOPLEVEL_BINDING.code,
           Rubinius::StaticScope.new(Atomy::AST, Rubinius::StaticScope.new(self)),
-          self
-        ), file.to_s, pattern.line
-      )
+          self),
+        file.to_s,
+        pattern.line)
     end
 
     # overridden by macro definitions

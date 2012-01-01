@@ -124,14 +124,14 @@ Symbol pretty-doc := do:
 
 Hash pretty-doc :=
   text("#") <>
-    align $:
-      (lbrace </>
-        tree $:
-          to-a collect [k, v]:
-            from(.binary):
-              k unamb <+> text("->") <+> v unamb
+    align(
+      ( lbrace </>
+          tree(
+            to-a collect [k, v]:
+              from(.binary):
+                k unamb <+> text("->") <+> v unamb)
       ) nest(2) </>
-        rbrace
+        rbrace)
 
 Atomy::AST open:
   Block unamb := pretty
@@ -191,12 +191,10 @@ Atomy::AST open:
   Constant pretty-doc := text(@name)
 
   Infix pretty-doc :=
-    hsep([
-      text(".infix")
-      text(@associativity to-s)
-      @precedence pretty
-      hsep(@operators map [o] { text(o) })
-    ])
+    hsep([text(".infix")
+          text(@associativity to-s)
+          @precedence pretty
+          hsep(*(text(o) for(o) in(@operators)))])
 
   List pretty-doc :=
     from(.list):
@@ -283,8 +281,7 @@ Atomy::Patterns open:
     Atomy::Particle new(
       @receiver
       @message
-      @arguments patterns
-    ) pretty
+      @arguments patterns) pretty
   Predicate pretty-doc := `(~@pattern ? ~@test) pretty
   QuasiQuote pretty-doc := @quoted pretty
   Quote pretty-doc := `'~@expression pretty

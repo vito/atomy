@@ -41,60 +41,60 @@ wildcard('_) := '_undefined
 wildcard(x) := x
 
 macro(.[~*(as: _ . _)]):
-  `(Atomy::Particle new $:
+  `(Atomy::Particle new(
       _undefined
-      ."[]"
-      ~(as collect [c]: wildcard(c)))
+      .[]
+      ~(as collect [c]: wildcard(c))))
 
 macro(.(~(x)(~*as))):
-  `(Atomy::Particle new $:
+  `(Atomy::Particle new(
       _undefined
       .~x
-      ~(as collect [c]: wildcard(c)))
+      ~(as collect [c]: wildcard(c))))
 
 macro(.(~(x)(~*as))?):
-  `(Atomy::Particle new $:
+  `(Atomy::Particle new(
       _undefined
       .(~x)?
-      ~(as collect [c]: wildcard(c)))
+      ~(as collect [c]: wildcard(c))))
 
 macro(.(~(x)(~*as))!):
-  `(Atomy::Particle new $:
+  `(Atomy::Particle new(
       _undefined
       .(~x)!
-      ~(as collect [c]: wildcard(c)))
+      ~(as collect [c]: wildcard(c))))
 
 macro(.(~r ~(x)(~*as))):
-  `(Atomy::Particle new $:
+  `(Atomy::Particle new(
       ~(wildcard(r))
       .~x
-      ~(as collect [c]: wildcard(c)))
+      ~(as collect [c]: wildcard(c))))
 
 macro(.(~r ~(x)(~*as))?):
-  `(Atomy::Particle new $:
+  `(Atomy::Particle new(
       ~(wildcard(r))
       .(~x)?
-      ~(as collect [c]: wildcard(c)))
+      ~(as collect [c]: wildcard(c))))
 
 macro(.(~r ~(x)(~*as))!):
-  `(Atomy::Particle new $:
+  `(Atomy::Particle new(
       ~(wildcard(r))
       .(~x)!
-      ~(as collect [c]: wildcard(c)))
+      ~(as collect [c]: wildcard(c))))
 
 macro(.(~r [~*as])):
-  `(Atomy::Particle new $:
+  `(Atomy::Particle new(
       ~(wildcard(r))
       ."[]"
-      ~(as collect [c]: wildcard(c)))
+      ~(as collect [c]: wildcard(c))))
 
 macro(.~(x: Binary)):
-  `(Atomy::Particle new $:
+  `(Atomy::Particle new(
       ~(if(x private)
           then: '_undefined
           else: wildcard(x lhs))
       ~(x operator)
-      [~(wildcard(x rhs))])
+      [~(wildcard(x rhs))]))
 
 
 Atomy::Patterns open:
@@ -149,60 +149,60 @@ Atomy::Patterns open:
       @arguments deconstruct(g, locals)
 
 `.(~r [~*as]) to-pattern :=
-  Atomy::Patterns::Particle new $:
+  Atomy::Patterns::Particle new(
     r to-pattern
     .[]
-    `[~*as] to-pattern
+    `[~*as] to-pattern)
 
 `.[] to-pattern :=
   Atomy::Patterns::Literal new(.[])
 
 `.[~*as] to-pattern :=
-  Atomy::Patterns::Particle new $:
+  Atomy::Patterns::Particle new(
     '_ to-pattern
     .[]
-    `[~*as] to-pattern
+    `[~*as] to-pattern)
 
 `.~(x: Atomy::AST::Binary) to-pattern :=
-  Atomy::Patterns::Particle new $:
+  Atomy::Patterns::Particle new(
     if(x private)
       then: '_ to-pattern
       else: x lhs to-pattern
     `[~(x rhs)] to-pattern
-    x operator
+    x operator)
 
 `.(~(x: Atomy::AST::Word)(~*as)) to-pattern :=
-  Atomy::Patterns::Particle new $:
+  Atomy::Patterns::Particle new(
     '_ to-pattern
     `[~*as] to-pattern
-    x text
+    x text)
 
 `.(~(x: Atomy::AST::Word)(~*as)?) to-pattern :=
-  Atomy::Patterns::Particle new $:
+  Atomy::Patterns::Particle new(
     '_ to-pattern
     `[~*as] to-pattern
-    `((~x)?) to-word text
+    `((~x)?) to-word text)
 
 `.(~(x: Atomy::AST::Word)(~*as)!) to-pattern :=
-  Atomy::Patterns::Particle new $:
+  Atomy::Patterns::Particle new(
     '_ to-pattern
     `[~*as] to-pattern
-    `((~x)!) to-word text
+    `((~x)!) to-word text)
 
 `.(~r ~(x: Atomy::AST::Word)(~*as)) to-pattern :=
-  Atomy::Patterns::Particle new $:
+  Atomy::Patterns::Particle new(
     r to-pattern
     `[~*as] to-pattern
-    x text
+    x text)
 
 `.(~r ~(x: Atomy::AST::Word)(~*as)?) to-pattern :=
-  Atomy::Patterns::Particle new $:
+  Atomy::Patterns::Particle new(
     r to-pattern
     `[~*as] to-pattern
-    `((~x)?) to-word text
+    `((~x)?) to-word text)
 
 `.(~r ~(x: Atomy::AST::Word)(~*as)!) to-pattern :=
-  Atomy::Patterns::Particle new $:
+  Atomy::Patterns::Particle new(
     r to-pattern
     `[~*as] to-pattern
-    `((~x)!) to-word text
+    `((~x)!) to-word text)

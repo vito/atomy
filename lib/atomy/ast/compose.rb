@@ -26,8 +26,7 @@ module Atomy
             @left,
             args,
             :[],
-            splat
-          )
+            splat)
         else
           word = @right.to_word
 
@@ -35,8 +34,7 @@ module Atomy
             @line,
             @left,
             [],
-            word && word.text
-          )
+            word && word.text)
         end
       end
 

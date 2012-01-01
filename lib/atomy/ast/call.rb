@@ -26,8 +26,7 @@ module Atomy::AST
         word && word.text,
         splat,
         nil,
-        true
-      )
+        true)
     end
 
     def macro_name

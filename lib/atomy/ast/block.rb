@@ -4,16 +4,16 @@ module Atomy
   module AST
     class FormalArguments < Rubinius::AST::FormalArguments19
       def initialize(line, required, optional, splat, post, block, patterns)
-        defaults = optional && Rubinius::AST::Block.new(
-          line,
-          optional.collect do |n, d|
-            Rubinius::AST::LocalVariableAssignment.new(
-              line,
-              n,
-              CompileWrapper.new(d)
-            )
-          end
-        )
+        if optional
+          defaults = Rubinius::AST::Block.new(
+            line,
+            optional.collect { |n, d|
+              Rubinius::AST::LocalVariableAssignment.new(
+                line,
+                n,
+                CompileWrapper.new(d))
+            })
+        end
 
         super(line, required, defaults, splat, post, block)
 

@@ -385,7 +385,6 @@ module Atomy
                           scope = nil, defn = false)
     define_branch(
       target, name, branch,
-      visibility, scope || Rubinius::StaticScope.of_sender, defn
-    )
+      visibility, scope || Rubinius::StaticScope.of_sender, defn)
   end
 end

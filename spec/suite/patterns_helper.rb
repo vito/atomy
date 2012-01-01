@@ -4,16 +4,12 @@ def match(pat, val)
       0,
       Atomy::AST::Pattern.new(
         0,
-        pat
-      ),
-      Atomy::AST::Literal.new(0, val)
-    ),
+        pat),
+      Atomy::AST::Literal.new(0, val)),
     Binding.setup(
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledMethod.of_sender,
-      Rubinius::StaticScope.of_sender
-    )
-  )
+      Rubinius::StaticScope.of_sender))
 end
 
 def expr(str)

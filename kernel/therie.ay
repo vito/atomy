@@ -71,9 +71,7 @@ it(description) &tests := do:
           f"  ` %s: %s" [
             e class name
             e message
-          ]
-        )
-      ) println
+          ])) println
 
       e backtrace first((ENV["THERIE_BT_LIMIT"] || 5) to-i) each [l]:
         indented(f"    %s" [colored(.cyan, l)]) println

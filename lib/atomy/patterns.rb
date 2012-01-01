@@ -158,8 +158,7 @@ EOF
         def children(&f)
           if block_given?
             self.class.new(
-              #{(creq_cs + cmany_cs + req_as + copt_cs + opt_as).join ", "}
-            )
+              #{(creq_cs + cmany_cs + req_as + copt_cs + opt_as).join ", "})
           else
             [#{all.join(", ")}]
           end

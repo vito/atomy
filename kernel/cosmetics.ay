@@ -2,10 +2,6 @@ use("core")
 use("define")
 use("control-flow")
 
-macro(~x $~(y: Block)):
-  x to-send tap [z]:
-    z arguments += y contents
-
 macro(~x ?~(y ? to-word)):
   `(~x respond-to(~(y to-word text))?)
 

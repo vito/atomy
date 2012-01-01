@@ -161,9 +161,8 @@ Atomy::Patterns open:
 -- base patterns
 Atomy::Patterns open:
   (Atomy::AST::Node ? to-word) to-pattern :=
-    Named new $:
-      Any new
-      to-word text
+    Named new(Any new
+              to-word text)
 
   Atomy::AST::Primitive to-pattern :=
     Match new(@value)
@@ -172,8 +171,7 @@ Atomy::Patterns open:
     Literal new(@value)
 
   Atomy::AST::List to-pattern :=
-    List new $:
-      @elements collect [e]: e to-pattern
+    List new(@elements collect [e]: e to-pattern)
 
   Atomy::AST::Constant to-pattern :=
     Constant new(self)

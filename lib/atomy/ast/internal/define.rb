@@ -23,8 +23,7 @@ module Atomy
           [@body],
           [@receiver, Word.new(0, :arguments)] + @arguments,
           @block,
-          @method_name
-        ).create_block(g)
+          @method_name).create_block(g)
 
         # set the block's module so that super works
         g.dup

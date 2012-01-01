@@ -172,8 +172,7 @@ module Atomy
       vs,
       vs.method,
       ss,
-      mod
-    )
+      mod)
 
     [mod, bnd]
   end

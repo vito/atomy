@@ -196,8 +196,7 @@ EOF
           def children(&f)
             if block_given?
               self.class.new(
-                @line#{creq_cs + cmany_cs + req_as + copt_cs + opt_as}
-              )
+                @line#{creq_cs + cmany_cs + req_as + copt_cs + opt_as})
             else
               [#{all.join(", ")}]
             end
@@ -408,8 +407,7 @@ EOF
           @line,
           self,
           [],
-          :call
-        )
+          :call)
       end
 
       def evaluate(bnd = nil, *args)
@@ -417,8 +415,7 @@ EOF
           bnd = Binding.setup(
             Rubinius::VariableScope.of_sender,
             Rubinius::CompiledMethod.of_sender,
-            Rubinius::StaticScope.of_sender
-          )
+            Rubinius::StaticScope.of_sender)
         end
 
         Atomy::Compiler.eval(self, bnd, *args)

@@ -23,5 +23,4 @@ export(
   require("io")
   require("control-flow")
   -- TODO?: concurrency
-  require("format")
-)
+  require("format"))

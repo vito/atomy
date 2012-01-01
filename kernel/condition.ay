@@ -61,14 +61,12 @@ macro(with-restarts(~*restarts) ~(block: Block)):
   rs = pairs collect [n, e]:
     `(Restart new(
         ~message-name(n)
-        [~*arguments(n)] &~block(n) { ~e }
-      ))
+        [~*arguments(n)] &~block(n) { ~e }))
 
   body =
-    pairs reduce(
-      `{ ~block rescue: (e: StandardError) -> error(e) }
-    ) [x, [name, _]]:
-      `{ catch(~catcher(name)) ~x }
+    pairs reduce(`{ ~block rescue: (e: StandardError) -> error(e) })
+      [x, [name, _]]:
+        `{ catch(~catcher(name)) ~x }
 
   `(let(Restarts = [~*rs] + ^Restarts) ~body)
 

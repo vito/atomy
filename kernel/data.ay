@@ -1,7 +1,6 @@
 use("core")
 use("define")
 use("control-flow")
-use("cosmetics")
 use("comparison")
 
 define-class(nil, e: Atomy::AST::Constant) := `(~e = class:)
@@ -36,9 +35,9 @@ define-class(root, `(~(name)(~*as): ~*cs)) := do:
 
   `(do:
       ~name = ~parent class:
-        attr-accessor $:
+        attr-accessor(
           ~*(attrs collect [a]:
-              `.~(a receiver))
+              `.~(a receiver)))
 
         initialize(~*as) := nil
 
