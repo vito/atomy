@@ -32,6 +32,13 @@ module Atomy::Patterns
       g.send :respond_to?, 1
       g.gif mismatch
 
+      if splat
+        g.dup
+        g.push_literal :drop
+        g.send :respond_to?, 1
+        g.gif mismatch
+      end
+
       g.dup
       g.send :size, 0
       g.push_int required
