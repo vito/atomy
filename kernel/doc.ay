@@ -113,23 +113,25 @@ Doc   <$$> Empty := self
 Doc   <$$> y     := self <> linebreak <> y
 
 -- helper for `best' by linearizing documents
-[]                     be(_, _) := SEmpty new
-([i, Empty]      . ds) be(w, k) := ds be(w, k)
-([i, Cat(x, y)]  . ds) be(w, k) := ([[i, x], [i, y]] + ds) be(w, k)
-([i, Nest(j, x)] . ds) be(w, k) := ([i + j, x] . ds) be(w, k)
-([i, Text(s)]    . ds) be(w, k) := SText new(s, { ds be(w, k + s size) })
-([i, Raw(s)]     . ds) be(w, k) := SRaw new(s, { ds be(w, k) })
-([i, Line(s)]    . ds) be(w, k) := SLine new(s, i, { ds be(w, i) })
-([i, Column(f)]  . ds) be(w, k) := ([i, f [k]] . ds) be(w, k)
-([i, Nesting(f)] . ds) be(w, k) := ([i, f [i]] . ds) be(w, k)
-([i, u: Union]   . ds) be(w, k) := do:
-  flattened = ([i, u x] . ds) be(w, k)
-  if(flattened fits(w - k)?)
-    then: flattened
-    else: ([i, u y] . ds) be(w, k)
+be(_, _, []) := SEmpty new
+be(w, k, [i, d] . ds) :=
+  d match:
+    Empty      -> be(w, k, ds)
+    Cat(x, y)  -> be(w, k, [[i, x], [i, y]] + ds)
+    Nest(j, x) -> be(w, k, [i + j, x] . ds)
+    Text(s)    -> SText new(s, { be(w, k + s size, ds) })
+    Raw(s)     -> SRaw new(s, { be(w, k, ds) })
+    Line(s)    -> SLine new(s, i, { be(w, i, ds) })
+    Column(f)  -> be(w, k, [i, f[k]] . ds)
+    Nesting(f) -> be(w, k, [i, f[i]] . ds)
+    Union:
+      flattened = be(w, k, [i, d x] . ds)
+      if(flattened fits(w - k)?)
+        then: flattened
+        else: be(w, k, [i, d y] . ds)
 
 -- find the best configuration to fit document X in width w
-Doc best(w, k) := [[0, self]] be(w, k)
+Doc best(w, k) := be(w, k, [[0, self]])
 
 -- test that a document can fit in a given width
 SText fits(w)? := w >= 0 && rest fits(w - @value size)?
