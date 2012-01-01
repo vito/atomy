@@ -18,6 +18,10 @@
     @line_lengths ||= lines.collect { |l| l.size }
   end
 
+  def current_column
+    current_position[1]
+  end
+
   def continue?(x)
     y = current_position
     y[0] >= x[0] && y[1] > x[1]
@@ -70,7 +74,7 @@
 
        operator = < op_letter+ > &{ text !~ /[@:]$/ } { text.to_sym }
 
-     identifier = < /[\p{Ll}_][\p{L}\d\-_]*/ > { text.tr("-", "_").to_sym }
+     identifier = < /[\p{Ll}_][\p{L}\d\-_]*/u > { text.tr("-", "_").to_sym }
 
         grouped = "(" wsp expression:x wsp ")" { x }
 
@@ -86,7 +90,7 @@
      expression = level4
  one_expression = wsp expression:e wsp !. { e }
 
-    expressions = { current_column }:c expression:x (delim(c) expression)*:xs delim(c)?
+    expressions = { current_column }:c expression:x (delim(c) expression)*:xs
                     { [x] + Array(xs) }
 
          level0 = number
