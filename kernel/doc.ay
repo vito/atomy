@@ -74,7 +74,7 @@ Column(f)   flatten := column [x]: f [x] flatten
 Nesting(f)  flatten := nesting [x]: f [x] flatten
 
 -- hanging indentation
-Doc hang(i) := align(self nest(i))
+Doc hang(i) := align(nest(i))
 
 -- full indentation
 Doc indent(i) := (text(" " * i) <> self) hang(i)
@@ -82,10 +82,10 @@ Doc indent(i) := (text(" " * i) <> self) hang(i)
 -- p punctuate([d1, d2, ..., dn]) => [d1 <> p, d2 <> p, ..., dn]
 Doc punctuate([])     := []
 Doc punctuate([d])    := [d]
-Doc punctuate(d . ds) := [d <> self] + self punctuate(ds)
+Doc punctuate(d . ds) := [d <> self] + punctuate(ds)
 
 -- sep + punctuate
-Doc separate(ds) := align(sep(self punctuate(ds)))
+Doc separate(ds) := align(sep(punctuate(ds)))
 
 -- concatenate two documents, with a space in-between
 Empty <+> y     := y
