@@ -42,19 +42,16 @@ Atomy::Format open:
 
       @output
 
-    format(*inputs) := do:
-      res = scan(*inputs)
-      reset!
-      res
+    format(*inputs) :=
+      scan(*inputs) tap: reset!
 
     alias-method(.[], .format)
 
     peek-input := @input [@position]
 
-    next-input := do:
-      v = peek-input
-      @position += 1
-      v
+    next-input :=
+      peek-input tap:
+        @position += 1
 
     next-inputs := @input drop(@position) || []
 
@@ -95,21 +92,21 @@ Atomy::Format open:
       @output << justified(a, next-input show, true)
 
     process(p: Pluralize) := do:
-      word = sub-format(p singular)
       num =
         if(p symbol(">")?)
           then: peek-input
           else: next-input
 
-      condition:
-        num == 1 ->
-          @output << word
+      @output <<
+        condition:
+          num == 1 ->
+            sub-format(p singular)
 
-        p plural ->
-          @output << sub-format(p plural)
+          p plural ->
+            sub-format(p plural)
 
-        otherwise ->
-          @output << pluralize(word)
+          otherwise ->
+            pluralize(sub-format(p singular))
 
     process(l: Lowercase) :=
       @output << sub-format(l content) downcase
@@ -134,11 +131,10 @@ Atomy::Format open:
         else: @position += number(s)
 
     process(i: Indirection) :=
-      if(i symbol("*")?)
-        then:
-          @output << sub-format(next-input)
-        else:
-          @output << next-input format(*next-input)
+      @output <<
+        if(i symbol("*")?)
+          then: sub-format(next-input)
+          else: next-input format(*next-input)
 
     process(i: Iterate) := do:
       splat? = i symbol("*")?
@@ -158,21 +154,21 @@ Atomy::Format open:
         @output << sub-format(i content)
         return(nil)
 
-      iterations match:
-        nil ->
-          if(sub?)
-            then:
-              @iterating = inputs
-              inputs each [is]:
-                @output << i content format(*is)
-            else:
-              @input = inputs
-              @position = 0
-              iterate(i content)
-        n:
+      condition:
+        iterations:
           @input = inputs
           @position = 0
-          iterate-max(n, i content)
+          iterate-max(iterations, i content)
+
+        sub?:
+          @iterating = inputs
+          inputs each [is]:
+            @output << i content format(*is)
+
+        otherwise:
+          @input = inputs
+          @position = 0
+          iterate(i content)
 
       if(splat?)
         then: @position = @input size
@@ -276,10 +272,8 @@ Atomy::Format open:
         else: default
 
     justified(j, s, left? = false) :=
-      number(j, nil) match:
-        nil -> s
-
-        w:
+      if(w = number(j, nil))
+        then:
           padding = if(j zero-pad?) then: "0"; else: " "
 
           condition:
@@ -291,12 +285,14 @@ Atomy::Format open:
 
             otherwise ->
               s rjust(w, padding)
+        else:
+          s
 
     justify(j, [s]) := justified(j, s)
     justify(j, ss) :=
-      number(j, nil) match:
-        nil -> ss join
-        to -> justify-to(j, to, ss)
+      if(to = number(j, nil))
+        then: justify-to(j, to, ss)
+        else: ss join
 
     justify-to(_, _, []) := ""
     justify-to(j, to, all: s . ss) := do:
