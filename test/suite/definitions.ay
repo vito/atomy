@@ -18,6 +18,20 @@ describe("definitions"):
       1 fizz should-be(2)
 
 
+  describe("lexical scope"):
+    it("captures variables"):
+      a = 1
+      capturing-simple := a
+      capturing-simple should-be(a)
+
+    it("captures variables in loops"):
+      objects = [Object new, Object new, Object new]
+      objects each with-index [o, x]:
+        { o } foo := x
+
+      objects collect .foo should-be([0, 1, 2])
+
+
   describe("arguments"):
     describe("splats"):
       it("consumes the rest of the arguments"):
