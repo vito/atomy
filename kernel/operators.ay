@@ -14,8 +14,10 @@
 -- comparison
 .infix 60 <=> < <= >= >
 .infix 50 == !=
-.infix 40 &&
-.infix 30 ||
+.infix 40 && and
+.infix 30 || or
+
+.infix right 25 not
 
 -- math
 .infix right 130 **
