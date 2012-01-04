@@ -29,6 +29,9 @@
 .infix 70 ^ |
 .infix 80 &
 
+-- list comprehensions
+.infix right 30 for in when
+
 -- consing
 .infix right 60 .
 
