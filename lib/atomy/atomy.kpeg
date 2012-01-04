@@ -70,9 +70,9 @@
            line = { current_line }
 
       # \p{S} matches ["$", "+", "<", "=", ">", "^", "`", "|", "~"]
-      op_letter = < /[\p{S}!@#%&*\-\\:.\/\?]/u > { text.to_sym }
+      op_letter = < /[\p{S}!@#%&*\-\\.\/\?]/u > { text.to_sym }
 
-       operator = < op_letter+ > &{ text !~ /[@:]$/ } { text.to_sym }
+       operator = < ":"? op_letter+ > { text.to_sym }
 
      identifier = < /[\p{Ll}_][\p{L}\d\-_]*/u > { text.tr("-", "_").to_sym }
 
@@ -134,7 +134,7 @@
 
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
         op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
-          infix = line:line ".infix" op_assoc?:assoc op_prec:prec (sig_sp operator)+:os
+          infix = line:line ".infix" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os
                     { Atomy.set_op_info(os, assoc, prec)
                       Atomy::AST::Infix.new(line, os, assoc, prec)
                     }
@@ -174,6 +174,8 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
                 | line:line level1:p "::" constant_name:s
                   { Atomy::AST::ScopedConstant.new(line, p, s) }
 
+   non_operator = line:line identifier:n !{ Atomy::OPERATORS.key? n }
+                    { Atomy::AST::Word.new(line, n) }
            word = line:line identifier:n
                     { Atomy::AST::Word.new(line, n) }
 
@@ -185,7 +187,7 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
                 | line:line level1:e !":" op_letter:o
                     { Atomy::AST::Postfix.new(line, e, o) }
 
-          block = line:line ":" !operator wsp expressions?:es (wsp ";")?
+          block = line:line ":" !op_letter wsp expressions?:es (wsp ";")?
                     { Atomy::AST::Block.new(line, Array(es), []) }
                 | line:line "{" wsp expressions?:es wsp "}"
                     { Atomy::AST::Block.new(line, Array(es), []) }
@@ -193,9 +195,25 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomy::AST::List.new(line, Array(es)) }
 
-  composes(pos) = line:line compose:l !"::" cont(pos) level2:r
+       composed = scoped_constant
+                | postfix
+                | call
+                | grouped
+                | number
+                | quote
+                | quasi_quote
+                | splice
+                | unquote
+                | string
+                | constant
+                | non_operator
+                | block
+                | list
+                | prefix
+
+  composes(pos) = line:line compose:l !"::" cont(pos) composed:r
                     { Atomy::AST::Compose.new(line, l, r) }
-                | line:line level2:l !"::" cont(pos) level2:r
+                | line:line composed:l !"::" cont(pos) composed:r
                     { Atomy::AST::Compose.new(line, l, r) }
         compose = @composes(current_position)
 
@@ -204,11 +222,10 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
            call = line:line level0:n args:as
                     { Atomy::AST::Call.new(line, n, as) }
 
-  binary_c(pos) = (cont(pos) operator:o sig_wsp level3:e { [o, e] })+:bs
-                    { bs.flatten }
-         binary = level3:l binary_c(current_position):c
-                    { resolve(nil, l, c).first }
-                | line:line operator:o sig_wsp expression:r
+      binary_op = operator
+                | identifier:n &{ Atomy::OPERATORS.key? n } { n }
+
+headless_binary = line:line binary_op:o sig_wsp expression:r
                     { Atomy::AST::Binary.new(
                         line,
                         Atomy::AST::Primitive.new(line, :self),
@@ -217,6 +234,12 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
                         true
                       )
                     }
+
+  binary_c(pos) = (cont(pos) binary_op:o sig_wsp (headless_binary | level3):e { [o, e] })+:bs
+                    { bs.flatten }
+         binary = level3:l binary_c(current_position):c
+                    { resolve(nil, l, c).first }
+                | headless_binary
 
 
         escapes = "n" { "\n" }
