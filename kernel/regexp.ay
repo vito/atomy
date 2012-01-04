@@ -5,6 +5,7 @@ use("quotes")
 use("patterns")
 use("control-flow")
 use("interpolation")
+use("array")
 
 
 Atomy::AST open:
@@ -15,19 +16,19 @@ Atomy::AST open:
     generate
 
 
-macro($~(x: Primitive ? @value is-a(::Integer)? && @value > 0)):
+macro($~(x: Primitive ? @value is-a(::Integer)? and @value > 0)):
   NthRef new(node line, x value)
 
 macro-quoter(r) [r, fs]:
   flags = 0
 
-  when(fs include(.m)?):
+  when(.m is-in fs):
     flags |= Regexp::MULTILINE
 
-  when(fs include(.i)?):
+  when(.i is-in fs):
     flags |= Regexp::IGNORECASE
 
-  when(fs include(.x)?):
+  when(.x is-in fs):
     flags |= Regexp::EXTENDED
 
   -- UTF8 by default

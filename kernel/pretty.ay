@@ -36,16 +36,19 @@ from(*where) &y :=
 from(*where)? :=
   [^Context, where] match:
     [(a: Array), (b: Array)] ->
-      a any? [x]: b include(x)?
+      a any? .(is-in b)
+
     [(a: Array), b] ->
-      a include(b)?
+      b is-in a
+
     [a, (b: Array)] ->
-      b include(a)?
+      a is-in b
+
     [a, b] ->
       a == b
 
 Object pretty :=
-  if(^Printing member(self)?)
+  if(is-in ^Printing)
     then: text("...")
     else:
       let(Printing = self . ^Printing):
