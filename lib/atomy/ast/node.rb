@@ -508,28 +508,22 @@ EOF
         @body = body
       end
 
-      def sprinkle_salt(g, by)
-        skip_salt = g.new_label
-
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.find_const :CodeLoader
-        g.send :compiled?, 0
-        g.git skip_salt
+      def sprinkle_salt(g, diff)
+        return if diff == 0
 
         g.push_cpath_top
         g.find_const :Atomy
         g.find_const :Macro
         g.find_const :Environment
-        g.push by
+        g.push diff
         g.send :salt!, 1
         g.pop
-
-        skip_salt.set!
       end
 
       def bytecode(g)
         pos(g)
+
+        before = Atomy::Macro::Environment.salt
 
         @body.each.with_index do |n, i|
           n.compile(g)
@@ -541,6 +535,10 @@ EOF
 
           g.pop unless i + 1 == @body.size
         end
+
+        after = Atomy::Macro::Environment.salt
+
+        sprinkle_salt(g, after - before)
       end
     end
 
