@@ -183,14 +183,15 @@ EOF
             ", @#{n} ? f.call(@#{n}) : nil"
           }.join
 
-        all =
-          (@children[:required] +
-            @children[:many] +
-            @children[:optional]).collect { |n, _| "@#{n}" }
+        child_names =
+          @children[:required] + @children[:many] +
+            @children[:optional].collect(&:first)
 
         attrs =
           @attributes[:required] + @attributes[:many] +
             @attributes[:optional].collect(&:first)
+
+        all = child_names.collect { |n| "@#{n}" }
 
         class_eval <<EOF
           def children(&f)
@@ -245,6 +246,12 @@ EOF
 EOF
 
         class_eval <<EOF
+          def child_names
+            #{child_names.inspect}
+          end
+EOF
+
+        class_eval <<EOF
           def accept(x)
             name = self.class.name
             meth = name && name.split("::").last.downcase.to_sym
@@ -267,8 +274,8 @@ EOF
         class_eval <<EOF
           def to_sexp
             name = self.class.name
-            meth = name ? name.split("::").last.downcase.to_sym : :anonymous
-            [meth#{a_required}#{a_many}#{a_optional}#{required}#{many}#{optional}]
+            short = name ? name.split("::").last.downcase.to_sym : :anonymous
+            [short#{a_required}#{a_many}#{a_optional}#{required}#{many}#{optional}]
           end
 EOF
 
@@ -382,6 +389,35 @@ EOF
         d + 1
       end
 
+      def inspect
+        draw(0)
+      end
+
+      def draw(depth)
+        i = "  " * depth
+
+        name = self.class.name.split("::").last
+
+        attrs = details.collect do |d|
+          "(#{d} = #{send(d)})"
+        end
+
+        childs = child_names.collect do |n|
+          c = send(n)
+          case c
+          when Array
+            drawn = c.collect { |n| n.draw(depth + 2) }
+            "#{i}  #{n} = [\n#{drawn.join "\n"}\n#{i}  ]"
+          when nil
+            "#{i}  #{n} = nil"
+          else
+            "#{i}  #{n} =\n#{c.draw(depth + 2)}"
+          end
+        end
+
+        "#{i}#{name} #{attrs.join " "}\n#{childs.join "\n"}"
+      end
+
       def get(g)
         Atomy.const_from_string(g, self.class.name)
       end
@@ -446,7 +482,7 @@ EOF
       end
 
       def bytecode(g)
-        raise "no #bytecode for #{to_sexp}"
+        raise "no #bytecode for...\n#{inspect}"
       end
     end
 
