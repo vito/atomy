@@ -53,7 +53,7 @@ Atomy::Format open:
       peek-input tap:
         @position += 1
 
-    next-inputs := @input drop(@position) || []
+    next-inputs := @input drop(@position) or []
 
     process(c: Chunk) :=
       @output << c text
@@ -149,7 +149,7 @@ Atomy::Format open:
 
       before = [@input, @position]
 
-      when(inputs empty? && always-run? &&
+      when(inputs empty? and always-run? and
             iterations != 0):
         @output << sub-format(i content)
         return(nil)
@@ -233,18 +233,18 @@ Atomy::Format open:
 
 
     iterate(f) :=
-      until(next-inputs empty? || @stop?):
+      until(next-inputs empty? or @stop?):
         @output << sub-format(f)
 
     iterate-max(max, f) :=
       max times:
-        when(next-inputs empty? || @stop?):
+        when(next-inputs empty? or @stop?):
           break
 
         @output << sub-format(f)
 
     next-number(s) :=
-      number(s, nil) || next-input
+      number(s, nil) or next-input
 
     char(c, n: Integer) := justified(c, n chr, true)
     char(c, s) := justified(c, s to-s [0, 1], true)
@@ -268,7 +268,7 @@ Atomy::Format open:
 
     number(s, default = 1) :=
       if(num = s flags find .is-a(Number)?)
-        then: num value || next-inputs size
+        then: num value or next-inputs size
         else: default
 
     justified(j, s, left? = false) :=
@@ -277,10 +277,10 @@ Atomy::Format open:
           padding = if(j zero-pad?) then: "0"; else: " "
 
           condition:
-            j symbol("=")? || j symbol("<")? && j symbol(">")? ->
+            j symbol("=")? or j symbol("<")? and j symbol(">")? ->
               s center(w, padding)
 
-            left? && !(j symbol(">")?) || j symbol("<")? ->
+            left? and not (j symbol(">")?) or j symbol("<")? ->
               s ljust(w, padding)
 
             otherwise ->
@@ -300,7 +300,7 @@ Atomy::Format open:
 
       spacings =
         condition:
-          j symbol("<")? && j symbol(">")? || j symbol("=")? ->
+          j symbol("<")? and j symbol(">")? or j symbol("=")? ->
             all size + 1
 
           j symbol("<")? ->
@@ -320,7 +320,7 @@ Atomy::Format open:
           else: naive-average
 
       condition:
-        j symbol("<")? || j symbol("=")? ->
+        j symbol("<")? or j symbol("=")? ->
           [ " " * naive-average
             s
             " " * average
@@ -335,7 +335,7 @@ Atomy::Format open:
 
     spaced(_, _, _, []) := ""
     spaced(j, _, left, [s]) :=
-      if(j symbol(">")? || j symbol("=")?)
+      if(j symbol(">")? or j symbol("=")?)
         then: s + " " * left
         else: " " * left + s
     spaced(j, average, left, s . ss) :=

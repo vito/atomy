@@ -30,7 +30,8 @@ splat-from(arguments) := do:
   args = arguments dup
 
   splat =
-    if(args last is-a(Atomy::AST::Prefix)? && args last receiver == "*" to-sym)
+    if(args last is-a(Atomy::AST::Prefix)? and
+        args last receiver == "*" to-sym)
       then: args pop receiver
       else: nil
 
@@ -98,7 +99,7 @@ pair-from(`(~k -> ~v)) :=
 pair-from(p: `(~x { ~*ys })) := do:
   this = [[key-from(x), `(do: ~*ys)]]
 
-  if(x is-a(Atomy::AST::Compose)? && !(x right is-a(Atomy::AST::Block)?))
+  if(x is-a(Atomy::AST::Compose)? and not x right is-a(Atomy::AST::Block)?)
     then: pair-from(x left) + this
     else: this
 

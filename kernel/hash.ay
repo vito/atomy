@@ -21,7 +21,7 @@ hash-pair-from(`(~k -> ~v)) :=
 hash-pair-from(p: `(~x { ~*ys })) := do:
   this = [[hash-key-from(x), `(do: ~*ys)]]
 
-  if(x is-a(Atomy::AST::Compose)? && !(x right is-a(Atomy::AST::Block)?))
+  if(x is-a(Atomy::AST::Compose)? and not x right is-a(Atomy::AST::Block)?)
     then: hash-pair-from(x left) + this
     else: this
 

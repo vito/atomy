@@ -9,7 +9,7 @@ use("array")
 Dynvar = class:
   initialize(@name, @default = nil) := nil
 
-^Dynvar := Thread current [@name] || @default
+^Dynvar := Thread current [@name] or @default
 Dynvar set(x) := Thread current [@name] = x
 
 macro(dynamic): `dynamic()

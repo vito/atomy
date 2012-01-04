@@ -73,7 +73,7 @@ it(description) &tests := do:
             e message
           ])) println
 
-      e backtrace first((ENV["THERIE_BT_LIMIT"] || 5) to-i) each [l]:
+      e backtrace first((ENV["THERIE_BT_LIMIT"] or 5) to-i) each [l]:
         indented(f"    %s" [colored(.cyan, l)]) println
   } else:
     when(^running-stats):

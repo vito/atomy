@@ -31,7 +31,7 @@ define-class(root, `(~(name)(~*as): ~*cs)) := do:
     `(~(Atomy::AST::QuasiQuote new(0, cons)) to-pattern :=
         ~(Atomy::AST::QuasiQuote new(0, pat)) to-pattern)
 
-  parent = root || 'Object
+  parent = root or 'Object
 
   `(do:
       ~name = ~parent class:

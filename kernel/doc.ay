@@ -130,7 +130,7 @@ be(w, k, [i, d] . ds) :=
 Doc best(w, k) := be(w, k, [[0, self]])
 
 -- test that a document can fit in a given width
-SText fits(w)? := w >= 0 && rest fits(w - @value size)?
+SText fits(w)? := w >= 0 and rest fits(w - @value size)?
 SDoc  fits(w)? := w >= 0
 
 -- rendering to a string

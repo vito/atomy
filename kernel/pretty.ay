@@ -56,7 +56,7 @@ Object show :=
     pretty flatten render
 
 Doc colored(color) := do:
-  unless(^Colored && ^io::OutputPort tty?):
+  unless(^Colored and ^io::OutputPort tty?):
     return(self)
 
   codes =

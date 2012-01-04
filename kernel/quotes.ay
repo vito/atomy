@@ -10,7 +10,7 @@ macro(macro-quoter(~n) [~*as]: ~*body):
 
     raw = as shift
     when(raw):
-      raw =! `(~raw = ~str raw || ~str value)
+      raw =! `(~raw = ~str raw or ~str value)
 
     flags = as shift
     when(flags):

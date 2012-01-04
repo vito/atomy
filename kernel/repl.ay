@@ -74,7 +74,7 @@ repl(history = nil, bnd = nil, debug = false) := do:
   Atomy::CodeLoader module = mod
   Atomy::CodeLoader context = bnd
 
-  when(history && File exists(history)?):
+  when(history and File exists(history)?):
     File open(history, "r") [f]:
       f readlines each [l]:
         Readline::HISTORY << l strip
