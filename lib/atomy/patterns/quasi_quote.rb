@@ -149,13 +149,19 @@ module Atomy::Patterns
             x.unquote? && x.expression.to_pattern.is_a?(Default)
           end
 
+          # do we care about size?
+          inexact = splice || !defaults.empty?
+
           @g.dup
           @g.send c, 0
-          @g.dup
-          @g.send :size, 0
-          @g.push_int required.size
-          @g.send(splice || !defaults.empty? ? :>= : :==, 1)
-          @g.gif popmis2
+
+          unless inexact && required.empty?
+            @g.dup
+            @g.send :size, 0
+            @g.push_int required.size
+            @g.send(inexact ? :>= : :==, 1)
+            @g.gif popmis2
+          end
 
           required.each do |p|
             @g.shift_array

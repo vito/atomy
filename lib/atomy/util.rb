@@ -52,9 +52,11 @@ module Atomy
     else
       scope = ctx
       while scope
-        if scope.module.respond_to?(name, true) &&
-            !scope.module.class.method_defined?(name)
-          return scope.module.__send__(name, *args, &blk)
+        mod = scope.module
+
+        if mod.respond_to?(name, true) &&
+            !mod.class.method_defined?(name)
+          return mod.__send__(name, *args, &blk)
         end
 
         scope = scope.parent
