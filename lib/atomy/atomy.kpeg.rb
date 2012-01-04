@@ -394,21 +394,29 @@ class Atomy::Parser
     op_info(o)[:assoc] || :left
   end
 
-  def binary(o, l, r)
-    Atomy::AST::Binary.new(l.line, l, r, o)
+  def binary(o, l, r, p = false)
+    Atomy::AST::Binary.new(l.line, l, r, o, p)
   end
 
   def resolve(a, e, chain)
     return [e, []] if chain.empty?
 
-    b, *rest = chain
+    op, *rest = chain
+
+    if op.is_a?(Array)
+      b, private = op
+    else
+      b, private = op, false
+    end
+
+    b, private = b if b.is_a?(Array)
 
     if a && (prec(a) > prec(b) || (prec(a) == prec(b) && assoc(a) == :left))
       [e, chain]
     else
       e2, *rest2 = rest
       r, rest3 = resolve(b, e2, rest2)
-      resolve(a, binary(b, e, r), rest3)
+      resolve(a, binary(b, e, r, private), rest3)
     end
   end
 
@@ -2945,7 +2953,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # headless_binary = line:line binary_op:o sig_wsp expression:r { Atomy::AST::Binary.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     }
+  # headless_binary = line:line binary_c(current_position):c { c[0] = [c[0], true]                       resolve(                         nil,                         Atomy::AST::Primitive.new(line, :self),                         c).first                     }
   def _headless_binary
 
     _save = self.pos
@@ -2956,30 +2964,17 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_binary_op)
-      o = @result
+      _tmp = apply_with_args(:_binary_c, current_position)
+      c = @result
       unless _tmp
         self.pos = _save
         break
       end
-      _tmp = apply(:_sig_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_expression)
-      r = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  Atomy::AST::Binary.new(
-                        line,
+      @result = begin;  c[0] = [c[0], true]
+                      resolve(
+                        nil,
                         Atomy::AST::Primitive.new(line, :self),
-                        r,
-                        o,
-                        true
-                      )
+                        c).first
                     ; end
       _tmp = true
       unless _tmp
@@ -4219,7 +4214,7 @@ class Atomy::Parser
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_call] = rule_info("call", "line:line level0:n args:as { Atomy::AST::Call.new(line, n, as) }")
   Rules[:_binary_op] = rule_info("binary_op", "(operator | identifier:n &{ Atomy::OPERATORS.key? n } { n })")
-  Rules[:_headless_binary] = rule_info("headless_binary", "line:line binary_op:o sig_wsp expression:r { Atomy::AST::Binary.new(                         line,                         Atomy::AST::Primitive.new(line, :self),                         r,                         o,                         true                       )                     }")
+  Rules[:_headless_binary] = rule_info("headless_binary", "line:line binary_c(current_position):c { c[0] = [c[0], true]                       resolve(                         nil,                         Atomy::AST::Primitive.new(line, :self),                         c).first                     }")
   Rules[:_binary_c] = rule_info("binary_c", "(cont(pos) binary_op:o sig_wsp (headless_binary | level3):e { [o, e] })+:bs { bs.flatten }")
   Rules[:_binary] = rule_info("binary", "(level3:l binary_c(current_position):c { resolve(nil, l, c).first } | headless_binary)")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")

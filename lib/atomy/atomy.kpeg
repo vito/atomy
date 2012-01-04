@@ -39,21 +39,29 @@
     op_info(o)[:assoc] || :left
   end
 
-  def binary(o, l, r)
-    Atomy::AST::Binary.new(l.line, l, r, o)
+  def binary(o, l, r, p = false)
+    Atomy::AST::Binary.new(l.line, l, r, o, p)
   end
 
   def resolve(a, e, chain)
     return [e, []] if chain.empty?
 
-    b, *rest = chain
+    op, *rest = chain
+
+    if op.is_a?(Array)
+      b, private = op
+    else
+      b, private = op, false
+    end
+
+    b, private = b if b.is_a?(Array)
 
     if a && (prec(a) > prec(b) || (prec(a) == prec(b) && assoc(a) == :left))
       [e, chain]
     else
       e2, *rest2 = rest
       r, rest3 = resolve(b, e2, rest2)
-      resolve(a, binary(b, e, r), rest3)
+      resolve(a, binary(b, e, r, private), rest3)
     end
   end
 }
@@ -225,14 +233,12 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
       binary_op = operator
                 | identifier:n &{ Atomy::OPERATORS.key? n } { n }
 
-headless_binary = line:line binary_op:o sig_wsp expression:r
-                    { Atomy::AST::Binary.new(
-                        line,
+headless_binary = line:line binary_c(current_position):c
+                    { c[0] = [c[0], true]
+                      resolve(
+                        nil,
                         Atomy::AST::Primitive.new(line, :self),
-                        r,
-                        o,
-                        true
-                      )
+                        c).first
                     }
 
   binary_c(pos) = (cont(pos) binary_op:o sig_wsp (headless_binary | level3):e { [o, e] })+:bs
