@@ -14,8 +14,8 @@ module Atomy
   end
 
   class PatternMismatch < RuntimeError
-    def initialize(p, v)
-      @pattern = p
+    def initialize(t, v)
+      @type = t
       @value = v
     end
   end

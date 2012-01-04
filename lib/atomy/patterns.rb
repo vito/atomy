@@ -306,7 +306,7 @@ EOF
       g.find_const :Atomy
       g.find_const :PatternMismatch
       g.swap
-      construct(g)
+      get(g)
       g.swap
       g.send :new, 2
       g.allow_private

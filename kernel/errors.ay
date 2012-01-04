@@ -6,5 +6,5 @@ Atomy::MethodFail message :=
     "the given arguments: " + @arguments inspect
 
 Atomy::PatternMismatch message :=
-  "pattern of type `" + @pattern class name split("::") last +
+  "pattern of type `" + @type name split("::") last +
     "' did not match value `" + @value show + "'"
