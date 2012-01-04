@@ -373,8 +373,8 @@ class Atomy::Parser
     @line_lengths ||= lines.collect { |l| l.size }
   end
 
-  def current_column
-    current_position[1]
+  def current_column(x=pos)
+    current_position(x)[1]
   end
 
   def continue?(x)
