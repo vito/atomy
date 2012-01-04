@@ -13,18 +13,18 @@ basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=
         signal(.prompt)
         ">> "
 
-    in =
+    input =
       { Readline readline(prompt)
       } rescue:
         Interrupt: signal(.quit), ""
 
-    in match:
+    input match:
       nil -> signal(.quit)
 
       "" -> .ok
 
       String ? (=~ r"^:[[:alnum:]]") ->
-        signal(.special(in [1 .. -1]))
+        signal(.special(input [1 .. -1]))
 
       source:
         signal(.input(source))
