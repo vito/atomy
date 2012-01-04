@@ -44,3 +44,5 @@
 -- Doc constructors
 .infix right 60 </> <//> <$> <$$>
 .infix right 70 <> <+>
+
+.infix 60 is-in
