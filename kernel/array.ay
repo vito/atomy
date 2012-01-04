@@ -19,6 +19,4 @@ macro(~x for(~*args) in(~c) if(~t)):
 Array inject-right(i = _undefined) &block :=
   reverse inject(i) [x, y]: block [y, x]
 
-.infix right 5 .
-
 macro(~a . ~b): `([~a] + ~b)

@@ -387,7 +387,7 @@ class Atomy::Parser
   end
 
   def prec(o)
-    op_info(o)[:prec] || 5
+    op_info(o)[:prec] || 60
   end
 
   def assoc(o)

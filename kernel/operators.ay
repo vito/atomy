@@ -1,28 +1,35 @@
 -- defining & assigning
-.infix right 0 = := **= *= <<= >>= &&=
-.infix right 0 &= ||= |= += -= /= ^= %=
+.infix right 10 = := **= *= <<= >>= &&=
+.infix right 10 &= ||= |= += -= /= ^= %=
 
 -- association
-.infix right 1 <- ->
+.infix right 20 <- ->
 
 -- predicate pattern
-.infix right 2 ?
+.infix right 30 ?
 
 -- ranges
 --.infix 1 .. ...
 
 -- comparison
-.infix 5 <=> < <= >= >
-.infix 4 == !=
-.infix 3 &&
-.infix 2 ||
+.infix 60 <=> < <= >= >
+.infix 50 == !=
+.infix 40 &&
+.infix 30 ||
 
 -- math
-.infix right 12 **
-.infix 10 % * /
-.infix 9 + -
+.infix right 130 **
+.infix 110 % * /
+.infix 100 + -
 
 -- bitwise and shifting
-.infix 8 << >>
-.infix 6 ^ |
-.infix 7 &
+.infix 90 << >>
+.infix 70 ^ |
+.infix 80 &
+
+-- consing
+.infix right 60 .
+
+-- Doc constructors
+.infix right 60 </> <//> <$> <$$>
+.infix right 70 <> <+>

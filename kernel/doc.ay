@@ -5,10 +5,6 @@ use("control-flow")
 use("comparison")
 use("array")
 
--- operator precedence/associativity
-.infix right 5 </> <//> <$> <$$>
-.infix right 6 <> <+>
-
 -- combinatorial structures
 data(Doc):
   Empty

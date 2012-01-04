@@ -1,7 +1,7 @@
 module Atomy
   module AST
     class Infix < Node
-      attributes [:operators], [:associativity, ":left"], [:precedence, 5]
+      attributes [:operators], [:associativity, ":left"], [:precedence, 60]
       generate
 
       def bytecode(g)
