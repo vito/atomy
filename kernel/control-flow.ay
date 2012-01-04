@@ -3,6 +3,9 @@ use("define")
 use("comparison")
 use("node")
 
+macro(~x if ~y): `(when(~y): ~x)
+macro(~x unless ~y): `(unless(~y): ~x)
+
 macro(if(~x) then ~(y: Block) else ~(z: Block)):
   IfThenElse new(node line, x, y body, z body)
 
@@ -18,7 +21,7 @@ macro(when(~c) ~(b: Block)):
   `(if(~c) then ~b else: nil)
 
 macro(unless(~c) ~(b: Block)):
-  `(if(!~c) then ~b else: nil)
+  `(if(~c) then: nil; else ~b)
 
 macro(super):
   ZSuper new(node line)

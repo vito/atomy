@@ -32,6 +32,12 @@
 -- consing
 .infix right 60 .
 
+-- looping
+.infix right 5 while until
+
+-- conditional
+.infix right 5 if unless
+
 -- Doc constructors
 .infix right 60 </> <//> <$> <$$>
 .infix right 70 <> <+>

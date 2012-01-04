@@ -42,6 +42,7 @@ macro(labels ~(body: Block)):
   `(let-macro(go(~'~name) = GoTo new(node line, name text)):
       ~(Labels new(node line, branches)))
 
+macro(~x while ~y): `(while(~y): ~x)
 macro(while(~test) ~(body: Block)):
   names [loop, done]:
     `(labels:
@@ -57,6 +58,7 @@ macro(while(~test) ~(body: Block)):
 
         ~done {})
 
+macro(~x until ~y): `(until(~y): ~x)
 macro(until(~test) ~(body: Block)):
   names [loop, done]:
     `(labels:
