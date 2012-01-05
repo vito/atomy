@@ -356,6 +356,40 @@ class Atomy::Parser
     #
 
 
+  class Operator
+    def initialize(name, private = false)
+      @name = name
+      @private = private
+    end
+
+    attr_reader :name
+    attr_writer :private
+
+    def private?
+      @private
+    end
+
+    def precedence
+      op_info(@name)[:prec] || 60
+    end
+
+    def associativity
+      op_info(@name)[:assoc] || :left
+    end
+
+    def precedes?(b)
+      precedence > b.precedence ||
+        precedence == b.precedence &&
+        associativity == :left
+    end
+
+    private
+
+    def op_info(op)
+      Atomy::OPERATORS[op] || {}
+    end
+  end
+
   def current_position(target=pos)
     cur_offset = 0
     cur_line = 0
@@ -382,16 +416,8 @@ class Atomy::Parser
     y[0] >= x[0] && y[1] > x[1]
   end
 
-  def op_info(op)
-    Atomy::OPERATORS[op] || {}
-  end
-
-  def prec(o)
-    op_info(o)[:prec] || 60
-  end
-
-  def assoc(o)
-    op_info(o)[:assoc] || :left
+  def private_target(line=0)
+    Atomy::AST::Primitive.new(line, :self)
   end
 
   def binary(o, l, r, p = false)
@@ -401,22 +427,14 @@ class Atomy::Parser
   def resolve(a, e, chain)
     return [e, []] if chain.empty?
 
-    op, *rest = chain
+    b, *rest = chain
 
-    if op.is_a?(Array)
-      b, private = op
-    else
-      b, private = op, false
-    end
-
-    b, private = b if b.is_a?(Array)
-
-    if a && (prec(a) > prec(b) || (prec(a) == prec(b) && assoc(a) == :left))
+    if a && a.precedes?(b)
       [e, chain]
     else
       e2, *rest2 = rest
       r, rest3 = resolve(b, e2, rest2)
-      resolve(a, binary(b, e, r, private), rest3)
+      resolve(a, binary(b.name, e, r, b.private?), rest3)
     end
   end
 
@@ -777,7 +795,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # operator = < ":"? op_letter+ > { text.to_sym }
+  # operator = < !/[~`]/ ":"? op_letter+ > { text.to_sym }
   def _operator
 
     _save = self.pos
@@ -787,16 +805,24 @@ class Atomy::Parser
       _save1 = self.pos
       while true # sequence
         _save2 = self.pos
-        _tmp = match_string(":")
-        unless _tmp
-          _tmp = true
-          self.pos = _save2
-        end
+        _tmp = scan(/\A(?-mix:[~`])/)
+        _tmp = _tmp ? nil : true
+        self.pos = _save2
         unless _tmp
           self.pos = _save1
           break
         end
         _save3 = self.pos
+        _tmp = match_string(":")
+        unless _tmp
+          _tmp = true
+          self.pos = _save3
+        end
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _save4 = self.pos
         _tmp = apply(:_op_letter)
         if _tmp
           while true
@@ -805,7 +831,7 @@ class Atomy::Parser
           end
           _tmp = true
         else
-          self.pos = _save3
+          self.pos = _save4
         end
         unless _tmp
           self.pos = _save1
@@ -2953,28 +2979,73 @@ class Atomy::Parser
     return _tmp
   end
 
-  # headless_binary = line:line binary_c(current_position):c { c[0] = [c[0], true]                       resolve(                         nil,                         Atomy::AST::Primitive.new(line, :self),                         c).first                     }
-  def _headless_binary
+  # binary_c = cont(pos) binary_op:o sig_wsp (binary_op:h sig_wsp { h })*:hs level3:e { [ Operator.new(o),                         hs.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }
+  def _binary_c(pos)
 
     _save = self.pos
     while true # sequence
-      _tmp = apply(:_line)
-      line = @result
+      _tmp = apply_with_args(:_cont, pos)
       unless _tmp
         self.pos = _save
         break
       end
-      _tmp = apply_with_args(:_binary_c, current_position)
-      c = @result
+      _tmp = apply(:_binary_op)
+      o = @result
       unless _tmp
         self.pos = _save
         break
       end
-      @result = begin;  c[0] = [c[0], true]
-                      resolve(
-                        nil,
-                        Atomy::AST::Primitive.new(line, :self),
-                        c).first
+      _tmp = apply(:_sig_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _ary = []
+      while true
+
+        _save2 = self.pos
+        while true # sequence
+          _tmp = apply(:_binary_op)
+          h = @result
+          unless _tmp
+            self.pos = _save2
+            break
+          end
+          _tmp = apply(:_sig_wsp)
+          unless _tmp
+            self.pos = _save2
+            break
+          end
+          @result = begin;  h ; end
+          _tmp = true
+          unless _tmp
+            self.pos = _save2
+          end
+          break
+        end # end sequence
+
+        _ary << @result if _tmp
+        break unless _tmp
+      end
+      _tmp = true
+      @result = _ary
+      hs = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_level3)
+      e = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  [ Operator.new(o),
+                        hs.collect do |h|
+                          [private_target, Operator.new(h, true)]
+                        end,
+                        e
+                      ]
                     ; end
       _tmp = true
       unless _tmp
@@ -2983,108 +3054,22 @@ class Atomy::Parser
       break
     end # end sequence
 
-    set_failed_rule :_headless_binary unless _tmp
+    set_failed_rule :_binary_c unless _tmp
     return _tmp
   end
 
-  # binary_c = (cont(pos) binary_op:o sig_wsp (headless_binary | level3):e { [o, e] })+:bs { bs.flatten }
-  def _binary_c(pos)
+  # binary_cs = binary_c(pos)+:bs { bs.flatten }
+  def _binary_cs(pos)
 
     _save = self.pos
     while true # sequence
       _save1 = self.pos
       _ary = []
-
-      _save2 = self.pos
-      while true # sequence
-        _tmp = apply_with_args(:_cont, pos)
-        unless _tmp
-          self.pos = _save2
-          break
-        end
-        _tmp = apply(:_binary_op)
-        o = @result
-        unless _tmp
-          self.pos = _save2
-          break
-        end
-        _tmp = apply(:_sig_wsp)
-        unless _tmp
-          self.pos = _save2
-          break
-        end
-
-        _save3 = self.pos
-        while true # choice
-          _tmp = apply(:_headless_binary)
-          break if _tmp
-          self.pos = _save3
-          _tmp = apply(:_level3)
-          break if _tmp
-          self.pos = _save3
-          break
-        end # end choice
-
-        e = @result
-        unless _tmp
-          self.pos = _save2
-          break
-        end
-        @result = begin;  [o, e] ; end
-        _tmp = true
-        unless _tmp
-          self.pos = _save2
-        end
-        break
-      end # end sequence
-
+      _tmp = apply_with_args(:_binary_c, pos)
       if _tmp
         _ary << @result
         while true
-
-          _save4 = self.pos
-          while true # sequence
-            _tmp = apply_with_args(:_cont, pos)
-            unless _tmp
-              self.pos = _save4
-              break
-            end
-            _tmp = apply(:_binary_op)
-            o = @result
-            unless _tmp
-              self.pos = _save4
-              break
-            end
-            _tmp = apply(:_sig_wsp)
-            unless _tmp
-              self.pos = _save4
-              break
-            end
-
-            _save5 = self.pos
-            while true # choice
-              _tmp = apply(:_headless_binary)
-              break if _tmp
-              self.pos = _save5
-              _tmp = apply(:_level3)
-              break if _tmp
-              self.pos = _save5
-              break
-            end # end choice
-
-            e = @result
-            unless _tmp
-              self.pos = _save4
-              break
-            end
-            @result = begin;  [o, e] ; end
-            _tmp = true
-            unless _tmp
-              self.pos = _save4
-            end
-            break
-          end # end sequence
-
+          _tmp = apply_with_args(:_binary_c, pos)
           _ary << @result if _tmp
           break unless _tmp
         end
@@ -3106,11 +3091,11 @@ class Atomy::Parser
       break
     end # end sequence
 
-    set_failed_rule :_binary_c unless _tmp
+    set_failed_rule :_binary_cs unless _tmp
     return _tmp
   end
 
-  # binary = (level3:l binary_c(current_position):c { resolve(nil, l, c).first } | headless_binary)
+  # binary = ({ current_position }:pos level3:l binary_cs(pos):c { resolve(nil, l, c).first } | binary_cs(current_position):c { c[0].private = true                       resolve(nil, private_target, c).first                     })
   def _binary
 
     _save = self.pos
@@ -3118,13 +3103,20 @@ class Atomy::Parser
 
       _save1 = self.pos
       while true # sequence
+        @result = begin;  current_position ; end
+        _tmp = true
+        pos = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
         _tmp = apply(:_level3)
         l = @result
         unless _tmp
           self.pos = _save1
           break
         end
-        _tmp = apply_with_args(:_binary_c, current_position)
+        _tmp = apply_with_args(:_binary_cs, pos)
         c = @result
         unless _tmp
           self.pos = _save1
@@ -3140,7 +3132,25 @@ class Atomy::Parser
 
       break if _tmp
       self.pos = _save
-      _tmp = apply(:_headless_binary)
+
+      _save2 = self.pos
+      while true # sequence
+        _tmp = apply_with_args(:_binary_cs, current_position)
+        c = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        @result = begin;  c[0].private = true
+                      resolve(nil, private_target, c).first
+                    ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save2
+        end
+        break
+      end # end sequence
+
       break if _tmp
       self.pos = _save
       break
@@ -4169,7 +4179,7 @@ class Atomy::Parser
   Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })? | &.)")
   Rules[:_line] = rule_info("line", "{ current_line }")
   Rules[:_op_letter] = rule_info("op_letter", "< /[\\p{S}!@\#%&*\\-\\\\.\\/\\?]/u > { text.to_sym }")
-  Rules[:_operator] = rule_info("operator", "< \":\"? op_letter+ > { text.to_sym }")
+  Rules[:_operator] = rule_info("operator", "< !/[~`]/ \":\"? op_letter+ > { text.to_sym }")
   Rules[:_identifier] = rule_info("identifier", "< /[\\p{Ll}_][\\p{L}\\d\\-_]*/u > { text.tr(\"-\", \"_\").to_sym }")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
   Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")
@@ -4214,9 +4224,9 @@ class Atomy::Parser
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_call] = rule_info("call", "line:line level0:n args:as { Atomy::AST::Call.new(line, n, as) }")
   Rules[:_binary_op] = rule_info("binary_op", "(operator | identifier:n &{ Atomy::OPERATORS.key? n } { n })")
-  Rules[:_headless_binary] = rule_info("headless_binary", "line:line binary_c(current_position):c { c[0] = [c[0], true]                       resolve(                         nil,                         Atomy::AST::Primitive.new(line, :self),                         c).first                     }")
-  Rules[:_binary_c] = rule_info("binary_c", "(cont(pos) binary_op:o sig_wsp (headless_binary | level3):e { [o, e] })+:bs { bs.flatten }")
-  Rules[:_binary] = rule_info("binary", "(level3:l binary_c(current_position):c { resolve(nil, l, c).first } | headless_binary)")
+  Rules[:_binary_c] = rule_info("binary_c", "cont(pos) binary_op:o sig_wsp (binary_op:h sig_wsp { h })*:hs level3:e { [ Operator.new(o),                         hs.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }")
+  Rules[:_binary_cs] = rule_info("binary_cs", "binary_c(pos)+:bs { bs.flatten }")
+  Rules[:_binary] = rule_info("binary", "({ current_position }:pos level3:l binary_cs(pos):c { resolve(nil, l, c).first } | binary_cs(current_position):c { c[0].private = true                       resolve(nil, private_target, c).first                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")
   Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack(\"U\") } | < /\\d{1,6}/ > { [text.to_i].pack(\"U\") } | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack(\"U\") } | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack(\"U\") })")
   Rules[:_root] = rule_info("root", "shebang? wsp expressions:es wsp !. { Array(es) }")

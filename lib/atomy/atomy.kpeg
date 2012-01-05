@@ -1,6 +1,40 @@
 %% name = Atomy::Parser
 
 %% {
+  class Operator
+    def initialize(name, private = false)
+      @name = name
+      @private = private
+    end
+
+    attr_reader :name
+    attr_writer :private
+
+    def private?
+      @private
+    end
+
+    def precedence
+      op_info(@name)[:prec] || 60
+    end
+
+    def associativity
+      op_info(@name)[:assoc] || :left
+    end
+
+    def precedes?(b)
+      precedence > b.precedence ||
+        precedence == b.precedence &&
+        associativity == :left
+    end
+
+    private
+
+    def op_info(op)
+      Atomy::OPERATORS[op] || {}
+    end
+  end
+
   def current_position(target=pos)
     cur_offset = 0
     cur_line = 0
@@ -27,16 +61,8 @@
     y[0] >= x[0] && y[1] > x[1]
   end
 
-  def op_info(op)
-    Atomy::OPERATORS[op] || {}
-  end
-
-  def prec(o)
-    op_info(o)[:prec] || 60
-  end
-
-  def assoc(o)
-    op_info(o)[:assoc] || :left
+  def private_target(line=0)
+    Atomy::AST::Primitive.new(line, :self)
   end
 
   def binary(o, l, r, p = false)
@@ -46,22 +72,14 @@
   def resolve(a, e, chain)
     return [e, []] if chain.empty?
 
-    op, *rest = chain
+    b, *rest = chain
 
-    if op.is_a?(Array)
-      b, private = op
-    else
-      b, private = op, false
-    end
-
-    b, private = b if b.is_a?(Array)
-
-    if a && (prec(a) > prec(b) || (prec(a) == prec(b) && assoc(a) == :left))
+    if a && a.precedes?(b)
       [e, chain]
     else
       e2, *rest2 = rest
       r, rest3 = resolve(b, e2, rest2)
-      resolve(a, binary(b, e, r, private), rest3)
+      resolve(a, binary(b.name, e, r, b.private?), rest3)
     end
   end
 }
@@ -80,7 +98,7 @@
       # \p{S} matches ["$", "+", "<", "=", ">", "^", "`", "|", "~"]
       op_letter = < /[\p{S}!@#%&*\-\\.\/\?]/u > { text.to_sym }
 
-       operator = < ":"? op_letter+ > { text.to_sym }
+       operator = < !/[~`]/ ":"? op_letter+ > { text.to_sym }
 
      identifier = < /[\p{Ll}_][\p{L}\d\-_]*/u > { text.tr("-", "_").to_sym }
 
@@ -233,19 +251,22 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
       binary_op = operator
                 | identifier:n &{ Atomy::OPERATORS.key? n } { n }
 
-headless_binary = line:line binary_c(current_position):c
-                    { c[0] = [c[0], true]
-                      resolve(
-                        nil,
-                        Atomy::AST::Primitive.new(line, :self),
-                        c).first
+  binary_c(pos) = cont(pos) binary_op:o sig_wsp (binary_op:h sig_wsp { h })*:hs level3:e
+                    { [ Operator.new(o),
+                        hs.collect do |h|
+                          [private_target, Operator.new(h, true)]
+                        end,
+                        e
+                      ]
                     }
+ binary_cs(pos) = binary_c(pos)+:bs { bs.flatten }
 
-  binary_c(pos) = (cont(pos) binary_op:o sig_wsp (headless_binary | level3):e { [o, e] })+:bs
-                    { bs.flatten }
-         binary = level3:l binary_c(current_position):c
+         binary = { current_position }:pos level3:l binary_cs(pos):c
                     { resolve(nil, l, c).first }
-                | headless_binary
+                | binary_cs(current_position):c
+                    { c[0].private = true
+                      resolve(nil, private_target, c).first
+                    }
 
 
         escapes = "n" { "\n" }
