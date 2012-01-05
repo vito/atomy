@@ -1255,8 +1255,8 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level0 = (number | quote | quasi_quote | splice | unquote | string | constant | word | block | list | prefix)
-  def _level0
+  # level0 = (number | quote | quasi_quote | splice | unquote | string | constant | word(no_op) | block | list | prefix)
+  def _level0(no_op)
 
     _save = self.pos
     while true # choice
@@ -1281,7 +1281,7 @@ class Atomy::Parser
       _tmp = apply(:_constant)
       break if _tmp
       self.pos = _save
-      _tmp = apply(:_word)
+      _tmp = apply_with_args(:_word, no_op)
       break if _tmp
       self.pos = _save
       _tmp = apply(:_block)
@@ -1300,7 +1300,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level1 = (call | grouped | level0)
+  # level1 = (call | grouped | level0(true))
   def _level1
 
     _save = self.pos
@@ -1311,7 +1311,7 @@ class Atomy::Parser
       _tmp = apply(:_grouped)
       break if _tmp
       self.pos = _save
-      _tmp = apply(:_level0)
+      _tmp = apply_with_args(:_level0, true)
       break if _tmp
       self.pos = _save
       break
@@ -2300,8 +2300,8 @@ class Atomy::Parser
     return _tmp
   end
 
-  # non_operator = line:line identifier:n !{ Atomy::OPERATORS.key? n } { Atomy::AST::Word.new(line, n) }
-  def _non_operator
+  # word = line:line identifier:n !{ no_op && Atomy::OPERATORS.key?(n) } { Atomy::AST::Word.new(line, n) }
+  def _word(no_op)
 
     _save = self.pos
     while true # sequence
@@ -2318,38 +2318,9 @@ class Atomy::Parser
         break
       end
       _save1 = self.pos
-      _tmp = begin;  Atomy::OPERATORS.key? n ; end
+      _tmp = begin;  no_op && Atomy::OPERATORS.key?(n) ; end
       _tmp = _tmp ? nil : true
       self.pos = _save1
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  Atomy::AST::Word.new(line, n) ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_non_operator unless _tmp
-    return _tmp
-  end
-
-  # word = line:line identifier:n { Atomy::AST::Word.new(line, n) }
-  def _word
-
-    _save = self.pos
-    while true # sequence
-      _tmp = apply(:_line)
-      line = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_identifier)
-      n = @result
       unless _tmp
         self.pos = _save
         break
@@ -2690,64 +2661,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # composed = (scoped_constant | postfix | call | grouped | number | quote | quasi_quote | splice | unquote | string | constant | non_operator | block | list | prefix)
-  def _composed
-
-    _save = self.pos
-    while true # choice
-      _tmp = apply(:_scoped_constant)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_postfix)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_call)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_grouped)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_number)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_quote)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_quasi_quote)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_splice)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_unquote)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_string)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_constant)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_non_operator)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_block)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_list)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_prefix)
-      break if _tmp
-      self.pos = _save
-      break
-    end # end choice
-
-    set_failed_rule :_composed unless _tmp
-    return _tmp
-  end
-
-  # composes = (line:line compose:l !"::" cont(pos) composed:r { Atomy::AST::Compose.new(line, l, r) } | line:line composed:l !"::" cont(pos) composed:r { Atomy::AST::Compose.new(line, l, r) })
+  # composes = (line:line compose:l !"::" cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) } | line:line level2:l !"::" cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) })
   def _composes(pos)
 
     _save = self.pos
@@ -2780,7 +2694,7 @@ class Atomy::Parser
           self.pos = _save1
           break
         end
-        _tmp = apply(:_composed)
+        _tmp = apply(:_level2)
         r = @result
         unless _tmp
           self.pos = _save1
@@ -2805,7 +2719,7 @@ class Atomy::Parser
           self.pos = _save3
           break
         end
-        _tmp = apply(:_composed)
+        _tmp = apply(:_level2)
         l = @result
         unless _tmp
           self.pos = _save3
@@ -2824,7 +2738,7 @@ class Atomy::Parser
           self.pos = _save3
           break
         end
-        _tmp = apply(:_composed)
+        _tmp = apply(:_level2)
         r = @result
         unless _tmp
           self.pos = _save3
@@ -2903,7 +2817,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # call = line:line level0:n args:as { Atomy::AST::Call.new(line, n, as) }
+  # call = line:line level0(false):n args:as { Atomy::AST::Call.new(line, n, as) }
   def _call
 
     _save = self.pos
@@ -2914,7 +2828,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_level0)
+      _tmp = apply_with_args(:_level0, false)
       n = @result
       unless _tmp
         self.pos = _save
@@ -4189,8 +4103,8 @@ class Atomy::Parser
   Rules[:_expression] = rule_info("expression", "level4")
   Rules[:_one_expression] = rule_info("one_expression", "wsp expression:e wsp !. { e }")
   Rules[:_expressions] = rule_info("expressions", "{ current_column }:c expression:x (delim(c) expression)*:xs { [x] + Array(xs) }")
-  Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | splice | unquote | string | constant | word | block | list | prefix)")
-  Rules[:_level1] = rule_info("level1", "(call | grouped | level0)")
+  Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | splice | unquote | string | constant | word(no_op) | block | list | prefix)")
+  Rules[:_level1] = rule_info("level1", "(call | grouped | level0(true))")
   Rules[:_level2] = rule_info("level2", "(scoped_constant | postfix | level1)")
   Rules[:_level3] = rule_info("level3", "(compose | level2)")
   Rules[:_level4] = rule_info("level4", "(language | infix | macro | binary | level3)")
@@ -4212,17 +4126,15 @@ class Atomy::Parser
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text.to_sym }")
   Rules[:_constant] = rule_info("constant", "(line:line \"::\" constant_name:n { Atomy::AST::ToplevelConstant.new(line, n) } | line:line constant_name:n { Atomy::AST::Constant.new(line, n) })")
   Rules[:_scoped_constant] = rule_info("scoped_constant", "(line:line scoped_constant:p \"::\" constant_name:s { Atomy::AST::ScopedConstant.new(line, p, s) } | line:line level1:p \"::\" constant_name:s { Atomy::AST::ScopedConstant.new(line, p, s) })")
-  Rules[:_non_operator] = rule_info("non_operator", "line:line identifier:n !{ Atomy::OPERATORS.key? n } { Atomy::AST::Word.new(line, n) }")
-  Rules[:_word] = rule_info("word", "line:line identifier:n { Atomy::AST::Word.new(line, n) }")
+  Rules[:_word] = rule_info("word", "line:line identifier:n !{ no_op && Atomy::OPERATORS.key?(n) } { Atomy::AST::Word.new(line, n) }")
   Rules[:_prefix] = rule_info("prefix", "line:line !\":\" op_letter:o level2:e { Atomy::AST::Prefix.new(line, e, o) }")
   Rules[:_postfix] = rule_info("postfix", "(line:line postfix:e !\":\" op_letter:o { Atomy::AST::Postfix.new(line, e, o) } | line:line level1:e !\":\" op_letter:o { Atomy::AST::Postfix.new(line, e, o) })")
   Rules[:_block] = rule_info("block", "(line:line \":\" !op_letter wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), []) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), []) })")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
-  Rules[:_composed] = rule_info("composed", "(scoped_constant | postfix | call | grouped | number | quote | quasi_quote | splice | unquote | string | constant | non_operator | block | list | prefix)")
-  Rules[:_composes] = rule_info("composes", "(line:line compose:l !\"::\" cont(pos) composed:r { Atomy::AST::Compose.new(line, l, r) } | line:line composed:l !\"::\" cont(pos) composed:r { Atomy::AST::Compose.new(line, l, r) })")
+  Rules[:_composes] = rule_info("composes", "(line:line compose:l !\"::\" cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) } | line:line level2:l !\"::\" cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) })")
   Rules[:_compose] = rule_info("compose", "@composes(current_position)")
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
-  Rules[:_call] = rule_info("call", "line:line level0:n args:as { Atomy::AST::Call.new(line, n, as) }")
+  Rules[:_call] = rule_info("call", "line:line level0(false):n args:as { Atomy::AST::Call.new(line, n, as) }")
   Rules[:_binary_op] = rule_info("binary_op", "(operator | identifier:n &{ Atomy::OPERATORS.key? n } { n })")
   Rules[:_binary_c] = rule_info("binary_c", "cont(pos) binary_op:o sig_wsp (binary_op:h sig_wsp { h })*:hs level3:e { [ Operator.new(o),                         hs.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }")
   Rules[:_binary_cs] = rule_info("binary_cs", "binary_c(pos)+:bs { bs.flatten }")

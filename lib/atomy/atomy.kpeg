@@ -119,20 +119,20 @@
     expressions = { current_column }:c expression:x (delim(c) expression)*:xs
                     { [x] + Array(xs) }
 
-         level0 = number
+  level0(no_op) = number
                 | quote
                 | quasi_quote
                 | splice
                 | unquote
                 | string
                 | constant
-                | word
+                | word(no_op)
                 | block
                 | list
                 | prefix
          level1 = call
                 | grouped
-                | level0
+                | level0(true)
          level2 = scoped_constant
                 | postfix
                 | level1
@@ -200,9 +200,7 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
                 | line:line level1:p "::" constant_name:s
                   { Atomy::AST::ScopedConstant.new(line, p, s) }
 
-   non_operator = line:line identifier:n !{ Atomy::OPERATORS.key? n }
-                    { Atomy::AST::Word.new(line, n) }
-           word = line:line identifier:n
+    word(no_op) = line:line identifier:n !{ no_op && Atomy::OPERATORS.key?(n) }
                     { Atomy::AST::Word.new(line, n) }
 
          prefix = line:line !":" op_letter:o level2:e
@@ -221,31 +219,15 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomy::AST::List.new(line, Array(es)) }
 
-       composed = scoped_constant
-                | postfix
-                | call
-                | grouped
-                | number
-                | quote
-                | quasi_quote
-                | splice
-                | unquote
-                | string
-                | constant
-                | non_operator
-                | block
-                | list
-                | prefix
-
-  composes(pos) = line:line compose:l !"::" cont(pos) composed:r
+  composes(pos) = line:line compose:l !"::" cont(pos) level2:r
                     { Atomy::AST::Compose.new(line, l, r) }
-                | line:line composed:l !"::" cont(pos) composed:r
+                | line:line level2:l !"::" cont(pos) level2:r
                     { Atomy::AST::Compose.new(line, l, r) }
         compose = @composes(current_position)
 
            args = "(" wsp expressions?:as wsp ")" { Array(as) }
 
-           call = line:line level0:n args:as
+           call = line:line level0(false):n args:as
                     { Atomy::AST::Call.new(line, n, as) }
 
       binary_op = operator
