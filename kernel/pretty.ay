@@ -175,7 +175,12 @@ Atomy::AST open:
 
   Binary pretty-doc :=
     from(.binary):
-      ((@lhs unamb <+> text(@operator)) </> @rhs unamb) hang(2)
+      ( if(@private)
+          then:
+            text(@operator) </> @rhs unamb
+          else:
+            @lhs unamb <+> text(@operator) </> @rhs unamb
+      ) hang(2)
 
   Block pretty-doc := do:
     args =
