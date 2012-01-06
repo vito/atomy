@@ -168,15 +168,13 @@
     set_lang(n) = { @_grammar_lang = require("#{n}/language/parser").new(nil) }
        language = ".language" wsp identifier:n set_lang(n) %lang.root
 
-         quoted = (scoped_constant | level1):e { e }
-
-          quote = line:line "'" quoted:e
+          quote = line:line "'" level2:e
                     { Atomy::AST::Quote.new(line, e) }
-    quasi_quote = line:line "`" quoted:e
+    quasi_quote = line:line "`" level2:e
                     { Atomy::AST::QuasiQuote.new(line, e) }
-         splice = line:line "~*" quoted:e
+         splice = line:line "~*" level2:e
                     { Atomy::AST::Splice.new(line, e) }
-        unquote = line:line "~" quoted:e
+        unquote = line:line "~" level2:e
                     { Atomy::AST::Unquote.new(line, e) }
 
          escape = number_escapes | escapes
@@ -219,9 +217,9 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
            list = line:line "[" wsp expressions?:es wsp "]"
                     { Atomy::AST::List.new(line, Array(es)) }
 
-  composes(pos) = line:line compose:l !"::" cont(pos) level2:r
+  composes(pos) = line:line compose:l cont(pos) level2:r
                     { Atomy::AST::Compose.new(line, l, r) }
-                | line:line level2:l !"::" cont(pos) level2:r
+                | line:line level2:l cont(pos) level2:r
                     { Atomy::AST::Compose.new(line, l, r) }
         compose = @composes(current_position)
 

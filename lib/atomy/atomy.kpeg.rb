@@ -1829,41 +1829,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # quoted = (scoped_constant | level1):e { e }
-  def _quoted
-
-    _save = self.pos
-    while true # sequence
-
-      _save1 = self.pos
-      while true # choice
-        _tmp = apply(:_scoped_constant)
-        break if _tmp
-        self.pos = _save1
-        _tmp = apply(:_level1)
-        break if _tmp
-        self.pos = _save1
-        break
-      end # end choice
-
-      e = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  e ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_quoted unless _tmp
-    return _tmp
-  end
-
-  # quote = line:line "'" quoted:e { Atomy::AST::Quote.new(line, e) }
+  # quote = line:line "'" level2:e { Atomy::AST::Quote.new(line, e) }
   def _quote
 
     _save = self.pos
@@ -1879,7 +1845,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_quoted)
+      _tmp = apply(:_level2)
       e = @result
       unless _tmp
         self.pos = _save
@@ -1897,7 +1863,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # quasi_quote = line:line "`" quoted:e { Atomy::AST::QuasiQuote.new(line, e) }
+  # quasi_quote = line:line "`" level2:e { Atomy::AST::QuasiQuote.new(line, e) }
   def _quasi_quote
 
     _save = self.pos
@@ -1913,7 +1879,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_quoted)
+      _tmp = apply(:_level2)
       e = @result
       unless _tmp
         self.pos = _save
@@ -1931,7 +1897,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # splice = line:line "~*" quoted:e { Atomy::AST::Splice.new(line, e) }
+  # splice = line:line "~*" level2:e { Atomy::AST::Splice.new(line, e) }
   def _splice
 
     _save = self.pos
@@ -1947,7 +1913,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_quoted)
+      _tmp = apply(:_level2)
       e = @result
       unless _tmp
         self.pos = _save
@@ -1965,7 +1931,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # unquote = line:line "~" quoted:e { Atomy::AST::Unquote.new(line, e) }
+  # unquote = line:line "~" level2:e { Atomy::AST::Unquote.new(line, e) }
   def _unquote
 
     _save = self.pos
@@ -1981,7 +1947,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_quoted)
+      _tmp = apply(:_level2)
       e = @result
       unless _tmp
         self.pos = _save
@@ -2661,7 +2627,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # composes = (line:line compose:l !"::" cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) } | line:line level2:l !"::" cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) })
+  # composes = (line:line compose:l cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) } | line:line level2:l cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) })
   def _composes(pos)
 
     _save = self.pos
@@ -2677,14 +2643,6 @@ class Atomy::Parser
         end
         _tmp = apply(:_compose)
         l = @result
-        unless _tmp
-          self.pos = _save1
-          break
-        end
-        _save2 = self.pos
-        _tmp = match_string("::")
-        _tmp = _tmp ? nil : true
-        self.pos = _save2
         unless _tmp
           self.pos = _save1
           break
@@ -2711,43 +2669,35 @@ class Atomy::Parser
       break if _tmp
       self.pos = _save
 
-      _save3 = self.pos
+      _save2 = self.pos
       while true # sequence
         _tmp = apply(:_line)
         line = @result
         unless _tmp
-          self.pos = _save3
+          self.pos = _save2
           break
         end
         _tmp = apply(:_level2)
         l = @result
         unless _tmp
-          self.pos = _save3
-          break
-        end
-        _save4 = self.pos
-        _tmp = match_string("::")
-        _tmp = _tmp ? nil : true
-        self.pos = _save4
-        unless _tmp
-          self.pos = _save3
+          self.pos = _save2
           break
         end
         _tmp = apply_with_args(:_cont, pos)
         unless _tmp
-          self.pos = _save3
+          self.pos = _save2
           break
         end
         _tmp = apply(:_level2)
         r = @result
         unless _tmp
-          self.pos = _save3
+          self.pos = _save2
           break
         end
         @result = begin;  Atomy::AST::Compose.new(line, l, r) ; end
         _tmp = true
         unless _tmp
-          self.pos = _save3
+          self.pos = _save2
         end
         break
       end # end sequence
@@ -4115,11 +4065,10 @@ class Atomy::Parser
   Rules[:_infix] = rule_info("infix", "line:line \".infix\" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }")
   Rules[:_set_lang] = rule_info("set_lang", "{ @_grammar_lang = require(\"\#{n}/language/parser\").new(nil) }")
   Rules[:_language] = rule_info("language", "\".language\" wsp identifier:n set_lang(n) %lang.root")
-  Rules[:_quoted] = rule_info("quoted", "(scoped_constant | level1):e { e }")
-  Rules[:_quote] = rule_info("quote", "line:line \"'\" quoted:e { Atomy::AST::Quote.new(line, e) }")
-  Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" quoted:e { Atomy::AST::QuasiQuote.new(line, e) }")
-  Rules[:_splice] = rule_info("splice", "line:line \"~*\" quoted:e { Atomy::AST::Splice.new(line, e) }")
-  Rules[:_unquote] = rule_info("unquote", "line:line \"~\" quoted:e { Atomy::AST::Unquote.new(line, e) }")
+  Rules[:_quote] = rule_info("quote", "line:line \"'\" level2:e { Atomy::AST::Quote.new(line, e) }")
+  Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level2:e { Atomy::AST::QuasiQuote.new(line, e) }")
+  Rules[:_splice] = rule_info("splice", "line:line \"~*\" level2:e { Atomy::AST::Splice.new(line, e) }")
+  Rules[:_unquote] = rule_info("unquote", "line:line \"~\" level2:e { Atomy::AST::Unquote.new(line, e) }")
   Rules[:_escape] = rule_info("escape", "(number_escapes | escapes)")
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
   Rules[:_string] = rule_info("string", "line:line \"\\\"\" < (\"\\\\\" escape | str_seq)*:c > \"\\\"\" { Atomy::AST::String.new(                         line,                         c.join,                         text.gsub(\"\\\\\\\"\", \"\\\"\")                       )                     }")
@@ -4131,7 +4080,7 @@ class Atomy::Parser
   Rules[:_postfix] = rule_info("postfix", "(line:line postfix:e !\":\" op_letter:o { Atomy::AST::Postfix.new(line, e, o) } | line:line level1:e !\":\" op_letter:o { Atomy::AST::Postfix.new(line, e, o) })")
   Rules[:_block] = rule_info("block", "(line:line \":\" !op_letter wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), []) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), []) })")
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
-  Rules[:_composes] = rule_info("composes", "(line:line compose:l !\"::\" cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) } | line:line level2:l !\"::\" cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) })")
+  Rules[:_composes] = rule_info("composes", "(line:line compose:l cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) } | line:line level2:l cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) })")
   Rules[:_compose] = rule_info("compose", "@composes(current_position)")
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_call] = rule_info("call", "line:line level0(false):n args:as { Atomy::AST::Call.new(line, n, as) }")
