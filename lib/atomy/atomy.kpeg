@@ -91,7 +91,9 @@
 
         shebang = "#!" /.*?$/
 
-        cont(p) = ("\n" sp)+ &{ continue?(p) } | sig_sp (("\n" sp)+ &{ continue?(p) })? | &.
+        cont(p) = ("\n" sp)+ &{ continue?(p) }
+                | sig_sp (("\n" sp)+ &{ continue?(p) })?
+                | &.
 
            line = { current_line }
 

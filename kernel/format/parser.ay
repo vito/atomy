@@ -69,11 +69,10 @@ Atomy::Format open:
     root := sub("")
 
 
-  Parser open:
-    singleton:
-      parse(source) :=
-        new(source) onto:
-          unless(parse):
-            raise-error
+  Parser singleton:
+    parse(source) :=
+      new(source) onto:
+        unless(parse):
+          raise-error
 
-          result
+        result
