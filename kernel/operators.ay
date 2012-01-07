@@ -1,48 +1,48 @@
 -- defining & assigning
-.infix right 10 = := **= *= <<= >>= &&=
-.infix right 10 &= ||= |= += -= /= ^= %=
+#infix right 10 = := **= *= <<= >>= &&=
+#infix right 10 &= ||= |= += -= /= ^= %=
 
 -- association
-.infix right 20 <- ->
+#infix right 20 <- ->
 
 -- predicate pattern
-.infix right 30 ?
+#infix right 30 ?
 
 -- ranges
---.infix 1 .. ...
+--#infix 1 .. ...
 
 -- comparison
-.infix 60 <=> < <= >= >
-.infix 50 == !=
-.infix 40 && and
-.infix 30 || or
+#infix 60 <=> < <= >= >
+#infix 50 == !=
+#infix 40 && and
+#infix 30 || or
 
-.infix right 45 not
+#infix right 45 not
 
 -- math
-.infix right 130 **
-.infix 110 % * /
-.infix 100 + -
+#infix right 130 **
+#infix 110 % * /
+#infix 100 + -
 
 -- bitwise and shifting
-.infix 90 << >>
-.infix 70 ^ |
-.infix 80 &
+#infix 90 << >>
+#infix 70 ^ |
+#infix 80 &
 
 -- list comprehensions
-.infix right 30 for in when
+#infix right 30 for in when
 
 -- consing
-.infix right 60 .
+#infix right 60 .
 
 -- looping
-.infix right 5 while until
+#infix right 5 while until
 
 -- conditional
-.infix right 5 if unless
+#infix right 5 if unless
 
 -- Doc constructors
-.infix right 60 </> <//> <$> <$$>
-.infix right 70 <> <+>
+#infix right 60 </> <//> <$> <$$>
+#infix right 70 <> <+>
 
-.infix 60 is-in
+#infix 60 is-in

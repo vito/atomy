@@ -1666,7 +1666,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # infix = line:line ".infix" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }
+  # infix = line:line "#infix" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }
   def _infix
 
     _save = self.pos
@@ -1677,7 +1677,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = match_string(".infix")
+      _tmp = match_string("#infix")
       unless _tmp
         self.pos = _save
         break
@@ -1792,12 +1792,12 @@ class Atomy::Parser
     return _tmp
   end
 
-  # language = ".language" wsp identifier:n set_lang(n) %lang.root
+  # language = "#language" wsp identifier:n set_lang(n) %lang.root
   def _language
 
     _save = self.pos
     while true # sequence
-      _tmp = match_string(".language")
+      _tmp = match_string("#language")
       unless _tmp
         self.pos = _save
         break
@@ -4062,9 +4062,9 @@ class Atomy::Parser
   Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.body) }")
   Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
   Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
-  Rules[:_infix] = rule_info("infix", "line:line \".infix\" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }")
+  Rules[:_infix] = rule_info("infix", "line:line \"\#infix\" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }")
   Rules[:_set_lang] = rule_info("set_lang", "{ @_grammar_lang = require(\"\#{n}/language/parser\").new(nil) }")
-  Rules[:_language] = rule_info("language", "\".language\" wsp identifier:n set_lang(n) %lang.root")
+  Rules[:_language] = rule_info("language", "\"\#language\" wsp identifier:n set_lang(n) %lang.root")
   Rules[:_quote] = rule_info("quote", "line:line \"'\" level2:e { Atomy::AST::Quote.new(line, e) }")
   Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level2:e { Atomy::AST::QuasiQuote.new(line, e) }")
   Rules[:_splice] = rule_info("splice", "line:line \"~*\" level2:e { Atomy::AST::Splice.new(line, e) }")

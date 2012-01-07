@@ -162,13 +162,13 @@
 
        op_assoc = sig_wsp < /left|right/ > { text.to_sym }
         op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
-          infix = line:line ".infix" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os
+          infix = line:line "#infix" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os
                     { Atomy.set_op_info(os, assoc, prec)
                       Atomy::AST::Infix.new(line, os, assoc, prec)
                     }
 
     set_lang(n) = { @_grammar_lang = require("#{n}/language/parser").new(nil) }
-       language = ".language" wsp identifier:n set_lang(n) %lang.root
+       language = "#language" wsp identifier:n set_lang(n) %lang.root
 
           quote = line:line "'" level2:e
                     { Atomy::AST::Quote.new(line, e) }
