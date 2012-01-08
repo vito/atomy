@@ -3,6 +3,12 @@ use("core")
 use("define")
 use("node")
 
+infix("<=> < <= >= >", 60)
+infix("== !=", 50)
+infix("&& and", 40)
+infix("|| or", 30)
+infix("not", 45, .right)
+
 Atomy::AST open:
   ast:
     And(.a, .b)

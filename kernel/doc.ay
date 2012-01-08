@@ -5,6 +5,9 @@ use("control-flow")
 use("comparison")
 use("array")
 
+infix("</> <//> <$> <$$>", 60, .right)
+infix("<> <+>", 70, .right)
+
 -- combinatorial structures
 data(Doc):
   Empty

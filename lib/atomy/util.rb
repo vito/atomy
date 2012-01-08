@@ -16,9 +16,6 @@ class Rubinius::Generator
 end
 
 module Atomy
-  # operator precedence/associativity table
-  OPERATORS = {}
-
   def self.find_const(name, ctx)
     scope = ctx
     while scope
@@ -73,14 +70,6 @@ module Atomy
       x
     else
       x.dup
-    end
-  end
-
-  def self.set_op_info(ops, assoc, prec)
-    ops.each do |o|
-      info = OPERATORS[o] ||= {}
-      info[:assoc] = assoc
-      info[:prec] = prec
     end
   end
 

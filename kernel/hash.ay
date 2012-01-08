@@ -5,6 +5,8 @@ use("comparison")
 use("array")
 use("node")
 
+infix("<- ->", 20, .right)
+
 hash-key-from(x) := x
 hash-key-from(x: ? to-word) := `.~(x to-word)
 hash-key-from(x: Atomy::AST::Compose) :=

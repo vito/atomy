@@ -1,5 +1,8 @@
 use("core")
 
+infix("=! := **= *= <<= >>= &&=", 10, .right)
+infix("&= ||= |= += -= /= ^= %=", 10, .right)
+
 export
 
 macro(do ~(b: Block)): b body

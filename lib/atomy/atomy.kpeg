@@ -15,11 +15,11 @@
     end
 
     def precedence
-      op_info(@name)[:prec] || 60
+      op_info(@name)[:precedence] || 60
     end
 
     def associativity
-      op_info(@name)[:assoc] || :left
+      op_info(@name)[:associativity] || :left
     end
 
     def precedes?(b)
@@ -31,7 +31,7 @@
     private
 
     def op_info(op)
-      Atomy::OPERATORS[op] || {}
+      Atomy::CodeLoader.module.infix_info(op) || {}
     end
   end
 
@@ -43,6 +43,10 @@
     else
       x
     end
+  end
+
+  def operator?(x)
+    !!Atomy::CodeLoader.module.infix_info(x)
   end
 
   def current_position(target=pos)
@@ -151,7 +155,6 @@
          level3 = compose
                 | level2
          level4 = language
-                | infix
                 | macro
                 | binary
                 | level3
@@ -169,13 +172,6 @@
 
           macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b
                     { Atomy::AST::Macro.new(line, p, b.body) }
-
-       op_assoc = sig_wsp < /left|right/ > { text.to_sym }
-        op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
-          infix = line:line "#infix" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os
-                    { Atomy.set_op_info(os, assoc, prec)
-                      Atomy::AST::Infix.new(line, os, assoc, prec)
-                    }
 
     set_lang(n) = { @_grammar_lang = require("#{n}/language/parser").new(nil) }
        language = "#language" wsp identifier:n set_lang(n) %lang.root
@@ -210,7 +206,7 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
                 | line:line level1:p "::" constant_name:s
                   { Atomy::AST::ScopedConstant.new(line, p, s) }
 
-    word(no_op) = line:line identifier:n !{ no_op && Atomy::OPERATORS.key?(n) }
+    word(no_op) = line:line identifier:n !{ no_op && operator?(n) }
                     { Atomy::AST::Word.new(line, n) }
 
          prefix = line:line !":" op_letter:o level2:e
@@ -241,7 +237,7 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
                     { Atomy::AST::Call.new(line, n, as) }
 
       binary_op = operator
-                | identifier:n &{ Atomy::OPERATORS.key? n } { n }
+                | identifier:n &{ operator?(n) } { n }
 
   binary_c(pos) = cont(pos) binary_op:o sig_wsp (binary_op:h sig_wsp { h })*:hs level3:e
                     { [ Operator.new(o),

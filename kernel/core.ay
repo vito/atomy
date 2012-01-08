@@ -1,4 +1,5 @@
-use("operators")
+infix("=", 10, "right")
+infix("?", 30, "right")
 
 -- a macro so we can actually, you know, send messages
 macro(~_ ~(? to-word)): make-send(node)
@@ -238,3 +239,5 @@ macro(~x ~(Word)(~*args)!):
       r name text = (r name text to-s + "!") to-sym
 
   node
+
+use("operators")

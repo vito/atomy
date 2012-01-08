@@ -3,6 +3,10 @@ use("define")
 use("comparison")
 use("node")
 
+infix("<- ->", 20, .right)
+infix("while until", 5, .right)
+infix("if unless", 5, .right)
+
 macro(~x if ~y): `(when(~y): ~x)
 macro(~x unless ~y): `(unless(~y): ~x)
 

@@ -370,11 +370,11 @@ class Atomy::Parser
     end
 
     def precedence
-      op_info(@name)[:prec] || 60
+      op_info(@name)[:precedence] || 60
     end
 
     def associativity
-      op_info(@name)[:assoc] || :left
+      op_info(@name)[:associativity] || :left
     end
 
     def precedes?(b)
@@ -386,7 +386,7 @@ class Atomy::Parser
     private
 
     def op_info(op)
-      Atomy::OPERATORS[op] || {}
+      Atomy::CodeLoader.module.infix_info(op) || {}
     end
   end
 
@@ -398,6 +398,10 @@ class Atomy::Parser
     else
       x
     end
+  end
+
+  def operator?(x)
+    !!Atomy::CodeLoader.module.infix_info(x)
   end
 
   def current_position(target=pos)
@@ -1370,15 +1374,12 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level4 = (language | infix | macro | binary | level3)
+  # level4 = (language | macro | binary | level3)
   def _level4
 
     _save = self.pos
     while true # choice
       _tmp = apply(:_language)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_infix)
       break if _tmp
       self.pos = _save
       _tmp = apply(:_macro)
@@ -1611,186 +1612,6 @@ class Atomy::Parser
     end # end sequence
 
     set_failed_rule :_macro unless _tmp
-    return _tmp
-  end
-
-  # op_assoc = sig_wsp < /left|right/ > { text.to_sym }
-  def _op_assoc
-
-    _save = self.pos
-    while true # sequence
-      _tmp = apply(:_sig_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _text_start = self.pos
-      _tmp = scan(/\A(?-mix:left|right)/)
-      if _tmp
-        text = get_text(_text_start)
-      end
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  text.to_sym ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_op_assoc unless _tmp
-    return _tmp
-  end
-
-  # op_prec = sig_wsp < /[0-9]+/ > { text.to_i }
-  def _op_prec
-
-    _save = self.pos
-    while true # sequence
-      _tmp = apply(:_sig_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _text_start = self.pos
-      _tmp = scan(/\A(?-mix:[0-9]+)/)
-      if _tmp
-        text = get_text(_text_start)
-      end
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  text.to_i ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_op_prec unless _tmp
-    return _tmp
-  end
-
-  # infix = line:line "#infix" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }
-  def _infix
-
-    _save = self.pos
-    while true # sequence
-      _tmp = apply(:_line)
-      line = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = match_string("#infix")
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _save1 = self.pos
-      _tmp = apply(:_op_assoc)
-      @result = nil unless _tmp
-      unless _tmp
-        _tmp = true
-        self.pos = _save1
-      end
-      assoc = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_op_prec)
-      prec = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _save2 = self.pos
-      _ary = []
-
-      _save3 = self.pos
-      while true # sequence
-        _tmp = apply(:_sig_sp)
-        unless _tmp
-          self.pos = _save3
-          break
-        end
-
-        _save4 = self.pos
-        while true # choice
-          _tmp = apply(:_operator)
-          break if _tmp
-          self.pos = _save4
-          _tmp = apply(:_identifier)
-          break if _tmp
-          self.pos = _save4
-          break
-        end # end choice
-
-        unless _tmp
-          self.pos = _save3
-        end
-        break
-      end # end sequence
-
-      if _tmp
-        _ary << @result
-        while true
-
-          _save5 = self.pos
-          while true # sequence
-            _tmp = apply(:_sig_sp)
-            unless _tmp
-              self.pos = _save5
-              break
-            end
-
-            _save6 = self.pos
-            while true # choice
-              _tmp = apply(:_operator)
-              break if _tmp
-              self.pos = _save6
-              _tmp = apply(:_identifier)
-              break if _tmp
-              self.pos = _save6
-              break
-            end # end choice
-
-            unless _tmp
-              self.pos = _save5
-            end
-            break
-          end # end sequence
-
-          _ary << @result if _tmp
-          break unless _tmp
-        end
-        _tmp = true
-        @result = _ary
-      else
-        self.pos = _save2
-      end
-      os = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  Atomy.set_op_info(os, assoc, prec)
-                      Atomy::AST::Infix.new(line, os, assoc, prec)
-                    ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_infix unless _tmp
     return _tmp
   end
 
@@ -2276,7 +2097,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # word = line:line identifier:n !{ no_op && Atomy::OPERATORS.key?(n) } { Atomy::AST::Word.new(line, n) }
+  # word = line:line identifier:n !{ no_op && operator?(n) } { Atomy::AST::Word.new(line, n) }
   def _word(no_op)
 
     _save = self.pos
@@ -2294,7 +2115,7 @@ class Atomy::Parser
         break
       end
       _save1 = self.pos
-      _tmp = begin;  no_op && Atomy::OPERATORS.key?(n) ; end
+      _tmp = begin;  no_op && operator?(n) ; end
       _tmp = _tmp ? nil : true
       self.pos = _save1
       unless _tmp
@@ -2812,7 +2633,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # binary_op = (operator | identifier:n &{ Atomy::OPERATORS.key? n } { n })
+  # binary_op = (operator | identifier:n &{ operator?(n) } { n })
   def _binary_op
 
     _save = self.pos
@@ -2830,7 +2651,7 @@ class Atomy::Parser
           break
         end
         _save2 = self.pos
-        _tmp = begin;  Atomy::OPERATORS.key? n ; end
+        _tmp = begin;  operator?(n) ; end
         self.pos = _save2
         unless _tmp
           self.pos = _save1
@@ -4147,12 +3968,9 @@ class Atomy::Parser
   Rules[:_level1] = rule_info("level1", "(call | grouped | level0(true))")
   Rules[:_level2] = rule_info("level2", "(scoped_constant | postfix | level1)")
   Rules[:_level3] = rule_info("level3", "(compose | level2)")
-  Rules[:_level4] = rule_info("level4", "(language | infix | macro | binary | level3)")
+  Rules[:_level4] = rule_info("level4", "(language | macro | binary | level3)")
   Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
   Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.body) }")
-  Rules[:_op_assoc] = rule_info("op_assoc", "sig_wsp < /left|right/ > { text.to_sym }")
-  Rules[:_op_prec] = rule_info("op_prec", "sig_wsp < /[0-9]+/ > { text.to_i }")
-  Rules[:_infix] = rule_info("infix", "line:line \"\#infix\" op_assoc?:assoc op_prec:prec (sig_sp (operator | identifier))+:os { Atomy.set_op_info(os, assoc, prec)                       Atomy::AST::Infix.new(line, os, assoc, prec)                     }")
   Rules[:_set_lang] = rule_info("set_lang", "{ @_grammar_lang = require(\"\#{n}/language/parser\").new(nil) }")
   Rules[:_language] = rule_info("language", "\"\#language\" wsp identifier:n set_lang(n) %lang.root")
   Rules[:_quote] = rule_info("quote", "line:line \"'\" level2:e { Atomy::AST::Quote.new(line, e) }")
@@ -4165,7 +3983,7 @@ class Atomy::Parser
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text.to_sym }")
   Rules[:_constant] = rule_info("constant", "(line:line \"::\" constant_name:n { Atomy::AST::ToplevelConstant.new(line, n) } | line:line constant_name:n { Atomy::AST::Constant.new(line, n) })")
   Rules[:_scoped_constant] = rule_info("scoped_constant", "(line:line scoped_constant:p \"::\" constant_name:s { Atomy::AST::ScopedConstant.new(line, p, s) } | line:line level1:p \"::\" constant_name:s { Atomy::AST::ScopedConstant.new(line, p, s) })")
-  Rules[:_word] = rule_info("word", "line:line identifier:n !{ no_op && Atomy::OPERATORS.key?(n) } { Atomy::AST::Word.new(line, n) }")
+  Rules[:_word] = rule_info("word", "line:line identifier:n !{ no_op && operator?(n) } { Atomy::AST::Word.new(line, n) }")
   Rules[:_prefix] = rule_info("prefix", "line:line !\":\" op_letter:o level2:e { Atomy::AST::Prefix.new(line, e, o) }")
   Rules[:_postfix] = rule_info("postfix", "(line:line postfix:e !\":\" op_letter:o { Atomy::AST::Postfix.new(line, e, o) } | line:line level1:e !\":\" op_letter:o { Atomy::AST::Postfix.new(line, e, o) })")
   Rules[:_block] = rule_info("block", "(line:line \":\" !op_letter wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), []) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), []) })")

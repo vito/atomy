@@ -3,6 +3,10 @@ use("define")
 use("undefined")
 use("control-flow")
 
+infix("for in when", 30, .right)
+infix("is-in", 60)
+infix(".", 60, .right)
+
 macro(~x for ~arg in ~c):
   `(~x for(~arg) in(~c))
 

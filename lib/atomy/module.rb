@@ -12,6 +12,42 @@ module Atomy
       node.to_send
     end
 
+    def infix_info(op = nil)
+      @infix ||= {}
+
+      if op
+        if info = @infix[op]
+          info
+        else
+          using.each do |m|
+            if info = m.infix_info(op)
+              return info
+            end
+          end
+
+          nil
+        end
+      else
+        @infix
+      end
+    end
+
+    def infix(ops, prec = 60, assoc = :left)
+      ops.split.each do |o|
+        op =
+          if o =~ /[\p{Ll}_]/u
+            o.tr("-", "_").to_sym
+          else
+            o.to_sym
+          end
+
+        infix_info[op] = {
+          :precedence => prec,
+          :associativity => assoc.to_sym
+        }
+      end
+    end
+
     def macro_definer(pattern, body)
       name = :_expand
 
