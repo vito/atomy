@@ -186,12 +186,16 @@ class Atomy::Parser
     end
 
     def parse(rule=nil)
+      # We invoke the rules indirectly via apply
+      # instead of by just calling them as methods because
+      # if the rules use left recursion, apply needs to
+      # manage that.
+
       if !rule
-        _root ? true : false
+        apply(:_root)
       else
-        # This is not shared with code_generator.rb so this can be standalone
         method = rule.gsub("-","_hyphen_")
-        __send__("_#{method}") ? true : false
+        apply :"_#{method}"
       end
     end
 
@@ -452,6 +456,10 @@ class Atomy::Parser
       r, rest3 = resolve(b, e2, rest2)
       resolve(a, binary(b.name, e, r, b.private?), rest3)
     end
+  end
+
+  def set_lang(n)
+    @_grammar_lang = require("#{n}/language/parser").new(nil)
   end
 
 
@@ -1617,15 +1625,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # set_lang = { @_grammar_lang = require("#{n}/language/parser").new(nil) }
-  def _set_lang(n)
-    @result = begin;  @_grammar_lang = require("#{n}/language/parser").new(nil) ; end
-    _tmp = true
-    set_failed_rule :_set_lang unless _tmp
-    return _tmp
-  end
-
-  # language = "#language" wsp identifier:n set_lang(n) %lang.root
+  # language = "#language" wsp identifier:n { set_lang(n) } %lang.root
   def _language
 
     _save = self.pos
@@ -1646,7 +1646,8 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply_with_args(:_set_lang, n)
+      @result = begin;  set_lang(n) ; end
+      _tmp = true
       unless _tmp
         self.pos = _save
         break
@@ -2676,7 +2677,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # binary_c = cont(pos) binary_op:o sig_wsp (binary_op:h sig_wsp { h })*:hs level3:e { [ Operator.new(o),                         hs.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }
+  # binary_c = cont(pos) (binary_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(o),                         os.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }
   def _binary_c(pos)
 
     _save = self.pos
@@ -2686,47 +2687,64 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_binary_op)
-      o = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_sig_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
+      _save1 = self.pos
       _ary = []
-      while true
 
-        _save2 = self.pos
-        while true # sequence
-          _tmp = apply(:_binary_op)
-          h = @result
-          unless _tmp
-            self.pos = _save2
-            break
-          end
-          _tmp = apply(:_sig_wsp)
-          unless _tmp
-            self.pos = _save2
-            break
-          end
-          @result = begin;  h ; end
-          _tmp = true
-          unless _tmp
-            self.pos = _save2
-          end
+      _save2 = self.pos
+      while true # sequence
+        _tmp = apply(:_binary_op)
+        o = @result
+        unless _tmp
+          self.pos = _save2
           break
-        end # end sequence
+        end
+        _tmp = apply(:_sig_wsp)
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        @result = begin;  o ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save2
+        end
+        break
+      end # end sequence
 
-        _ary << @result if _tmp
-        break unless _tmp
+      if _tmp
+        _ary << @result
+        while true
+
+          _save3 = self.pos
+          while true # sequence
+            _tmp = apply(:_binary_op)
+            o = @result
+            unless _tmp
+              self.pos = _save3
+              break
+            end
+            _tmp = apply(:_sig_wsp)
+            unless _tmp
+              self.pos = _save3
+              break
+            end
+            @result = begin;  o ; end
+            _tmp = true
+            unless _tmp
+              self.pos = _save3
+            end
+            break
+          end # end sequence
+
+          _ary << @result if _tmp
+          break unless _tmp
+        end
+        _tmp = true
+        @result = _ary
+      else
+        self.pos = _save1
       end
-      _tmp = true
-      @result = _ary
-      hs = @result
+      os = @result
       unless _tmp
         self.pos = _save
         break
@@ -2737,8 +2755,9 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  [ Operator.new(o),
-                        hs.collect do |h|
+      @result = begin;  o = os.shift
+                      [ Operator.new(o),
+                        os.collect do |h|
                           [private_target, Operator.new(h, true)]
                         end,
                         e
@@ -3973,8 +3992,7 @@ class Atomy::Parser
   Rules[:_level4] = rule_info("level4", "(language | macro | binary | level3)")
   Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
   Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.body) }")
-  Rules[:_set_lang] = rule_info("set_lang", "{ @_grammar_lang = require(\"\#{n}/language/parser\").new(nil) }")
-  Rules[:_language] = rule_info("language", "\"\#language\" wsp identifier:n set_lang(n) %lang.root")
+  Rules[:_language] = rule_info("language", "\"\#language\" wsp identifier:n { set_lang(n) } %lang.root")
   Rules[:_quote] = rule_info("quote", "line:line \"'\" level2:e { Atomy::AST::Quote.new(line, e) }")
   Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level2:e { Atomy::AST::QuasiQuote.new(line, e) }")
   Rules[:_splice] = rule_info("splice", "line:line \"~*\" level2:e { Atomy::AST::Splice.new(line, e) }")
@@ -3995,7 +4013,7 @@ class Atomy::Parser
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_call] = rule_info("call", "line:line level0(false):n args:as { Atomy::AST::Call.new(line, n, as) }")
   Rules[:_binary_op] = rule_info("binary_op", "(operator | identifier:n &{ operator?(n) } { n })")
-  Rules[:_binary_c] = rule_info("binary_c", "cont(pos) binary_op:o sig_wsp (binary_op:h sig_wsp { h })*:hs level3:e { [ Operator.new(o),                         hs.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }")
+  Rules[:_binary_c] = rule_info("binary_c", "cont(pos) (binary_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(o),                         os.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }")
   Rules[:_binary_cs] = rule_info("binary_cs", "binary_c(pos)+:bs { bs.flatten }")
   Rules[:_binary] = rule_info("binary", "({ current_position }:pos level3:l binary_cs(pos):c { resolve(nil, l, c).first } | binary_cs(current_position):c { c[0].private = true                       resolve(nil, private_target, c).first                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")

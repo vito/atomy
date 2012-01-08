@@ -98,6 +98,10 @@
       resolve(a, binary(b.name, e, r, b.private?), rest3)
     end
   end
+
+  def set_lang(n)
+    @_grammar_lang = require("#{n}/language/parser").new(nil)
+  end
 }
 
              sp = (" " | "\t" | comment)*
@@ -175,8 +179,7 @@
           macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b
                     { Atomy::AST::Macro.new(line, p, b.body) }
 
-    set_lang(n) = { @_grammar_lang = require("#{n}/language/parser").new(nil) }
-       language = "#language" wsp identifier:n set_lang(n) %lang.root
+       language = "#language" wsp identifier:n { set_lang(n) } %lang.root
 
           quote = line:line "'" level2:e
                     { Atomy::AST::Quote.new(line, e) }
@@ -234,16 +237,16 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
         compose = @composes(current_position)
 
            args = "(" wsp expressions?:as wsp ")" { Array(as) }
-
            call = line:line level0(false):n args:as
                     { Atomy::AST::Call.new(line, n, as) }
 
       binary_op = operator
                 | identifier:n &{ operator?(n) } { n }
 
-  binary_c(pos) = cont(pos) binary_op:o sig_wsp (binary_op:h sig_wsp { h })*:hs level3:e
-                    { [ Operator.new(o),
-                        hs.collect do |h|
+  binary_c(pos) = cont(pos) (binary_op:o sig_wsp { o })+:os level3:e
+                    { o = os.shift
+                      [ Operator.new(o),
+                        os.collect do |h|
                           [private_target, Operator.new(h, true)]
                         end,
                         e
@@ -259,51 +262,21 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
                     }
 
 
-        escapes = "n" { "\n" }
-                | "s" { " " }
-                | "r" { "\r" }
-                | "t" { "\t" }
-                | "v" { "\v" }
-                | "f" { "\f" }
-                | "b" { "\b" }
-                | "a" { "\a" }
-                | "e" { "\e" }
-                | "\\" { "\\" }
-                | "\"" { "\"" }
-                | "BS" { "\b" }
-                | "HT" { "\t" }
-                | "LF" { "\n" }
-                | "VT" { "\v" }
-                | "FF" { "\f" }
-                | "CR" { "\r" }
-                | "SO" { "\016" }
-                | "SI" { "\017" }
-                | "EM" { "\031" }
-                | "FS" { "\034" }
-                | "GS" { "\035" }
-                | "RS" { "\036" }
-                | "US" { "\037" }
-                | "SP" { " " }
-                | "NUL" { "\000" }
-                | "SOH" { "\001" }
-                | "STX" { "\002" }
-                | "ETX" { "\003" }
-                | "EOT" { "\004" }
-                | "ENQ" { "\005" }
-                | "ACK" { "\006" }
-                | "BEL" { "\a" }
-                | "DLE" { "\020" }
-                | "DC1" { "\021" }
-                | "DC2" { "\022" }
-                | "DC3" { "\023" }
-                | "DC4" { "\024" }
-                | "NAK" { "\025" }
-                | "SYN" { "\026" }
-                | "ETB" { "\027" }
-                | "CAN" { "\030" }
-                | "SUB" { "\032" }
-                | "ESC" { "\e" }
-                | "DEL" { "\177" }
+        escapes = "n" { "\n" }     | "s" { " " }      | "r" { "\r" }
+                | "t" { "\t" }     | "v" { "\v" }     | "f" { "\f" }
+                | "b" { "\b" }     | "a" { "\a" }     | "e" { "\e" }
+                | "\\" { "\\" }    | "\"" { "\"" }    | "BS" { "\b" }
+                | "HT" { "\t" }    | "LF" { "\n" }    | "VT" { "\v" }
+                | "FF" { "\f" }    | "CR" { "\r" }    | "SO" { "\016" }
+                | "SI" { "\017" }  | "EM" { "\031" }  | "FS" { "\034" }
+                | "GS" { "\035" }  | "RS" { "\036" }  | "US" { "\037" }
+                | "SP" { " " }     | "NUL" { "\000" } | "SOH" { "\001" }
+                | "STX" { "\002" } | "ETX" { "\003" } | "EOT" { "\004" }
+                | "ENQ" { "\005" } | "ACK" { "\006" } | "BEL" { "\a" }
+                | "DLE" { "\020" } | "DC1" { "\021" } | "DC2" { "\022" }
+                | "DC3" { "\023" } | "DC4" { "\024" } | "NAK" { "\025" }
+                | "SYN" { "\026" } | "ETB" { "\027" } | "CAN" { "\030" }
+                | "SUB" { "\032" } | "ESC" { "\e" }   | "DEL" { "\177" }
                 | < . > { "\\" + text }
 
  number_escapes = /[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack("U") }
