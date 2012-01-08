@@ -10,16 +10,15 @@ module Atomy
       p.result
     end
 
-    def self.parse_string(source)
+    def self.parse_string(source, &callback)
       p = new(source)
+      p.callback = callback
       p.raise_error unless p.parse
       AST::Tree.new(0, p.result)
     end
 
-    def self.parse_file(name)
-      p = new(File.open(name, "rb").read)
-      p.raise_error unless p.parse
-      AST::Tree.new(0, p.result)
+    def self.parse_file(name, &callback)
+      parse_string(File.open(name, "rb", &:read), &callback)
     end
   end
 

@@ -390,6 +390,16 @@ class Atomy::Parser
     end
   end
 
+  attr_writer :callback
+
+  def callback(x)
+    if @callback
+      @callback.call(x)
+    else
+      x
+    end
+  end
+
   def current_position(target=pos)
     cur_offset = 0
     cur_line = 0
@@ -3983,7 +3993,87 @@ class Atomy::Parser
     return _tmp
   end
 
-  # root = shebang? wsp expressions:es wsp !. { Array(es) }
+  # top = expression:e { callback(e) }
+  def _top
+
+    _save = self.pos
+    while true # sequence
+      _tmp = apply(:_expression)
+      e = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  callback(e) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_top unless _tmp
+    return _tmp
+  end
+
+  # tree = { current_column }:c top:x (delim(c) top)*:xs { [x] + Array(xs) }
+  def _tree
+
+    _save = self.pos
+    while true # sequence
+      @result = begin;  current_column ; end
+      _tmp = true
+      c = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_top)
+      x = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _ary = []
+      while true
+
+        _save2 = self.pos
+        while true # sequence
+          _tmp = apply_with_args(:_delim, c)
+          unless _tmp
+            self.pos = _save2
+            break
+          end
+          _tmp = apply(:_top)
+          unless _tmp
+            self.pos = _save2
+          end
+          break
+        end # end sequence
+
+        _ary << @result if _tmp
+        break unless _tmp
+      end
+      _tmp = true
+      @result = _ary
+      xs = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  [x] + Array(xs) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_tree unless _tmp
+    return _tmp
+  end
+
+  # root = shebang? wsp tree:es wsp !. { Array(es) }
   def _root
 
     _save = self.pos
@@ -4003,7 +4093,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      _tmp = apply(:_expressions)
+      _tmp = apply(:_tree)
       es = @result
       unless _tmp
         self.pos = _save
@@ -4084,11 +4174,13 @@ class Atomy::Parser
   Rules[:_compose] = rule_info("compose", "@composes(current_position)")
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_call] = rule_info("call", "line:line level0(false):n args:as { Atomy::AST::Call.new(line, n, as) }")
-  Rules[:_binary_op] = rule_info("binary_op", "(operator | identifier:n &{ Atomy::OPERATORS.key? n } { n })")
+  Rules[:_binary_op] = rule_info("binary_op", "(operator | identifier:n &{ operator?(n) } { n })")
   Rules[:_binary_c] = rule_info("binary_c", "cont(pos) binary_op:o sig_wsp (binary_op:h sig_wsp { h })*:hs level3:e { [ Operator.new(o),                         hs.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }")
   Rules[:_binary_cs] = rule_info("binary_cs", "binary_c(pos)+:bs { bs.flatten }")
   Rules[:_binary] = rule_info("binary", "({ current_position }:pos level3:l binary_cs(pos):c { resolve(nil, l, c).first } | binary_cs(current_position):c { c[0].private = true                       resolve(nil, private_target, c).first                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")
   Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack(\"U\") } | < /\\d{1,6}/ > { [text.to_i].pack(\"U\") } | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack(\"U\") } | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack(\"U\") })")
-  Rules[:_root] = rule_info("root", "shebang? wsp expressions:es wsp !. { Array(es) }")
+  Rules[:_top] = rule_info("top", "expression:e { callback(e) }")
+  Rules[:_tree] = rule_info("tree", "{ current_column }:c top:x (delim(c) top)*:xs { [x] + Array(xs) }")
+  Rules[:_root] = rule_info("root", "shebang? wsp tree:es wsp !. { Array(es) }")
 end

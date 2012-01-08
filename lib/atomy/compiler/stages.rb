@@ -65,7 +65,11 @@ module Atomy
       end
 
       def parse
-        Atomy::Parser.parse_file(@file)
+        Atomy::Parser.parse_file(@file) do |x|
+          x.evaluated = true if x.is_a?(AST::Macro)
+          x.evaluate(CodeLoader.context, @file)
+          x
+        end
       end
     end
 

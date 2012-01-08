@@ -4,8 +4,15 @@ module Atomy
       children :pattern, :body
       generate
 
+      attr_writer :evaluated
+
       def bytecode(g)
-        Atomy::CodeLoader.module.define_macro(@pattern, @body, Atomy::CodeLoader.compiling)
+        unless @evaluated
+          Atomy::CodeLoader.module.define_macro(
+            @pattern,
+            @body,
+            Atomy::CodeLoader.compiling)
+        end
 
         pos(g)
 

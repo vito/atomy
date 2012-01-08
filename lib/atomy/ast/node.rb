@@ -526,14 +526,9 @@ EOF
         before = Atomy::Macro::Environment.salt
 
         @body.each.with_index do |n, i|
+          g.pop unless i == 0
+
           n.compile(g)
-
-          # macros always evaluate during compilation
-          unless n.is_a?(Macro)
-            n.evaluate(CodeLoader.context, CodeLoader.compiling)
-          end
-
-          g.pop unless i + 1 == @body.size
         end
 
         after = Atomy::Macro::Environment.salt
