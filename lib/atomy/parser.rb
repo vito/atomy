@@ -4,6 +4,40 @@ require base + "/atomy.kpeg.rb"
 
 module Atomy
   class Parser
+    class Operator
+      def initialize(name, private = false)
+        @name = name
+        @private = private
+      end
+
+      attr_reader :name
+      attr_writer :private
+
+      def private?
+        @private
+      end
+
+      def precedence
+        op_info(@name)[:precedence] || 60
+      end
+
+      def associativity
+        op_info(@name)[:associativity] || :left
+      end
+
+      def precedes?(b)
+        precedence > b.precedence ||
+          precedence == b.precedence &&
+          associativity == :left
+      end
+
+      private
+
+      def op_info(op)
+        Atomy::CodeLoader.module.infix_info(op) || {}
+      end
+    end
+
     def self.parse_node(source)
       p = new(source)
       p.raise_error unless p.parse("one_expression")
