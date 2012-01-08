@@ -198,12 +198,6 @@ Atomy::AST open:
 
   Constant pretty-doc := text(@name)
 
-  Infix pretty-doc :=
-    hsep([text("#infix")
-          text(@associativity to-s)
-          @precedence pretty
-          hsep(*(text(o) for o in @operators))])
-
   List pretty-doc :=
     from(.list):
       list(pretty-sequence(@elements))

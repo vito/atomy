@@ -401,7 +401,9 @@ class Atomy::Parser
   end
 
   def operator?(x)
-    !!Atomy::CodeLoader.module.infix_info(x)
+    if mod = Atomy::CodeLoader.module
+      !!mod.infix_info(x)
+    end
   end
 
   def current_position(target=pos)
