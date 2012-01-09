@@ -111,11 +111,15 @@ module Atomy
         blk.redo = blk.new_label
         blk.redo.set!
 
-        too_few = blk.new_label
-        done = blk.new_label
+        has_args = args.required_args > 0
 
-        blk.passed_arg(args.required_args - 1)
-        blk.gif too_few
+        if has_args
+          too_few = blk.new_label
+          done = blk.new_label
+
+          blk.passed_arg(args.required_args - 1)
+          blk.gif too_few
+        end
 
         args.bytecode(blk)
 
@@ -123,17 +127,19 @@ module Atomy
 
         body.compile(blk)
 
-        blk.goto done
+        if has_args
+          blk.goto done
 
-        too_few.set!
-        blk.push_self
-        blk.push_cpath_top
-        blk.find_const :ArgumentError
-        blk.push_literal "block given too few arguments"
-        blk.send :new, 1
-        blk.send :raise, 1, true
+          too_few.set!
+          blk.push_self
+          blk.push_cpath_top
+          blk.find_const :ArgumentError
+          blk.push_literal "block given too few arguments"
+          blk.send :new, 1
+          blk.send :raise, 1, true
 
-        done.set!
+          done.set!
+        end
 
         blk.pop_modifiers
         blk.state.pop_block
