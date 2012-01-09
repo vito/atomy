@@ -58,6 +58,8 @@ Object show :=
   let(Colored = false):
     pretty flatten render
 
+x write := x tap: ^OutputPort puts(x show)
+
 Doc colored(color) := do:
   unless(^Colored and ^io::OutputPort tty?):
     return(self)
