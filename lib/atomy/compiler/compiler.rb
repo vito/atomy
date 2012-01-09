@@ -50,7 +50,7 @@ module Atomy
                                  file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_string, :compiled_method
 
-      compiler.parser.root Rubinius::AST::EvalExpression
+      compiler.parser.root Atomy::AST::EvalExpression
       compiler.parser.input string, file, line
 
       compiler.packager.print.bytecode = debug if debug
@@ -66,9 +66,8 @@ module Atomy
                                file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_bytecode, :compiled_method
 
-      expr = Rubinius::AST::EvalExpression.new(AST::Tree.new(line, [node]))
+      expr = Atomy::AST::EvalExpression.new(AST::Tree.new(line, [node]))
       expr.file = file
-      expr.pre_exe = []
 
       compiler.packager.print.bytecode = debug if debug
 

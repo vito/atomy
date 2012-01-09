@@ -537,6 +537,13 @@ EOF
       end
     end
 
+    class EvalExpression < Rubinius::AST::EvalExpression
+      def initialize(body)
+        @pre_exe = []
+        super
+      end
+    end
+
     class Script < Rubinius::AST::Container
       def initialize(body)
         @body = ScriptBody.new(body.line, body.nodes)
