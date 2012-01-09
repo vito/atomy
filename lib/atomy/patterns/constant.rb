@@ -32,5 +32,9 @@ module Atomy::Patterns
     def assign(g, e, set = false)
       @constant.assign(g, e)
     end
+
+    def always_matches_self?
+      true
+    end
   end
 end

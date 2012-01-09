@@ -227,7 +227,7 @@ module Atomy
           g.gif skip
         end
 
-        if should_match_self?(recv)
+        unless recv.always_matches_self?
           g.push_self
           recv.matches_self?(g)
           g.gif skip
@@ -311,23 +311,6 @@ module Atomy
         g.pop if has_args
 
         skip.set!
-      end
-    end
-
-    # should we bother matching self?
-    #
-    # some things, like Constant patterns, indicate that
-    # it'll always match
-    def should_match_self?(pat)
-      case pat
-      when Patterns::Match
-        pat.value != :self
-      when Patterns::Constant
-        false
-      when Patterns::Named
-        should_match_self?(pat.pattern)
-      else
-        !pat.wildcard?
       end
     end
 

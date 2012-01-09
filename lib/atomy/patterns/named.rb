@@ -51,5 +51,9 @@ module Atomy::Patterns
     def matches_self?
       @pattern.matches_self?
     end
+
+    def always_matches_self?
+      @pattern.always_matches_self?
+    end
   end
 end

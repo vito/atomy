@@ -249,6 +249,11 @@ EOF
       matches?(g)
     end
 
+    # does this pattern always match `self' if it's the receiver pattern?
+    def always_matches_self?
+      wildcard?
+    end
+
     # match the pattern on the value at the top of the stack
     # effect on the stack: top value removed
     def deconstruct(g, locals = {})

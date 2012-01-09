@@ -39,5 +39,9 @@ module Atomy::Patterns
       g.push @value
       g.meta_send_op_equal g.find_literal(:==)
     end
+
+    def always_matches_self?
+      @value == :self
+    end
   end
 end
