@@ -540,6 +540,7 @@ EOF
     class Script < Rubinius::AST::Container
       def initialize(body)
         @body = ScriptBody.new(body.line, body.nodes)
+        @pre_exe = []
       end
 
       def bytecode(g)

@@ -68,6 +68,7 @@ module Atomy
 
       expr = Rubinius::AST::EvalExpression.new(AST::Tree.new(line, [node]))
       expr.file = file
+      expr.pre_exe = []
 
       compiler.packager.print.bytecode = debug if debug
 
