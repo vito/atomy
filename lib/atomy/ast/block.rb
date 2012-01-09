@@ -27,6 +27,15 @@ module Atomy
         end
       end
 
+      def deconstruct_patterns(g)
+        @patterns.each do |n, p|
+          if p.binds?
+            g.state.scope.search_local(n).get_bytecode(g)
+            p.deconstruct(g)
+          end
+        end
+      end
+
       class CompileWrapper < SimpleDelegator
         def bytecode(g)
           __getobj__.compile(g)
@@ -39,7 +48,6 @@ module Atomy
       extend SentientNode
 
       children [:contents], [:arguments], :block?
-      attributes :name?
       generate
 
       def body
@@ -55,11 +63,11 @@ module Atomy
         splat = nil
         block = nil
 
-        locals = []
+        patterns = []
 
         @arguments.collect(&:to_pattern).each.with_index do |p, i|
           name = :"@arg:#{i + 1}"
-          locals << [name, p]
+          patterns << [name, p]
 
           if p.is_a?(Patterns::Splat)
             splat = name
@@ -76,10 +84,10 @@ module Atomy
 
         if @block
           block = :@block
-          locals << [block, @block.to_pattern]
+          patterns << [block, @block.to_pattern]
         end
 
-        FormalArguments.new(@line, required, optional, splat, post, block, locals)
+        FormalArguments.new(@line, required, optional, splat, post, block, patterns)
       end
 
       def create_block(g)
@@ -91,7 +99,6 @@ module Atomy
         args = make_arguments
 
         blk = new_block_generator g, args
-        blk.name = @name if @name
 
         blk.push_state self
 
