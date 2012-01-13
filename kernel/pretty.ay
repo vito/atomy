@@ -19,7 +19,10 @@ Multiline = dynamic(false)
 Context = dynamic(.top)
 Colored = dynamic(false)
 
-ident(n) := text(n [0, 1] + n [1 .. -1] tr("_", "-") gsub("_ns_", "/"))
+ident(n) :=
+  if(n =~ r"^__")
+    then: text(n)
+    else: text(n [0, 1] + n [1 .. -1] tr("_", "-"))
 
 pretty-sequence([]) := []
 pretty-sequence([x]) := [from(.top): x pretty]
