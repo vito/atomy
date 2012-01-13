@@ -9,7 +9,7 @@ task :formatter do
 end
 
 task :clean do
-  sh "find . -name '*.rbc' -delete; find . -name '*.ayc' -delete"
+  sh "find . -name '*.ayc' -delete"
 end
 
 task :install do
