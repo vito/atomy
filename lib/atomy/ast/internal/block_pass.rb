@@ -2,6 +2,7 @@ module Atomy::AST
   class BlockPass < Node
     children :body
     generate
+
     def bytecode(g)
       @body.compile(g)
       nil_block = g.new_label

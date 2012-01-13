@@ -45,8 +45,8 @@ Atomy::AST open:
     @keys each-with-index [n, i]:
       g dup
       n compile(g)
-      @values [i] compile(g)
-      g send("[]=" to-sym, 2)
+      @values[i] compile(g)
+      g send(.[]=, 2)
       g pop
 
 

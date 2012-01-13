@@ -280,7 +280,7 @@ Atomy::Format open:
             j symbol("=")? or j symbol("<")? and j symbol(">")? ->
               s center(w, padding)
 
-            left? and not (j symbol(">")?) or j symbol("<")? ->
+            left? and not j symbol(">")? or j symbol("<")? ->
               s ljust(w, padding)
 
             otherwise ->
