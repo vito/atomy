@@ -27,14 +27,14 @@ module Atomy
             g.send :to_a, 0
 
             if @block
-              @block.compile(g)
+              push_block(g)
             else
               g.push_nil
             end
 
             g.send_with_splat :send_message, @arguments.size + 3
           elsif @block
-            @block.compile(g)
+            push_block(g)
             g.send_with_block :send_message, @arguments.size + 3
           else
             g.send :send_message, @arguments.size + 3
@@ -54,17 +54,27 @@ module Atomy
           g.send :to_a, 0
 
           if @block
-            @block.compile(g)
+            push_block(g)
           else
             g.push_nil
           end
 
           g.send_with_splat @message_name, @arguments.size
         elsif @block
-          @block.compile(g)
+          push_block(g)
           g.send_with_block @message_name, @arguments.size
         else
           g.send @message_name, @arguments.size
+        end
+      end
+
+      private
+
+      def push_block(g)
+        if @block.is_a? Block
+          @block.create_block(g)
+        else
+          @block.compile(g)
         end
       end
     end
