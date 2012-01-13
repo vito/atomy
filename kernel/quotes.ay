@@ -33,4 +33,10 @@ macro(macro-quoter(~n) [~*as]: ~*body):
 
 macro-quoter(w) [_, _, v]: v split
 
+macro-quoter(s) [_, _, v]:
+  v split collect [s]:
+    if(s =~ Regexp new("[\p{Ll}_]", Regexp::KCODE_UTF8))
+      then: s tr("-", "_") to-sym
+      else: s to-sym
+
 macro-quoter(raw) [r]: r
