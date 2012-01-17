@@ -20,6 +20,39 @@ module Atomy
         # private sends get special semantics
         # see Atomy.send_message
         if @private
+          if var = g.state.scope.search_local(:"#@message_name:function")
+            var.get_bytecode(g)
+            g.dup
+            g.send :code, 0
+            g.send :scope, 0
+            @receiver.compile(g)
+            g.swap
+
+            @arguments.each do |a|
+              a.compile(g)
+            end
+
+            if @splat
+              @splat.compile(g)
+              g.send :to_a, 0
+
+              if @block
+                push_block(g)
+              else
+                g.push_nil
+              end
+
+              g.send_with_splat :call_under, @arguments.size + 2
+            elsif @block
+              push_block(g)
+              g.send_with_block :call_under, @arguments.size + 2
+            else
+              g.send :call_under, @arguments.size + 2
+            end
+
+            return
+          end
+
           g.push_cpath_top
           g.find_const :Atomy
 

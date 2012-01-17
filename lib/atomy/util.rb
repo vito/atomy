@@ -113,27 +113,7 @@ module Atomy
   end
 
   def self.make_wrapper_module(file = :local)
-    mod = Atomy::Module.new do
-      private_module_function
-
-      # TODO: put this somewhere more sane
-      # generate symbols
-      def names(num = 0, &block)
-        num = block.arity if block
-
-        as = []
-        num.times do
-          salt = Atomy::Macro::Environment.salt!
-          as << Atomy::AST::Word.new(0, :"s:#{salt}")
-        end
-
-        if block
-          block.call(*as)
-        else
-          as
-        end
-      end
-    end
+    mod = Atomy::Module.new
 
     # just to make debugging a bit easier
     unless file == :local
@@ -149,7 +129,7 @@ module Atomy
       g.add_scope
 
       g.push_self
-      g.send :private_module_function, 0
+      g.send :module_function, 0
       g.pop
 
       g.push_variables

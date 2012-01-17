@@ -3,8 +3,6 @@ use("core")
 infix("=! := **= *= <<= >>= &&=", 10, .right)
 infix("&= ||= |= += -= /= ^= %=", 10, .right)
 
-export
-
 macro(do ~(b: Block)): b body
 
 macro(~x =! ~y):
@@ -43,8 +41,8 @@ receiver(x) :=
   raise(ArgumentError, "cannot get receiver from: " + x to-sexp inspect)
 
 message-name(b: Atomy::AST::Binary) := b operator
-message-name(p: Atomy::AST::Prefix) := (p operator to-s + "@") to-sym
-message-name(p: Atomy::AST::Postfix) := (p operator to-s + "@@") to-sym
+message-name(p: Atomy::AST::Prefix) := p message-name
+message-name(p: Atomy::AST::Postfix) := p message-name
 message-name(w: ? to-word) := w to-word text
 message-name(`(~(w: Atomy::AST::Word)(~*_)?)) := (w text to-s + "?") to-sym
 message-name(`(~(w: Atomy::AST::Word)(~*_)!)) := (w text to-s + "!") to-sym
@@ -79,6 +77,24 @@ macro(~x := ~y):
     block(x),
     defn(x))
 
+macro(~(name)(~*args) = ~body):
+  Function new(node line, body, args, name text)
+
+macro(~(name)(~*args) &~b = ~body):
+  Function new(node line, body, args, name text, b)
+
+macro(~(x: `(~(_)(~*_)?)) = ~body):
+  Function new(node line, body, arguments(x), message-name(x))
+
+macro(~(x: `(~(_)(~*_)?)) &~b = ~body):
+  Function new(node line, body, arguments(x), message-name(x), b)
+
+macro(~(x: `(~(_)(~*_)!)) = ~body):
+  Function new(node line, body, arguments(x), message-name(x))
+
+macro(~(x: `(~(_)(~*_)!)) &~b = ~body):
+  Function new(node line, body, arguments(x), message-name(x), b)
+
 macro(define(~x) ~(y: Block)):
   `(~x := ~(y body))
 
@@ -94,16 +110,14 @@ macro(~x /= ~y): `(~x =! (~x / ~y))
 macro(~x ^= ~y): `(~x =! (~x ^ ~y))
 macro(~x %= ~y): `(~x =! (~x % ~y))
 
-WithModule = Class new(Atomy::AST::Node) module-eval:
-  generate
+WithModule = Class new(Atomy::AST::Node)
+WithModule generate
 
-  bytecode(g) := do:
-    pos(g)
-    g push-self
-    g add-scope
-    g push-nil
-
-  self
+WithModule bytecode(g) := do:
+  pos(g)
+  g push-self
+  g add-scope
+  g push-nil
 
 macro(class: ~*body):
   `(::Class new open: ~*body, self)

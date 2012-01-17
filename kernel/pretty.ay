@@ -10,8 +10,7 @@ use("array")
 use("undefined")
 
 use("dynamic")
-use("doc")
-
+doc = use("doc")
 io = use("io")
 
 Printing = dynamic([])
@@ -19,24 +18,16 @@ Multiline = dynamic(false)
 Context = dynamic(.top)
 Colored = dynamic(false)
 
-ident(n) :=
+ident(n) =
   if(n =~ r"^__")
-    then: text(n)
-    else: text(n [0, 1] + n [1 .. -1] tr("_", "-"))
+    then: doc text(n)
+    else: doc text(n [0, 1] + n [1 .. -1] tr("_", "-"))
 
-pretty-sequence([]) := []
-pretty-sequence([x]) := [from(.top): x pretty]
-pretty-sequence(x . xs) := [from(.list) { x pretty }] + pretty-sequence(xs)
-
-tree(xs) := align(fill-sep(comma punctuate(xs)))
-
-_ unamb := pretty
-
-from(*where) &y :=
+from(*where) &y =
   let(Context = where flatten):
     y call
 
-from(*where)? :=
+from(*where)? =
   [^Context, where] match:
     [(a: Array), (b: Array)] ->
       a any? .(is-in b)
@@ -50,22 +41,15 @@ from(*where)? :=
     [a, b] ->
       a == b
 
-Object pretty :=
-  if(is-in ^Printing)
-    then: text("...")
-    else:
-      let(Printing = self . ^Printing):
-        pretty-doc
+pretty-sequence([]) = []
+pretty-sequence([x]) = [from(.top): x pretty]
+pretty-sequence(x . xs) = [from(.list): x pretty] + pretty-sequence(xs)
 
-Object show :=
-  let(Colored = false):
-    pretty flatten render
+tree(xs) = align(fill-sep(comma punctuate(xs)))
 
-x write := x tap: ^OutputPort puts(x show)
-
-Doc colored(color) := do:
+colored(color, doc) = do:
   unless(^Colored and ^io::OutputPort tty?):
-    return(self)
+    return(doc)
 
   codes =
     [ .black
@@ -80,15 +64,30 @@ Doc colored(color) := do:
 
   hash = Hash [codes]
 
-  raw("\e[9" + hash [color] to-s + "m") <> self <> raw("\e[0m")
+  raw("\e[9" + hash [color] to-s + "m") <> doc <> raw("\e[0m")
+
+_ unamb := pretty
+
+Object pretty :=
+  if(is-in ^Printing)
+    then: text("...")
+    else:
+      let(Printing = self . ^Printing):
+        pretty-doc
+
+Object show :=
+  let(Colored = false):
+    pretty flatten render
+
+x write := x tap: ^OutputPort puts(x show)
 
 Object pretty-doc := text(inspect)
-String pretty-doc := text(inspect gsub("\\#", "#")) colored(.yellow)
-Integer pretty-doc := super colored(.blue)
-Float pretty-doc := super colored(.blue)
-TrueClass pretty-doc := super colored(.green)
-FalseClass pretty-doc := super colored(.red)
-NilClass pretty-doc := super colored(.black)
+String pretty-doc := colored(.yellow, text(inspect gsub("\\#", "#")))
+Integer pretty-doc := colored(.blue, super)
+Float pretty-doc := colored(.blue, super)
+TrueClass pretty-doc := colored(.green, super)
+FalseClass pretty-doc := colored(.red, super)
+NilClass pretty-doc := colored(.black, super)
 
 Doc pretty-doc := self
 

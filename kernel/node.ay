@@ -1,18 +1,18 @@
 use("core")
 use("define")
 
-process-arg(`[@~name], as, cs) := as << `[.~name]
-process-arg(`(@~name = ~default), as, cs) := as << `[.~name, ~default]
-process-arg(`@~name, as, cs) := as << `.~name
-process-arg(`(.~name = ~default), as, cs) := cs << `[.~name, ~default]
-process-arg(c, as, cs) := cs << c
+process-arg(`[@~name], as, cs) = as << `[.~name]
+process-arg(`(@~name = ~default), as, cs) = as << `[.~name, ~default]
+process-arg(`@~name, as, cs) = as << `.~name
+process-arg(`(.~name = ~default), as, cs) = cs << `[.~name, ~default]
+process-arg(c, as, cs) = cs << c
 
-define-class(root, `(~n { ~*cs })) := define-class(root, `(~(n)() { ~*cs }))
-define-class(root, x: `(~(name)(~*as))) := define-class(root, `(~x {}))
-define-class(root, e: Atomy::AST::Constant) :=
+define-class(root, `(~n { ~*cs })) = define-class(root, `(~(n)() { ~*cs }))
+define-class(root, x: `(~(name)(~*as))) = define-class(root, `(~x {}))
+define-class(root, e: Atomy::AST::Constant) =
   `(~e = ~root class:
       generate)
-define-class(root, `(~(name)(~*as): ~*cs)) := do:
+define-class(root, `(~(name)(~*as): ~*cs)) = do:
   children = []
   attributes = []
 

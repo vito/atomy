@@ -564,7 +564,7 @@ EOF
           g.state.push_name @name
 
           g.push_self
-          g.send :private_module_function, 0
+          g.send :module_function, 0
           g.pop
 
           @body.bytecode g

@@ -28,8 +28,6 @@ macro(receive ~(body: Block) after(~timeout) ~(action: Block)):
         ~e after(~timeout) ~action)
 
 
-export
-
 me := Actor current
 
 spawn &action := Actor spawn &action

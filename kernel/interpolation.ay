@@ -14,7 +14,7 @@ parser(Parser):
   }
 
 
-intp-segments(s) :=
+intp-segments(s) =
   s split(Regexp new("(?<!\\\\)#\\{"), 2) match:
     [] -> ['""]
 
@@ -34,8 +34,6 @@ intp-segments(s) :=
         nil -> segments
         "" -> segments
         _ -> segments + intp-segments(rest)
-
-export
 
 Atomy::AST open:
   ast(Interpolation([.segments]))

@@ -1,9 +1,3 @@
-module Rubinius
-  class StaticScope
-    attr_accessor :atomy_visibility
-  end
-end
-
 module Atomy
   class Module < ::Module
     attr_accessor :file, :delegate
@@ -162,48 +156,34 @@ module Atomy
     end
 
     def export(*xs)
-      if block_given?
-        scope = Rubinius::StaticScope.of_sender
-        old = scope.atomy_visibility
-        scope.atomy_visibility = :module
-
-        begin
-          yield
-        ensure
-          scope.atomy_visibility = old
-        end
-      elsif xs.empty?
-        Rubinius::StaticScope.of_sender.atomy_visibility = :module
-      else
-        xs.each do |x|
-          case x
-          when Symbol
-            singleton_class.set_visibility(meth, :public)
-          when self.class
-            exported_modules.unshift x
-          else
-            raise ArgumentError, "don't know how to export #{x.inspect}"
-          end
+      xs.each do |x|
+        case x
+        when Symbol
+          singleton_class.set_visibility(meth, :public)
+        when self.class
+          exported_modules.unshift x
+        else
+          raise ArgumentError, "don't know how to export #{x.inspect}"
         end
       end
 
       self
     end
 
-    def private_module_function(*args)
-      if args.empty?
-        Rubinius::StaticScope.of_sender.atomy_visibility = :private_module
-      else
-        sc = Rubinius::Type.object_singleton_class(self)
-        args.each do |meth|
-          method_name = Rubinius::Type.coerce_to_symbol meth
-          mod, method = lookup_method(method_name)
-          sc.method_table.store method_name, method.method, :private
-          Rubinius::VM.reset_method_cache method_name
-          set_visibility method_name, :private
-        end
+    # generate symbols
+    def names(num = 0, &block)
+      num = block.arity if block
 
-        return self
+      as = []
+      num.times do
+        salt = Atomy::Macro::Environment.salt!
+        as << Atomy::AST::Word.new(0, :"s:#{salt}")
+      end
+
+      if block
+        block.call(*as)
+      else
+        as
       end
     end
   end

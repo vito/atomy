@@ -3,13 +3,13 @@ use("define")
 use("control-flow")
 use("comparison")
 
-define-class(nil, e: Atomy::AST::Constant) := `(~e = class:)
-define-class(root, e: Atomy::AST::Constant) := `(~e = ~root class:)
-define-class(root, `(~n { ~*cs })) :=
+define-class(nil, e: Atomy::AST::Constant) = `(~e = class:)
+define-class(root, e: Atomy::AST::Constant) = `(~e = ~root class:)
+define-class(root, `(~n { ~*cs })) =
   define-class(root, `(~(n)() { ~*cs }))
-define-class(root, x: `(~(name)(~*as))) :=
+define-class(root, x: `(~(name)(~*as))) =
   define-class(root, `(~x {}))
-define-class(root, `(~(name)(~*as): ~*cs)) := do:
+define-class(root, `(~(name)(~*as): ~*cs)) = do:
   attrs = Array[]
   as each [a]:
     a through-quotes [x]:

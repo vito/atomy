@@ -13,10 +13,10 @@ io = use("io")
 Handlers = dynamic([])
 Restarts = dynamic([])
 
-catcher(x) := ."restart:#{define message-name(x)}"
-message-name(x) := define message-name(x)
-arguments(x) := define arguments(x)
-block(x) := define block(x)
+catcher(x) = ."restart:#{define message-name(x)}"
+message-name(x) = define message-name(x)
+arguments(x) = define arguments(x)
+block(x) = define block(x)
 
 data(Restart(@name, @action))
 
@@ -70,8 +70,6 @@ macro(with-restarts(~*restarts) ~(block: Block)):
 
   `(let(Restarts = [~*rs] + ^Restarts) ~body)
 
-
-export
 
 restart(name, *args) := do:
   ^Restarts each [r]:

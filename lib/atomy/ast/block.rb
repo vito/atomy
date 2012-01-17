@@ -56,14 +56,22 @@ module Atomy
 
       alias :caller :body
 
+      def implicit_arguments
+        []
+      end
+
+      def implicit_patterns
+        []
+      end
+
       def make_arguments
-        required = []
+        required = implicit_arguments
         optional = nil
         post = nil
         splat = nil
         block = nil
 
-        patterns = []
+        patterns = implicit_patterns
 
         @arguments.collect(&:to_pattern).each.with_index do |p, i|
           name = :"@arg:#{i + 1}"

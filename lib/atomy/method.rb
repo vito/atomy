@@ -4,6 +4,12 @@ class Module
   end
 end
 
+class Rubinius::StaticScope
+  def atomy_methods
+    @atomy_methods ||= {}
+  end
+end
+
 module Atomy
   # TODO: visibility?
   class Branch
@@ -337,8 +343,7 @@ module Atomy
     Rubinius.add_method name, method.build, target, visibility
   end
 
-  # define a new method branch
-  def self.define_branch(target, name, branch, visibility, scope, defn)
+  def self.add_branch(target, name, branch)
     methods = target.atomy_methods
 
     if method = methods[name]
@@ -349,19 +354,12 @@ module Atomy
       methods[name] = method
     end
 
-    avis = scope.atomy_visibility
+    method
+  end
 
-    if defn && avis == :module
-      visibility = :module
-    end
-
-    res = add_method(target, name, method, visibility)
-
-    if defn && avis == :private_module
-      target.private_module_function name
-    end
-
-    res
+  # define a new method branch
+  def self.define_branch(target, name, branch, visibility, scope, defn)
+    add_method(target, name, add_branch(target, name, branch), visibility)
   end
 
   def self.dynamic_branch(target, name, branch, visibility = :public,

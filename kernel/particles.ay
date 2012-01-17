@@ -37,8 +37,8 @@ Symbol call(*args) &blk := to-proc [*args] &blk
 
 Symbol arity := 1
 
-wildcard('_) := '_undefined
-wildcard(x) := x
+wildcard('_) = '_undefined
+wildcard(x) = x
 
 macro(.[~*(as: _ . _)]):
   `(Atomy::Particle new(

@@ -15,17 +15,17 @@ Vars = dynamic
 Rule = dynamic
 RuleVars = dynamic
 
-const-name(c: Atomy::AST::Constant) := c name to-s
-const-name(c: Atomy::AST::ScopedConstant) := const-name(c parent) + "::" + c name to-s
-const-name(c: Atomy::AST::ToplevelConstant) := "::" + c name to-s
+const-name(c: Atomy::AST::Constant) = c name to-s
+const-name(c: Atomy::AST::ScopedConstant) = const-name(c parent) + "::" + c name to-s
+const-name(c: Atomy::AST::ToplevelConstant) = "::" + c name to-s
 
-process-val(g, `(%((~grammar).) ~(x)(~*args))) := do:
+process-val(g, `(%((~grammar).) ~(x)(~*args))) = do:
   `(~g foreign-invoke(
       ~(grammar text)
       ~(x text)
       ~(args collect .show join(", "))))
 
-process-val(g, `(~a %((~grammar).) ~(x)(~*args))) := do:
+process-val(g, `(~a %((~grammar).) ~(x)(~*args))) = do:
   `(~g seq(
       ~process-val(g, a),
       ~g foreign-invoke(
@@ -33,29 +33,29 @@ process-val(g, `(~a %((~grammar).) ~(x)(~*args))) := do:
         ~(x text)
         ~(args collect .show join(", ")))))
 
-process-val(g, `(%((~grammar).) ~x)) := do:
+process-val(g, `(%((~grammar).) ~x)) = do:
   `(~g foreign-invoke(~(grammar text), ~(x text)))
 
-process-val(g, `(~a %((~grammar).) ~x)) := do:
+process-val(g, `(~a %((~grammar).) ~x)) = do:
   `(~g seq(~process-val(g, a), ~g foreign-invoke(~(grammar text), ~(x text))))
 
-process-val(g, `((~v)= ~name)) := do:
+process-val(g, `((~v)= ~name)) = do:
   val = process-val(g, v)
   when(^RuleVars): ^RuleVars << name text
   `(~g t(~val, ~(name text to-s)))
 
-process-val(g, `(~a (~v)= ~name)) := do:
+process-val(g, `(~a (~v)= ~name)) = do:
   val = process-val(g, v)
   when(^RuleVars): ^RuleVars << name text
   `(~g seq(~process-val(g, a), ~g t(~val, ~(name text to-s))))
 
-process-val(g, `(~a ~b)) :=
+process-val(g, `(~a ~b)) =
   `(~g seq(~process-val(g, a), ~process-val(g, b)))
 
-process-val(g, `(~a | ~b)) :=
+process-val(g, `(~a | ~b)) =
   process-val(g, `[~a, ~b])
 
-process-val(g, `[~*xs]) := do:
+process-val(g, `[~*xs]) = do:
   vars = ^RuleVars dup
   choices =
     xs collect [x]:
@@ -64,7 +64,7 @@ process-val(g, `[~*xs]) := do:
 
   `(~g any(~*choices))
 
-process-val(g, a: `{ ~*bs }) :=
+process-val(g, a: `{ ~*bs }) =
   if(^Actions)
     then:
       vars = ^RuleVars to-a
@@ -74,63 +74,63 @@ process-val(g, a: `{ ~*bs }) :=
     else:
       `(~g action({ ~*bs }))
 
-process-val(g, `(<(~x)>)) := do:
+process-val(g, `(<(~x)>)) = do:
   val = process-val(g, x)
   when(^RuleVars): ^RuleVars << .text
   `(~g collect(~val))
 
-process-val(g, `(@<(~x)>)) :=
+process-val(g, `(@<(~x)>)) =
   `(~g bounds(~process-val(g, x)))
 
-process-val(g, s: Atomy::AST::String) :=
+process-val(g, s: Atomy::AST::String) =
   `(~g str(~s))
 
-process-val(g, `(/(~(b: Atomy::AST::String))/)) :=
+process-val(g, `(/(~(b: Atomy::AST::String))/)) =
   `(~g reg(~(b raw)))
 
-process-val(g, c: Atomy::AST::Call) := do:
+process-val(g, c: Atomy::AST::Call) = do:
   args = "(" + c arguments collect .show join(", ") + ")"
 
   `(~g ref(~(c name text to-s), nil, ~args))
 
-process-val(g, `@~(c: Atomy::AST::Call)) := do:
+process-val(g, `@~(c: Atomy::AST::Call)) = do:
   args = "(" + c arguments collect .show join(", ") + ")"
 
   `(~g invoke(~(c name text to-s), ~args))
 
-process-val(g, `^~(c: Atomy::AST::Call)) := do:
+process-val(g, `^~(c: Atomy::AST::Call)) = do:
   args = "(" + c arguments collect .show join(", ") + ")"
 
   `(~g foreign-invoke("parent", ~(c name text to-s), ~args))
 
-process-val(g, w: Atomy::AST::Word) :=
+process-val(g, w: Atomy::AST::Word) =
   `(~g ref(~(w text to-s)))
 
-process-val(g, `@~(w: Atomy::AST::Word)) := do:
+process-val(g, `@~(w: Atomy::AST::Word)) = do:
   `(~g invoke(~(w text to-s)))
 
-process-val(g, `^~(w: Atomy::AST::Word)) := do:
+process-val(g, `^~(w: Atomy::AST::Word)) = do:
   `(~g foreign-invoke("parent", ~(w text to-s)))
 
-process-val(g, `((~v)?)) :=
+process-val(g, `((~v)?)) =
   `(~g maybe(~process-val(g, v)))
 
-process-val(g, `((~v)+)) :=
+process-val(g, `((~v)+)) =
   `(~g many(~process-val(g, v)))
 
-process-val(g, `((~v)*)) :=
+process-val(g, `((~v)*)) =
   `(~g kleene(~process-val(g, v)))
 
-process-val(g, `&~v) :=
+process-val(g, `&~v) =
   `(~g andp(~process-val(g, v)))
 
-process-val(g, `!~v) :=
+process-val(g, `!~v) =
   `(~g notp(~process-val(g, v)))
 
-process-val(g, '_) :=
+process-val(g, '_) =
   `(~g dot)
 
-process-val(_, s) :=
+process-val(_, s) =
   raise(ArgumentError, "unknown operator: " + s to-sexp inspect)
 
 Atomy::AST open:

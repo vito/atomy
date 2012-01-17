@@ -1,101 +1,20 @@
 module Atomy
   module AST
-    class Define < Node
-      class Method < Block
-        include NodeLike
-        extend SentientNode
-
-        children :receiver, [:contents], [:arguments], :block?
-        attributes :name
-        generate
-
-        def make_arguments
-          required = [:@receiver, :arguments]
-          optional = nil
-          post = nil
-          splat = nil
-          block = nil
-
-          patterns = [[:@receiver, @receiver.to_pattern]]
-
-          @arguments.collect(&:to_pattern).each.with_index do |p, i|
-            name = :"@arg:#{i + 1}"
-            patterns << [name, p]
-
-            if p.is_a?(Patterns::Splat)
-              splat = name
-            elsif p.is_a?(Patterns::Default)
-              optional ||= []
-              optional << [name, p.default]
-            elsif splat
-              post ||= []
-              post << name
-            else
-              required << name
-            end
-          end
-
-          if @block
-            block = :@block
-            patterns << [block, @block.to_pattern]
-          end
-
-          FormalArguments.new(@line, required, optional, splat, post, block, patterns)
-        end
-
-        def create_block(g)
-          pos(g)
-
-          state = g.state
-          state.scope.nest_scope self
-
-          args = make_arguments
-
-          blk = new_block_generator g, args
-          blk.name = @name
-
-          blk.push_state self
-
-          blk.state.push_super state.super
-          blk.state.push_eval state.eval
-
-          blk.definition_line(@line)
-
-          blk.state.push_name blk.name
-
-          pos(blk)
-
-          blk.state.push_block
-          blk.push_modifiers
-          blk.break = nil
-          blk.next = nil
-          blk.redo = blk.new_label
-          blk.redo.set!
-
-          args.bytecode(blk)
-
-          args.deconstruct_patterns(blk)
-
-          body.compile(blk)
-
-          blk.pop_modifiers
-          blk.state.pop_block
-
-          blk.ret
-          blk.close
-          blk.pop_state
-
-          blk.splat_index = args.splat_index
-          blk.local_count = local_count
-          blk.local_names = local_names
-
-          g.create_block blk
-        end
-      end
+    class Branch < Block
+      include NodeLike
+      extend SentientNode
 
       children :body, :receiver, [:arguments], :block?
-      attributes :method_name, [:defn, "false"]
+      attributes :name
       generate
+
+      def implicit_arguments
+        [:@receiver, :arguments]
+      end
+
+      def implicit_patterns
+        [[:@receiver, receiver_pattern]]
+      end
 
       def argument_patterns
         @argument_patterns ||= @arguments.collect(&:to_pattern)
@@ -109,27 +28,57 @@ module Atomy
         @block && @block.to_pattern
       end
 
-      def compile_body(g)
-        Method.new(
-          @line,
-          @receiver,
-          [@body],
-          @arguments,
-          @method_name,
-          @block).create_block(g)
+      # differences from Block:
+      # - has a name
+      # - doesn't check arg length or whether they match
+      #   - this is handled by the main method that this is a branch of
+      def create_block(g)
+        pos(g)
 
-        # set the block's module so that super works
-        g.dup
-        g.push_literal :@module
+        state = g.state
+        state.scope.nest_scope self
 
-        if @defn
-          g.push_self
-        else
-          receiver_pattern.target(g)
-        end
+        args = make_arguments
 
-        g.send :instance_variable_set, 2
-        g.pop
+        blk = new_block_generator g, args
+        blk.name = @name
+
+        blk.push_state self
+
+        blk.state.push_super state.super
+        blk.state.push_eval state.eval
+
+        blk.definition_line(@line)
+
+        blk.state.push_name blk.name
+
+        pos(blk)
+
+        blk.state.push_block
+        blk.push_modifiers
+        blk.break = nil
+        blk.next = nil
+        blk.redo = blk.new_label
+        blk.redo.set!
+
+        args.bytecode(blk)
+
+        args.deconstruct_patterns(blk)
+
+        @body.compile(blk)
+
+        blk.pop_modifiers
+        blk.state.pop_block
+
+        blk.ret
+        blk.close
+        blk.pop_state
+
+        blk.splat_index = args.splat_index
+        blk.local_count = local_count
+        blk.local_names = local_names
+
+        g.create_block blk
       end
 
       def push_branch(g)
@@ -175,9 +124,37 @@ module Atomy
           g.push_nil
         end
 
-        compile_body(g)
+        create_block(g)
 
         g.send_with_block :new, 5
+      end
+    end
+
+    class Define < Branch
+      include NodeLike
+      extend SentientNode
+
+      children :body, :receiver, [:arguments], :block?
+      attributes :name, [:defn, "false"]
+      generate
+
+      alias method_name name
+
+      def create_block(g)
+        super
+
+        # set the block's module so that super works
+        g.dup
+        g.push_literal :@module
+
+        if @defn
+          g.push_self
+        else
+          receiver_pattern.target(g)
+        end
+
+        g.send :instance_variable_set, 2
+        g.pop
       end
 
       def bytecode(g)
@@ -190,7 +167,7 @@ module Atomy
         else
           receiver_pattern.target(g)
         end
-        g.push_literal @method_name
+        g.push_literal @name
 
         push_branch(g)
 
@@ -204,15 +181,40 @@ module Atomy
         g.push_literal @defn
         g.send :define_branch, 6
       end
+    end
 
-      def local_count
-        local_names.size
+    class Function < Branch
+      include NodeLike
+      extend SentientNode
+
+      children :body, [:arguments], :block?
+      attributes :name
+      generate
+
+      def receiver_pattern
+        Patterns::Any.new
       end
 
-      def local_names
-        argument_patterns.inject(receiver_pattern.local_names) do |acc, a|
-          acc + a.local_names
-        end
+      def bytecode(g)
+        pos(g)
+
+        var = Atomy.assign_local(g, :"#@name:function")
+        g.push_rubinius
+        g.find_const :BlockEnvironment
+        g.send :new, 0
+
+        g.push_variables
+
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.push_scope
+        g.push_literal @name
+        push_branch(g)
+        g.send :add_branch, 3
+        g.send :build, 0
+
+        g.send :under_context, 2
+        var.set_bytecode(g)
       end
     end
   end

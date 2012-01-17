@@ -11,8 +11,6 @@ ErrorPort = dynamic($stderr)
 x println := x tap: ^OutputPort puts(x to-s)
 x dump := x tap: ^OutputPort print(x to-s)
 
-export
-
 with-output-to((filename: String), mode = "w") &action :=
   let(OutputPort = File open(filename, mode)):
     action ensuring:

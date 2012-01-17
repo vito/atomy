@@ -112,8 +112,8 @@ Doc   <$$> Empty := self
 Doc   <$$> y     := self <> linebreak <> y
 
 -- helper for `best' by linearizing documents
-be(_, _, []) := SEmpty new
-be(w, k, [i, d] . ds) :=
+be(_, _, []) = SEmpty new
+be(w, k, [i, d] . ds) =
   d match:
     Empty      -> be(w, k, ds)
     Cat(x, y)  -> be(w, k, [[i, x], [i, y]] + ds)
@@ -165,8 +165,6 @@ Doc   empty? := false
 
 -- pretty-printing with a maximum width
 Doc render(width = 70) := best(width, 0) layout
-
-export
 
 -- trivial constructors
 empty := Empty new

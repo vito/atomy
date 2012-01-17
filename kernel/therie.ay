@@ -6,9 +6,9 @@ running-stats = dynamic
 
 data(Stats(@passed = 0, @failed = 0))
 
-indented(s) := " " * (^nesting-level * 2) + s
+indented(s) = " " * (^nesting-level * 2) + s
 
-colored(color, s) := do:
+colored(color, s) = do:
   unless(^io::OutputPort tty?):
     return(s)
 
@@ -25,8 +25,6 @@ colored(color, s) := do:
 
   i"\e[3#{codes index(color)}m#{s}\e[0m"
 
-
-export
 
 theorize &tests :=
   let(running-stats = Stats new):

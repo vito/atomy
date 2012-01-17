@@ -6,7 +6,7 @@ pretty = require("pretty")
 
 require("readline")
 
-basic-repl(bnd = TOPLEVEL_BINDING, debug = false) :=
+basic-repl(bnd = TOPLEVEL_BINDING, debug = false) =
   loop:
     prompt =
       with-restarts(use-prompt(p) -> p):
@@ -61,8 +61,6 @@ ReplDebugger = class:
           ^condition::Restarts [n to-i] invoke
 
         .quit -> exit(1)
-
-export
 
 repl(history = nil, bnd = nil, debug = false) := do:
   [mod, bnd] = Atomy make-wrapper-module
