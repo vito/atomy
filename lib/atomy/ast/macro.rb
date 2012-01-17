@@ -1,6 +1,9 @@
 module Atomy
   module AST
-    class Macro < Node
+    class Macro < Block
+      include NodeLike
+      extend SentientNode
+
       children :pattern, :body
       generate
 
@@ -16,8 +19,10 @@ module Atomy
 
         pos(g)
 
+        g.state.scope.nest_scope self
+
         blk = new_generator(g, :macro_definition)
-        blk.push_state Rubinius::AST::ClosedScope.new(@line)
+        blk.push_state self
 
         pos(blk)
 
