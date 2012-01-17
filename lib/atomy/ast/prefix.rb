@@ -6,9 +6,7 @@ module Atomy
       generate
 
       def bytecode(g)
-        pos(g)
-        @receiver.compile(g)
-        g.send message_name, 0
+        to_send.bytecode(g)
       end
 
       def message_name
@@ -17,6 +15,14 @@ module Atomy
 
       def macro_name
         :"atomy_macro::#{@operator}@"
+      end
+
+      def to_send
+        Send.new(
+          @line,
+          @receiver,
+          [],
+          message_name)
       end
     end
   end

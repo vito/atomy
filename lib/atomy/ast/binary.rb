@@ -1,15 +1,6 @@
 module Atomy
   module AST
     class Binary < Node
-      Operators = {
-        :+    => :meta_send_op_plus,
-        :-    => :meta_send_op_minus,
-        :==   => :meta_send_op_equal,
-        :===  => :meta_send_op_tequal,
-        :<    => :meta_send_op_lt,
-        :>    => :meta_send_op_gt
-      }
-
       children :lhs, :rhs
       attributes :operator, [:private, "false"]
       generate
@@ -17,17 +8,18 @@ module Atomy
       alias :message_name :operator
 
       def bytecode(g)
-        pos(g)
-        @lhs.compile(g)
-        @rhs.compile(g)
+        to_send.bytecode(g)
+      end
 
-        g.allow_private if @private
-
-        if meta = Operators[@operator]
-          g.__send__ meta, g.find_literal(@operator)
-        else
-          g.send @operator, 1
-        end
+      def to_send
+        Send.new(
+          @line,
+          @lhs,
+          [@rhs],
+          @operator,
+          nil,
+          nil,
+          @private)
       end
 
       def macro_name
