@@ -43,7 +43,7 @@ module Atomy
     end
 
     def macro_definer(pattern, body)
-      name = :_expand
+      name = pattern.macro_name
 
       Atomy::AST::Define.new(
         0,
@@ -78,16 +78,12 @@ module Atomy
         pattern.line)
     end
 
-    # overridden by macro definitions
-    def _expand(_)
-      nil
-    end
-
     def execute_macro(node)
-      _expand(node.copy)
+      meth = node.macro_name
+      send(meth, node.copy) if respond_to? meth
     rescue Atomy::MethodFail => e
       # TODO: make sure this is never a false-positive
-      raise unless e.method_name == :_expand
+      raise unless e.method_name == meth
     end
 
     def expand_using(node)

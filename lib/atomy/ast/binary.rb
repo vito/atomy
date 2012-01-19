@@ -23,7 +23,7 @@ module Atomy
       end
 
       def macro_name
-        :"atomy_macro::#{@operator}"
+        :"_expand_#{@operator}"
       end
     end
   end

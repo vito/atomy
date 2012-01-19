@@ -466,7 +466,7 @@ EOF
       end
 
       def macro_name
-        nil
+        :"_expand_#{self.class.name.split("::").last}"
       end
 
       def to_word

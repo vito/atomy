@@ -18,7 +18,7 @@ module Atomy
       end
 
       def macro_name
-        :"atomy_macro::@#{@text}"
+        :"_expand_#{@text}"
       end
 
       def to_send

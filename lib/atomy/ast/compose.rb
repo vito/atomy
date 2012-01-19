@@ -37,11 +37,6 @@ module Atomy
             word && word.text)
         end
       end
-
-      def macro_name
-        return :"atomy_macro::#{@right.text}" if @right.is_a? Word
-        @right.macro_name || @left.macro_name
-      end
     end
   end
 end

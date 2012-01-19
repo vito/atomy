@@ -28,11 +28,5 @@ module Atomy::AST
         nil,
         true)
     end
-
-    def macro_name
-      word = @name.to_word
-      return :"atomy_macro::#{word.text}" if word
-      @name.macro_name
-    end
   end
 end
