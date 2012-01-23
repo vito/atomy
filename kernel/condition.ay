@@ -9,8 +9,11 @@ use("array")
 use("dynamic")
 io = use("io")
 
+data(Handler(@callback, @rest = nil)):
+  BaseHandler()
+
 -- registered handlers/restarts
-Handlers = dynamic([])
+Handlers = dynamic(BaseHandler new)
 Restarts = dynamic([])
 
 catcher(x) = ."restart:#{define message-name(x)}"
@@ -50,7 +53,7 @@ EndOfFile message := "unexpected end-of-file for " + @port show
 macro(~body bind { ~*handlers }):
   names [a]:
     callback = `([~a]: ~a match: ~*handlers)
-    `(let(Handlers = ~callback . ^Handlers):
+    `(let(Handlers = Handler new(~callback, ^Handlers)):
         ~body rescue:
           (e: StandardError) -> error(e))
 
@@ -79,16 +82,13 @@ restart(name, *args) := do:
   error(NoRestartError new(name))
 
 
-signal(c) := do:
-  hs = ^Handlers dup
+BaseHandler signal(_) := nil
+Handler(callback, rest) signal(c) :=
+  let(Handlers = rest):
+    callback [c]
+    rest signal(c)
 
-  until(hs empty?):
-    callback = hs shift
-    let(Handlers = hs):
-      callback [c]
-
-  nil
-
+signal(c) := ^Handlers signal(c)
 
 error(x) := do:
   e =
