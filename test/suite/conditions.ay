@@ -18,13 +18,13 @@ describe("condition"):
       x should-be(0)
 
     it("goes through all handlers, nearest-first"):
-      x = Array[]
+      x = []
       { { signal(.foo) } bind:
           .foo -> x << 1
       } bind:
         .foo -> x << 2
 
-      x should-be(Array[1, 2])
+      x should-be([1, 2])
 
     it("does not trigger active handlers"):
       a = 0
@@ -59,7 +59,7 @@ describe("condition"):
           should-be(42)
 
     it("may be nested"):
-      a = Array[]
+      a = []
       r = {
         r2 =
           with-restarts(use-value(v) -> do { a << 2, v }):
@@ -69,7 +69,7 @@ describe("condition"):
 
             raise("outer: should be unreachable")
 
-        a should-be(Array[1, 2])
+        a should-be([1, 2])
         r2 should-be(42)
         a << 4
         5
@@ -78,7 +78,7 @@ describe("condition"):
           a << 1
           restart(.use-value, 42)
 
-      a should-be(Array[1, 2, 4])
+      a should-be([1, 2, 4])
       r should-be(5)
 
     it("calls the nearest restart if more than one have the same name"):

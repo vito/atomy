@@ -196,9 +196,9 @@ macro(grammar: ~*body): names [g]:
 
 
 macro(parser(~name): ~*grammar):
-  let(Actions = Array[],
-      Setups = Array[],
-      Vars = Array[]):
+  let(Actions = [],
+      Setups = [],
+      Vars = []):
     g = `(grammar: ~*grammar) evaluate
 
     acts =

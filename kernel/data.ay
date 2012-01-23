@@ -10,7 +10,7 @@ define-class(root, `(~n { ~*cs })) =
 define-class(root, x: `(~(name)(~*as))) =
   define-class(root, `(~x {}))
 define-class(root, `(~(name)(~*as): ~*cs)) = do:
-  attrs = Array[]
+  attrs = []
   as each [a]:
     a through-quotes [x]:
       x match:
