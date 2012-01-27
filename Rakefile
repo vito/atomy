@@ -1,37 +1,48 @@
-task :default => :test
+$LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
+require "atomy/version"
+ 
+desc "Run the specs and tests."
+task :default => [:spec, :test]
 
+desc "Build a new gem."
+task :build do
+  system "gem build atomy.gemspec"
+end
+ 
+desc "Build and install Atomy."
+task :install => :build do
+  system "gem install atomy-#{Atomy::VERSION}"
+end
+
+desc "Uninstall Atomy."
+task :uninstall do
+  system "gem uninstall atomy --executables"
+end
+
+desc "Uninstall and then install Atomy."
+task :reinstall => [:uninstall, :install]
+
+desc "Push a new Atomy version."
+task :release => :build do
+  system "gem push atomy-#{Atomy::VERSION}"
+end
+
+desc "Regenrate parser."
 task :parser do
-  sh "kpeg -f -s lib/atomy/atomy.kpeg"
+  system "kpeg -f -s lib/atomy/atomy.kpeg"
 end
 
-task :formatter do
-  sh "kpeg -f -s lib/atomy/formatter.kpeg"
-end
-
+desc "Clean up .ayc files."
 task :clean do
-  sh "find . -name '*.ayc' -delete"
+  system "find . -name '*.ayc' -delete"
 end
 
-task :install do
-  sh "rm *.gem; rbx -S gem uninstall atomy; rbx -S gem build atomy.gemspec; rbx -S gem install atomy-*.gem --no-ri --no-rdoc"
-end
-
-task :reference do
-  sh "rbx -X19 ./bin/atomy -d docs/reference -s exit"
-end
-
-task :docs do
-  sh "rbx -X19 ./bin/atomy ../doodle/bin/doodle docs/index.ddl -o _doodle"
-end
-
-task :sync_docs do
-  sh "rsync -a -P -e \"ssh -p 7331\" _doodle/ alex@atomy-lang.org:/srv/http/atomy-lang.org/site/docs/"
-end
-
+desc "Run the lower-level specs."
 task :spec do
-  sh "rbx spec/main.rb"
+  system "rbx spec/main.rb"
 end
 
-task :test => :spec do
-  sh "rbx -X19 ./bin/atomy test/main.ay"
+desc "Run the higher-level tests."
+task :test do
+  system "rbx -X19 ./bin/atomy test/main.ay"
 end
