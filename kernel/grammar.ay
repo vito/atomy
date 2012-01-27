@@ -56,11 +56,16 @@ process-val(g, `(~a | ~b)) =
   process-val(g, `[~a, ~b])
 
 process-val(g, `[~*xs]) = do:
-  vars = ^rule-vars dup
+  original = ^rule-vars
+  new = Set new
   choices =
     xs collect [x]:
-      let(rule-vars = vars dup):
-        process-val(g, x)
+      let(rule-vars = original dup):
+        choice = process-val(g, x)
+        new merge(^rule-vars - original)
+        choice
+
+  ^rule-vars merge(new)
 
   `(~g any(~*choices))
 
