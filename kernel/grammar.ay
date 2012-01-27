@@ -9,11 +9,11 @@ use("node")
 require("kpeg")
 require("set")
 
-Actions = dynamic
-Setups = dynamic
-Vars = dynamic
-Rule = dynamic
-RuleVars = dynamic
+actions = dynamic
+setups = dynamic
+vars = dynamic
+rule = dynamic
+rule-vars = dynamic
 
 const-name(c: Atomy::AST::Constant) = c name to-s
 const-name(c: Atomy::AST::ScopedConstant) = const-name(c parent) + "::" + c name to-s
@@ -41,12 +41,12 @@ process-val(g, `(~a %((~grammar).) ~x)) = do:
 
 process-val(g, `((~v)= ~name)) = do:
   val = process-val(g, v)
-  when(^RuleVars): ^RuleVars << name text
+  when(^rule-vars): ^rule-vars << name text
   `(~g t(~val, ~(name text to-s)))
 
 process-val(g, `(~a (~v)= ~name)) = do:
   val = process-val(g, v)
-  when(^RuleVars): ^RuleVars << name text
+  when(^rule-vars): ^rule-vars << name text
   `(~g seq(~process-val(g, a), ~g t(~val, ~(name text to-s))))
 
 process-val(g, `(~a ~b)) =
@@ -56,27 +56,27 @@ process-val(g, `(~a | ~b)) =
   process-val(g, `[~a, ~b])
 
 process-val(g, `[~*xs]) = do:
-  vars = ^RuleVars dup
+  vars = ^rule-vars dup
   choices =
     xs collect [x]:
-      let(RuleVars = vars dup):
+      let(rule-vars = vars dup):
         process-val(g, x)
 
   `(~g any(~*choices))
 
 process-val(g, a: `{ ~*bs }) =
-  if(^Actions)
+  if(^actions)
     then:
-      vars = ^RuleVars to-a
-      call = "actions[" + ^Actions size to-s + "][" + vars collect .to-s join(", ") + "]"
-      ^Actions << [a, vars]
+      vars = ^rule-vars to-a
+      call = "actions[" + ^actions size to-s + "][" + vars collect .to-s join(", ") + "]"
+      ^actions << [a, vars]
       `(~g action(~call))
     else:
       `(~g action({ ~*bs }))
 
 process-val(g, `(<(~x)>)) = do:
   val = process-val(g, x)
-  when(^RuleVars): ^RuleVars << .text
+  when(^rule-vars): ^rule-vars << .text
   `(~g collect(~val))
 
 process-val(g, `(@<(~x)>)) =
@@ -154,10 +154,10 @@ macro(grammar: ~*body): names [g]:
     n match:
       `%%{ ~*xs } -> do:
         call =
-          if(^Setups)
+          if(^setups)
             then:
-              ^Setups << `{ ~*xs }
-              "setups[" + (^Setups size - 1) to-s + "][]"
+              ^setups << `{ ~*xs }
+              "setups[" + (^setups size - 1) to-s + "][]"
             else:
               `{ ~*xs }
 
@@ -169,25 +169,25 @@ macro(grammar: ~*body): names [g]:
       `(%~name = ~expr) -> do:
         -- TODO: fix this, yo
         call =
-          if(^Vars)
+          if(^vars)
             then:
-              ^Vars << `{ ~*xs }
-              "vars[" + (^Vars size - 1) to-s + "][]"
+              ^vars << `{ ~*xs }
+              "vars[" + (^vars size - 1) to-s + "][]"
             else:
               `{ ~*xs }
 
         `(~g set-variable(~(name text to-s), call))
 
       `(~(name)(~*args) := ~val) -> do:
-        let(Rule = name text,
-            RuleVars = ::Set new(args collect .text)):
+        let(rule = name text,
+            rule-vars = ::Set new(args collect .text)):
           `(~g set(~(name text to-s)
                    ~process-val(g, val)
                    ~(args collect [x]: x text to-s)))
 
       `(~name := ~val) -> do:
-        let(Rule = name text,
-            RuleVars = ::Set new):
+        let(rule = name text,
+            rule-vars = ::Set new):
           `(~g set(~(name text to-s), ~process-val(g, val)))
 
       _ -> `unknown(~n)
@@ -196,13 +196,13 @@ macro(grammar: ~*body): names [g]:
 
 
 macro(parser(~name): ~*grammar):
-  let(Actions = [],
-      Setups = [],
-      Vars = []):
+  let(actions = [],
+      setups = [],
+      vars = []):
     g = `(grammar: ~*grammar) evaluate
 
     acts =
-      ^Actions collect [action, as]:
+      ^actions collect [action, as]:
         args = as collect [a]: Atomy::AST::Word new(0, a)
         `([~*args] ~action)
 
@@ -213,8 +213,8 @@ macro(parser(~name): ~*grammar):
 
     `(do:
         ~name = ::KPeg::CompiledParser class:
-          { self } setups := @setups ||= ~^Setups
-          { self } vars := @vars ||= ~^Vars
+          { self } setups := @setups ||= ~^setups
+          { self } vars := @vars ||= ~^vars
 
           actions := @actions ||= ~acts
 
