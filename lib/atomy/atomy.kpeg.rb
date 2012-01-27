@@ -425,7 +425,7 @@ class Atomy::Parser
   end
 
   def set_lang(n)
-    @_grammar_lang = require("#{n}/language/parser").new(nil)
+    @_grammar_lang = require("#{n}/language/parser")::Parser.new(nil)
   end
 
 
