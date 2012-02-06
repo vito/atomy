@@ -33,17 +33,26 @@ define-class(root, `(~(name)(~*as): ~*cs)) = do:
 
   parent = root or 'Object
 
-  `(do:
-      ~name = ~parent class:
-        attr-accessor(
-          ~*(attrs collect [a]:
-              `.~(a receiver)))
+  names [copy]:
+    `(do:
+        ~name = ~parent class:
+          attr-accessor(
+            ~*(attrs collect [a]:
+                `.~(a receiver)))
 
-        initialize(~*as) := nil
+          initialize(~*as) := nil
 
-      ~pat-def
+          copy := do:
+            ~copy = super
 
-      ~*(cs collect [c]: define-class(name, c)))
+            ~*(attrs collect [a]:
+                `(~copy ~(a receiver) = ~a copy)
+
+            ~copy)
+
+        ~pat-def
+
+        ~*(cs collect [c]: define-class(name, c)))
 
 macro(data ~(children: Block)):
   `(Object data: ~children)

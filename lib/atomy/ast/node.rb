@@ -281,11 +281,11 @@ EOF
 
         copyreq_as =
           (@attributes[:required] + @attributes[:many]).collect { |a|
-            ", Atomy.copy(@#{a})"
+            ", @#{a}.copy"
           }.join
 
         copyopt_as = @attributes[:optional].collect { |a, _|
-            ", Atomy.copy(@#{a})"
+            ", @#{a}.copy"
           }.join
 
         copyreq_cs =

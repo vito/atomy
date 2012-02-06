@@ -64,15 +64,6 @@ module Atomy
     end
   end
 
-  def self.copy(x)
-    case x
-    when Symbol, Integer, true, false, nil
-      x
-    else
-      x.dup
-    end
-  end
-
   def self.unquote_splice(n)
     n.collect do |x|
       x = x.to_node
