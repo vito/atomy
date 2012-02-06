@@ -46,12 +46,21 @@ define-class(root, `(~(name)(~*as): ~*cs)) = do:
       ~*(cs collect [c]: define-class(name, c)))
 
 macro(data ~(children: Block)):
-  `(data(Object) ~children)
+  `(Object data: ~children)
 
-macro(data(~root)):
-  `(data(~root) {})
+macro(data(~x)):
+  `(Object data(~x) {})
 
-macro(data(~(root = 'Object)) ~(children: Block)):
+macro(data(~parent): ~*children):
+  `(Object data(~parent): ~*children)
+
+macro(~root data: ~*children):
   `(do:
-      ~(define-class(nil, `(~(root) ~children)))
+      ~*(children collect [c]:
+          define-class(root, c))
+      nil)
+
+macro(~root data(~parent): ~*children):
+  `(do:
+      ~(define-class(root, `(~(parent): ~*children)))
       nil)
