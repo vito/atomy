@@ -46,9 +46,9 @@ define-class(root, `(~(name)(~*as): ~*cs)) = do:
             ~copy = super
 
             ~*(attrs collect [a]:
-                `(~copy ~(a receiver) = ~a copy)
+                `(~copy ~(a receiver) = ~a copy))
 
-            ~copy)
+            ~copy
 
         ~pat-def
 
