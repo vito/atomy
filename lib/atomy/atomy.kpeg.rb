@@ -759,11 +759,19 @@ class Atomy::Parser
     return _tmp
   end
 
-  # op_letter = < /[\p{S}!@#%&*\-\\.\/\?]/u > { text.to_sym }
+  # op_letter = !"`" < /[\p{S}!@#%&*\-\\.\/\?]/u > { text.to_sym }
   def _op_letter
 
     _save = self.pos
     while true # sequence
+      _save1 = self.pos
+      _tmp = match_string("`")
+      _tmp = _tmp ? nil : true
+      self.pos = _save1
+      unless _tmp
+        self.pos = _save
+        break
+      end
       _text_start = self.pos
       _tmp = scan(/\A(?-mix:[\p{S}!@#%&*\-\\.\/\?])/u)
       if _tmp
@@ -785,7 +793,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # operator = < !/[~`]/ ":"? op_letter+ > { text.to_sym }
+  # operator = < !"~" ":"? op_letter+ > { text.to_sym }
   def _operator
 
     _save = self.pos
@@ -795,7 +803,7 @@ class Atomy::Parser
       _save1 = self.pos
       while true # sequence
         _save2 = self.pos
-        _tmp = scan(/\A(?-mix:[~`])/)
+        _tmp = match_string("~")
         _tmp = _tmp ? nil : true
         self.pos = _save2
         unless _tmp
@@ -3940,8 +3948,8 @@ class Atomy::Parser
   Rules[:_shebang] = rule_info("shebang", "\"\#!\" /.*?$/")
   Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })? | &.)")
   Rules[:_line] = rule_info("line", "{ current_line }")
-  Rules[:_op_letter] = rule_info("op_letter", "< /[\\p{S}!@\#%&*\\-\\\\.\\/\\?]/u > { text.to_sym }")
-  Rules[:_operator] = rule_info("operator", "< !/[~`]/ \":\"? op_letter+ > { text.to_sym }")
+  Rules[:_op_letter] = rule_info("op_letter", "!\"`\" < /[\\p{S}!@\#%&*\\-\\\\.\\/\\?]/u > { text.to_sym }")
+  Rules[:_operator] = rule_info("operator", "< !\"~\" \":\"? op_letter+ > { text.to_sym }")
   Rules[:_identifier] = rule_info("identifier", "< /[\\p{Ll}_][\\p{L}\\d\\-_]*/u > { text.tr(\"-\", \"_\").to_sym }")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
   Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")
