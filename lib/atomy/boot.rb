@@ -1,4 +1,4 @@
-base = File.expand_path "../atomy", __FILE__
+base = File.expand_path "../", __FILE__
 
 module Atomy
   def self.load(*as)
@@ -6,7 +6,7 @@ module Atomy
   end
 
   def self.load_kernel
-    require(File.expand_path("../../kernel/boot", __FILE__))
+    require(File.expand_path("../../../kernel/boot", __FILE__))
   end
 end
 
