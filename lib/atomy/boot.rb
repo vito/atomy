@@ -1,4 +1,8 @@
 base = File.expand_path "../", __FILE__
+kernel = File.expand_path "../../../kernel/", __FILE__
+
+$LOAD_PATH.unshift kernel
+
 
 module Atomy
   def self.load(*as)

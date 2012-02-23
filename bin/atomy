@@ -6,16 +6,11 @@ unless Rubinius.ruby19?
   exit(1)
 end
 
-base = File.expand_path "../../lib/", __FILE__
-kernel = File.expand_path "../../kernel/", __FILE__
-
-$LOAD_PATH.unshift kernel
-
 require 'readline'
 require 'optparse'
 require 'profiler'
 
-require base + "/atomy"
+require File.expand_path("../../lib/atomy/boot", __FILE__)
 
 options = {}
 
