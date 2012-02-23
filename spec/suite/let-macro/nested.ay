@@ -1,3 +1,4 @@
+use("core")
 use("define")
 use("meta")
 
