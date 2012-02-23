@@ -407,15 +407,15 @@ EOF
           case c
           when Array
             drawn = c.collect { |n| n.draw(depth + 2) }
-            "#{i}  #{n} = [\n#{drawn.join "\n"}\n#{i}  ]"
+            "\n#{i}  #{n} = [\n#{drawn.join "\n"}\n#{i}  ]"
           when nil
-            "#{i}  #{n} = nil"
+            "\n#{i}  #{n} = nil"
           else
-            "#{i}  #{n} =\n#{c.draw(depth + 2)}"
+            "\n#{i}  #{n} =\n#{c.draw(depth + 2)}"
           end
         end
 
-        "#{i}#{name} #{attrs.join " "}\n#{childs.join "\n"}"
+        "#{i}#{name} #{attrs.join " "}#{childs.join}"
       end
 
       def get(g)
