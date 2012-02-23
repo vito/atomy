@@ -359,7 +359,9 @@ module Atomy
 
   # define a new method branch
   def self.define_branch(target, name, branch, visibility, scope, defn)
-    add_method(target, name, add_branch(target, name, branch), visibility)
+    add_method(target, name, add_branch(target, name, branch), visibility).tap do
+      target.module_function name if target.is_a?(Atomy::Module)
+    end
   end
 
   def self.dynamic_branch(target, name, branch, visibility = :public,

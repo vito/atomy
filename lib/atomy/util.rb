@@ -119,10 +119,6 @@ module Atomy
       g.push_self
       g.add_scope
 
-      g.push_self
-      g.send :module_function, 0
-      g.pop
-
       g.push_variables
       g.push_scope
       g.make_array 2

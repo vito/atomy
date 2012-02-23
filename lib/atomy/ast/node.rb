@@ -563,10 +563,6 @@ EOF
 
           g.state.push_name @name
 
-          g.push_self
-          g.send :module_function, 0
-          g.pop
-
           @body.bytecode g
 
           g.state.pop_name
