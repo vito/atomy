@@ -71,7 +71,7 @@ module Atomy
         name)
     end
 
-    def define_macro(pattern, body, file)
+    def define_macro(pattern, body, file = @file)
       macro_definer(pattern, body).evaluate(
         Binding.setup(
           TOPLEVEL_BINDING.variables,
