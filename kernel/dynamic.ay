@@ -9,8 +9,9 @@ use("array")
 Dynvar = class:
   initialize(@name, @default = nil) := nil
 
-^Dynvar := Thread current [@name] or @default
-Dynvar set(x) := Thread current [@name] = x
+^Dynvar := get or @default
+Dynvar get := Thread current[@name]
+Dynvar set(x) := Thread current[@name] = x
 
 macro(dynamic): `dynamic()
 macro(dynamic(~(root = 'nil))):
@@ -20,7 +21,7 @@ macro(dynamic(~(root = 'nil))):
 macro(let(~*bindings) { ~*body }):
   tmps = bindings zip(names(bindings size))
 
-  save = `(~tmp = ^~n) for [`(~n = ~_), tmp] in tmps
+  save = `(~tmp = ~n get) for [`(~n = ~_), tmp] in tmps
 
   set = `(~n set(~v)) for `(~n = ~v) in bindings
 
