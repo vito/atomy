@@ -46,7 +46,14 @@ module Atomy::Patterns
 
   class Predicate
     def <=>(other)
-      1
+      case other
+      when Match, Literal, Quote
+        -1
+      when self.class
+        0
+      else
+        1
+      end
     end
   end
 
