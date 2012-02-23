@@ -2,6 +2,10 @@ module Atomy
   class Module < ::Module
     attr_accessor :file, :delegate
 
+    def inspect
+      "\#<Atomy::Module '#{name}'>"
+    end
+
     def make_send(node)
       node.to_send
     end
