@@ -1358,15 +1358,12 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level4 = (language | macro | binary | level3)
+  # level4 = (language | binary | level3)
   def _level4
 
     _save = self.pos
     while true # choice
       _tmp = apply(:_language)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_macro)
       break if _tmp
       self.pos = _save
       _tmp = apply(:_binary)
@@ -1531,71 +1528,6 @@ class Atomy::Parser
     end # end choice
 
     set_failed_rule :_number unless _tmp
-    return _tmp
-  end
-
-  # macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b { Atomy::AST::Macro.new(line, p, b.body) }
-  def _macro
-
-    _save = self.pos
-    while true # sequence
-      _tmp = apply(:_line)
-      line = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = match_string("macro")
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = match_string("(")
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_expression)
-      p = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = match_string(")")
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_block)
-      b = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  Atomy::AST::Macro.new(line, p, b.body) ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_macro unless _tmp
     return _tmp
   end
 
@@ -3963,9 +3895,8 @@ class Atomy::Parser
   Rules[:_level1] = rule_info("level1", "(call | grouped | level0(true))")
   Rules[:_level2] = rule_info("level2", "(scoped_constant | postfix | level1)")
   Rules[:_level3] = rule_info("level3", "(compose | level2)")
-  Rules[:_level4] = rule_info("level4", "(language | macro | binary | level3)")
+  Rules[:_level4] = rule_info("level4", "(language | binary | level3)")
   Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
-  Rules[:_macro] = rule_info("macro", "line:line \"macro\" \"(\" wsp expression:p wsp \")\" wsp block:b { Atomy::AST::Macro.new(line, p, b.body) }")
   Rules[:_language] = rule_info("language", "\"\#language\" wsp identifier:n { set_lang(n) } %lang.root")
   Rules[:_quote] = rule_info("quote", "line:line \"'\" level2:e { Atomy::AST::Quote.new(line, e) }")
   Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level2:e { Atomy::AST::QuasiQuote.new(line, e) }")

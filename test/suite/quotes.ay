@@ -2,17 +2,18 @@ use("core")
 use("define")
 use("therie")
 
+macro(q-foo-0): '42
+macro(q-foo-1): '['2, '3]
+
 describe("quasiquotation"):
   it("constructs an expression"):
     `1 should-be('1)
     `(1 + 1) should-be('(1 + 1))
 
   it("expands through unquotes"):
-    macro(q-foo-0): '42
     `(1 + ~q-foo-0) should-be('(1 + 42))
 
   it("expands through splice unquotes"):
-    macro(q-foo-1): '['2, '3]
     `[1, ~*q-foo-1] should-be('[1, 2, 3])
 
   describe("unquotes"):

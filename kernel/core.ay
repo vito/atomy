@@ -1,21 +1,21 @@
 infix("=", 10, "right")
 infix("?", 30, "right")
 
--- a macro so we can actually, you know, send messages
-macro(~_ ~(? to-word)): make-send(node)
+-- a few macros so we can actually, you know, send messages
+define-macro('(~_ ~(? to-word)), 'make-send(node))
+define-macro('(~_ ~(? to-word)(~*_)), 'make-send(node))
+define-macro('(~(? to-word)(~*_)), 'make-send(node))
 
-macro(~_ ~(? to-word)(~*_)): make-send(node)
+-- a macro for defining macros!
+define-macro('(macro(~pat) ~(body: Block)), '(Macro new(node line, pat, body body)))
 
-macro(~(? to-word)(~*_)): node to-send
-
+-- pseudo-variables
 macro(nil): Primitive new(node line, "nil" to-sym)
-
 macro(self): Primitive new(node line, "self" to-sym)
-
 macro(true): Primitive new(node line, "true" to-sym)
-
 macro(false): Primitive new(node line, "false" to-sym)
 
+-- assignment/pattern-matching
 macro(~x = ~y): Assign new(node line, x to-pattern to-node, y)
 
 -- [x, y] { x + y }

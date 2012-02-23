@@ -10,13 +10,6 @@ module Atomy
       attr_writer :evaluated
 
       def bytecode(g)
-        unless @evaluated
-          Atomy::CodeLoader.module.define_macro(
-            @pattern,
-            @body,
-            Atomy::CodeLoader.compiling)
-        end
-
         pos(g)
 
         g.state.scope.nest_scope self

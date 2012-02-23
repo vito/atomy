@@ -24,8 +24,8 @@ Atomy::AST open:
     { Atomy::CodeLoader module = mod
       Atomy::CodeLoader context = bnd
 
-      @macros each [m]:
-        mod define-macro(m pattern, m body, Atomy::CodeLoader compiling)
+      @macros each [`(~pat = ~exp)]:
+        mod define-macro(pat, exp, Atomy::CodeLoader compiling)
 
       body compile(g)
     } ensuring:
@@ -33,8 +33,4 @@ Atomy::AST open:
       Atomy::CodeLoader context = before-ctx
 
 macro(let-macro(~*ms) ~(b: Block)):
-  LetMacro new(
-    node line
-    b body
-    ms collect [`(~p = ~b)]:
-      `(macro(~p): ~b))
+  LetMacro new(node line, b body, ms)

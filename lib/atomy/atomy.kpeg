@@ -127,7 +127,6 @@
          level3 = compose
                 | level2
          level4 = language
-                | macro
                 | binary
                 | level3
 
@@ -141,9 +140,6 @@
                     { Atomy::AST::Literal.new(line, text.to_f) }
                 | line:line < /[\+\-]?\d+/ >
                     { Atomy::AST::Primitive.new(line, text.to_i) }
-
-          macro = line:line "macro" "(" wsp expression:p wsp ")" wsp block:b
-                    { Atomy::AST::Macro.new(line, p, b.body) }
 
        language = "#language" wsp identifier:n { set_lang(n) } %lang.root
 

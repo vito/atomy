@@ -4,23 +4,57 @@ use("meta")
 use("control-flow")
 use("therie")
 
+macro(~x m-foo-1): names [x]: `'~x
+
+macro(~x m-foo-2): names [x]: `'([~x]: 1)
+
+macro(~x m-foo-3): names [x]: `'(foo(~x) := 1)
+
+macro(~a m-foo-4): node line
+
+macro(~Block m-foo-7): '1
+macro(~Word m-foo-7): '2
+macro(~Primitive m-foo-7): '3
+
+macro((~x + 1) m-foo-8): `[~x, 1]
+
+macro((~x + 1) m-foo-9): `1
+macro(~Binary m-foo-9): `2
+
+macro(~Binary m-foo-10): `2
+macro((~x + 1) m-foo-10): `1
+
+macro(~x m-foo-11): `(macro(~x): '42)
+(1 m-foo-110) m-foo-11
+
+macro([~x, ~y] m-foo-12): `(macro(~x): '(macro(~y): '42))
+[1 m-foo-120, 1 m-foo-121] m-foo-12
+1 m-foo-120
+
+macro(m-foo-18(~_)): '1
+macro(m-foo-18(~_, ~_)): '2
+
+macro(m-foo-19(~_, ~_)): '2
+macro(m-foo-19(~_)): '1
+
+macro(m-foo-25): '1
+
+macro(default-having(~(x = '42))): x
+
 describe("macros"):
   describe("unique name generation"):
     it("creates names via #names"):
-      macro(~x m-foo-1): names [x]: `'~x
       var-1 = 1 m-foo-1
       var-2 = 2 m-foo-1
       var-1 should-be(var-1)
       var-1 should: != var-2
 
     it("decorates through block patterns"):
-      macro(~x m-foo-2): names [x]: `'([~x]: 1)
       var-1 = 1 m-foo-2
       var-1 should-be(var-1)
       1 m-foo-2 should: != 2 m-foo-2
 
     it("decorates through definition patterns"):
-      macro(~x m-foo-3): names [x]: `'(foo(~x) := 1)
       var-1 = 1 m-foo-3
       var-1 should-be(var-1)
       1 m-foo-3 should: != 2 m-foo-3
@@ -28,7 +62,6 @@ describe("macros"):
   -- TODO: change these to spec #node instead
   describe("line information"):
     it("is provided during macroexpansion via #line"):
-      macro(~a m-foo-4): node line
       1 m-foo-4 should-be(_LINE)
       2 m-foo-4 should-be(_LINE)
 
@@ -40,56 +73,33 @@ describe("macros"):
 
   describe("macro definition"):
     it("can pattern-match node types via constants"):
-      macro(~Block m-foo-7): '1
-      macro(~Word m-foo-7): '2
-      macro(~Primitive m-foo-7): '3
-
       : 1 ; m-foo-7 should-be(1)
       x m-foo-7 should-be(2)
       1 m-foo-7 should-be(3)
 
     it("can destructurually pattern-match expressions"):
-      macro((~x + 1) m-foo-8): `[~x, 1]
       (2 + 1) m-foo-8 should-be([2, 1])
 
     it("matches destructuring before constants"):
-      macro((~x + 1) m-foo-9): `1
-      macro(~Binary m-foo-9): `2
-
-      macro(~Binary m-foo-10): `2
-      macro((~x + 1) m-foo-10): `1
-
       (2 + 1) m-foo-9 should-be(1)
       (2 + 1) m-foo-10 should-be(1)
 
     it("can specify defaults for arguments"):
-      macro(default-having(~(x = '42))): x
       default-having() should-be(42)
       default-having(41) should-be(41)
 
     it("can define macros in their expansion"):
-      macro(~x m-foo-11): `(macro(~x): '42)
-      (1 m-foo-110) m-foo-11
       1 m-foo-110 should-be(42)
       : 2 m-foo-110 ; should-raise(NoMethodError)
 
     it("can define macros that define macros in their expansion in their expansion"):
-      macro([~x, ~y] m-foo-12): `(macro(~x): '(macro(~y): '42))
-      [1 m-foo-120, 1 m-foo-121] m-foo-12
-      1 m-foo-120
       1 m-foo-121 should-be(42)
       : 2 m-foo-121 ; should-raise(NoMethodError)
 
     describe("varying argument lengths"):
       it("tries higher required argument counts first"):
-        macro(m-foo-18(~_)): '1
-        macro(m-foo-18(~_, ~_)): '2
-
         m-foo-18(1) should-be(1)
         m-foo-18(1, 2) should-be(2)
-
-        macro(m-foo-19(~_, ~_)): '2
-        macro(m-foo-19(~_)): '1
 
         m-foo-19(1) should-be(1)
         m-foo-19(1, 2) should-be(2)
@@ -130,8 +140,6 @@ describe("macros"):
         m-foo-24 should-be([0, 1])
 
     it("overrides non-let'd macros"):
-      macro(m-foo-25): '1
-
       let-macro(m-foo-25 = '2):
         m-foo-25 should-be(2)
 
