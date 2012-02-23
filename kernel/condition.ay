@@ -7,7 +7,8 @@ use("interpolation")
 use("array")
 
 use("dynamic")
-io = use("io")
+
+io = require("io")
 
 data(Handler(@callback, @rest = nil)):
   BaseHandler()
@@ -126,7 +127,7 @@ warning(x) :=
     signal(w)
 
     with-output-to(^io::ErrorPort):
-      (w name + ": " + w message) println
+      puts(w name + ": " + w message)
 
     nil
 
@@ -134,27 +135,25 @@ warning(x) :=
 DefaultDebugger = class:
   singleton:
     define(show-error-banner(e)):
-      ("-" * 78) println
-      (e name + ": " + e message) each-line [l]:
-        ("*** " + l) display
-
-      "\n" display
+      puts("-" * 78)
+      (e name + ": " + e message) split("\n") each [l]:
+        puts("*** " + l)
 
     define(show-options-for(e)):
       when(^Restarts empty?):
         exit(1)
 
-      "\n" display
-      "restarts:" println
+      puts("")
+      puts("restarts:")
       ^Restarts each-with-index [r, i]:
-        ("  :" + i to-s + " -> " + r name to-s) println
+        puts("  :" + i to-s + " -> " + r name to-s)
 
     define(run(e)):
       show-error-banner(e)
 
       show-options-for(e)
 
-      "!> " display
+      print("!> ")
       ^Restarts [gets to-i] invoke
 
 Debugger = dynamic(DefaultDebugger)

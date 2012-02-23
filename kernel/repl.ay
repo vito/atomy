@@ -41,7 +41,7 @@ basic-repl(bnd = TOPLEVEL_BINDING, debug = false) =
 ReplDebugger = class:
   singleton:
     show-backtrace(e) := do:
-      Rubinius::Backtrace backtrace(e backtrace) show println
+      puts(Rubinius::Backtrace backtrace(e backtrace) show)
       debug(e)
 
     run(e) := do:
@@ -96,10 +96,10 @@ repl(history = nil, bnd = nil, debug = false) := do:
         .input(str) -> (sane-history << str)
 
         .special("h") ->
-          ":h\thelp" println
+          puts(":h\thelp")
 
         .evaluated(r) ->
-          (text(" =>") <+> r pretty) render(76) println
+          puts((text(" =>") <+> r pretty) render(76))
   } ensuring:
     Atomy::CodeLoader module = before-mod
     Atomy::CodeLoader context = before-bnd

@@ -11,7 +11,7 @@ use("undefined")
 
 use("dynamic")
 doc = use("doc")
-io = use("io")
+io = require("io")
 
 Printing = dynamic([])
 Multiline = dynamic(false)
@@ -79,7 +79,8 @@ Object show :=
   let(Colored = false):
     pretty flatten render
 
-x write := x tap: ^OutputPort puts(x show)
+puts(x) := x tap: ^OutputPort puts(x show)
+print(x) := x tap: ^OutputPort print(x show)
 
 Object pretty-doc := text(inspect)
 String pretty-doc := colored(.yellow, text(inspect gsub("\\#", "#")))

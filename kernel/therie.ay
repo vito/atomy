@@ -1,4 +1,5 @@
 use("atomy")
+
 io = require("io")
 
 nesting-level = dynamic(0)
@@ -29,24 +30,23 @@ colored(color, s) = do:
 theorize &tests :=
   let(running-stats = Stats new):
     tests call
-    "\n" display
+    puts("")
 
     ^running-stats onto:
-      f"total of %d tests (%s passed, %s failed)" [
-        failed + passed
-        colored(.green, passed to-s)
-        if(failed == 0)
-          then: "0"
-          else: colored(.red, failed to-s)
-      ] display
-
-      "\n" display
+      puts(
+        f"total of %d tests (%s passed, %s failed)" [
+          failed + passed
+          colored(.green, passed to-s)
+          if(failed == 0)
+            then: "0"
+            else: colored(.red, failed to-s)
+        ])
 
     ^running-stats
 
 
 describe(what) &body := do:
-  indented(f"- %s" [what]) println
+  puts(indented(f"- %s" [what]))
 
   let(nesting-level = ^nesting-level + 1):
     body call
@@ -56,23 +56,24 @@ describe(what) &body := do:
 
 it(description) &tests := do:
   { tests call
-    indented(colored(.green, f"✓ %s" [description])) println
+    puts(indented(colored(.green, f"✓ %s" [description])))
   } rescue {
     e:
       when(^running-stats):
         ^running-stats failed += 1
 
-      indented(colored(.red, f"✗ %s" [description])) println
-      indented(
-        colored(
-          .yellow
-          f"  ` %s: %s" [
-            e class name
-            e message
-          ])) println
+      puts(indented(colored(.red, f"✗ %s" [description])))
+      puts(
+        indented(
+          colored(
+            .yellow
+            f"  ` %s: %s" [
+              e class name
+              e message
+            ])))
 
       e backtrace first((ENV["THERIE_BT_LIMIT"] or 5) to-i) each [l]:
-        indented(f"    %s" [colored(.cyan, l)]) println
+        puts(indented(f"    %s" [colored(.cyan, l)]))
   } else:
     when(^running-stats):
       ^running-stats passed += 1
