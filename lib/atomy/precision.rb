@@ -86,16 +86,12 @@ module Atomy::Patterns
     def <=>(other)
       return super unless other.is_a?(self.class)
 
-      if !(value.is_a?(Class) && other.value.is_a?(Class))
-        0
-      elsif value.ancestors.nil? || other.value.ancestors.nil?
-        0
-      elsif value.ancestors.first == other.value.ancestors.first
-        0
-      elsif other.value.ancestors.include?(value.ancestors.first)
-        -1
-      elsif value.ancestors.include?(other.value.ancestors.first)
-        1
+      if value.is_a?(Module) && other.value.is_a?(Module)
+        if res = value <=> other.value
+          -res
+        else
+          0
+        end
       else
         0
       end
