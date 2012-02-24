@@ -1,10 +1,12 @@
 use("core")
 use("define")
 
+pretty = require("pretty")
+
 Atomy::MethodFail message :=
   "method '" + @method-name to-s + "' does not understand " +
     "the given arguments: " + @arguments inspect
 
 Atomy::PatternMismatch message :=
   "pattern of type `" + @type name split("::") last +
-    "' did not match value `" + @value show + "'"
+    "' did not match value `" + pretty show(@value show) + "'"

@@ -41,9 +41,9 @@ from(*where)? =
     [a, b] ->
       a == b
 
-pretty-sequence([]) = []
-pretty-sequence([x]) = [from(.top): x pretty]
-pretty-sequence(x . xs) = [from(.list): x pretty] + pretty-sequence(xs)
+render-sequence([]) = []
+render-sequence([x]) = [from(.top): render(x)]
+render-sequence(x . xs) = [from(.list): render(x)] + render-sequence(xs)
 
 tree(xs) = align(fill-sep(comma punctuate(xs)))
 
@@ -66,244 +66,243 @@ colored(color, doc) = do:
 
   raw("\e[9" + hash [color] to-s + "m") <> doc <> raw("\e[0m")
 
-_ unamb := pretty
+unamb(x) := render(x)
 
-Object pretty :=
-  if(is-in ^Printing)
+render(x) :=
+  if(x is-in ^Printing)
     then: text("...")
     else:
-      let(Printing = self . ^Printing):
-        pretty-doc
+      let(Printing = x . ^Printing):
+        doc(x)
 
-Object show :=
+show(x) :=
   let(Colored = false):
-    pretty flatten render
+    render(x) flatten render
 
-puts(x) := x tap: ^OutputPort puts(x show)
-print(x) := x tap: ^OutputPort print(x show)
+puts(x) := x tap: ^io::OutputPort puts(show(x))
+print(x) := x tap: ^io::OutputPort print(show(x))
 
-Object pretty-doc := text(inspect)
-String pretty-doc := colored(.yellow, text(inspect gsub("\\#", "#")))
-Integer pretty-doc := colored(.blue, super)
-Float pretty-doc := colored(.blue, super)
-TrueClass pretty-doc := colored(.green, super)
-FalseClass pretty-doc := colored(.red, super)
-NilClass pretty-doc := colored(.black, super)
+doc(o: Object) := text(o inspect)
+doc(s: String) := colored(.yellow, text(s inspect gsub("\\#", "#")))
+doc(x: Integer) := colored(.blue, text(x inspect))
+doc(x: Float) := colored(.blue, text(x inspect))
+doc(true) := colored(.green, text("true"))
+doc(false) := colored(.red, text("false"))
+doc(nil) := colored(.black, text("nil"))
+doc(d: Doc) := d
+doc(a: Array) := list(render-sequence(a))
 
-Doc pretty-doc := self
-
-Array pretty-doc := list(pretty-sequence(self))
-
-Atomy::Particle pretty-doc := do:
+doc(p: Atomy::Particle) := do:
   wildcard = [c]:
     if(c equal(_undefined)?)
       then: '_
       else: c
 
-  operator? = @message to-s !~ r"^[a-z_]"
+  operator? = p message to-s !~ r"^[a-z_]"
 
-  args = @arguments collect .(wildcard [_])
+  args = p arguments collect .(wildcard [_])
 
   msg-args =
     if(operator?)
       then:
-        text(@message to-s) <+> args first unamb
+        text(p message to-s) <+> unamb(args first)
       else:
-        ident(@message to-s) <>
-          tupled(pretty-sequence(args))
+        ident(p message to-s) <>
+          tupled(render-sequence(args))
 
   partial =
-    if(@receiver equal(_undefined)?)
+    if(p receiver equal(_undefined)?)
       then:
         if(operator?)
           then: parens(msg-args)
           else: msg-args
-      else: parens(@receiver unamb <+> msg-args)
+      else: parens(unamb(p receiver) <+> msg-args)
 
   text(".") <> partial
 
-Atomy::Particle to-s := show
+doc(s: Symbol) := do:
+  str = s to-s
+  if(str =~ r"\[\]=?|[A-Z][a-zA-Z0-9_]*|^[\p{Ll}_][\p{L}_\d\-]*[!?=]?$")
+    then: text(".") <> ident(str)
+    else: text(".") <> doc(str)
 
-Symbol pretty-doc := do:
-  s = to-s
-  if(s =~ r"\[\]=?|[A-Z][a-zA-Z0-9_]*|^[\p{Ll}_][\p{L}_\d\-]*[!?=]?$")
-    then: text(".") <> ident(s)
-    else: text(".") <> s pretty
-
-Hash pretty-doc :=
+doc(h: Hash) :=
   text("#") <>
     align(
       ( lbrace </>
           tree(
-            to-a collect [k, v]:
+            h to-a collect [k, v]:
               from(.binary):
-                k unamb <+> text("->") <+> v unamb)
+                unamb(k) <+> text("->") <+> unamb(v))
       ) nest(2) </>
         rbrace)
 
-Atomy::AST open:
-  Block unamb := pretty
-  ClassVariable unamb := pretty
-  Call unamb := pretty
-  Compose unamb :=
-    if(from(.binary, .compose)?)
-      then: pretty
-      else: parens(pretty)
-  Constant unamb := pretty
-  GlobalVariable unamb := pretty
-  (Tree ? @nodes size < 2) unamb := pretty
-  InstanceVariable unamb := pretty
-  List unamb := pretty
-  Primitive unamb := pretty
-  QuasiQuote unamb := pretty
-  Quote unamb := pretty
-  ScopedConstant unamb := pretty
-  Send unamb :=
-    if(from(.binary, .compose)?)
-      then: pretty
-      else: parens(pretty)
-  Splice unamb := pretty
-  String unamb := pretty
-  ToplevelConstant unamb := pretty
-  Prefix unamb :=
-    if(from(.postfix)?)
-      then: parens(pretty)
-      else: pretty
-  Postfix unamb :=
-    if(from(.postfix)?)
-      then: parens(pretty)
-      else: pretty
-  Unquote unamb := pretty
-  Word unamb := pretty
-  Pattern unamb := @pattern unamb
-  Node unamb := parens(pretty)
+doc(w: Atomy::AST::Word) := ident(w text to-s)
 
-  Binary pretty-doc :=
+Atomy::AST open:
+  Self unamb(
+      x:
+        Block
+          | ClassVariable
+          | Call
+          | Constant
+          | GlobalVariable
+          | (Tree ? @nodes size < 2)
+          | InstanceVariable
+          | List
+          | Primitive
+          | QuasiQuote
+          | Quote
+          | ScopedConstant
+          | Splice
+          | String
+          | ToplevelConstant
+          | Unquote
+          | Word) :=
+    render(x)
+  Self unamb(c: Compose) :=
+    if(from(.binary, .compose)?)
+      then: render(c)
+      else: parens(render(c))
+  Self unamb(s: Send) :=
+    if(from(.binary, .compose)?)
+      then: render(s)
+      else: parens(render(s))
+  Self unamb(p: Prefix | Postfix) :=
+    if(from(.postfix)?)
+      then: parens(render(p))
+      else: render(p)
+  Self unamb(p: Pattern) :=
+    unamb(p pattern)
+  Self unamb(n: Node) :=
+    parens(render(n))
+
+
+  Self doc(b: Binary) :=
     from(.binary):
-      ( if(@private)
+      ( if(b private)
           then:
-            text(@operator) </> @rhs unamb
+            text(b operator) </> unamb(b rhs)
           else:
-            @lhs unamb <+> text(@operator) </> @rhs unamb
+            unamb(b lhs) <+> text(b operator) </> unamb(b rhs)
       ) hang(2)
 
-  Block pretty-doc := do:
+  Self doc(b: Block) := do:
     args =
-      if(@arguments empty?)
+      if(b arguments empty?)
         then: empty
-        else: list(pretty-sequence(@arguments))
+        else: list(render-sequence(b arguments))
 
-    contents = tree(pretty-sequence(@contents))
+    contents = tree(render-sequence(b contents))
 
     align(args <+> (lbrace </> contents) nest(2) </> rbrace)
 
-  Call pretty-doc := @name pretty <> tupled(pretty-sequence(@arguments))
+  Self doc(c: Call) :=
+    render(c name) <> tupled(render-sequence(c arguments))
 
-  Compose pretty-doc := @left pretty <+> @right pretty
+  Self doc(c: Compose) := render(c left) <+> render(c right)
 
-  Constant pretty-doc := text(@name)
+  Self doc(c: Constant) := text(c name)
 
-  List pretty-doc :=
+  Self doc(l: List) :=
     from(.list):
-      list(pretty-sequence(@elements))
+      list(render-sequence(l elements))
 
-  Literal pretty-doc := @value pretty
+  Self doc(l: Literal) := render(l value)
 
-  Macro pretty-doc :=
-    text("macro") <+> parens(@pattern pretty) <+> @body pretty
-
-  Postfix pretty-doc :=
+  Self doc(p: Postfix) :=
     from(.postfix):
-      @receiver unamb <> text(@operator)
+      unamb(p receiver) <> text(p operator)
 
-  Prefix pretty-doc :=
+  Self doc(p: Prefix) :=
     from(.prefix):
-      text(@operator) <> @receiver unamb
+      text(p operator) <> unamb(p receiver)
 
-  Primitive pretty-doc :=
-    @value match:
+  Self doc(p: Primitive) :=
+    p value match:
       .self -> text("self")
       .true -> text("true")
       .false -> text("false")
       .nil -> text("nil")
       x -> text(x inspect)
 
-  QuasiQuote pretty-doc :=
+  Self doc(q: QuasiQuote) :=
     from(.prefix):
-      text("`") <> @expression unamb
+      text("`") <> unamb(q expression)
 
-  Quote pretty-doc :=
+  Self doc(q: Quote) :=
     from(.prefix):
-      text("'") <> @expression unamb
+      text("'") <> unamb(q expression)
 
-  ScopedConstant pretty-doc :=
+  Self doc(s: ScopedConstant) :=
     from(.scoped-constant):
-      @parent unamb <> text("::") <> text(@name)
+      unamb(s parent) <> text("::") <> text(s name)
 
-  Splice pretty-doc :=
+  Self doc(s: Splice) :=
     from(.prefix):
-      text("~*") <> @expression unamb
+      text("~*") <> unamb(s expression)
 
-  String pretty-doc := text(@value inspect gsub("\\#", "#"))
+  Self doc(s: String) := text(s value inspect gsub("\\#", "#"))
 
-  ToplevelConstant pretty-doc := text("::") <> text(@name)
+  Self doc(t: ToplevelConstant) :=
+    text("::") <> text(t name)
 
-  Unquote pretty-doc :=
+  Self doc(u: Unquote) :=
     from(.prefix):
-      text("~") <> @expression unamb
+      text("~") <> unamb(u expression)
 
-  Word pretty-doc := ident(@text to-s)
+  Self doc(w: Word) := ident(w text to-s)
 
-  Tree pretty-doc :=
+  Self doc(t: Tree) :=
     if(^Multiline)
-      then: from(.top): vcat(pretty-sequence(@nodes))
-      else: from(.list): tree(pretty-sequence(@nodes))
+      then: from(.top): vcat(render-sequence(t nodes))
+      else: from(.list): tree(render-sequence(t nodes))
 
-  Pattern pretty-doc := @pattern pretty
+  Self doc(p: Pattern) := render(p pattern)
 
 
 Atomy::Patterns open:
-  And pretty-doc := `(~@a & ~@b) pretty
-  Any pretty-doc := text("_")
-  Attribute pretty-doc := `(~@receiver ~(Atomy::AST::Word new(-1, @name))) pretty
-  BlockPass pretty-doc := `&~@pattern pretty
-  Constant pretty-doc := @constant pretty
-  Default pretty-doc := `(~@pattern = ~@default) pretty
-  HeadTail pretty-doc := `(~@head . ~@tail) pretty
-  List pretty-doc := `[~*(@patterns collect .to-node)] pretty
-  Literal pretty-doc := @value pretty
-  Match pretty-doc := @value pretty
-  Named pretty-doc :=
-    if(@pattern is-a(Any)?)
-      then: text(@name)
-      else: text(@name) <> text(":") <+> @pattern pretty
-  NamedClass pretty-doc :=
-    `(@@~(Atomy::AST::Word new(-1, @identifier))) pretty
-  NamedInstance pretty-doc :=
-    `(@~(Atomy::AST::Word new(-1, @identifier))) pretty
-  NamedGlobal pretty-doc :=
-    `($~(Atomy::AST::Word new(-1, @identifier))) pretty
-  Or pretty-doc := `(~@a | ~@b) pretty
-  Particle pretty-doc :=
-    Atomy::Particle new(
-      @receiver
-      @message
-      @arguments patterns) pretty
-  Predicate pretty-doc := `(~@pattern ? ~@test) pretty
-  QuasiQuote pretty-doc := @quoted pretty
-  Quote pretty-doc := `'~@expression pretty
-  SingletonClass pretty-doc := @body pretty
-  Splat pretty-doc := `*~@pattern pretty
-  With pretty-doc := `(~@pattern with(~@expression, ~@sub-pattern)) pretty
+  Self doc(a: And) := render(`(~(a a) & ~(a b)))
+  Self doc(Any) := text("_")
+  Self doc(a: Attribute) :=
+    render(`(~(a receiver) ~(Atomy::AST::Word new(-1, a name))))
+  Self doc(b: BlockPass) := render(`&~(b pattern))
+  Self doc(c: Constant) := render(c constant)
+  Self doc(d: Default) := render(`(~(d pattern) = ~(d default)))
+  Self doc(h: HeadTail) := render(`(~(h head) . ~(h tail)))
+  Self doc(l: List) := list(render-sequence(@patterns))
+  Self doc(l: Literal) := render(l value)
+  Self doc(m: Match) := render(m value)
+  Self doc(n: Named) :=
+    if(n pattern is-a(Any)?)
+      then: text(n name)
+      else: text(n name) <> text(":") <+> render(n pattern)
+  Self doc(n: NamedClass) :=
+    render(`(@@~(Atomy::AST::Word new(-1, n identifier))))
+  Self doc(n: NamedInstance) :=
+    render(`(@~(Atomy::AST::Word new(-1, n identifier))))
+  Self doc(n: NamedGlobal) :=
+    render(`($~(Atomy::AST::Word new(-1, n identifier))))
+  Self doc(o: Or) :=
+    render(`(~(o a) | ~(o b)))
+  Self doc(p: Particle) :=
+    render(
+      Atomy::Particle new(
+        p receiver
+        p message
+        p arguments patterns))
+  Self doc(p: Predicate) := render(`(~(p pattern) ? ~(p test)))
+  Self doc(q: QuasiQuote) := render(q quoted)
+  Self doc(q: Quote) := render(`'~(q expression))
+  Self doc(s: SingletonClass) := render(s body)
+  Self doc(s: Splat) := render(`*~(s pattern))
+  Self doc(w: With) :=
+    render(`(~(w pattern) with(~(w expression), ~(w sub-pattern))))
 
-  And unamb := parens(pretty)
-  Attribute unamb := parens(pretty)
-  Default unamb := parens(pretty)
-  HeadTail unamb := parens(pretty)
-  Named unamb :=
-    if(@pattern is-a(Any)?)
-      then: pretty
-      else: parens(pretty)
-  Or unamb := parens(pretty)
-  Predicate unamb := parens(pretty)
-  With unamb := parens(pretty)
+  Self unamb(
+      x: And | Attribute | Default | HeadTail | Or | Predicate | With) :=
+    parens(render(x))
+  Self unamb(n: Named) :=
+    if(n pattern is-a(Any)?)
+      then: render(n)
+      else: parens(render(n))

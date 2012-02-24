@@ -9,6 +9,11 @@ use("node")
 require("kpeg")
 require("set")
 
+
+-- lazily load this module to prevent circular dependency
+pretty() = @pretty ||= require("pretty")
+
+
 actions = dynamic
 setups = dynamic
 vars = dynamic
@@ -23,7 +28,7 @@ process-val(g, `(%((~grammar).) ~(x)(~*args))) = do:
   `(~g foreign-invoke(
       ~(grammar text)
       ~(x text)
-      ~(args collect .show join(", "))))
+      ~(args collect .(pretty show(_)) join(", "))))
 
 process-val(g, `(~a %((~grammar).) ~(x)(~*args))) = do:
   `(~g seq(
@@ -31,7 +36,7 @@ process-val(g, `(~a %((~grammar).) ~(x)(~*args))) = do:
       ~g foreign-invoke(
         ~(grammar text)
         ~(x text)
-        ~(args collect .show join(", ")))))
+        ~(args collect .(pretty show(_)) join(", ")))))
 
 process-val(g, `(%((~grammar).) ~x)) = do:
   `(~g foreign-invoke(~(grammar text), ~(x text)))
@@ -94,17 +99,17 @@ process-val(g, `(/(~(b: Atomy::AST::String))/)) =
   `(~g reg(~(b raw)))
 
 process-val(g, c: Atomy::AST::Call) = do:
-  args = "(" + c arguments collect .show join(", ") + ")"
+  args = "(" + c arguments collect .(pretty show(_)) join(", ") + ")"
 
   `(~g ref(~(c name text to-s), nil, ~args))
 
 process-val(g, `@~(c: Atomy::AST::Call)) = do:
-  args = "(" + c arguments collect .show join(", ") + ")"
+  args = "(" + c arguments collect .(pretty show(_)) join(", ") + ")"
 
   `(~g invoke(~(c name text to-s), ~args))
 
 process-val(g, `^~(c: Atomy::AST::Call)) = do:
-  args = "(" + c arguments collect .show join(", ") + ")"
+  args = "(" + c arguments collect .(pretty show(_)) join(", ") + ")"
 
   `(~g foreign-invoke("parent", ~(c name text to-s), ~args))
 

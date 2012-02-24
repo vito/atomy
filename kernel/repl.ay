@@ -99,7 +99,7 @@ repl(history = nil, bnd = nil, debug = false) := do:
           puts(":h\thelp")
 
         .evaluated(r) ->
-          puts((text(" =>") <+> r pretty) render(76))
+          puts((text(" =>") <+> pretty doc(r)) render(76))
   } ensuring:
     Atomy::CodeLoader module = before-mod
     Atomy::CodeLoader context = before-bnd

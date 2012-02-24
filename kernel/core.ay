@@ -4,7 +4,6 @@ infix("?", 30, "right")
 -- a few macros so we can actually, you know, send messages
 define-macro('(~_ ~(? to-word)), 'make-send(node))
 define-macro('(~_ ~(? to-word)(~*_)), 'make-send(node))
-define-macro('(~(? to-word)(~*_)), 'make-send(node))
 
 -- a macro for defining macros!
 define-macro('(macro(~pat) ~(body: Block)), '(Macro new(node line, pat, body body)))

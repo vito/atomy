@@ -9,6 +9,7 @@ use("array")
 use("dynamic")
 
 io = require("io")
+pretty = require("pretty")
 
 data(Handler(@callback, @rest = nil)):
   BaseHandler()
@@ -47,8 +48,8 @@ Condition message := inspect
 SimpleError message := @value to-s
 ExceptionError message := @exception message
 SimpleWarning message := @value to-s
-NoRestartError message := "unknown restart " + @restart show
-EndOfFile message := "unexpected end-of-file for " + @port show
+NoRestartError message := "unknown restart " + pretty show(@restart)
+EndOfFile message := "unexpected end-of-file for " + pretty show(@port)
 
 
 macro(~body bind { ~*handlers }):

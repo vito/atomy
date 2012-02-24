@@ -83,7 +83,7 @@ it(description) &tests := do:
 
 macro(~x should ~(check: Block)):
   `(unless(~x onto ~check):
-      raise(f"assertion failed for %v" ['~x pretty]))
+      raise(f"assertion failed for %v" ['~x]))
 
 
 x should-be(y) :=
