@@ -4,6 +4,14 @@ use("cosmetics")
 use("control-flow")
 
 Atomy::Patterns open:
+  -- redefine these in atomy so we can have some base cases
+  Pattern <=> x := precision <=> x precision
+  Pattern <=> (x: Default) := <=> x pattern
+  Pattern <=> (x: Named) := <=> x pattern
+  Pattern <=> (x: BlockPass) := <=> x pattern
+  Pattern <=> (x: Splat) := <=> x pattern
+  Pattern <=> Predicate := -1
+
   With = Pattern class:
     children(.pattern, .sub-pattern)
     attributes(.expression)
@@ -156,6 +164,27 @@ Atomy::Patterns open:
       @b deconstruct(g, locals)
 
       done set!
+
+
+  Pattern <=> (a: And) := -(a <=> self)
+  Pattern <=> (o: Or) := -(o <=> self)
+
+  -- an And precedes x if either precede it
+  And <=> x :=
+    if(@a <=> x == 1)
+      then: 1
+      else: @b <=> x
+  -- an Or precedes x if neither are preceded by
+  Or <=> x :=
+    if(@a <=> x == -1)
+      then: -1
+      else: @b <=> x
+
+  -- TODO
+  (a: And) <=> (b: And) :=
+    ((a a <=> b a) + (a b <=> b a) + (a a <=> b b) + (a b <=> b b)) <=> 0
+  (a: Or) <=> (b: Or) :=
+    ((a a <=> b a) + (a b <=> b a) + (a a <=> b b) + (a b <=> b b)) <=> 0
 
 
 -- base patterns
