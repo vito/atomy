@@ -158,8 +158,6 @@ module Atomy
     def export(*xs)
       xs.each do |x|
         case x
-        when Symbol
-          singleton_class.set_visibility(meth, :public)
         when self.class
           exported_modules.unshift x
         else

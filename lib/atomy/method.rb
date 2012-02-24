@@ -11,7 +11,6 @@ class Rubinius::StaticScope
 end
 
 module Atomy
-  # TODO: visibility?
   class Branch
     attr_accessor :body, :receiver, :required, :defaults,
                   :splat, :block
@@ -344,8 +343,8 @@ module Atomy
 
   # build a method from the given branches and add it to
   # the target
-  def self.add_method(target, name, method, visibility = :public)
-    Rubinius.add_method name, method.build, target, visibility
+  def self.add_method(target, name, method)
+    Rubinius.add_method name, method.build, target, :public
   end
 
   def self.add_branch(target, name, branch)
@@ -363,16 +362,14 @@ module Atomy
   end
 
   # define a new method branch
-  def self.define_branch(target, name, branch, visibility, scope, defn)
-    add_method(target, name, add_branch(target, name, branch), visibility).tap do
+  def self.define_branch(target, name, branch, scope)
+    add_method(target, name, add_branch(target, name, branch)).tap do
       target.module_function name if target.is_a?(Atomy::Module)
     end
   end
 
-  def self.dynamic_branch(target, name, branch, visibility = :public,
-                          scope = nil, defn = false)
-    define_branch(
-      target, name, branch,
-      visibility, scope || Rubinius::StaticScope.of_sender, defn)
+  def self.dynamic_branch(
+      target, name, branch, scope = Rubinius::StaticScope.of_sender)
+    define_branch(target, name, branch, scope)
   end
 end

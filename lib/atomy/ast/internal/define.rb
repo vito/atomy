@@ -135,7 +135,7 @@ module Atomy
       extend SentientNode
 
       children :body, :receiver, [:arguments], :block?
-      attributes :name, [:defn, "false"]
+      attributes :name
       generate
 
       alias method_name name
@@ -146,13 +146,7 @@ module Atomy
         # set the block's module so that super works
         g.dup
         g.push_literal :@module
-
-        if @defn
-          g.push_self
-        else
-          receiver_pattern.target(g)
-        end
-
+        receiver_pattern.target(g)
         g.send :instance_variable_set, 2
         g.pop
       end
@@ -162,24 +156,11 @@ module Atomy
 
         g.push_cpath_top
         g.find_const :Atomy
-        if @defn
-          g.push_self
-        else
-          receiver_pattern.target(g)
-        end
+        receiver_pattern.target(g)
         g.push_literal @name
-
         push_branch(g)
-
-        if @defn
-          g.push_variables
-          g.send :method_visibility, 0
-        else
-          g.push_literal :public
-        end
         g.push_scope
-        g.push_literal @defn
-        g.send :define_branch, 6
+        g.send :define_branch, 4
       end
     end
 

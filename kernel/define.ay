@@ -77,15 +77,6 @@ block(`(~_ &~b)) = b
 block(_) = nil
 
 
-defn(Atomy::AST::Call) = true
-defn(? to-word) = true
-defn(b: Atomy::AST::Binary) = b private
-defn(`(~a &~_)) = defn(a)
-defn(`(~(Atomy::AST::Word)(~*_)?)) = true
-defn(`(~(Atomy::AST::Word)(~*_)!)) = true
-defn(_) = false
-
-
 macro(~x := ~y):
   Define new(
     node line,
@@ -93,8 +84,7 @@ macro(~x := ~y):
     receiver(x),
     arguments(x),
     message-name(x),
-    block(x),
-    defn(x))
+    block(x))
 
 
 -- expose our helpers
@@ -102,7 +92,6 @@ macro(~x := ~y):
 { self } receiver(x) := arguments(x)
 { self } message-name(x) := message-name(x)
 { self } block(x) := block(x)
-{ self } defn(x) := defn(x)
 
 
 macro(define(~x) ~(y: Block)):
