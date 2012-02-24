@@ -44,7 +44,12 @@ module Atomy
       return 1 if total_args > other.total_args
       return -1 if total_args < other.total_args
 
-      total = @receiver <=> other.receiver
+      total = 0
+
+      unless @receiver.always_matches_self? && \
+              other.receiver.always_matches_self?
+        total += @receiver <=> other.receiver
+      end
 
       @required.zip(other.required) do |x, y|
         total += x <=> y unless y.nil?
