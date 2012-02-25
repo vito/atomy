@@ -126,35 +126,11 @@ module Atomy
         blk.redo = blk.new_label
         blk.redo.set!
 
-        has_args = args.required_args > 0
-
-        if has_args
-          too_few = blk.new_label
-          done = blk.new_label
-
-          blk.passed_arg(args.required_args - 1)
-          blk.gif too_few
-        end
-
         args.bytecode(blk)
 
         args.set_patterns(blk)
 
         body.compile(blk)
-
-        if has_args
-          blk.goto done
-
-          too_few.set!
-          blk.push_self
-          blk.push_cpath_top
-          blk.find_const :ArgumentError
-          blk.push_literal "block given too few arguments"
-          blk.send :new, 1
-          blk.send :raise, 1, true
-
-          done.set!
-        end
 
         blk.pop_modifiers
         blk.state.pop_block
@@ -177,6 +153,9 @@ module Atomy
         g.find_const :Proc
         g.swap
         g.send :__from_block__, 1
+        g.dup
+        g.send :lambda_style!, 0
+        g.pop
       end
     end
 
