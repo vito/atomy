@@ -31,9 +31,14 @@ describe("blocks"):
       { [a] { a } call } should-raise(ArgumentError)
       { [a, b] { a } call(1) } should-raise(ArgumentError)
 
-    it("ignores arguments that aren't used"):
-      { 1 } call(2) should-be(1)
-      { 1 } call(2, 3) should-be(1)
+    it("errors if too many given"):
+      { { 1 } call(2) should-be(1) } should-raise(ArgumentError)
+      { { 1 } call(2, 3) should-be(1) } should-raise(ArgumentError)
+
+    it("ignores extras if used as a proc-arg"):
+      caller &x := x call(1)
+      caller: 42; should-be(42)
+      caller [x]: x + 2; should-be(3)
 
     describe("block"):
       it("binds a block argument"):
@@ -76,3 +81,5 @@ describe("blocks"):
         res at(0) should-be(1)
         res at(1) should-be([2, 3])
         res at(2) should: kind-of(Proc)?
+
+    -- TODO: default, post-args
