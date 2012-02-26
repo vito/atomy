@@ -1,6 +1,5 @@
 use("core")
 use("define")
-use("undefined")
 use("control-flow")
 
 infix("for in when", 30, .right)
@@ -28,7 +27,7 @@ macro(~x for(~*args) in(~c) when(~t)):
 
 a is-in b := b include(a)?
 
-Array inject-right(i = _undefined) &block :=
+Array inject-right(i = undefined) &block :=
   reverse inject(i) [x, y]: block [y, x]
 
 macro(~a . ~b): `([~a] + ~b)

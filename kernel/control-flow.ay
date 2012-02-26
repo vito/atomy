@@ -28,7 +28,7 @@ macro(unless(~c) ~(b: Block)):
   `(if(~c) then: nil; else ~b)
 
 macro(super):
-  ZSuper new(node line)
+  Super new(node line, [])
 
 splat-from(arguments) = do:
   args = arguments dup
@@ -136,7 +136,6 @@ macro(~x rescue ~(y: Block) else ~(z: Block)):
 Atomy::AST open:
   ast:
     Super([.arguments], .splat?, .block?)
-    ZSuper
 
   Super bytecode(g) := do:
     pos(g)
@@ -157,20 +156,3 @@ Atomy::AST open:
       name =! g state super name
 
     g send-super(name, @arguments size, !!@splat)
-
-  ZSuper bytecode(g) := do:
-    pos(g)
-
-    args = g state scope search-local(.arguments)
-    unless(args):
-      raise("cannot find arguments")
-
-    args get-bytecode(g)
-
-    g push-proc
-
-    name = nil
-    when(g state super?):
-      name =! g state super name
-
-    g send-super(name, 0, true)

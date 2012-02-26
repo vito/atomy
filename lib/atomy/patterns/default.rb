@@ -20,6 +20,17 @@ module Atomy::Patterns
     end
 
     def deconstruct(g, locals = {})
+      defined = g.new_label
+
+      g.dup
+      g.push_undef
+      g.send :equal?, 1
+      g.gif defined
+
+      g.pop
+      @default.compile(g)
+
+      defined.set!
       @pattern.deconstruct(g, locals)
     end
 

@@ -3,7 +3,6 @@ use("define")
 use("data")
 use("control-flow")
 use("cosmetics")
-use("undefined")
 
 Atomy open:
   data(Particle(@receiver, @message, @arguments))
@@ -15,13 +14,13 @@ Atomy open:
 
   Particle to-proc := [*args] &blk:
     [recv, cur] =
-      if(@receiver equal(_undefined)?)
+      if(@receiver equal(undefined)?)
         then: [args[0], 1]
         else: [@receiver, 0]
 
     filled =
       @arguments collect [v]:
-        if(v equal(_undefined)?)
+        if(v equal(undefined)?)
           then:
             cur += 1
             args[cur - 1]
@@ -31,36 +30,36 @@ Atomy open:
     recv __send__(@message, *filled) &blk
 
   Particle arity :=
-    (@receiver . @arguments) select .equal(_undefined)? size
+    (@receiver . @arguments) select .equal(undefined)? size
 
 Symbol call(*args) &blk := to-proc [*args] &blk
 
 Symbol arity := 1
 
-wildcard('_) = '_undefined
+wildcard('_) = 'undefined
 wildcard(x) = x
 
 macro(.[~*(as: _ . _)]):
   `(Atomy::Particle new(
-      _undefined
+      undefined
       .[]
       ~(as collect [c]: wildcard(c))))
 
 macro(.(~(x)(~*as))):
   `(Atomy::Particle new(
-      _undefined
+      undefined
       .~x
       ~(as collect [c]: wildcard(c))))
 
 macro(.(~(x)(~*as))?):
   `(Atomy::Particle new(
-      _undefined
+      undefined
       .(~x)?
       ~(as collect [c]: wildcard(c))))
 
 macro(.(~(x)(~*as))!):
   `(Atomy::Particle new(
-      _undefined
+      undefined
       .(~x)!
       ~(as collect [c]: wildcard(c))))
 
@@ -91,7 +90,7 @@ macro(.(~r [~*as])):
 macro(.~(x: Binary)):
   `(Atomy::Particle new(
       ~(if(x private)
-          then: '_undefined
+          then: 'undefined
           else: wildcard(x lhs))
       ~(x operator)
       [~(wildcard(x rhs))]))

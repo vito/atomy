@@ -130,8 +130,6 @@ module Atomy
 
       g.state.push_name @name
 
-      g.state.scope.new_local(:arguments).reference
-
       g.splat_index = 0
       g.total_args = 0
       g.required_args = 0
@@ -246,21 +244,6 @@ module Atomy
         if has_args
           g.push_local 0
 
-          unless defs.empty?
-            no_stretch = g.new_label
-
-            g.passed_arg(meth.total_args - 1)
-            g.git no_stretch
-
-            g.dup
-            g.push_int(meth.total_args - 1)
-            g.push_nil
-            g.send :[]=, 2
-            g.pop
-
-            no_stretch.set!
-          end
-
           reqs.each_with_index do |a, i|
             g.shift_array
 
@@ -273,23 +256,17 @@ module Atomy
           end
 
           defs.each_with_index do |d, i|
-            have_value = g.new_label
-
-            g.shift_array
+            no_value = g.new_label
 
             num = reqs.size + i
             g.passed_arg num
-            g.git have_value
+            g.gif no_value
 
-            g.pop
-            g.push_local 0
-            g.push_int num
-            d.default.compile(g)
-            g.send :[]=, 2
-
-            have_value.set!
+            g.shift_array
             d.matches?(g)
             g.gif argmis
+
+            no_value.set!
           end
 
           if splat and s = splat.pattern
@@ -304,16 +281,15 @@ module Atomy
         g.push_self
         g.push_literal body.static_scope
         g.push_self
-        g.push_local 0
         if has_args or splat
           g.push_local 0
           g.push_proc
-          g.send_with_splat :call_under, 4, true
+          g.send_with_splat :call_under, 3, true
         elsif block
           g.push_proc
-          g.send_with_block :call_under, 4, true
+          g.send_with_block :call_under, 3, true
         else
-          g.send :call_under, 4
+          g.send :call_under, 3
         end
         g.goto done
 

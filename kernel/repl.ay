@@ -53,6 +53,7 @@ ReplDebugger = class:
     debug(e) := do:
       condition::DefaultDebugger show-options-for(e)
 
+      -- TODO: inherit original binding
       { basic-repl } bind:
         .prompt -> restart(.use-prompt, "[!]> ")
 

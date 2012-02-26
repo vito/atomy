@@ -7,7 +7,6 @@ use("comparison")
 use("range")
 use("regexp")
 use("array")
-use("undefined")
 
 use("dynamic")
 doc = use("doc")
@@ -94,7 +93,7 @@ doc(a: Array) := list(render-sequence(a))
 
 doc(p: Atomy::Particle) := do:
   wildcard = [c]:
-    if(c equal(_undefined)?)
+    if(c equal(undefined)?)
       then: '_
       else: c
 
@@ -111,7 +110,7 @@ doc(p: Atomy::Particle) := do:
           tupled(render-sequence(args))
 
   partial =
-    if(p receiver equal(_undefined)?)
+    if(p receiver equal(undefined)?)
       then:
         if(operator?)
           then: parens(msg-args)

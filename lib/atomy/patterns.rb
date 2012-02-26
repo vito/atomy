@@ -293,32 +293,36 @@ EOF
         locals[n] ||= Atomy.assign_local(g, n, set)
       end
 
-      mismatch = g.new_label
-      done = g.new_label
+      unless wildcard?
+        mismatch = g.new_label
+        done = g.new_label
 
-      g.dup
-      matches?(g)
-      g.gif mismatch
+        g.dup
+        matches?(g)
+        g.gif mismatch
+      end
 
       deconstruct(g, locals)
 
-      g.goto done
+      unless wildcard?
+        g.goto done
 
-      mismatch.set!
-      g.push_self
-      g.swap
-      g.push_cpath_top
-      g.find_const :Atomy
-      g.find_const :PatternMismatch
-      g.swap
-      get(g)
-      g.swap
-      g.send :new, 2
-      g.allow_private
-      g.send :raise, 1
-      g.pop
+        mismatch.set!
+        g.push_self
+        g.swap
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :PatternMismatch
+        g.swap
+        get(g)
+        g.swap
+        g.send :new, 2
+        g.allow_private
+        g.send :raise, 1
+        g.pop
 
-      done.set!
+        done.set!
+      end
     end
 
     # local names bound by this pattern, not including children

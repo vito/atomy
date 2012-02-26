@@ -9,7 +9,7 @@ module Atomy
       generate
 
       def implicit_arguments
-        [:@receiver, :arguments]
+        [:@receiver]
       end
 
       def implicit_patterns

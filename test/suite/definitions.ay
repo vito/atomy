@@ -84,9 +84,9 @@ describe("definitions"):
         d2(a, b = 1 + 1) := [a, b]
         d2(0) should-be([0, 2])
 
-      it("evaluates its default without other args in scope"):
+      it("evaluates its default with other args in scope"):
         d3(a, b = a + 1) := [a, b]
-        { d3(0) } should-raise(NameError)
+        d3(0) should-be([0, 1])
 
       it("is overrided by an argument"):
         d4(a, b = 3) := [a, b]
@@ -103,17 +103,27 @@ describe("definitions"):
         d6(2) should-be([2, []])
         d6(2, 3) should-be([2, [3]])
 
+      it("evaluates its default with the method's context in scope"):
+        x = 7
+        d7(a, b = x) := [a, b]
+        d7(0) should-be([0, 7])
+
+      it("evaluates its default with the other args and the method's context in scope"):
+        x = 7
+        d8(a, b = a * x) := [a, b]
+        d8(6) should-be([6, 42])
+
     describe("varying argument lengths"):
       it("tries higher required argument counts first"):
-        d7(_) := 1
-        d7(_, _) := 2
+        v0(_) := 1
+        v0(_, _) := 2
 
-        d7(1) should-be(1)
-        d7(1, 2) should-be(2)
+        v0(1) should-be(1)
+        v0(1, 2) should-be(2)
 
       it("does the same when defined in reverse order"):
-        d8(_, _) := 2
-        d8(_) := 1
+        v1(_, _) := 2
+        v1(_) := 1
 
-        d8(1) should-be(1)
-        d8(1, 2) should-be(2)
+        v1(1) should-be(1)
+        v1(1, 2) should-be(2)

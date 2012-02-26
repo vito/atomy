@@ -7,11 +7,11 @@ module Atomy
         if optional
           defaults = Rubinius::AST::Block.new(
             line,
-            optional.collect { |n, d|
+            optional.collect { |n|
               Rubinius::AST::LocalVariableAssignment.new(
                 line,
                 n,
-                CompileWrapper.new(d))
+                Primitive.new(0, :undefined))
             })
         end
 
@@ -33,12 +33,6 @@ module Atomy
             g.state.scope.search_local(n).get_bytecode(g)
             p.deconstruct(g)
           end
-        end
-      end
-
-      class CompileWrapper < SimpleDelegator
-        def bytecode(g)
-          __getobj__.compile(g)
         end
       end
     end
@@ -81,8 +75,8 @@ module Atomy
             splat = name
           elsif p.is_a?(Patterns::Default)
             optional ||= []
-            optional << [name, p.default]
-          elsif splat
+            optional << name
+          elsif splat || optional
             post ||= []
             post << name
           else
