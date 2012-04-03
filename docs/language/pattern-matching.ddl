@@ -1,3 +1,7 @@
+#language anatomy
+
+\use{anatomy/atomy}
+
 \title{Pattern Matching}
 
 At the very heart of Atomy is pattern-matching, and its behavior with dispatch. Patterns are used to both check for and deconstruct a value in one fell swoop. Depending on the scenario, a pattern-match may error if it doesn't match (\hl{=}, \hl{=!}, and sometimes methods), or just silently fail (\hl{match}).

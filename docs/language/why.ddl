@@ -70,6 +70,19 @@
 
   \section{A Handful of Shiny Toys}{
     \definitions{
+      \item{a syntax-oriented macro system}{
+        Atomy has a small grammar independent from its language semantics. For example, there is no "message send" primitive node, and there aren't class/global/instance variable primitives. These are defined using Atomy's all-powerful macro system.
+
+        You may be familiar with macros from Common Lisp, Scheme, or Clojure. In these languages a macro is a special named function that takes its arguments unevaluated, and builds another form for evaluating later. You may also know them from C/C++ as primitive text rewriting mechanisms.
+
+        Atomy goes somewhere neither really cover: its macros aren't named anything; they expand arbitrary expressions. I probably shouldn't be showing you this, but...
+
+        \example{
+          macro(2 + 2): 5
+          2 + 2
+        }
+      }
+
       \item{macro-quotes}{
         Generalized string quotation. Examples include regular expressions, raw strings, and word-lists. It's easy to create new quoters for things other languages would have as literals.
 
@@ -95,9 +108,8 @@
       }
 
       \item{syntax as macros}{
-        Where Ruby has global, instance, and class variable syntax, Atomy actually implements these as unary send macros. The same goes for for symbols (\hl{#to-a}), particles (\hl{#foo(1, _)}, splats (\hl{*args}), block-passing (\hl{&foo}), and a few others. If something can be a macro or regular method, it will be. This has been applied very broadly.
+        Where Ruby has global, instance, and class variable syntax, Atomy actually implements these as prefix macros. The same goes for for symbols (\hl{#to-a}), particles (\hl{#foo(1, _)}, splats (\hl{*args}), block-passing (\hl{&foo}), and a few others. If something can be a macro or regular method, it will be. This has been applied very broadly.
 
-        There are currently four "types" of macros: variable (\hl{_FILE}), unary (\hl{-foo}), binary (\hl{a + b}), and regular message sends (\hl{1 foo}).
       }
 
       \item{particles}{
