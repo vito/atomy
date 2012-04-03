@@ -9,4 +9,4 @@ Atomy::MethodFail message :=
 
 Atomy::PatternMismatch message :=
   "pattern of type `" + @type name split("::") last +
-    "' did not match value `" + pretty show(@value show) + "'"
+    "' did not match value `" + pretty show(@value) + "'"

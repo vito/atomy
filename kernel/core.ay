@@ -37,7 +37,7 @@ macro(&~blk ~(b: Block)):
   b
 
 -- foo { bar }
-macro(~(w: ? to-word) ~(b: Block)):
+macro(~(w ? to-word) ~(b: Block)):
   x = w to-send
   x block = b
   x

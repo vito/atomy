@@ -32,17 +32,18 @@ theorize &tests :=
     tests call
     puts("")
 
-    ^running-stats onto:
-      puts(
-        f"total of %d tests (%s passed, %s failed)" [
-          failed + passed
-          colored(.green, passed to-s)
-          if(failed == 0)
-            then: "0"
-            else: colored(.red, failed to-s)
-        ])
+    stats = ^running-stats
 
-    ^running-stats
+    puts(
+      f"total of %d tests (%s passed, %s failed)" [
+        stats failed + stats passed
+        colored(.green, stats passed)
+        if(stats failed == 0)
+          then: "0"
+          else: colored(.red, stats failed)
+      ])
+
+    stats
 
 
 describe(what) &body := do:
