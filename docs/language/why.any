@@ -1,6 +1,8 @@
-\style{Atomy}
+#language anatomy
 
-\title{What & Why}
+\use{anatomy/atomy}
+
+\title{What & Why}{why}
 
 \section{Philosophy}{
   Atomy is a language designed to grow. It achieves this goal by having a very simple grammar, much like Lisp. Rather than statements, everyting in Atomy is an expression. These expressions are not merely written, they are \italic{designed}. Readability, concision, and flow are the primary goal, and this goal is most easily achieved by keeping the grammar small, and building everything up from there with macros and metaprogramming.
@@ -57,17 +59,6 @@
     This is opposed to Ruby-style, where you open classes to add methods to them, and then handle the arguments from within the single method definition, often with the \code{case} statement. This form is also supported, but it is much more verbose.
   }
 
-  \section{Go ahead, be a monkey.}{
-    Atomy also attempts to solve the monkey-patching problem via selector namespaces. This is still in flux, but is a high priority.
-
-    \example{
-      in-namespace(foo): Integer foo := 1
-      in-namespace(bar): Integer foo := 2
-      in-namespace(foo): 10 foo
-      in-namespace(bar): 10 foo
-    }
-  }
-
   \section{A Handful of Shiny Toys}{
     \definitions{
       \item{a syntax-oriented macro system}{
@@ -108,7 +99,7 @@
       }
 
       \item{syntax as macros}{
-        Where Ruby has global, instance, and class variable syntax, Atomy actually implements these as prefix macros. The same goes for for symbols (\hl{#to-a}), particles (\hl{#foo(1, _)}, splats (\hl{*args}), block-passing (\hl{&foo}), and a few others. If something can be a macro or regular method, it will be. This has been applied very broadly.
+        Where Ruby has global, instance, and class variable syntax, Atomy actually implements these as prefix macros. The same goes for for symbols (\hl{.to-a}), particles (\hl{.foo(1, _)}, splats (\hl{*args}), block-passing (\hl{&foo}), and a few others. If something can be a macro or regular method, it will be. This has been applied very broadly.
 
       }
 
@@ -116,51 +107,32 @@
         Like Atomo, Atomy has a concept of "partial messages" which can act as ad-hoc data structures. They respond to \hl{call} and \hl{to-proc}, so you can use them as block shorthand.
 
         \example{
-          [1, 2, 3] collect(&#(* 3))
+          [1, 2, 3] collect .(* 3)
         }
 
         You can also pattern-match them, so they are often used for simple data structures, similar to how atoms and tuples are used in Erlang.
 
         \example{
-          #ok(x) = #ok(1)
+          .ok(x) = .ok(1)
           x
         }
 
         In a particle, \code{_} acts as a placeholder. Sending \hl{call} will fill these values in order with the values you pass, and then send the message.
 
         \example{
-          #kind-of?(_) call(1, Integer)
+          .is-a(_)? call(1, Integer)
         }
 
         Note that they have very similar syntax as \hl{Symbol}s; in fact, Atomy also defines \hl{call} on \hl{Symbol} so you can generally use them interchangeably.
 
         \example{
-          #odd? call(1)
-          #odd? call(2)
+          .odd? call(1)
+          .odd? call(2)
         }
       }
 
       \item{extensible pattern-matching}{
         If you don't mind digging down into Rubinius bytecode, you can define your own pattern-matchers. It's very easy to do, and there is a very broad spectrum of pattern-matchers built-in because of this. See \reference{pattern-matching}.
-      }
-
-      \item{semantic in-code documentation}{
-        Rather than scanning code for comments, Atomy implements in-code documentation semantically via macros.
-
-        \example-segment{
-          doc"
-            A description of what \\hl\{times\} does.
-          " spec \{
-            a is-a?(Integer)
-            b is-a?(String)
-            => String
-          \} for \{
-            a times(b: String) := b * a
-          \} examples:
-            10 times("foo")
-        }
-
-        When this code is run with the \code{-d} flag passed, it will generate a Doodle file for the script's documentation.
       }
     }
   }

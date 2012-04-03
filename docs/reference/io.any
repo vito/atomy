@@ -1,0 +1,187 @@
+#language anatomy
+
+\use{anatomy/atomy}
+
+\title{Input & Output}
+
+\assign{OutputPort}{dynamic($stdout)}{
+  Where to write normal output.
+}
+
+\assign{InputPort}{dynamic($stdin)}{
+  Where to read input from.
+}
+
+\assign{ErrorPort}{dynamic($stderr)}{
+  Where to write error/warning output.
+}
+
+\section{Output}{
+  \define{print(x)}{x}{
+    Write \hl{x to-s} to \hl{^OutputPort}.
+
+    \example{
+      print(1)
+      print("hello")
+    }
+  }
+
+  \define{puts(x)}{x}{
+    Write \hl{x to-s} to \hl{^OutputPort}, followed by a linebreak.
+
+    \example{
+      puts(1)
+      puts("hello")
+    }
+  }
+
+  \define{
+    with-output-to(filename, mode = "w") &action
+  }{filename is-a(String)?}{mode is-a(String)?}{any}{
+    Set \hl{^OutputPort} to write output to \hl{filename} for the duration
+    of \hl{action}, ensuring that the file is closed.
+
+    Returns the result of \hl{action}.
+
+    \example{
+      with-output-to("foo"): puts(42)
+      with-output-to("foo", "a"): puts("hello")
+      File open("foo") .read
+    }
+  }
+
+  \define{with-output-to(io) &action}{any}{
+    Set \hl{^OutputPort} to write to \hl{io} for the duration of \hl{action}.
+
+    Returns the result of \hl{action}.
+
+    \example{
+      require("stringio")
+      x = StringIO new
+      with-output-to(x): "hello!" write
+      x string
+    }
+  }
+
+  \define{
+    with-error-to(filename, mode = "w") &action
+  }{filename is-a(String)?}{mode is-a(String)?}{any}{
+    Set \hl{^ErrorPort} to write error output to \hl{filename} for the
+    duration of \hl{action}, ensuring that the file is closed.
+
+    Returns the result of \hl{action}.
+
+    \example{
+      with-error-to("foo", "a"): warning(.some-warning)
+      File open("foo") .read
+    }
+  }
+
+  \define{
+    with-error-to(io) &action
+  }{any}{
+    Set \hl{^ErrorPort} to write to \hl{io} for the duration of \hl{action}.
+
+    Returns the result of \hl{action}.
+
+    \example{
+      require("stringio")
+      x = StringIO new
+      with-error-to(x): warning(.foo)
+      x string
+    }
+  }
+}
+
+\section{Input}{
+  \define{
+    read-line(sep = $separator)
+  }{String}{
+    Read a line of text from \hl{^InputPort}, signalling \hl{EndOfFile} on
+    end of file. Lines are separated by \hl{sep}. A separator of \hl{nil}
+    reads the entire contents, and a zero-length separator reads the input
+    one paragraph at a time (separated by two linebreaks).
+
+    \example{
+      with-input-from("foo"): read-line
+    }
+  }
+
+  \define{
+    read-lines(sep = $separator)
+  }{String}{
+    Read all lines of text from \hl{^InputPort}. Lines are separated by
+    \hl{sep}. A separator of \hl{nil} reads the entire contents as one
+    segment, and a zero-length separator reads the input one paragraph at a
+    time (separated by two linebreaks).
+
+    \example{
+      with-input-from("foo"): read-lines
+    }
+  }
+
+  \define{
+    read-byte
+  }{Integer}{
+    Read a single byte from \hl{^InputPort}, signalling \hl{EndOfFile} on
+    end of file.
+
+    \example{
+      with-input-from("foo"): read-byte
+    }
+  }
+
+  \define{
+    read-char
+  }{String}{
+    Same as \hl{read-byte chr}.
+
+    \example{
+      with-input-from("foo"): read-char
+    }
+  }
+
+  \define{
+    read(length = nil, buffer = nil)
+  }{length nil? or length >= 0}{buffer nil? or buffer is-a(String)?}{
+    String or buffer or nil
+  }{
+    Read at most \hl{length} bytes from \hl{^InputPort}, or to the end of
+    file if \hl{length} is \hl{nil}. If \hl{buffer} is given, the data read
+    will be written to it.
+
+    \example{
+      x = ""
+      with-input-from("foo"): read(10)
+      with-input-from("foo"): read(10, x)
+      x
+    }
+  }
+
+  \define{
+    with-input-from(filename, mode = "r") &action
+  }{filename is-a(String)?}{mode is-a(String)?}{any}{
+    Set \hl{^InputPort} to read input from \hl{filename} for the duration
+    of \hl{action}, ensuring that the file is closed.
+
+    Returns the result of \hl{action}.
+
+    \example{
+      with-input-from("foo"): read-line
+    }
+  }
+
+  \define{
+    with-input-from(io) &action
+  }{any}{
+    Set \hl{^InputPort} to write to \hl{io} for the duration of \hl{action}.
+
+    Returns the result of \hl{action}.
+
+    \example{
+      require("stringio")
+      x = StringIO new("hello\\ngoodbye\\n")
+      with-input-from(x): read-line
+    }
+  }
+}

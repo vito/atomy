@@ -1,0 +1,7 @@
+#language anatomy
+
+\title{Reference}
+
+\table-of-contents
+
+\include-sections{docs/reference/*.any}

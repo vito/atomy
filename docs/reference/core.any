@@ -1,0 +1,98 @@
+#language anatomy
+
+\use{anatomy/atomy}
+
+\title{Core}
+
+\macro{~receiver ~(message ? to-word)}{any}{
+  A basic message send.
+
+  \example{
+    1 inspect
+    "foo" nil?
+  }
+}
+
+\macro{~receiver ~(message ? to-word)(~*arguments)}{any}{
+  A basic message send with arguments.
+
+  \example{
+    "fii" gsub("i", "o")
+  }
+}
+
+\macro{macro(~pattern): ~*body}{CompiledMethod}{
+  A macro for defining macros. Defines in the current module.
+
+  \example{
+    macro(2 + 2): 5
+    2 + 2
+  }
+}
+
+\macro{[~*args]: ~*body}{Proc}{
+  A block with arguments.
+
+  \example{
+    [x]: x + 1
+  }
+}
+
+\macro{[~*args] &~block: ~*body}{Proc}{
+  A block with arguments and a proc-arg.
+
+  \example{
+    [x] &y: y call(x)
+  }
+}
+
+\macro{&~block: ~*body}{Proc}{
+  A block with a proc-arg.
+
+  \example{
+    &y: y call(42)
+  }
+}
+
+\macro{~(message ? to-word): ~*body}{any}{
+  A private message send with a proc-arg.
+
+  \example{
+    tap: 1
+    tap \{ 1 \}
+  }
+}
+
+\macro{~(message ? to-word)(~*args): ~*body}{any}{
+  A private message send with arguments and a proc-arg.
+
+  \example{
+    foo(bar) &baz := baz call(bar)
+    foo(41): puts("called")
+  }
+}
+
+\macro{~receiver ~(message ? to-word): ~*body)}{any}{
+  A message send with a proc-arg to \hl{receiver}.
+
+  \example{
+    1 tap: puts("xyz")
+  }
+}
+
+\macro{~receiver ~(message ? to-word)(~*args): ~*body)}{any}{
+  A message send with arguments and a proc-arg to \hl{receiver}.
+
+  \example{
+    [0, 2] zip([1, 3]): puts("xyz")
+  }
+}
+
+{-
+  TODO:
+  collect(a) [x] { x + 1 }
+  [1, 2, 3] collect [x] { x + 1 }
+  [1, 2, 3] collect(a) [x] { x + 1 }
+
+  and others (see kernel/core)
+-}

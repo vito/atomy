@@ -19,10 +19,10 @@ Care is taken to maintain proper precision-based ordering so that an object may 
 \atomy{
   1 foo := -1
   2 foo := -2
-  _ foo := #umm
+  _ foo := .umm
 }
 
-Without precision sorting, not only would the order of definitions matter greatly, but no one would be able to handle any other cases! If someone came along and tried defining \hl{3 foo := -3}, it would be unreachable, because the wildcard \hl{_} matches \italic{everything}. They'd always get back \hl{#umm} for everything but \hl{1} and \hl{2}. Likewise, if you defined that catch-all case first, it would override the others.
+Without precision sorting, not only would the order of definitions matter greatly, but no one would be able to handle any other cases! If someone came along and tried defining \hl{3 foo := -3}, it would be unreachable, because the wildcard \hl{_} matches \italic{everything}. They'd always get back \hl{.umm} for everything but \hl{1} and \hl{2}. Likewise, if you defined that catch-all case first, it would override the others.
 
 With precision sorting, things "just work." You can define your methods in whatever order you want - maybe writing the catch-all first and then drilling into the details afterward. It doesn't matter.
 
@@ -40,7 +40,7 @@ With precision sorting, things "just work." You can define your methods in whate
       }
     }
 
-    \item{\hl{1}, \hl{4.0}, \hl{true}, \hl{false}, \hl{"foo"}, \hl{#foo}, ...}{
+    \item{\hl{1}, \hl{4.0}, \hl{true}, \hl{false}, \hl{"foo"}, \hl{.foo}, ...}{
       Primitive literal values that will match only themselves.
 
       \example{
@@ -83,15 +83,15 @@ With precision sorting, things "just work." You can define your methods in whate
       }
     }
 
-    \item{\hl{#foo(x)}, \hl{#foo(x, _)}, ...}{
+    \item{\hl{.foo(x)}, \hl{.foo(x, _)}, ...}{
       Matches a particle value, recursively pattern-matching the particle's values. A wildcard in a particle pattern matches placeholders, but no other pattern will.
 
       \example{
-        #foo(x) = #foo(2)
+        .foo(x) = .foo(2)
         x
-        #foo(_) = #foo(_)
-        #foo(_) = #foo(2)
-        #foo(2) = #foo(_)
+        .foo(_) = .foo(_)
+        .foo(_) = .foo(2)
+        .foo(2) = .foo(_)
       }
     }
 
@@ -224,8 +224,8 @@ With precision sorting, things "just work." You can define your methods in whate
       \hl{List}
     }
     \item{\hl{'x}, \hl{`x}, \hl{`(1 + ~y)}, ...}{\hl{Expression}}
-    \item{\hl{#foo}}{\hl{Symbol}}
-    \item{\hl{#foo(1)}}{\hl{Particle}}
+    \item{\hl{.foo}}{\hl{Symbol}}
+    \item{\hl{.foo(1)}}{\hl{Particle}}
     \item{\hl{foo: pattern}, \hl{foo \{ pattern \}}}{
       target of \italic{pattern}
     }
@@ -240,5 +240,5 @@ With precision sorting, things "just work." You can define your methods in whate
     \item{\hl{&foo}, \hl{*foo}}{\hl{Object}}
   }
 
-  Thus, \hl{1 foo := x} is a definition placed on \hl{Integer}, while \hl{{ self } foo} is inserted on \hl{self}'s singleton class, similar to \code{def self.foo; ...; end} in Ruby.
+  Thus, \hl{1 foo := x} is a definition placed on \hl{Integer}, while \hl{\{ self \} foo} is inserted on \hl{self}'s singleton class, similar to \code{def self.foo; ...; end} in Ruby.
 }

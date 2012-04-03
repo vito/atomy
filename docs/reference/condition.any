@@ -1,0 +1,151 @@
+#language anatomy
+
+\use{anatomy/atomy}
+
+\title{Condition System}
+
+Rather than traditional exceptions, Atomy sports a condition/restart
+system modeled on Common Lisp's design. The native Ruby exception handling
+is available, but conditions and restarts are much more flexible.
+
+
+\section{Conditions}{
+  \data{
+    Condition:
+      Error(@backtrace):
+        SimpleError(@value)
+        ExceptionError(@exception)
+        NoRestartError(@name)
+        PortError(@port):
+          EndOfFile
+      Warning(@backtrace):
+        SimpleWarning(@value)
+  }{
+    Condition system hierarchy. You should subclass one of these to create
+    your own conditions.
+  }
+
+  \define{
+    Condition name
+  }{String}{
+    Get the name of a condition. By default, this will be the class name,
+    but you may override this for your own behaviour.
+  }
+
+  \define{
+    Condition message
+  }{String}{
+    A human-friendly message displayed for the condition. Override this.
+  }
+}
+
+\section{Handling}{
+  \define{
+    restart(name, *args)
+  }{name is-a(Symbol)?}{_}{
+    Invoke the \hl{name} restart, passing \hl{args} along to its callback.
+
+    See \hl{with-restarts}.
+
+    \example{
+      \{ with-restarts(foo -> 42): signal(.bar) \} bind: .bar -> restart(.foo)
+    }
+  }
+
+  \macro{
+    \{ ~*body \} bind: ~*handlers
+  }{any}{
+    Register \hl{handlers} for various signals for the duration of \hl{body}'s
+    execution.
+
+    The result is the result of \hl{body}.
+
+    \example{
+      \{ signal(.a) \} bind: .a -> puts("got A!")
+      \{ signal(.b) \} bind: .a -> puts("got A!")
+      \{ \{ signal(.a) \} bind: .a -> puts("x") \} bind: .a -> puts("y")
+    }
+  }
+
+  \macro{
+    with-restarts(~*restarts): ~*body
+  }{any}{
+    Register restarts available for the duration of \hl{body}'s execution.
+
+    The \hl{restarts} should be in the form of
+    \code{\italic{name}(*\italic{args}) -> \italic{expr}}.
+
+    The result is the result of \hl{body}.
+
+    \example{
+      \{ with-restarts(x -> 1, y -> 2): signal(.a) \} bind: .a -> restart(.x)
+      \{ with-restarts(x -> 1, y -> 2): signal(.a) \} bind: .a -> restart(.y)
+      \{ with-restarts(x(a) -> a * 7): signal(.a) \} bind: .a -> restart(.x, 6)
+    }
+  }
+}
+
+\section{Signalling}{
+  \define{
+    signal(c)
+  }{any}{
+    Signal a value through all bound handlers, nearest-first, stopping when
+    a restart is invoked.
+
+    \example{
+      signal(.foo)
+      \{ signal(.foo) \} bind: .foo -> puts("got foo")
+    }
+  }
+
+  \define{
+    error(x)
+  }{_}{
+    Like \hl{signal}, except that if no restart is invoked, the current
+    \hl{^debugger} is started.
+
+    If the given value is not an \hl{Error}, it is wrapped in a
+    \hl{SimpleError}. If the value is a Ruby \hl{Exception}, it is wrapped
+    in an \hl{ExceptionError}.
+
+    \example{
+      error("Oh no!")
+      \{ error("Oh no!") \} bind: Error -> puts("INCOMING")
+    }
+  }
+
+  \define{
+    warning(x)
+  }{nil}{
+    Like \hl{signal}, except that if no restart is invoked, the warning is
+    printed to \hl{^error-port}.
+
+    If the given value is not a \hl{Warning}, it is wrapped in a
+    \hl{SimpleWarning}. Warning messages can be muffled by binding for
+    \hl{Warning} and invoking the \hl{.muffle-warning} restart.
+
+    \example{
+      warning("Suspicious!")
+      \{ warning("Quiet, you!") \} bind: Warning -> restart(.muffle-warning)
+    }
+  }
+}
+
+\section{Debuggers}{
+  \data{DefaultDebugger}{
+    The default debugger. This will show the condition name, its message,
+    and let the user pick from the available restarts.
+  }
+
+  \define{DefaultDebugger run(condition)}{_}{
+    Show the condition message and list the current available restarts, asking
+    which one to invoke.
+  }
+
+  \assign{
+    Debugger
+  }{dynamic(DefaultDebugger)}{
+    The current debugger. \hl{run} will be called with the condition as an
+    argument.
+  }
+}

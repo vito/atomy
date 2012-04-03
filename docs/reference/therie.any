@@ -1,0 +1,104 @@
+#language anatomy
+
+\use{anatomy/atomy}
+
+\title{Testing with Therie}{therie}
+
+Therie is a small and simple behavioral-style testing suite that comes with
+Atomy.
+
+\interaction{
+  use("therie")
+}{therie}
+
+
+\data{
+  Stats(@passed = 0, @failed = 0)
+}{
+  The current passed/failed count of the current tests run.
+}
+
+\section{Structure}{
+  \define{
+    theorize &tests
+  }{Stats}{
+    Run \hl{tests} and keep track of how many passed and how many failed,
+    printing the stats at the end and returning them.
+  
+    \example{
+      theorize: describe("foo"): it("does x"): true should-be(true)
+      theorize: describe("foo"): it("does x"): true should-be(false)
+    }{therie}
+  }
+
+  \define{
+    describe(what) &body
+  }{nil}{
+    Logically group together a set of behavior.
+
+    Prints out \hl{what}, with each test in \hl{body} indented afterward.
+  
+    \example{
+      describe("foo"): it("does x"): true should-be(false)
+      describe("foo"): it("does x"): true should-be(true)
+    }{therie}
+  }
+
+  \define{
+    it(description) &tests
+  }{nil}{
+    Describe some behavior that \hl{body} will demonstrate.
+  
+    \example{
+      it("adds correctly"): (2 + 2) should-be(4)
+      it("adds correctly"): (1 + 2) should-be(4)
+    }{therie}
+  }
+}
+
+\section{Tests}{
+  \macro{
+    ~x should: ~*check
+  }{should}{nil}{
+    Test that \hl{check} is satisified by \hl{x} by evaluating it with
+    \hl{x} as \hl{self}.
+  
+    \example{
+      (2 + 2) should: even?
+      (2 + 2) should: odd?
+    }{therie}
+  }
+
+  \define{
+    x should-be(y)
+  }{nil}{
+    Test for \hl{x == y}.
+  
+    \example{
+      (2 + 2) should-be(4)
+      (1 + 2) should-be(4)
+    }{therie}
+  }
+
+  \define{
+    x should-raise(y)
+  }{x respond-to(.call)?}{y is-a(Class)?}{nil}{
+    Test that executing \hl{x} will raise an exception of class \hl{y}.
+  
+    \example{
+      \{ abc \} should-raise(NoMethodError)
+      \{ .ok \} should-raise(NoMethodError)
+    }{therie}
+  }
+
+  \define{
+    x should-error(y)
+  }{x respond-to(.call)?}{y is-a(Class)?}{nil}{
+    Test that executing \hl{x} will signal an error of class \hl{y}.
+  
+    \example{
+      \{ error(.foo) \} should-error(SimpleError)
+      \{ .ok \} should-error(SimpleError)
+    }{therie}
+  }
+}
