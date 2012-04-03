@@ -17,7 +17,7 @@ Atomy::AST open:
     before-mod = Atomy::CodeLoader module
     before-ctx = Atomy::CodeLoader context
 
-    mod include(before-mod)
+    mod send(.include, before-mod)
     mod extend(before-mod)
     mod using << before-mod
 

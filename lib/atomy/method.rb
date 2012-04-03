@@ -340,7 +340,7 @@ module Atomy
   # define a new method branch
   def self.define_branch(target, name, branch, scope)
     add_method(target, name, add_branch(target, name, branch)).tap do
-      target.module_function name if target.is_a?(Atomy::Module)
+      target.send(:module_function, name) if target.is_a?(Atomy::Module)
     end
   end
 
