@@ -24,35 +24,19 @@ const-name(c: Atomy::AST::Constant) = c name to-s
 const-name(c: Atomy::AST::ScopedConstant) = const-name(c parent) + "::" + c name to-s
 const-name(c: Atomy::AST::ToplevelConstant) = "::" + c name to-s
 
-process-val(g, `(%((~grammar).) ~(x)(~*args))) = do:
+process-val(g, `(%(~grammar)(~name)(~*args))) = do:
   `(~g foreign-invoke(
       ~(grammar text)
-      ~(x text)
+      ~(name text)
       ~(args collect .(pretty show(_)) join(", "))))
 
-process-val(g, `(~a %((~grammar).) ~(x)(~*args))) = do:
-  `(~g seq(
-      ~process-val(g, a),
-      ~g foreign-invoke(
-        ~(grammar text)
-        ~(x text)
-        ~(args collect .(pretty show(_)) join(", ")))))
+process-val(g, `(%(~grammar)(~name))) = do:
+  `(~g foreign-invoke(~(grammar text), ~(name text)))
 
-process-val(g, `(%((~grammar).) ~x)) = do:
-  `(~g foreign-invoke(~(grammar text), ~(x text)))
-
-process-val(g, `(~a %((~grammar).) ~x)) = do:
-  `(~g seq(~process-val(g, a), ~g foreign-invoke(~(grammar text), ~(x text))))
-
-process-val(g, `((~v)= ~name)) = do:
+process-val(g, `((~name)=(~v))) = do:
   val = process-val(g, v)
   when(^rule-vars): ^rule-vars << name text
   `(~g t(~val, ~(name text to-s)))
-
-process-val(g, `(~a (~v)= ~name)) = do:
-  val = process-val(g, v)
-  when(^rule-vars): ^rule-vars << name text
-  `(~g seq(~process-val(g, a), ~g t(~val, ~(name text to-s))))
 
 process-val(g, `(~a ~b)) =
   `(~g seq(~process-val(g, a), ~process-val(g, b)))
@@ -141,7 +125,7 @@ process-val(g, '_) =
   `(~g dot)
 
 process-val(_, s) =
-  raise(ArgumentError, "unknown operator: " + s to-sexp inspect)
+  raise(ArgumentError, "unknown parsing operator: " + s to-sexp inspect)
 
 Atomy::AST open:
   ast(ParserDefiner(@source))
@@ -188,7 +172,7 @@ macro(grammar: ~*body): names [g]:
 
         `(~g set-variable(~(name text to-s), call))
 
-      `(~(name)(~*args) := ~val) -> do:
+      `((~name)(~*args) := ~val) -> do:
         let(rule = name text,
             rule-vars = ::Set new(args collect .text)):
           `(~g set(~(name text to-s)
@@ -200,7 +184,8 @@ macro(grammar: ~*body): names [g]:
             rule-vars = ::Set new):
           `(~g set(~(name text to-s), ~process-val(g, val)))
 
-      _ -> `unknown(~n)
+      u ->
+        raise("unknown toplevel grammar form:\n" + u inspect)
 
   `(::KPeg::Grammar new tap [~g]: ~*b)
 

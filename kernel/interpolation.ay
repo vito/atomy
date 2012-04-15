@@ -9,7 +9,7 @@ use("node")
 parser(Parser):
   %atomy := Atomy::Parser
 
-  root := %atomy.wsp (%atomy.expressions)=es %atomy.wsp "}" {
+  root := %atomy(wsp) es=(%atomy(expressions)) %atomy(wsp) "}" {
     Atomy::AST::Tree new(0, Array(es))
   }
 

@@ -17,14 +17,14 @@ Atomy::Format open:
       -- TODO
       <(/"[^\\%#{Regexp.quote(e)}]+"/)> { text }
       "\\" <(/"[%\(\)\{\}\[\]]"/)> { text }
-      "\\" (%atomy.escape)=e { e }
+      "\\" e=(%atomy(escape)) { e }
     ]
 
-    nested(e) := text(e)+=c { Chunk new(0, [], c join) }
+    nested(e) := c=(text(e)+) { Chunk new(0, [], c join) }
 
     chunk := nested("")
 
-    flagged := "%" flag*=fs segment=s { s flags = fs, s }
+    flagged := "%" fs=(flag*) s=(segment) { s flags = fs, s }
 
     flag := [
       "#" { Number new(0, nil) }
@@ -35,15 +35,15 @@ Atomy::Format open:
     ]
 
     segment := [
-      "p" "(" sub(")")=s ")" ("(" sub(")")=p ")")? {
+      "p" "(" s=(sub(")")) ")" ("(" p=(sub(")")) ")")? {
         Pluralize new(0, s, [], p)
       }
-      "l" "(" sub(")")=c ")" { create(Lowercase, c) }
-      "c" "(" sub(")")=c ")" { create(Capitalize, c) }
-      "u" "(" sub(")")=c ")" { create(Uppercase, c) }
-      "j" ("(" sub(")")=c ")" { c })+=cs { create(Justify, cs) }
-      "{" sub("}")=c "}" { create(Iterate, c) }
-      ("[" sub("]")=c "]" { c })+=bs ("(" sub(")")=d ")")? {
+      "l" "(" c=(sub(")")) ")" { create(Lowercase, c) }
+      "c" "(" c=(sub(")")) ")" { create(Capitalize, c) }
+      "u" "(" c=(sub(")")) ")" { create(Uppercase, c) }
+      "j" cs=(("(" c=(sub(")")) ")" { c })+) { create(Justify, cs) }
+      "{" c=(sub("}")) "}" { create(Iterate, c) }
+      bs=(("[" c=(sub("]")) "]" { c })+) ("(" d=(sub(")")) ")")? {
         Conditional new(0, Array(bs), [], d)
       }
       "_" { create(Skip) }
@@ -62,7 +62,7 @@ Atomy::Format open:
       "v" { create(Any) }
     ]
 
-    sub(e) := (flagged | nested(e))*=as {
+    sub(e) := as=((flagged | nested(e))*) {
       Formatter new(0, Array(as))
     }
 
