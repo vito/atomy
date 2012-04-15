@@ -3,7 +3,7 @@ infix("?", 30, "right")
 
 -- a few macros so we can actually, you know, send messages
 define-macro('(~_ ~(? to-word)), 'make-send(node))
-define-macro('(~_ ~(? to-word)(~*_)), 'make-send(node))
+define-macro('(~_ (~(? to-word))(~*_)), 'make-send(node))
 
 -- a macro for defining macros!
 define-macro(
@@ -43,7 +43,7 @@ macro(~(w ? to-word) ~(b: Block)):
   x
 
 -- foo(a) { bar }
-macro(~(? to-word)(~*_) ~(b: Block)):
+macro((~(? to-word))(~*_) ~(b: Block)):
   x = node left to-send
   x block = b
   x
@@ -55,7 +55,7 @@ macro(~_ ~(? to-word) ~(b: Block)):
   x
 
 -- x foo(a) { bar }
-macro(~_ ~(? to-word)(~*_) ~(b: Block)):
+macro(~_ (~(? to-word))(~*_) ~(b: Block)):
   x = node left to-send
   x block = b
   x
@@ -68,7 +68,7 @@ macro(~(? to-word) [~*ys] ~(z: Block)):
   x
 
 -- collect(a) [x] { x + 1 }
-macro(~(call: `(~(? to-word)(~*_))) [~*ys] ~(z: Block)):
+macro(~(call: `((~(? to-word))(~*_))) [~*ys] ~(z: Block)):
   z arguments = ys
   x = call to-send
   x block = z
@@ -82,7 +82,7 @@ macro(~(call: `(~_ ~(? to-word))) [~*ys] ~(z: Block)):
   x
 
 -- [1, 2, 3] collect(a) [x] { x + 1 }
-macro(~(call: `(~_ ~(? to-word)(~*_))) [~*ys] ~(z: Block)):
+macro(~(call: `(~_ (~(? to-word))(~*_))) [~*ys] ~(z: Block)):
   z arguments = ys
   x = call to-send
   x block = z
@@ -96,11 +96,11 @@ macro(~_ ~(? to-word) &~_):
   node left to-send tap [s]:
     s block = node right
 
-macro(~(? to-word)(~*_) &~_):
+macro((~(? to-word))(~*_) &~_):
   node left to-send tap [x]:
     x block = node right
 
-macro(~_ ~(? to-word)(~*_) &~_):
+macro(~_ (~(? to-word))(~*_) &~_):
   node left to-send tap [s]:
     s block = node right
 
@@ -119,24 +119,24 @@ macro([~*_] &~_):
     s block = node right
 
 -- Foo(...)
-macro(~(c: Constant)(~*args)):
+macro((~(c: Constant))(~*args)):
   node to-send tap [x]:
     x message-name = c name
 
 -- Foo(...) &baz
-macro(~(c: Constant)(~*args) &~_):
+macro((~(c: Constant))(~*args) &~_):
   node left to-send tap [x]:
     x message-name = c name
     x block = node right
 
 -- Bar::Foo(...)
-macro(~(c: ScopedConstant)(~*args)):
+macro((~(c: ScopedConstant))(~*args)):
   node to-send tap [x]:
     x receiver = c parent
     x message-name = c name
 
 -- Bar::Foo(...) &baz
-macro(~(c: ScopedConstant)(~*args) &~_):
+macro((~(c: ScopedConstant))(~*args) &~_):
   node left to-send tap [x]:
     x receiver = c parent
     x message-name = c name
@@ -204,12 +204,12 @@ macro(~x (~Word)?):
   node
 
 -- bar(...)?
-macro(~(Word)(~*args)?):
+macro((~Word)(~*args)?):
   node receiver tap [r]:
     r name text = (r name text to-s + "?") to-sym
 
 -- foo bar(...)?
-macro(~x ~(Word)(~*args)?):
+macro(~x (~Word)(~*args)?):
   node right =
     node right receiver tap [r]:
       r name text = (r name text to-s + "?") to-sym
@@ -230,12 +230,12 @@ macro(~x (~Word)!):
   node
 
 -- bar(...)!
-macro(~(Word)(~*args)!):
+macro((~Word)(~*args)!):
   node receiver tap [r]:
     r name text = (r name text to-s + "!") to-sym
 
 -- foo bar(...)!
-macro(~x ~(Word)(~*args)!):
+macro(~x (~Word)(~*args)!):
   node right =
     node right receiver tap [r]:
       r name text = (r name text to-s + "!") to-sym

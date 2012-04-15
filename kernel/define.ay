@@ -8,34 +8,34 @@ macro(do ~(b: Block)): b body
 macro(~x =! ~y):
   Set new(node line, x to-pattern to-node, y)
 
-macro(~(name)(~*args) = ~body):
+macro((~name)(~*args) = ~body):
   Function new(node line, body, args, name text)
 
-macro(~(name)(~*args) &~b = ~body):
+macro((~name)(~*args) &~b = ~body):
   Function new(node line, body, args, name text, b)
 
-macro(~(x: `(~(_)(~*_)?)) = ~body):
+macro(~(x: `((~_)(~*_)?)) = ~body):
   Function new(node line, body, arguments(x), message-name(x))
 
-macro(~(x: `(~(_)(~*_)?)) &~b = ~body):
+macro(~(x: `((~_)(~*_)?)) &~b = ~body):
   Function new(node line, body, arguments(x), message-name(x), b)
 
-macro(~(x: `(~(_)(~*_)!)) = ~body):
+macro(~(x: `((~_)(~*_)!)) = ~body):
   Function new(node line, body, arguments(x), message-name(x))
 
-macro(~(x: `(~(_)(~*_)!)) &~b = ~body):
+macro(~(x: `((~_)(~*_)!)) &~b = ~body):
   Function new(node line, body, arguments(x), message-name(x), b)
 
 arguments(b: Atomy::AST::Binary) = [b rhs]
 arguments(? to-word) = []
 arguments(Atomy::AST::Prefix) = []
 arguments(Atomy::AST::Postfix) = []
-arguments(`(~(_)(~*args)?)) = args
-arguments(`(~(_)(~*args)!)) = args
+arguments(`((~_)(~*args)?)) = args
+arguments(`((~_)(~*args)!)) = args
 arguments(c: Atomy::AST::Call) = c arguments
-arguments(`(~_ ~(_)(~*args)?)) = args
-arguments(`(~_ ~(_)(~*args)!)) = args
-arguments(`(~_ ~(_)(~*args))) = args
+arguments(`(~_ (~_)(~*args)?)) = args
+arguments(`(~_ (~_)(~*args)!)) = args
+arguments(`(~_ (~_)(~*args))) = args
 arguments(`(~_ ~(? to-word))) = []
 arguments(`(~_ [~*args])) = args
 arguments(`(~a &~_)) = arguments(a)
@@ -48,8 +48,8 @@ receiver(p: Atomy::AST::Prefix) = p receiver
 receiver(p: Atomy::AST::Postfix) = p receiver
 receiver(? to-word) = Atomy::AST::Primitive new(0, .self)
 receiver(Atomy::AST::Call) = Atomy::AST::Primitive new(0, .self)
-receiver(`(~(_)(~*_)?)) = Atomy::AST::Primitive new(0, .self)
-receiver(`(~(_)(~*_)!)) = Atomy::AST::Primitive new(0, .self)
+receiver(`((~_)(~*_)?)) = Atomy::AST::Primitive new(0, .self)
+receiver(`((~_)(~*_)!)) = Atomy::AST::Primitive new(0, .self)
 receiver(`(~a &~_)) = receiver(a)
 receiver(`(~a ~_)) = a
 receiver(x) =
@@ -60,13 +60,13 @@ message-name(b: Atomy::AST::Binary) = b operator
 message-name(p: Atomy::AST::Prefix) = p message-name
 message-name(p: Atomy::AST::Postfix) = p message-name
 message-name(w: ? to-word) = w to-word text
-message-name(`(~(w: Atomy::AST::Word)(~*_)?)) = (w text to-s + "?") to-sym
-message-name(`(~(w: Atomy::AST::Word)(~*_)!)) = (w text to-s + "!") to-sym
-message-name(`(~(w: Atomy::AST::Word)(~*_))) = w text
+message-name(`((~(w: Atomy::AST::Word))(~*_)?)) = (w text to-s + "?") to-sym
+message-name(`((~(w: Atomy::AST::Word))(~*_)!)) = (w text to-s + "!") to-sym
+message-name(`((~(w: Atomy::AST::Word))(~*_))) = w text
 message-name(`(~_ ~(w: ? to-word))) = w to-word text
-message-name(`(~_ ~(w: Atomy::AST::Word)(~*_))) = w text
-message-name(`(~_ ~(w: Atomy::AST::Word)(~*_)?)) = (w text to-s + "?") to-sym
-message-name(`(~_ ~(w: Atomy::AST::Word)(~*_)!)) = (w text to-s + "!") to-sym
+message-name(`(~_ (~(w: Atomy::AST::Word))(~*_))) = w text
+message-name(`(~_ (~(w: Atomy::AST::Word))(~*_)?)) = (w text to-s + "?") to-sym
+message-name(`(~_ (~(w: Atomy::AST::Word))(~*_)!)) = (w text to-s + "!") to-sym
 message-name(`(~_ [~*_])) = .[]
 message-name(`(~a &~_)) = message-name(a)
 message-name(x) =

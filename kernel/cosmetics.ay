@@ -13,26 +13,26 @@ macro(~x ?[~*as]):
           then: ~v [~*as]
           else: nil)
 
-macro(~x ?~(y: Word)(~*as)):
+macro(~x ?(~(y: Word))(~*as)):
   names [v]:
     `(do:
         ~v = ~x
         if(~v respond-to(.~y)?)
-          then: ~v ~(y)(~*as)
+          then: ~v (~y)(~*as)
           else: nil)
 
-macro(~x ?~(y: Word)(~*as)?):
+macro(~x ?(~(y: Word))(~*as)?):
   names [v]:
     `(do:
         ~v = ~x
         if(~v respond-to(.(~y)?)?)
-          then: ~v ~(y)(~*as)?
+          then: ~v (~y)(~*as)?
           else: nil)
 
-macro(~x ?~(y: Word)(~*as)!):
+macro(~x ?(~(y: Word))(~*as)!):
   names [v]:
     `(do:
         ~v = ~x
         if(~v respond-to(.(~y)!)?)
-          then: ~v ~(y)(~*as)!
+          then: ~v (~y)(~*as)!
           else: nil)

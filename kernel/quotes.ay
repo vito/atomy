@@ -26,7 +26,7 @@ macro(macro-quoter(~n) [~*as]: ~*body):
           ~*([raw, flags, val] compact)
           ~*body
 
-        macro(~n ~(strpat)(~argpat)):
+        macro(~n (~strpat)(~argpat)):
           ~*([raw, flags, val] compact)
           ~*body)
 

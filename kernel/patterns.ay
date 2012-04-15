@@ -235,13 +235,13 @@ Atomy::Patterns open:
   `(~x ~(y: ? to-word)) to-pattern :=
     Attribute new(x, y to-word text, [])
 
-  `(~x ~(y: ? to-word)(~*as)) to-pattern :=
+  `(~x (~(y: ? to-word))(~*as)) to-pattern :=
     Attribute new(x, y to-word text, as)
 
-  `(~x ~(y: Atomy::AST::Word)(~*as)?) to-pattern :=
+  `(~x (~(y: Atomy::AST::Word))(~*as)?) to-pattern :=
     Attribute new(x, `((~y)?) to-word text, as)
 
-  `(~x ~(y: Atomy::AST::Word)(~*as)!) to-pattern :=
+  `(~x (~(y: Atomy::AST::Word))(~*as)!) to-pattern :=
     Attribute new(x, `((~y)!) to-word text, as)
 
   `(~a & ~b) to-pattern :=
