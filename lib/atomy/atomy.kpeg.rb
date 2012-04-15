@@ -685,9 +685,10 @@ class Atomy::Parser
 
       break if _tmp
       self.pos = _save
-      _save13 = self.pos
-      _tmp = get_byte
-      self.pos = _save13
+      _save8 = self.pos
+      _tmp = match_string("(")
+      _tmp = _tmp ? nil : true
+      self.pos = _save8
       break if _tmp
       self.pos = _save
       break
@@ -2404,6 +2405,63 @@ class Atomy::Parser
     return _tmp
   end
 
+  # name = (line:line name:n !":" op_letter:o { Atomy::AST::Postfix.new(line, n, o) } | grouped | level0(false))
+  def _name
+
+    _save = self.pos
+    while true # choice
+
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_name)
+        n = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _save2 = self.pos
+        _tmp = match_string(":")
+        _tmp = _tmp ? nil : true
+        self.pos = _save2
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_op_letter)
+        o = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin;  Atomy::AST::Postfix.new(line, n, o) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_grouped)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply_with_args(:_level0, false)
+      break if _tmp
+      self.pos = _save
+      break
+    end # end choice
+
+    set_failed_rule :_name unless _tmp
+    return _tmp
+  end
+
   # args = "(" wsp expressions?:as wsp ")" { Array(as) }
   def _args
 
@@ -2453,36 +2511,75 @@ class Atomy::Parser
     return _tmp
   end
 
-  # call = line:line level0(false):n args:as { Atomy::AST::Call.new(line, n, as) }
+  # call = (line:line call:c args:as { Atomy::AST::Call.new(line, c, as) } | line:line name:n args:as { Atomy::AST::Call.new(line, n, as) })
   def _call
 
     _save = self.pos
-    while true # sequence
-      _tmp = apply(:_line)
-      line = @result
-      unless _tmp
-        self.pos = _save
+    while true # choice
+
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_call)
+        c = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_args)
+        as = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin;  Atomy::AST::Call.new(line, c, as) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
         break
-      end
-      _tmp = apply_with_args(:_level0, false)
-      n = @result
-      unless _tmp
-        self.pos = _save
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save2 = self.pos
+      while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = apply(:_name)
+        n = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = apply(:_args)
+        as = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        @result = begin;  Atomy::AST::Call.new(line, n, as) ; end
+        _tmp = true
+        unless _tmp
+          self.pos = _save2
+        end
         break
-      end
-      _tmp = apply(:_args)
-      as = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  Atomy::AST::Call.new(line, n, as) ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
       break
-    end # end sequence
+    end # end choice
 
     set_failed_rule :_call unless _tmp
     return _tmp
@@ -3824,7 +3921,7 @@ class Atomy::Parser
   Rules[:_sig_sp] = rule_info("sig_sp", "(\" \" | \"\\t\" | comment)+")
   Rules[:_sig_wsp] = rule_info("sig_wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)+")
   Rules[:_shebang] = rule_info("shebang", "\"\#!\" /.*?$/")
-  Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp ((\"\\n\" sp)+ &{ continue?(p) })? | &.)")
+  Rules[:_cont] = rule_info("cont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp cont(p)? | !\"(\")")
   Rules[:_line] = rule_info("line", "{ current_line }")
   Rules[:_op_letter] = rule_info("op_letter", "!\"`\" < /[\\p{S}!@\#%&*\\-\\\\.\\/\\?]/u > { text.to_sym }")
   Rules[:_operator] = rule_info("operator", "< !\"~\" \":\"? op_letter+ > { text.to_sym }")
@@ -3861,8 +3958,9 @@ class Atomy::Parser
   Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
   Rules[:_composes] = rule_info("composes", "(line:line compose:l cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) } | line:line level2:l cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) })")
   Rules[:_compose] = rule_info("compose", "@composes(current_position)")
+  Rules[:_name] = rule_info("name", "(line:line name:n !\":\" op_letter:o { Atomy::AST::Postfix.new(line, n, o) } | grouped | level0(false))")
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
-  Rules[:_call] = rule_info("call", "line:line level0(false):n args:as { Atomy::AST::Call.new(line, n, as) }")
+  Rules[:_call] = rule_info("call", "(line:line call:c args:as { Atomy::AST::Call.new(line, c, as) } | line:line name:n args:as { Atomy::AST::Call.new(line, n, as) })")
   Rules[:_binary_op] = rule_info("binary_op", "(operator | identifier:n &{ operator?(n) } { n })")
   Rules[:_binary_c] = rule_info("binary_c", "cont(pos) (binary_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(o),                         os.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }")
   Rules[:_binary_cs] = rule_info("binary_cs", "binary_c(pos)+:bs { bs.flatten }")

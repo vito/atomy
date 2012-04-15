@@ -79,7 +79,7 @@
 
         cont(p) = ("\n" sp)+ &{ continue?(p) }
                 | sig_sp cont(p)?
-                | &.
+                | !"(" # ensures (x)(y) is a Call, not a Compose
 
            line = { current_line }
 
@@ -198,8 +198,14 @@ scoped_constant = line:line scoped_constant:p "::" constant_name:s
                     { Atomy::AST::Compose.new(line, l, r) }
         compose = @composes(current_position)
 
+           name = line:line name:n !":" op_letter:o
+                    { Atomy::AST::Postfix.new(line, n, o) }
+                | grouped
+                | level0(false)
            args = "(" wsp expressions?:as wsp ")" { Array(as) }
-           call = line:line level0(false):n args:as
+           call = line:line call:c args:as
+                    { Atomy::AST::Call.new(line, c, as) }
+                | line:line name:n args:as
                     { Atomy::AST::Call.new(line, n, as) }
 
       binary_op = operator
