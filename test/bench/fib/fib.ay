@@ -1,8 +1,10 @@
+use("atomy")
+
 require("rubygems")
 require("benchmark/ips")
 
 Fixnum open:
-  define(fib-cond):
+  fib-cond :=
     if(self == 0)
       then: 1
       else:
