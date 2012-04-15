@@ -601,7 +601,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # cont = (("\n" sp)+ &{ continue?(p) } | sig_sp (("\n" sp)+ &{ continue?(p) })? | &.)
+  # cont = (("\n" sp)+ &{ continue?(p) } | sig_sp cont(p)? | !"(")
   def _cont(p)
 
     _save = self.pos
@@ -672,61 +672,7 @@ class Atomy::Parser
           break
         end
         _save7 = self.pos
-
-        _save8 = self.pos
-        while true # sequence
-          _save9 = self.pos
-
-          _save10 = self.pos
-          while true # sequence
-            _tmp = match_string("\n")
-            unless _tmp
-              self.pos = _save10
-              break
-            end
-            _tmp = apply(:_sp)
-            unless _tmp
-              self.pos = _save10
-            end
-            break
-          end # end sequence
-
-          if _tmp
-            while true
-
-              _save11 = self.pos
-              while true # sequence
-                _tmp = match_string("\n")
-                unless _tmp
-                  self.pos = _save11
-                  break
-                end
-                _tmp = apply(:_sp)
-                unless _tmp
-                  self.pos = _save11
-                end
-                break
-              end # end sequence
-
-              break unless _tmp
-            end
-            _tmp = true
-          else
-            self.pos = _save9
-          end
-          unless _tmp
-            self.pos = _save8
-            break
-          end
-          _save12 = self.pos
-          _tmp = begin;  continue?(p) ; end
-          self.pos = _save12
-          unless _tmp
-            self.pos = _save8
-          end
-          break
-        end # end sequence
-
+        _tmp = apply_with_args(:_cont, p)
         unless _tmp
           _tmp = true
           self.pos = _save7
