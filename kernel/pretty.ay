@@ -150,13 +150,10 @@ Atomy::AST open:
           | InstanceVariable
           | List
           | Primitive
-          | QuasiQuote
-          | Quote
           | ScopedConstant
           | Splice
           | String
           | ToplevelConstant
-          | Unquote
           | Word) :=
     render(x)
   Self unamb(c: Compose) :=
@@ -167,7 +164,7 @@ Atomy::AST open:
     if(from(.binary, .compose)?)
       then: render(s)
       else: parens(render(s))
-  Self unamb(p: Prefix | Postfix) :=
+  Self unamb(p: Prefix | Postfix | QuasiQuote | Quote | Unquote) :=
     if(from(.postfix)?)
       then: parens(render(p))
       else: render(p)
