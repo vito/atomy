@@ -168,12 +168,12 @@
     word(no_op) = line:line identifier:n !{ no_op && operator?(n) }
                     { Atomy::AST::Word.new(line, n) }
 
-         prefix = line:line !":" op_letter:o level2:e
+         prefix = line:line op_letter:o level2:e
                     { Atomy::AST::Prefix.new(line, e, o) }
 
-        postfix = line:line postfix:e !":" op_letter:o
+        postfix = line:line postfix:e op_letter:o
                     { Atomy::AST::Postfix.new(line, e, o) }
-                | line:line level1:e !":" op_letter:o
+                | line:line level1:e op_letter:o
                     { Atomy::AST::Postfix.new(line, e, o) }
 
           block = line:line ":" !op_letter wsp expressions?:es (wsp ";")?
@@ -190,7 +190,7 @@
                     { Atomy::AST::Compose.new(line, l, r) }
         compose = @composes(current_position)
 
-           name = line:line name:n !":" op_letter:o
+           name = line:line name:n op_letter:o
                     { Atomy::AST::Postfix.new(line, n, o) }
                 | grouped
                 | level0(false)
