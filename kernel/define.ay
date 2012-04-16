@@ -40,7 +40,7 @@ arguments(`(~_ ~(? to-word))) = []
 arguments(`(~_ [~*args])) = args
 arguments(`(~a &~_)) = arguments(a)
 arguments(x) =
-  raise(ArgumentError, "cannot get arguments from: " + x to-sexp inspect)
+  raise(ArgumentError, "cannot get arguments from:\n" + x inspect)
 
 
 receiver(b: Atomy::AST::Binary) = b lhs
@@ -53,7 +53,7 @@ receiver(`((~_)(~*_)!)) = Atomy::AST::Primitive new(0, .self)
 receiver(`(~a &~_)) = receiver(a)
 receiver(`(~a ~_)) = a
 receiver(x) =
-  raise(ArgumentError, "cannot get receiver from: " + x to-sexp inspect)
+  raise(ArgumentError, "cannot get receiver from:\n" + x inspect)
 
 
 message-name(b: Atomy::AST::Binary) = b operator
@@ -70,7 +70,7 @@ message-name(`(~_ (~(w: Atomy::AST::Word))(~*_)!)) = (w text to-s + "!") to-sym
 message-name(`(~_ [~*_])) = .[]
 message-name(`(~a &~_)) = message-name(a)
 message-name(x) =
-  raise(ArgumentError, "cannot get message-name from: " + x to-sexp inspect)
+  raise(ArgumentError, "cannot get message-name from:\n" + x inspect)
 
 
 block(`(~_ &~b)) = b

@@ -392,7 +392,7 @@ EOF
 
   class Atomy::AST::Node
     def to_pattern
-      raise "unknown pattern: #{to_sexp.inspect}"
+      raise "unknown pattern:\n#{inspect}"
     end
   end
 

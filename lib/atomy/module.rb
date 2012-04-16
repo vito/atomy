@@ -126,10 +126,10 @@ module Atomy
         begin
           $stderr.puts "while expanding #{node.show}"
         rescue
-          $stderr.puts "while expanding #{node.to_sexp.inspect}"
+          $stderr.puts "while expanding #{node.inspect}"
         end
       else
-        $stderr.puts "while expanding #{node.to_sexp.inspect}"
+        $stderr.puts "while expanding #{node.inspect}"
       end
 
       raise

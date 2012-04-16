@@ -320,4 +320,4 @@ Atomy::Patterns open:
     Literal new(x value to-sym)
 
   Atomy::AST::Node to-pattern :=
-    raise("unknown pattern: " + to-sexp inspect)
+    raise("unknown pattern:\n" + inspect)

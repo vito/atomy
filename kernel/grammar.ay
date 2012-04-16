@@ -125,7 +125,7 @@ process-val(g, '_) =
   `(~g dot)
 
 process-val(_, s) =
-  raise(ArgumentError, "unknown parsing operator: " + s to-sexp inspect)
+  raise(ArgumentError, "unknown parsing operator:\n" + s inspect)
 
 Atomy::AST open:
   ast(ParserDefiner(@source))
