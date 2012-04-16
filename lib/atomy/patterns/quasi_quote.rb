@@ -142,8 +142,7 @@ module Atomy::Patterns
         x.class.children[:many].each do |c|
           pats = x.send(c).dup
 
-          if pats.last && pats.last.unquote? && \
-               pats.last.expression.pattern.is_a?(Splat)
+          if pats.last && pats.last.splice?
             splice = pats.pop
           end
 
@@ -252,8 +251,7 @@ module Atomy::Patterns
         x.class.children[:many].each do |c|
           pats = x.send(c).dup
 
-          if pats.last && pats.last.unquote? && \
-               pats.last.expression.pattern.is_a?(Splat)
+          if pats.last && pats.last.splice?
             splice = pats.pop
           end
 

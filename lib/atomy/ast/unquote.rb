@@ -67,7 +67,14 @@ module Atomy
       end
 
       def splice?
-        @expression.is_a?(Prefix) && @expression.operator == :*
+        case @expression
+        when Prefix
+          @expression.operator == :*
+        when Pattern
+          @expression.pattern.is_a?(Atomy::Patterns::Splat)
+        else
+          false
+        end
       end
     end
   end
