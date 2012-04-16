@@ -223,6 +223,9 @@ Atomy Patterns open:
   `(~x { ~y }) to-pattern :=
     Named new(y to-pattern, x text)
 
+  `(_ ~(y: Atomy AST Constant)) to-pattern :=
+    Constant new(Atomy AST ToplevelConstant new(@line, y name))
+
   `(~x ~(y: Atomy AST Constant)) to-pattern :=
     Constant new(Atomy AST ScopedConstant new(@line, x, y name))
 

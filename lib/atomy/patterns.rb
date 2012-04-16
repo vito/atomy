@@ -552,7 +552,12 @@ EOF
       elsif @right.is_a?(Atomy::AST::List)
         Attribute.new(@left, :[], @right.elements)
       elsif @right.is_a?(Atomy::AST::Constant)
-        Constant.new(Atomy::AST::ScopedConstant.new(@line, @left, @right.name))
+        if @left.is_a?(Atomy::AST::Word) and \
+             @left.text == :_
+          Constant.new(Atomy::AST::ToplevelConstant.new(@line, @right.name))
+        else
+          Constant.new(Atomy::AST::ScopedConstant.new(@line, @left, @right.name))
+        end
       else
         super
       end
