@@ -9,7 +9,7 @@ use("particles")
 pretty = require("pretty")
 
 
-Atomy::Format open:
+Atomy Format open:
   peek-input() = @input [@position]
 
   next-input() =

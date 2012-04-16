@@ -4,14 +4,14 @@ use("block")
 use("control-flow")
 use("grammar")
 
-Atomy::Format open:
+Atomy Format open:
   parser(Parser):
     %%:
       create(x, *as) := do:
         as << []
         x send(.new, 1, *as)
 
-    %atomy := Atomy::Parser
+    %atomy := Atomy Parser
 
     text(e) := [
       -- TODO

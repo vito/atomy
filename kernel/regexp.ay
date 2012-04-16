@@ -8,30 +8,30 @@ use("interpolation")
 use("array")
 
 
-Atomy::AST open:
-  NthRef = Rubinius::AST::NthRef class:
+Atomy AST open:
+  NthRef = Rubinius AST NthRef class:
     include(NodeLike)
     extend(SentientNode)
     attributes(.which)
     generate
 
 
-macro($~(x: Primitive ? @value is-a(::Integer)? and @value > 0)):
+macro($~(x: Primitive ? @value is-a( Integer)? and @value > 0)):
   NthRef new(node line, x value)
 
 macro-quoter(r) [r, fs]:
   flags = 0
 
   when(.m is-in fs):
-    flags |= Regexp::MULTILINE
+    flags |= Regexp MULTILINE
 
   when(.i is-in fs):
-    flags |= Regexp::IGNORECASE
+    flags |= Regexp IGNORECASE
 
   when(.x is-in fs):
-    flags |= Regexp::EXTENDED
+    flags |= Regexp EXTENDED
 
   -- UTF8 by default
-  flags |= Regexp::KCODE_UTF8
+  flags |= Regexp KCODE_UTF8
 
-  `(::Regexp new(~interpolated(r), ~flags))
+  `(_ Regexp new(~interpolated(r), ~flags))

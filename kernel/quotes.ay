@@ -5,7 +5,7 @@ use("comparison")
 
 macro(macro-quoter(~n) [~*as]: ~*body):
   names [str, args]:
-    strpat = Unquote new(0, `(~str: Atomy::AST::String))
+    strpat = Unquote new(0, `(~str: Atomy AST String))
     argpat = Splice new(0, args)
 
     raw = as shift
@@ -35,7 +35,7 @@ macro-quoter(w) [_, _, v]: v split
 
 macro-quoter(s) [_, _, v]:
   v split collect [s]:
-    if(s =~ Regexp new("[\p{Ll}_]", Regexp::KCODE_UTF8))
+    if(s =~ Regexp new("[\p{Ll}_]", Regexp KCODE_UTF8))
       then: s tr("-", "_") to-sym
       else: s to-sym
 

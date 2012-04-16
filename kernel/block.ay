@@ -6,7 +6,7 @@ use("meta")
 use("interpolation")
 use("node")
 
-Atomy::Patterns open:
+Atomy Patterns open:
   NamedRedirectedInstance = NamedInstance class:
     attributes(.target, .identifier)
     generate
@@ -55,7 +55,7 @@ Atomy::Patterns open:
       g pop
 
 
-Atomy::AST open:
+Atomy AST open:
   ast:
     RedirectedInstanceVariable(.target, @name)
     RedirectedClassVariable(.target, @name)
@@ -86,10 +86,10 @@ Atomy::AST open:
 
 
   RedirectedInstanceVariable to-pattern :=
-    Atomy::Patterns::NamedRedirectedInstance new(@target, @name)
+    Atomy Patterns NamedRedirectedInstance new(@target, @name)
 
   RedirectedClassVariable to-pattern :=
-    Atomy::Patterns::NamedRedirectedClass new(@target, @name)
+    Atomy Patterns NamedRedirectedClass new(@target, @name)
 
 
 macro(~x onto ~(b: Block)):

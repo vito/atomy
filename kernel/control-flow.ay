@@ -34,7 +34,7 @@ splat-from(arguments) = do:
   args = arguments dup
 
   splat =
-    if(args last is-a(Atomy::AST::Prefix)? and
+    if(args last is-a(Atomy AST Prefix)? and
         args last receiver == "*" to-sym)
       then: args pop receiver
       else: nil
@@ -60,7 +60,7 @@ macro(super(~*as) &~blk):
   Super new(node line, args, splat, blk)
 
 
-Atomy::AST open:
+Atomy AST open:
   ast:
     Break(.value)
     Next(.value)
@@ -90,8 +90,8 @@ macro(next(~x)):
 
 -- TODO: function
 key-from(x) := x
-key-from(x: Atomy::AST::Compose) :=
-  if(x right is-a(Atomy::AST::Block)?)
+key-from(x: Atomy AST Compose) :=
+  if(x right is-a(Atomy AST Block)?)
     then: x
     else: x right
 
@@ -104,7 +104,7 @@ pair-from(`(~k -> ~v)) :=
 pair-from(p: `(~x { ~*ys })) := do:
   this = [[key-from(x), `(do: ~*ys)]]
 
-  if(x is-a(Atomy::AST::Compose)? and not x right is-a(Atomy::AST::Block)?)
+  if(x is-a(Atomy AST Compose)? and not x right is-a(Atomy AST Block)?)
     then: pair-from(x left) + this
     else: this
 
@@ -133,7 +133,7 @@ macro(~x rescue ~(y: Block) else ~(z: Block)):
 
   Rescue new(node line, x caller, branches, z body)
 
-Atomy::AST open:
+Atomy AST open:
   ast:
     Super([.arguments], .splat?, .block?)
 

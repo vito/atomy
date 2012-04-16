@@ -4,11 +4,11 @@ use("quotes")
 
 base = File expand-path("../", _FILE)
 
-Atomy::Format = Module new
+Atomy Format = Module new
 
 use(base + "/format/data")
 use(base + "/format/formatter")
 use(base + "/format/parser")
 
 macro-quoter(f) [c]:
-  Atomy::Format::Parser parse(c)
+  Atomy Format Parser parse(c)

@@ -101,15 +101,15 @@ error(x) := do:
 
       Error ->
         x tap [err]:
-          err backtrace = Rubinius::VM backtrace(0)
+          err backtrace = Rubinius VM backtrace(0)
 
       _ ->
         SimpleError new(x) tap [err]:
-          err backtrace = Rubinius::VM backtrace(0)
+          err backtrace = Rubinius VM backtrace(0)
 
   signal(e)
 
-  with-output-to(^io::ErrorPort):
+  with-output-to(^(io ErrorPort)):
     ^Debugger run(e)
 
 
@@ -119,15 +119,15 @@ warning(x) :=
       x match:
         Warning ->
           x tap [wrn]:
-            wrn backtrace = Rubinius::VM backtrace(0)
+            wrn backtrace = Rubinius VM backtrace(0)
 
         _ ->
           SimpleWarning new(x) tap [wrn]:
-            wrn backtrace = Rubinius::VM backtrace(0)
+            wrn backtrace = Rubinius VM backtrace(0)
 
     signal(w)
 
-    with-output-to(^io::ErrorPort):
+    with-output-to(^(io ErrorPort)):
       puts(w name + ": " + w message)
 
     nil

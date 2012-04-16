@@ -8,7 +8,7 @@ require("readline")
 
 try(source, bnd = TOPLEVEL_BINDING, debug = false) =
   with-restarts(retry -> try(source, bnd), abort -> .ok):
-    res = Atomy::Compiler eval(source, bnd, "(eval)", 1, debug)
+    res = Atomy Compiler eval(source, bnd, "(eval)", 1, debug)
     signal(.evaluated(res))
 
 basic-repl(bnd = TOPLEVEL_BINDING, debug = false) =
@@ -41,24 +41,24 @@ basic-repl(bnd = TOPLEVEL_BINDING, debug = false) =
 ReplDebugger = class:
   singleton:
     show-backtrace(e) := do:
-      puts(Rubinius::Backtrace backtrace(e backtrace) show)
+      puts(Rubinius Backtrace backtrace(e backtrace) show)
       debug(e)
 
     run(e) := do:
-      condition::DefaultDebugger show-error-banner(e)
+      condition DefaultDebugger show-error-banner(e)
 
       with-restarts(backtrace -> show-backtrace(e)):
         debug(e)
 
     debug(e) := do:
-      condition::DefaultDebugger show-options-for(e)
+      condition DefaultDebugger show-options-for(e)
 
       -- TODO: inherit original binding
       { basic-repl } bind:
         .prompt -> restart(.use-prompt, "[!]> ")
 
         .special(n ? =~ r"\d+") ->
-          ^condition::Restarts [n to-i] invoke
+          ^(condition Restarts) [n to-i] invoke
 
         .quit -> exit(1)
 
@@ -66,22 +66,22 @@ repl(history = nil, bnd = nil, debug = false) := do:
   [mod, bnd] = Atomy make-wrapper-module
   mod use("atomy")
 
-  before-mod = Atomy::CodeLoader module
-  before-bnd = Atomy::CodeLoader context
+  before-mod = Atomy CodeLoader module
+  before-bnd = Atomy CodeLoader context
 
-  Atomy::CodeLoader module = mod
-  Atomy::CodeLoader context = bnd
+  Atomy CodeLoader module = mod
+  Atomy CodeLoader context = bnd
 
   when(history and File exists(history)?):
     File open(history, "r") [f]:
       f readlines each [l]:
-        Readline::HISTORY << l strip
+        Readline HISTORY << l strip
 
   sane-history = []
 
-  { let(condition::Debugger = ReplDebugger,
-        pretty::Multiline = true,
-        pretty::Colored = true):
+  { let(condition Debugger = ReplDebugger,
+        pretty Multiline = true,
+        pretty Colored = true):
       frame = 0
 
       { basic-repl(bnd, debug)
@@ -102,8 +102,8 @@ repl(history = nil, bnd = nil, debug = false) := do:
         .evaluated(r) ->
           puts((text(" =>") <+> pretty doc(r)) render(76))
   } ensuring:
-    Atomy::CodeLoader module = before-mod
-    Atomy::CodeLoader context = before-bnd
+    Atomy CodeLoader module = before-mod
+    Atomy CodeLoader context = before-bnd
 
     when(history):
       File open(history, "a") [f]:

@@ -551,6 +551,8 @@ EOF
         Attribute.new(@left, @right.name.text, @right.arguments)
       elsif @right.is_a?(Atomy::AST::List)
         Attribute.new(@left, :[], @right.elements)
+      elsif @right.is_a?(Atomy::AST::Constant)
+        Constant.new(Atomy::AST::ScopedConstant.new(@line, @left, @right.name))
       else
         super
       end

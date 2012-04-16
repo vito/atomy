@@ -3,8 +3,8 @@ use("define")
 use("control-flow")
 use("comparison")
 
-define-class(nil, e: Atomy::AST::Constant) = `(~e = class:)
-define-class(root, e: Atomy::AST::Constant) = `(~e = ~root class:)
+define-class(nil, e: Atomy AST Constant) = `(~e = class:)
+define-class(root, e: Atomy AST Constant) = `(~e = ~root class:)
 define-class(root, `(~n { ~*cs })) =
   define-class(root, `((~n)() { ~*cs }))
 define-class(root, x: `((~name)(~*as))) =
@@ -19,7 +19,7 @@ define-class(root, `((~name)(~*as): ~*cs)) = do:
       x
 
   tmps = names(attrs size) collect [t]:
-    Atomy::AST::Unquote new(0, t)
+    Atomy AST Unquote new(0, t)
 
   pat = name
   attrs zip(tmps) [a, t]:
@@ -28,8 +28,8 @@ define-class(root, `((~name)(~*as): ~*cs)) = do:
   cons = `((~name)(~*tmps))
 
   pat-def =
-    `(~(Atomy::AST::QuasiQuote new(0, cons)) to-pattern :=
-        ~(Atomy::AST::QuasiQuote new(0, pat)) to-pattern)
+    `(~(Atomy AST QuasiQuote new(0, cons)) to-pattern :=
+        ~(Atomy AST QuasiQuote new(0, pat)) to-pattern)
 
   parent = root or 'Object
 

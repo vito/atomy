@@ -7,7 +7,7 @@ use("node")
 
 Tags = dynamic(Hash new)
 
-Atomy::AST open:
+Atomy AST open:
   ast:
     Labels([.branches])
     LabelBranch(.body, @name)
@@ -16,7 +16,7 @@ Atomy::AST open:
   Labels bytecode(g) := do:
     pos(g)
 
-    tags = ::Hash new
+    tags = _ Hash new
 
     lbls =
       @branches to-a collect [t]:

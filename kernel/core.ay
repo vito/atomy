@@ -20,6 +20,12 @@ macro(undefined): Primitive new(node line, "undefined" to-sym)
 -- assignment/pattern-matching
 macro(~x = ~y): Assign new(node line, x to-pattern to-node, y)
 
+macro(_ ~(c: Constant)):
+  ToplevelConstant new(node line, c name)
+
+macro(~x ~(c: Constant)):
+  ScopedConstant new(node line, x, c name)
+
 -- [x, y] { x + y }
 macro([~*args] ~(b: Block)):
   b arguments = args
@@ -129,18 +135,7 @@ macro((~(c: Constant))(~*args) &~_):
     x message-name = c name
     x block = node right
 
--- Bar::Foo(...)
-macro((~(c: ScopedConstant))(~*args)):
-  node to-send tap [x]:
-    x receiver = c parent
-    x message-name = c name
-
--- Bar::Foo(...) &baz
-macro((~(c: ScopedConstant))(~*args) &~_):
-  node left to-send tap [x]:
-    x receiver = c parent
-    x message-name = c name
-    x block = node right
+-- TODO?: x Foo(...)
 
 macro(_LINE): node line
 macro(_FILE): File new(node line)

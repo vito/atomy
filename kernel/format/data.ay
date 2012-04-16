@@ -6,7 +6,7 @@ use("node")
 use("cosmetics")
 use("particles")
 
-Atomy::Format open:
+Atomy Format open:
   ast:
     Segment:
       Chunk([.flags], @text)

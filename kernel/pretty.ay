@@ -47,7 +47,7 @@ render-sequence(x . xs) = [from(.list): render(x)] + render-sequence(xs)
 tree(xs) = align(fill-sep(comma punctuate(xs)))
 
 colored(color, doc) = do:
-  unless(^Colored and ^io::OutputPort tty?):
+  unless(^Colored and ^(io OutputPort) tty?):
     return(doc)
 
   codes =
@@ -78,8 +78,8 @@ show(x) :=
   let(Colored = false):
     render(x) flatten render
 
-puts(x) := x tap: ^io::OutputPort puts(show(x))
-print(x) := x tap: ^io::OutputPort print(show(x))
+puts(x) := x tap: ^(io OutputPort) puts(show(x))
+print(x) := x tap: ^(io OutputPort) print(show(x))
 
 doc(o: Object) := text(o inspect)
 doc(s: String) := colored(.yellow, text(s inspect gsub("\\#", "#")))
@@ -91,7 +91,7 @@ doc(nil) := colored(.black, text("nil"))
 doc(d: Doc) := d
 doc(a: Array) := list(render-sequence(a))
 
-doc(p: Atomy::Particle) := do:
+doc(p: Atomy Particle) := do:
   wildcard = [c]:
     if(c equal(undefined)?)
       then: '_
@@ -136,9 +136,9 @@ doc(h: Hash) :=
       ) nest(2) </>
         rbrace)
 
-doc(w: Atomy::AST::Word) := ident(w text to-s)
+doc(w: Atomy AST Word) := ident(w text to-s)
 
-Atomy::AST open:
+Atomy AST open:
   Self unamb(
       x:
         Block
@@ -257,11 +257,11 @@ Atomy::AST open:
   Self doc(p: Pattern) := render(p pattern)
 
 
-Atomy::Patterns open:
+Atomy Patterns open:
   Self doc(a: And) := render(`(~(a a) & ~(a b)))
   Self doc(Any) := text("_")
   Self doc(a: Attribute) :=
-    render(`(~(a receiver) ~(Atomy::AST::Word new(-1, a name))))
+    render(`(~(a receiver) ~(Atomy AST Word new(-1, a name))))
   Self doc(b: BlockPass) := render(`&~(b pattern))
   Self doc(c: Constant) := render(c constant)
   Self doc(d: Default) := render(`(~(d pattern) = ~(d default)))
@@ -274,16 +274,16 @@ Atomy::Patterns open:
       then: text(n name)
       else: text(n name) <> text(":") <+> render(n pattern)
   Self doc(n: NamedClass) :=
-    render(`(@@~(Atomy::AST::Word new(-1, n identifier))))
+    render(`(@@~(Atomy AST Word new(-1, n identifier))))
   Self doc(n: NamedInstance) :=
-    render(`(@~(Atomy::AST::Word new(-1, n identifier))))
+    render(`(@~(Atomy AST Word new(-1, n identifier))))
   Self doc(n: NamedGlobal) :=
-    render(`($~(Atomy::AST::Word new(-1, n identifier))))
+    render(`($~(Atomy AST Word new(-1, n identifier))))
   Self doc(o: Or) :=
     render(`(~(o a) | ~(o b)))
   Self doc(p: Particle) :=
     render(
-      Atomy::Particle new(
+      Atomy Particle new(
         p receiver
         p message
         p arguments patterns))

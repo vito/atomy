@@ -9,8 +9,8 @@ infix("<- ->", 20, .right)
 
 hash-key-from(x) = x
 hash-key-from(x: ? to-word) = `.~(x to-word)
-hash-key-from(x: Atomy::AST::Compose) =
-  if(x right is-a(Atomy::AST::Block)?)
+hash-key-from(x: Atomy AST Compose) =
+  if(x right is-a(Atomy AST Block)?)
     then: x
     else: hash-key-from(x right)
 
@@ -23,7 +23,7 @@ hash-pair-from(`(~k -> ~v)) =
 hash-pair-from(p: `(~x { ~*ys })) = do:
   this = [[hash-key-from(x), `(do: ~*ys)]]
 
-  if(x is-a(Atomy::AST::Compose)? and not x right is-a(Atomy::AST::Block)?)
+  if(x is-a(Atomy AST Compose)? and not x right is-a(Atomy AST Block)?)
     then: hash-pair-from(x left) + this
     else: this
 
@@ -31,7 +31,7 @@ hash-pairs-from(es) =
   (hash-pair-from(e) for e in es) flatten(1)
 
 
-Atomy::AST open:
+Atomy AST open:
   ast(Hash([.keys], [.values]))
 
   Hash bytecode(g) := do:

@@ -20,9 +20,10 @@ vars = dynamic
 rule = dynamic
 rule-vars = dynamic
 
-const-name(c: Atomy::AST::Constant) = c name to-s
-const-name(c: Atomy::AST::ScopedConstant) = const-name(c parent) + "::" + c name to-s
-const-name(c: Atomy::AST::ToplevelConstant) = "::" + c name to-s
+const-name(c: Atomy AST Compose) = const-name(c left) + "::" + const-name(c right)
+const-name(c: Atomy AST Constant) = c name to-s
+const-name(c: Atomy AST ScopedConstant) = const-name(c parent) + "::" + c name to-s
+const-name(c: Atomy AST ToplevelConstant) = "::" + c name to-s
 
 process-val(g, `(%(~grammar)(~name)(~*args))) = do:
   `(~g foreign-invoke(
@@ -76,34 +77,34 @@ process-val(g, `(<(~x)>)) = do:
 process-val(g, `(@<(~x)>)) =
   `(~g bounds(~process-val(g, x)))
 
-process-val(g, s: Atomy::AST::String) =
+process-val(g, s: Atomy AST String) =
   `(~g str(~s))
 
-process-val(g, `(/(~(b: Atomy::AST::String))/)) =
+process-val(g, `(/(~(b: Atomy AST String))/)) =
   `(~g reg(~(b raw)))
 
-process-val(g, c: Atomy::AST::Call) = do:
+process-val(g, c: Atomy AST Call) = do:
   args = "(" + c arguments collect .(pretty show(_)) join(", ") + ")"
 
   `(~g ref(~(c name text to-s), nil, ~args))
 
-process-val(g, `@~(c: Atomy::AST::Call)) = do:
+process-val(g, `@~(c: Atomy AST Call)) = do:
   args = "(" + c arguments collect .(pretty show(_)) join(", ") + ")"
 
   `(~g invoke(~(c name text to-s), ~args))
 
-process-val(g, `^~(c: Atomy::AST::Call)) = do:
+process-val(g, `^~(c: Atomy AST Call)) = do:
   args = "(" + c arguments collect .(pretty show(_)) join(", ") + ")"
 
   `(~g foreign-invoke("parent", ~(c name text to-s), ~args))
 
-process-val(g, w: Atomy::AST::Word) =
+process-val(g, w: Atomy AST Word) =
   `(~g ref(~(w text to-s)))
 
-process-val(g, `@~(w: Atomy::AST::Word)) = do:
+process-val(g, `@~(w: Atomy AST Word)) = do:
   `(~g invoke(~(w text to-s)))
 
-process-val(g, `^~(w: Atomy::AST::Word)) = do:
+process-val(g, `^~(w: Atomy AST Word)) = do:
   `(~g foreign-invoke("parent", ~(w text to-s)))
 
 process-val(g, `((~v)?)) =
@@ -127,13 +128,13 @@ process-val(g, '_) =
 process-val(_, s) =
   raise(ArgumentError, "unknown parsing operator:\n" + s inspect)
 
-Atomy::AST open:
+Atomy AST open:
   ast(ParserDefiner(@source))
 
   ParserDefiner bytecode(g) := do:
     g push-rubinius
     g push-literal(.__parser_init__)
-    g push-literal(Rubinius::Compiler compile-string(@source))
+    g push-literal(Rubinius Compiler compile-string(@source))
     g push-scope
     g push-self
     g send(.attach-method, 4)
@@ -174,20 +175,20 @@ macro(grammar: ~*body): names [g]:
 
       `((~name)(~*args) := ~val) -> do:
         let(rule = name text,
-            rule-vars = ::Set new(args collect .text)):
+            rule-vars = _ Set new(args collect .text)):
           `(~g set(~(name text to-s)
                    ~process-val(g, val)
                    ~(args collect [x]: x text to-s)))
 
       `(~name := ~val) -> do:
         let(rule = name text,
-            rule-vars = ::Set new):
+            rule-vars = _ Set new):
           `(~g set(~(name text to-s), ~process-val(g, val)))
 
       u ->
         raise("unknown toplevel grammar form:\n" + u inspect)
 
-  `(::KPeg::Grammar new tap [~g]: ~*b)
+  `(_ KPeg Grammar new tap [~g]: ~*b)
 
 
 macro(parser(~name): ~*grammar):
@@ -198,16 +199,16 @@ macro(parser(~name): ~*grammar):
 
     acts =
       ^actions collect [action, as]:
-        args = as collect [a]: Atomy::AST::Word new(0, a)
+        args = as collect [a]: Atomy AST Word new(0, a)
         `([~*args] ~action)
 
     def =
-      Atomy::AST::ParserDefiner new(
+      Atomy AST ParserDefiner new(
         node line
-        ::KPeg::CodeGenerator new(const-name(name), g) output)
+        _ KPeg CodeGenerator new(const-name(name), g) output)
 
     `(do:
-        ~name = ::KPeg::CompiledParser class:
+        ~name = _ KPeg CompiledParser class:
           { self } setups := @setups ||= ~^setups
           { self } vars := @vars ||= ~^vars
 

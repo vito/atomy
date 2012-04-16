@@ -3,7 +3,7 @@ use("define")
 use("cosmetics")
 use("control-flow")
 
-Atomy::Patterns open:
+Atomy Patterns open:
   -- redefine these in atomy so we can have some base cases
   Pattern <=> x := precision <=> x precision
   Pattern <=> (x: Default) := <=> x pattern
@@ -76,7 +76,7 @@ Atomy::Patterns open:
 
       done set!
 
-    deconstruct(g, locals = ::Hash new) := do:
+    deconstruct(g, locals = _ Hash new) := do:
       unless(@result): g dup
       @pattern deconstruct(g, locals)
 
@@ -116,7 +116,7 @@ Atomy::Patterns open:
 
       done set!
 
-    deconstruct(g, locals = ::Hash new) := do:
+    deconstruct(g, locals = _ Hash new) := do:
       g dup
       @a deconstruct(g, locals)
       @b deconstruct(g, locals)
@@ -146,7 +146,7 @@ Atomy::Patterns open:
 
       done set!
 
-    deconstruct(g, locals = ::Hash new) := do:
+    deconstruct(g, locals = _ Hash new) := do:
       b = g new-label
       done = g new-label
 
@@ -188,40 +188,43 @@ Atomy::Patterns open:
 
 
 -- base patterns
-Atomy::Patterns open:
-  (Atomy::AST::Node ? to-word) to-pattern :=
+Atomy Patterns open:
+  (Atomy AST Node ? to-word) to-pattern :=
     Named new(Any new
               to-word text)
 
-  Atomy::AST::Primitive to-pattern :=
+  Atomy AST Primitive to-pattern :=
     Match new(@value)
 
-  Atomy::AST::Literal to-pattern :=
+  Atomy AST Literal to-pattern :=
     Literal new(@value)
 
-  Atomy::AST::List to-pattern :=
+  Atomy AST List to-pattern :=
     List new(@elements collect [e]: e to-pattern)
 
-  Atomy::AST::Constant to-pattern :=
+  Atomy AST Constant to-pattern :=
     Constant new(self)
 
-  Atomy::AST::ScopedConstant to-pattern :=
+  Atomy AST ScopedConstant to-pattern :=
     Constant new(self)
 
-  Atomy::AST::ToplevelConstant to-pattern :=
+  Atomy AST ToplevelConstant to-pattern :=
     Constant new(self)
 
-  Atomy::AST::Quote to-pattern :=
+  Atomy AST Quote to-pattern :=
     Quote new(@expression)
 
-  Atomy::AST::Block to-pattern :=
+  Atomy AST Block to-pattern :=
     SingletonClass new(body)
 
-  Atomy::AST::QuasiQuote to-pattern :=
+  Atomy AST QuasiQuote to-pattern :=
     QuasiQuote new(self)
 
   `(~x { ~y }) to-pattern :=
     Named new(y to-pattern, x text)
+
+  `(~x ~(y: Atomy AST Constant)) to-pattern :=
+    Constant new(Atomy AST ScopedConstant new(@line, x, y name))
 
   `(? ~t) to-pattern :=
     Predicate new(Any new, t)
@@ -238,10 +241,10 @@ Atomy::Patterns open:
   `(~x (~(y: ? to-word))(~*as)) to-pattern :=
     Attribute new(x, y to-word text, as)
 
-  `(~x (~(y: Atomy::AST::Word))(~*as)?) to-pattern :=
+  `(~x (~(y: Atomy AST Word))(~*as)?) to-pattern :=
     Attribute new(x, `((~y)?) to-word text, as)
 
-  `(~x (~(y: Atomy::AST::Word))(~*as)!) to-pattern :=
+  `(~x (~(y: Atomy AST Word))(~*as)!) to-pattern :=
     Attribute new(x, `((~y)!) to-word text, as)
 
   `(~a & ~b) to-pattern :=
@@ -280,10 +283,10 @@ Atomy::Patterns open:
   `$separator to-pattern :=
     NamedGlobal new("/")
 
-  `$~(n: Atomy::AST::Constant) to-pattern :=
+  `$~(n: Atomy AST Constant) to-pattern :=
     NamedGlobal new(n name)
 
-  `$~(n: Atomy::AST::String) to-pattern :=
+  `$~(n: Atomy AST String) to-pattern :=
     NamedGlobal new(n value)
 
   `$~(n: ? to-word) to-pattern :=
@@ -313,11 +316,11 @@ Atomy::Patterns open:
   `.~(x: ? to-word) to-pattern :=
     Literal new(x to-word text)
 
-  `.~(x: Atomy::AST::Constant) to-pattern :=
+  `.~(x: Atomy AST Constant) to-pattern :=
     Literal new(x name)
 
-  `.~(x: Atomy::AST::String) to-pattern :=
+  `.~(x: Atomy AST String) to-pattern :=
     Literal new(x value to-sym)
 
-  Atomy::AST::Node to-pattern :=
+  Atomy AST Node to-pattern :=
     raise("unknown pattern:\n" + inspect)

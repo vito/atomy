@@ -9,7 +9,7 @@ process-arg(c, as, cs) = cs << c
 
 define-class(root, `(~n { ~*cs })) = define-class(root, `((~n)() { ~*cs }))
 define-class(root, x: `((~name)(~*as))) = define-class(root, `(~x {}))
-define-class(root, e: Atomy::AST::Constant) =
+define-class(root, e: Atomy AST Constant) =
   `(~e = ~root class:
       generate)
 define-class(root, `((~name)(~*as): ~*cs)) = do:
@@ -31,7 +31,7 @@ macro(ast(~x)):
   `(ast: ~x)
 
 macro(ast: ~*nodes):
-  `(ast(::Atomy::AST::Node): ~*nodes)
+  `(ast(_ Atomy AST Node): ~*nodes)
 
 macro(ast(~root): ~*nodes):
   `(do:

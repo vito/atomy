@@ -7,10 +7,10 @@ use("grammar")
 use("node")
 
 parser(Parser):
-  %atomy := Atomy::Parser
+  %atomy := Atomy Parser
 
   root := %atomy(wsp) es=(%atomy(expressions)) %atomy(wsp) "}" {
-    Atomy::AST::Tree new(0, Array(es))
+    Atomy AST Tree new(0, Array(es))
   }
 
 
@@ -35,7 +35,7 @@ intp-segments(s) =
         "" -> segments
         _ -> segments + intp-segments(rest)
 
-Atomy::AST open:
+Atomy AST open:
   ast(Interpolation([.segments]))
 
   Interpolation interpolated? := @segments size > 1
@@ -51,7 +51,7 @@ Atomy::AST open:
 
 
 interpolated(x) :=
-  Atomy::AST::Interpolation new(0, intp-segments(x))
+  Atomy AST Interpolation new(0, intp-segments(x))
 
 macro-quoter(i) [_, _, v]: interpolated(v)
 
