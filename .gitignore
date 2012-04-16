@@ -2,6 +2,7 @@
 *.gem
 *.ayc
 _play/
+_out/
 _doodle/
 .rbx/
 .rbenv-gemsets
