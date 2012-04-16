@@ -415,7 +415,7 @@ EOF
           end
         end
 
-        "#{i}#{name} #{attrs.join " "}#{childs.join}"
+        "#{i}#{name} @ #{@line} #{attrs.join " "}#{childs.join}"
       end
 
       def get(g)
