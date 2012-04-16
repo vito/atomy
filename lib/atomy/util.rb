@@ -65,10 +65,13 @@ module Atomy
   end
 
   def self.unquote_splice(n)
-    n.collect do |x|
-      x = x.to_node
-      Atomy::AST::Quote.new(x.line, x)
-    end.to_node
+    Atomy::AST::Prefix.new(
+      0,
+      n.collect do |x|
+        x = x.to_node
+        Atomy::AST::Quote.new(x.line, x)
+      end.to_node,
+      :*)
   end
 
   def self.const_from_string(g, name)

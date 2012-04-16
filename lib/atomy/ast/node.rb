@@ -59,7 +59,7 @@ module Atomy
           spliced = false
           size = 0
           @#{n}.each do |e|
-            if e.kind_of?(::Atomy::AST::Splice) && d == 1
+            if e.splice? && d == 1
               g.make_array size
               g.send :+, 1 if spliced
               e.construct(g, d)

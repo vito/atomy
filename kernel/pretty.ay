@@ -151,7 +151,6 @@ Atomy AST open:
           | List
           | Primitive
           | ScopedConstant
-          | Splice
           | String
           | ToplevelConstant
           | Word) :=
@@ -233,10 +232,6 @@ Atomy AST open:
   Self doc(s: ScopedConstant) :=
     from(.scoped-constant):
       unamb(s parent) <> text("::") <> text(s name)
-
-  Self doc(s: Splice) :=
-    from(.prefix):
-      text("~*") <> unamb(s expression)
 
   Self doc(s: String) := text(s value inspect gsub("\\#", "#"))
 

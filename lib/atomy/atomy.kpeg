@@ -110,7 +110,6 @@
   level0(no_op) = number
                 | quote
                 | quasi_quote
-                | splice
                 | unquote
                 | string
                 | constant
@@ -146,8 +145,6 @@
                     { Atomy::AST::Quote.new(line, e) }
     quasi_quote = line:line "`" level2:e
                     { Atomy::AST::QuasiQuote.new(line, e) }
-         splice = line:line "~*" level2:e
-                    { Atomy::AST::Splice.new(line, e) }
         unquote = line:line "~" level2:e
                     { Atomy::AST::Unquote.new(line, e) }
 

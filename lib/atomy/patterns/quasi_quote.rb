@@ -142,7 +142,10 @@ module Atomy::Patterns
         x.class.children[:many].each do |c|
           pats = x.send(c).dup
 
-          splice = pats.last && pats.last.splice? ? pats.pop : nil
+          if pats.last && pats.last.unquote? && \
+               pats.last.expression.pattern.is_a?(Splat)
+            splice = pats.pop
+          end
 
           # TODO: only handle trailing defaults
           defaults, required = pats.partition do |x|
@@ -249,7 +252,10 @@ module Atomy::Patterns
         x.class.children[:many].each do |c|
           pats = x.send(c).dup
 
-          splice = pats.last && pats.last.splice? ? pats.pop : nil
+          if pats.last && pats.last.unquote? && \
+               pats.last.expression.pattern.is_a?(Splat)
+            splice = pats.pop
+          end
 
           # TODO: only handle trailing defaults
           defaults, required = pats.partition do |x|
