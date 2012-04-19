@@ -15,13 +15,13 @@ Atomy open:
 
   Particle to-proc := [*args] &blk:
     [recv, cur] =
-      if(@receiver equal(undefined)?)
+      if(@receiver equal(_)?)
         then: [args[0], 1]
         else: [@receiver, 0]
 
     filled =
       @arguments collect [v]:
-        if(v equal(undefined)? and args size < cur)
+        if(v equal(_)? and args size < cur)
           then:
             cur += 1
             args[cur - 1]
@@ -31,70 +31,43 @@ Atomy open:
     recv __send__(@message, *filled) &blk
 
   Particle arity :=
-    (@receiver . @arguments) select .equal(undefined)? size
+    (@receiver . @arguments) select .equal(_)? size
 
 Symbol call(*args) &blk := to-proc [*args] &blk
 
 Symbol arity := 1
 
-wildcard('_) = 'undefined
-wildcard(x) = x
-
 macro(.[~*(as: _ . _)]):
-  `(Atomy Particle new(
-      undefined
-      .[]
-      ~(as collect [c]: wildcard(c))))
+  `(Atomy Particle new(_, .[], ~as))
 
 macro(.((~x)(~*as))):
-  `(Atomy Particle new(
-      undefined
-      .~x
-      ~(as collect [c]: wildcard(c))))
+  `(Atomy Particle new(_, .~x, ~as))
 
 macro(.((~x)(~*as))?):
-  `(Atomy Particle new(
-      undefined
-      .(~x)?
-      ~(as collect [c]: wildcard(c))))
+  `(Atomy Particle new(_, .(~x)?, ~as))
 
 macro(.((~x)(~*as))!):
-  `(Atomy Particle new(
-      undefined
-      .(~x)!
-      ~(as collect [c]: wildcard(c))))
+  `(Atomy Particle new(_, .(~x)!, ~as))
 
 macro(.(~r (~x)(~*as))):
-  `(Atomy Particle new(
-      ~(wildcard(r))
-      .~x
-      ~(as collect [c]: wildcard(c))))
+  `(Atomy Particle new(~r, .~x, ~as))
 
 macro(.(~r (~x)(~*as))?):
-  `(Atomy Particle new(
-      ~(wildcard(r))
-      .(~x)?
-      ~(as collect [c]: wildcard(c))))
+  `(Atomy Particle new(~r, .(~x)?, ~as))
 
 macro(.(~r (~x)(~*as))!):
-  `(Atomy Particle new(
-      ~(wildcard(r))
-      .(~x)!
-      ~(as collect [c]: wildcard(c))))
+  `(Atomy Particle new(~r, .(~x)!, ~as))
 
 macro(.(~r [~*as])):
-  `(Atomy Particle new(
-      ~(wildcard(r))
-      ."[]"
-      ~(as collect [c]: wildcard(c))))
+  `(Atomy Particle new(~r, .[], ~as))
 
 macro(.~(x: Binary)):
   `(Atomy Particle new(
       ~(if(x private)
-          then: 'undefined
-          else: wildcard(x lhs))
+          then: '_
+          else: x lhs)
       ~(x operator)
-      [~(wildcard(x rhs))]))
+      [~(x rhs)]))
 
 
 Atomy Patterns open:

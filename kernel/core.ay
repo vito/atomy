@@ -15,7 +15,7 @@ macro(nil): Primitive new(node line, "nil" to-sym)
 macro(self): Primitive new(node line, "self" to-sym)
 macro(true): Primitive new(node line, "true" to-sym)
 macro(false): Primitive new(node line, "false" to-sym)
-macro(undefined): Primitive new(node line, "undefined" to-sym)
+macro(_): Primitive new(node line, "undefined" to-sym)
 
 -- assignment/pattern-matching
 macro(~x = ~y): Assign new(node line, x to-pattern to-node, y)

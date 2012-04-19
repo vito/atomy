@@ -88,29 +88,23 @@ doc(x: Float) := colored(.blue, text(x inspect))
 doc(true) := colored(.green, text("true"))
 doc(false) := colored(.red, text("false"))
 doc(nil) := colored(.black, text("nil"))
+doc(? equal(_)?) := colored(.black, text("_"))
 doc(d: Doc) := d
 doc(a: Array) := list(render-sequence(a))
 
 doc(p: Atomy Particle) := do:
-  wildcard = [c]:
-    if(c equal(undefined)?)
-      then: '_
-      else: c
-
   operator? = p message to-s !~ r"^[a-z_]"
-
-  args = p arguments collect .(wildcard [_])
 
   msg-args =
     if(operator?)
       then:
-        text(p message to-s) <+> unamb(args first)
+        text(p message to-s) <+> unamb(p arguments first)
       else:
         ident(p message to-s) <>
-          tupled(render-sequence(args))
+          tupled(render-sequence(p arguments))
 
   partial =
-    if(p receiver equal(undefined)?)
+    if(p receiver equal(_)?)
       then:
         if(operator?)
           then: parens(msg-args)

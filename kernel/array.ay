@@ -27,7 +27,7 @@ macro(~x for(~*args) in(~c) when(~t)):
 
 a is-in b := b include(a)?
 
-Array inject-right(i = undefined) &block :=
+Array inject-right(i = _) &block :=
   reverse inject(i) [x, y]: block [y, x]
 
 macro(~a . ~b): `([~a] + ~b)
