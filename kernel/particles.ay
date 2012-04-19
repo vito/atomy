@@ -21,7 +21,7 @@ Atomy open:
 
     filled =
       @arguments collect [v]:
-        if(v equal(_)? and args size < cur)
+        if(v equal(_)? and args size >= cur)
           then:
             cur += 1
             args[cur - 1]
