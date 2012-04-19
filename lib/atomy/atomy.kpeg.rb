@@ -1,5 +1,17 @@
 class Atomy::Parser
-# STANDALONE START
+  # :stopdoc:
+
+    # This is distinct from setup_parser so that a standalone parser
+    # can redefine #initialize and still have access to the proper
+    # parser setup code.
+    def initialize(str, debug=false)
+      setup_parser(str, debug)
+    end
+
+
+
+    # Prepares for parsing +str+.  If you define a custom initialize you must
+    # call this method before #parse
     def setup_parser(str, debug=false)
       @string = str
       @pos = 0
@@ -11,19 +23,11 @@ class Atomy::Parser
       setup_foreign_grammar
     end
 
-    # This is distinct from setup_parser so that a standalone parser
-    # can redefine #initialize and still have access to the proper
-    # parser setup code.
-    #
-    def initialize(str, debug=false)
-      setup_parser(str, debug)
-    end
-
     attr_reader :string
     attr_reader :failing_rule_offset
     attr_accessor :result, :pos
 
-    # STANDALONE START
+    
     def current_column(target=pos)
       if c = string.rindex("\n", target-1)
         return target - c - 1
@@ -51,7 +55,7 @@ class Atomy::Parser
       lines
     end
 
-    #
+
 
     def get_text(start)
       @string[start..@pos-1]
@@ -199,32 +203,24 @@ class Atomy::Parser
       end
     end
 
-    class LeftRecursive
-      def initialize(detected=false)
-        @detected = detected
-      end
-
-      attr_accessor :detected
-    end
-
     class MemoEntry
       def initialize(ans, pos)
         @ans = ans
         @pos = pos
-        @uses = 1
         @result = nil
+        @set = false
+        @left_rec = false
       end
 
-      attr_reader :ans, :pos, :uses, :result
-
-      def inc!
-        @uses += 1
-      end
+      attr_reader :ans, :pos, :result, :set
+      attr_accessor :left_rec
 
       def move!(ans, pos, result)
         @ans = ans
         @pos = pos
         @result = result
+        @set = true
+        @left_rec = false
       end
     end
 
@@ -252,12 +248,9 @@ class Atomy::Parser
     def apply_with_args(rule, *args)
       memo_key = [rule, args]
       if m = @memoizations[memo_key][@pos]
-        m.inc!
-
-        prev = @pos
         @pos = m.pos
-        if m.ans.kind_of? LeftRecursive
-          m.ans.detected = true
+        if !m.set
+          m.left_rec = true
           return nil
         end
 
@@ -265,18 +258,19 @@ class Atomy::Parser
 
         return m.ans
       else
-        lr = LeftRecursive.new(false)
-        m = MemoEntry.new(lr, @pos)
+        m = MemoEntry.new(nil, @pos)
         @memoizations[memo_key][@pos] = m
         start_pos = @pos
 
         ans = __send__ rule, *args
 
+        lr = m.left_rec
+
         m.move! ans, @pos, @result
 
         # Don't bother trying to grow the left recursion
         # if it's failing straight away (thus there is no seed)
-        if ans and lr.detected
+        if ans and lr
           return grow_lr(rule, args, start_pos, m)
         else
           return ans
@@ -288,12 +282,9 @@ class Atomy::Parser
 
     def apply(rule)
       if m = @memoizations[rule][@pos]
-        m.inc!
-
-        prev = @pos
         @pos = m.pos
-        if m.ans.kind_of? LeftRecursive
-          m.ans.detected = true
+        if !m.set
+          m.left_rec = true
           return nil
         end
 
@@ -301,18 +292,19 @@ class Atomy::Parser
 
         return m.ans
       else
-        lr = LeftRecursive.new(false)
-        m = MemoEntry.new(lr, @pos)
+        m = MemoEntry.new(nil, @pos)
         @memoizations[rule][@pos] = m
         start_pos = @pos
 
         ans = __send__ rule
 
+        lr = m.left_rec
+
         m.move! ans, @pos, @result
 
         # Don't bother trying to grow the left recursion
         # if it's failing straight away (thus there is no seed)
-        if ans and lr.detected
+        if ans and lr
           return grow_lr(rule, nil, start_pos, m)
         else
           return ans
@@ -357,7 +349,8 @@ class Atomy::Parser
       RuleInfo.new(name, rendered)
     end
 
-    #
+
+  # :startdoc:
 
 
   attr_writer :callback
@@ -429,6 +422,7 @@ class Atomy::Parser
   end
 
 
+  # :stopdoc:
   def setup_foreign_grammar; end
 
   # sp = (" " | "\t" | comment)*
@@ -3774,4 +3768,5 @@ class Atomy::Parser
   Rules[:_top] = rule_info("top", "expression:e { callback(e) }")
   Rules[:_tree] = rule_info("tree", "{ current_column }:c top:x (delim(c) top)*:xs { [x] + Array(xs) }")
   Rules[:_root] = rule_info("root", "shebang? wsp tree:es wsp !. { Array(es) }")
+  # :startdoc:
 end
