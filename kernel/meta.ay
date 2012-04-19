@@ -13,6 +13,7 @@ Atomy AST open:
   LetMacro bytecode(g) := do:
     [mod, bnd] = Atomy make-wrapper-module
     mod delegate = Atomy CodeLoader module
+    mod file = mod delegate file
 
     before-mod = Atomy CodeLoader module
     before-ctx = Atomy CodeLoader context
@@ -25,7 +26,7 @@ Atomy AST open:
       Atomy CodeLoader context = bnd
 
       @macros each [`(~pat = ~exp)]:
-        mod define-macro(pat, exp, Atomy CodeLoader compiling)
+        mod define-macro(pat, exp)
 
       body compile(g)
     } ensuring:

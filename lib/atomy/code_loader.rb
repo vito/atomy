@@ -6,25 +6,7 @@ module Atomy
     LOADED = {}
 
     class << self
-      # TODO: compiling -> loaded
-      attr_accessor :module, :context, :compiling
-
-      def reason
-        @reason ||= :run
-      end
-
-      def reason=(x)
-        @reason = x
-      end
-
-      # TODO: make sure this works as expected with multiple loadings
-      def compiled?
-        @compiled ||= false
-      end
-
-      def compiled!(x = false)
-        @compiled = x
-      end
+      attr_accessor :module, :context
 
       def compiled_name(fn)
         Atomy::Compiler.compiled_name(fn)
@@ -107,9 +89,6 @@ module Atomy
         needs_loading = compilation_needed?(found)
         return loaded if loaded and not needs_loading
 
-        old_reason = CodeLoader.reason
-        old_compiled = CodeLoader.compiled?
-        old_compiling = CodeLoader.compiling
         old_context = CodeLoader.context
         old_module = CodeLoader.module
 
@@ -118,14 +97,10 @@ module Atomy
         begin
           LOADED[file] = mod
 
-          CodeLoader.reason = r
-          CodeLoader.compiled! false
-          CodeLoader.compiling = file
           CodeLoader.context = bnd
           CodeLoader.module = mod
 
           if needs_loading
-            CodeLoader.compiled! true
             Compiler.compile fn, nil, debug
           else
             cfn = compiled_name(fn)
@@ -152,9 +127,6 @@ module Atomy
           puts "when loading #{file}..."
           raise
         ensure
-          CodeLoader.reason = old_context
-          CodeLoader.compiled! old_compiled
-          CodeLoader.compiling = old_compiling
           CodeLoader.context = old_context
           CodeLoader.module = old_module
         end
