@@ -3,6 +3,7 @@ use("define")
 use("data")
 use("control-flow")
 use("cosmetics")
+use("comparison")
 
 Atomy open:
   data(Particle(@receiver, @message, @arguments))
@@ -20,7 +21,7 @@ Atomy open:
 
     filled =
       @arguments collect [v]:
-        if(v equal(undefined)?)
+        if(v equal(undefined)? and args size < cur)
           then:
             cur += 1
             args[cur - 1]
