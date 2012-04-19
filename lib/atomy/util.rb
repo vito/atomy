@@ -118,26 +118,8 @@ module Atomy
     end
 
     mod.const_set(:Self, mod)
-
     mod.file = file
 
-    mod.singleton_class.dynamic_method(:__module_init__, file) do |g|
-      g.push_self
-      g.add_scope
-
-      g.push_variables
-      g.push_scope
-      g.make_array 2
-      g.ret
-    end
-
-    vs, ss = mod.__module_init__
-    bnd = Binding.setup(
-      vs,
-      vs.method,
-      ss,
-      mod)
-
-    [mod, bnd]
+    mod
   end
 end

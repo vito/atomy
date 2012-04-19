@@ -66,7 +66,7 @@ module Atomy
 
       def parse
         Atomy::Parser.parse_file(@file) do |x|
-          x.evaluate(CodeLoader.context, @file)
+          x.evaluate(CodeLoader.module.compile_context, @file)
           x
         end
       end

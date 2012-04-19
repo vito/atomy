@@ -63,14 +63,12 @@ ReplDebugger = class:
         .quit -> exit(1)
 
 repl(history = nil, bnd = nil, debug = false) := do:
-  [mod, bnd] = Atomy make-wrapper-module
+  mod = Atomy make-wrapper-module
   mod use("atomy")
 
   before-mod = Atomy CodeLoader module
-  before-bnd = Atomy CodeLoader context
 
   Atomy CodeLoader module = mod
-  Atomy CodeLoader context = bnd
 
   when(history and File exists(history)?):
     File open(history, "r") [f]:
@@ -103,7 +101,6 @@ repl(history = nil, bnd = nil, debug = false) := do:
           puts((text(" =>") <+> pretty doc(r)) render(76))
   } ensuring:
     Atomy CodeLoader module = before-mod
-    Atomy CodeLoader context = before-bnd
 
     when(history):
       File open(history, "a") [f]:

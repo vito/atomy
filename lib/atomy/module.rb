@@ -2,6 +2,19 @@ module Atomy
   class Module < ::Module
     attr_accessor :file, :delegate
 
+    dynamic_method(:__binding__) do |g|
+      g.push_self
+      g.add_scope
+
+      g.push_self
+      g.send :binding, 0, true
+      g.ret
+    end
+
+    def compile_context
+      @compile_context ||= __binding__
+    end
+
     def inspect
       "\#<Atomy::Module '#{name}'>"
     end

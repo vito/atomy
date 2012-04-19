@@ -6,7 +6,7 @@ module Atomy
     LOADED = {}
 
     class << self
-      attr_accessor :module, :context
+      attr_accessor :module
 
       def compiled_name(fn)
         Atomy::Compiler.compiled_name(fn)
@@ -89,15 +89,13 @@ module Atomy
         needs_loading = compilation_needed?(found)
         return loaded if loaded and not needs_loading
 
-        old_context = CodeLoader.context
         old_module = CodeLoader.module
 
-        mod, bnd = Atomy.make_wrapper_module(file)
+        mod = Atomy.make_wrapper_module(file)
 
         begin
           LOADED[file] = mod
 
-          CodeLoader.context = bnd
           CodeLoader.module = mod
 
           if needs_loading
@@ -127,7 +125,6 @@ module Atomy
           puts "when loading #{file}..."
           raise
         ensure
-          CodeLoader.context = old_context
           CodeLoader.module = old_module
         end
       end
