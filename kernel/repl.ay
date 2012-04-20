@@ -6,12 +6,11 @@ pretty = require("pretty")
 
 require("readline")
 
-try(source, mod, bnd = TOPLEVEL_BINDING, debug = false) =
+try(source, mod, debug = false) =
   with-restarts(retry -> try(source, bnd), abort -> .ok):
-    res = Atomy Compiler eval(source, mod, bnd, "(eval)", 1, debug)
-    signal(.evaluated(res))
+    signal(.evaluated(mod eval(source)))
 
-basic-repl(mod, bnd = TOPLEVEL_BINDING, debug = false) =
+basic-repl(mod, debug = false) =
   loop:
     prompt =
       with-restarts(use-prompt(p) -> p):
@@ -33,7 +32,7 @@ basic-repl(mod, bnd = TOPLEVEL_BINDING, debug = false) =
 
       source:
         signal(.input(source))
-        try(source, mod, bnd, debug)
+        try(source, mod, debug)
 
     signal(.loop)
 
@@ -63,7 +62,7 @@ ReplDebugger = class:
         .quit -> exit(1)
 
 repl(history = nil, bnd = nil, debug = false) := do:
-  mod = Atomy make-wrapper-module
+  mod = Atomy make-wrapper-module(."(repl)")
   mod use("atomy")
 
   when(history and File exists(history)?):
