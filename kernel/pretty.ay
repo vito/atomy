@@ -92,7 +92,7 @@ doc(? equal(_)?) := colored(.black, text("_"))
 doc(d: Doc) := d
 doc(a: Array) := list(render-sequence(a))
 
-doc(p: Atomy Particle) := do:
+doc(p: Particle) := do:
   operator? = p message to-s !~ r"^[a-z_]"
 
   msg-args =
@@ -272,7 +272,7 @@ Atomy Patterns open:
     render(`(~(o a) | ~(o b)))
   Self doc(p: Particle) :=
     render(
-      Atomy Particle new(
+      Particle new(
         p receiver
         p message
         p arguments patterns))

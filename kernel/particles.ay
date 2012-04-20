@@ -5,64 +5,63 @@ use("control-flow")
 use("cosmetics")
 use("comparison")
 
-Atomy open:
-  data(Particle(@receiver, @message, @arguments))
+data(Particle(@receiver, @message, @arguments))
 
-  Particle call(*args) &blk := to-proc [*args] &blk
+Particle call(*args) &blk := to-proc [*args] &blk
 
-  Particle open:
-    alias-method(.[], .call)
+Particle open:
+  alias-method(.[], .call)
 
-  Particle to-proc := [*args] &blk:
-    [recv, cur] =
-      if(@receiver equal(_)?)
-        then: [args[0], 1]
-        else: [@receiver, 0]
+Particle to-proc := [*args] &blk:
+  [recv, cur] =
+    if(@receiver equal(_)?)
+      then: [args[0], 1]
+      else: [@receiver, 0]
 
-    filled =
-      @arguments collect [v]:
-        if(v equal(_)? and args size >= cur)
-          then:
-            cur += 1
-            args[cur - 1]
-          else:
-            v
+  filled =
+    @arguments collect [v]:
+      if(v equal(_)? and args size >= cur)
+        then:
+          cur += 1
+          args[cur - 1]
+        else:
+          v
 
-    recv __send__(@message, *filled) &blk
+  recv __send__(@message, *filled) &blk
 
-  Particle arity :=
-    (@receiver . @arguments) select .equal(_)? size
+Particle arity :=
+  (@receiver . @arguments) select .equal(_)? size
 
 Symbol call(*args) &blk := to-proc [*args] &blk
 
 Symbol arity := 1
 
 macro(.[~*(as: _ . _)]):
-  `(Atomy Particle new(_, .[], ~as))
+  `(Particle new(_, .[], ~as))
 
 macro(.((~x)(~*as))):
-  `(Atomy Particle new(_, .~x, ~as))
+  `(Particle new(_, .~x, ~as))
 
 macro(.((~x)(~*as))?):
-  `(Atomy Particle new(_, .(~x)?, ~as))
+  `(Particle new(_, .(~x)?, ~as))
 
 macro(.((~x)(~*as))!):
-  `(Atomy Particle new(_, .(~x)!, ~as))
+  `(Particle new(_, .(~x)!, ~as))
 
 macro(.(~r (~x)(~*as))):
-  `(Atomy Particle new(~r, .~x, ~as))
+  `(Particle new(~r, .~x, ~as))
 
 macro(.(~r (~x)(~*as))?):
-  `(Atomy Particle new(~r, .(~x)?, ~as))
+  `(Particle new(~r, .(~x)?, ~as))
 
 macro(.(~r (~x)(~*as))!):
-  `(Atomy Particle new(~r, .(~x)!, ~as))
+  `(Particle new(~r, .(~x)!, ~as))
 
 macro(.(~r [~*as])):
-  `(Atomy Particle new(~r, .[], ~as))
+  `(Particle new(~r, .[], ~as))
 
 macro(.~(x: Binary)):
-  `(Atomy Particle new(
+  `(Particle new(
       ~(if(x private)
           then: '_
           else: x lhs)
