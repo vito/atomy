@@ -5,6 +5,8 @@ end
 describe(Module) do
   describe(:atomy_methods) do
     it("contains a hash of Atomy-defined methods") do
+      mod = Atomy.make_wrapper_module
+
       x = Module.new
 
       x.atomy_methods.keys.must_equal []
@@ -12,7 +14,7 @@ describe(Module) do
       Atomy.dynamic_branch(
         x,
         :foo,
-        Atomy::Branch.new(Atomy::Patterns::Any.new) { 42 })
+        Atomy::Branch.new(mod, wildcard) { 42 })
 
       x.atomy_methods[:foo].must_be_kind_of Atomy::Method
       x.atomy_methods[:foo].size.must_equal 1
@@ -20,7 +22,7 @@ describe(Module) do
       Atomy.dynamic_branch(
         x,
         :bar,
-        Atomy::Branch.new(Atomy::Patterns::Any.new) { 41 })
+        Atomy::Branch.new(mod, wildcard) { 41 })
 
       x.atomy_methods[:foo].must_be_kind_of Atomy::Method
       x.atomy_methods[:foo].size.must_equal 1
@@ -34,20 +36,27 @@ end
 describe(Atomy::Branch) do
   describe(:total_args) do
     it("is the amount of required or default arguments") do
-      Atomy::Branch.new(wildcard).total_args.must_equal 0
+      mod = Atomy.make_wrapper_module
+
+      Atomy::Branch.new(mod, wildcard).total_args.must_equal 0
 
       Atomy::Branch.new(
+        mod,
         wildcard,
         [wildcard]).total_args.must_equal 1
 
       Atomy::Branch.new(
+        mod,
         wildcard,
         [wildcard],
         [wildcard, wildcard]).total_args.must_equal 3
     end
 
     it("does not reflect splatiness") do
+      mod = Atomy.make_wrapper_module
+
       Atomy::Branch.new(
+        mod,
         wildcard,
         [wildcard],
         [wildcard, wildcard],
@@ -57,8 +66,9 @@ describe(Atomy::Branch) do
 
   describe(:<=>) do
     it("prioritizes a method with more arguments over another") do
-      a = Atomy::Branch.new(wildcard, [wildcard], [wildcard])
-      b = Atomy::Branch.new(wildcard, [wildcard])
+      mod = Atomy.make_wrapper_module
+      a = Atomy::Branch.new(mod, wildcard, [wildcard], [wildcard])
+      b = Atomy::Branch.new(mod, wildcard, [wildcard])
       (a <=> b).must_equal 1
       (b <=> a).must_equal -1
     end
@@ -68,9 +78,11 @@ end
 describe(Atomy) do
   describe(:define_branch) do
     it("adds a method branch to the target module") do
+      mod = Atomy.make_wrapper_module
+
       x = Class.new
 
-      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(wildcard) { 42 })
+      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(mod, wildcard) { 42 })
 
       x.atomy_methods[:foo].wont_be_nil
       x.atomy_methods[:foo].size.must_equal 1
@@ -78,11 +90,13 @@ describe(Atomy) do
     end
 
     it("replaces branches with equivalent patterns") do
+      mod = Atomy.make_wrapper_module
+
       x = Class.new
 
-      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(wildcard) { 42 })
+      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(mod, wildcard) { 42 })
 
-      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(wildcard) { 43 })
+      Atomy.dynamic_branch(x, :foo, Atomy::Branch.new(mod, wildcard) { 43 })
 
       x.atomy_methods[:foo].must_be_kind_of Atomy::Method
       x.atomy_methods[:foo].size.must_equal 1

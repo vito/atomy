@@ -18,7 +18,10 @@ def expr(str)
 end
 
 def pat(str)
-  expr(str).to_pattern
+  mod = Atomy.make_wrapper_module
+  p = expr(str).to_pattern
+  p.in_context(mod)
+  p
 end
 
 PATTERN_TYPES = []

@@ -664,6 +664,8 @@ module Atomy::Patterns
       it("targets the singleton class of its body for definition") do
         x = Object.new
         p = SingletonClass.new(Atomy::AST::Literal.new(0, x))
+        mod = Atomy.make_wrapper_module
+        p.in_context(mod)
         p.definition_target.must_equal x.singleton_class
       end
 
