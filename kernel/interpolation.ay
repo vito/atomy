@@ -40,11 +40,11 @@ Atomy AST open:
 
   Interpolation interpolated? := @segments size > 1
 
-  Interpolation bytecode(g) := do:
+  Interpolation bytecode(g, mod) := do:
     pos(g)
 
     @segments each [s]:
-      s compile(g)
+      mod compile(g, s)
 
     when(interpolated?):
       g string-build(@segments size)

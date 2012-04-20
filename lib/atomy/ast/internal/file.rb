@@ -3,7 +3,7 @@ module Atomy
     class File < Node
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
         g.push_scope
         g.send :active_path, 0

@@ -112,7 +112,7 @@ macro(~x %= ~y): `(~x =! (~x % ~y))
 WithModule = Class new(Atomy AST Node)
 WithModule generate
 
-WithModule bytecode(g) := do:
+WithModule bytecode(g, _) := do:
   pos(g)
   g push-self
   g add-scope

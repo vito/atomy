@@ -12,10 +12,14 @@ module Atomy
         compiler.generator = self
       end
 
+      def module(mod)
+        @module = mod
+      end
+
       def run
         @output = Rubinius::Generator.new
         @input.variable_scope = @variable_scope
-        @input.bytecode @output
+        @input.bytecode(@output, @module)
         @output.close
         run_next
       end
@@ -42,8 +46,9 @@ module Atomy
         @print = true
       end
 
-      def input(code, file = "(parser:eval)", line = 1)
+      def input(code, mod, file = "(parser:eval)", line = 1)
         @input = code
+        @module = mod
         @file = file
         @line = line
       end
@@ -59,14 +64,15 @@ module Atomy
       stage :atomy_file
       next_stage Generator
 
-      def input(file, line = 1)
-        @file = file
-        @line = line
+      def input(mod)
+        @module = mod
+        @file = mod.file.to_s
+        @line = 1
       end
 
       def parse
-        Atomy::Parser.parse_file(@file) do |x|
-          x.evaluate(CodeLoader.module.compile_context, @file)
+        Atomy::Parser.parse_file(@file, @module) do |x|
+          @module.eval(x)
           x
         end
       end
@@ -77,7 +83,7 @@ module Atomy
       next_stage Generator
 
       def parse
-        Atomy::Parser.parse_string(@input)
+        Atomy::Parser.parse_string(@input, @module)
       end
     end
   end

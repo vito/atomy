@@ -4,31 +4,24 @@ use("control-flow")
 use("node")
 
 macro(when-compiling ~(b: Block)):
-  b body evaluate(Atomy CodeLoader module compile-context)
+  eval(b body)
   'nil
 
 Atomy AST open:
   ast(LetMacro(.body, [.macros]))
 
-  LetMacro bytecode(g) := do:
-    mod = Atomy make-wrapper-module
-    mod delegate = Atomy CodeLoader module
-    mod file = mod delegate file
+  LetMacro bytecode(g, mod) := do:
+    new = Atomy make-wrapper-module(mod file)
+    new delegate = mod
 
-    before-mod = Atomy CodeLoader module
+    new send(.include, mod)
+    new extend(mod)
+    new using << mod
 
-    mod send(.include, before-mod)
-    mod extend(before-mod)
-    mod using << before-mod
+    @macros each [`(~pat = ~exp)]:
+      new define-macro(pat, exp)
 
-    { Atomy CodeLoader module = mod
-
-      @macros each [`(~pat = ~exp)]:
-        mod define-macro(pat, exp)
-
-      body compile(g)
-    } ensuring:
-      Atomy CodeLoader module = before-mod
+    new compile(g, body)
 
 macro(let-macro(~*ms) ~(b: Block)):
   LetMacro new(node line, b body, ms)

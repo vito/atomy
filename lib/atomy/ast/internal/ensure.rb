@@ -4,7 +4,7 @@ module Atomy
       children :body, :ensure
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         ok = g.new_label
@@ -28,7 +28,7 @@ module Atomy
         g.next = new_next
 
         g.state.push_ensure
-        @body.compile(g)
+        mod.compile(g, @body)
         g.state.pop_ensure
 
         g.break = old_break
@@ -74,7 +74,7 @@ module Atomy
         g.push_exception_state
 
         g.state.push_rescue(outer_exc_state)
-        @ensure.compile(g)
+        mod.compile(g, @ensure)
         g.state.pop_rescue
         g.pop
 
@@ -103,7 +103,7 @@ module Atomy
 
         # Now, re-emit the code for the ensure which will run if there was no
         # exception generated.
-        @ensure.compile(g)
+        mod.compile(g, @ensure)
         g.pop
 
         if check_break

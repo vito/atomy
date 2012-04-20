@@ -132,7 +132,7 @@ process-val(_, s) =
 Atomy AST open:
   ast(ParserDefiner(@source))
 
-  ParserDefiner bytecode(g) := do:
+  ParserDefiner bytecode(g, _) := do:
     g push-rubinius
     g push-literal(.__parser_init__)
     g push-literal(Rubinius Compiler compile-string(@source))
@@ -196,7 +196,7 @@ macro(parser(~name): ~*grammar):
   let(actions = [],
       setups = [],
       vars = []):
-    g = `(grammar: ~*grammar) evaluate
+    g = eval(`(grammar: ~*grammar))
 
     acts =
       ^actions collect [action, as]:

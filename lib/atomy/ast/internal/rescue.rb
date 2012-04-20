@@ -5,7 +5,7 @@ module Atomy
       generate
 
       # via Rubinius::AST::Rescue
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         g.push_modifiers
@@ -15,7 +15,7 @@ module Atomy
             g.push :nil
           else
             # Only an else, run it.
-            @else.compile(g)
+            mod.compile(g, @else)
           end
         else
           outer_retry = g.retry
@@ -59,7 +59,7 @@ module Atomy
             g.redo = g.new_label
           end
 
-          @body.compile(g)
+          mod.compile(g, @body)
           g.pop_unwind
           g.goto els
 
@@ -145,7 +145,7 @@ module Atomy
           @handlers.each_with_index do |h, i|
             last = i + 1 == @handlers.size
             n = last ? nil : g.new_label
-            h.bytecode(g, reraise, done, outer_exc_state, n)
+            h.bytecode(g, mod, reraise, done, outer_exc_state, n)
             n.set! unless last
           end
 
@@ -166,7 +166,7 @@ module Atomy
           els.set!
           if @else
             g.pop
-            @else.compile(g)
+            mod.compile(g, @else)
           end
 
           done.set!
@@ -183,13 +183,13 @@ module Atomy
       children :pattern, :body
       generate
 
-      def bytecode(g, reraise, done, outer_exc_state, next_handler = nil)
+      def bytecode(g, mod, reraise, done, outer_exc_state, next_handler = nil)
         body = g.new_label
 
         pattern = @pattern.to_pattern
 
         g.dup
-        pattern.matches?(g)
+        pattern.matches?(g, mod)
         g.git body
 
         if next_handler
@@ -200,7 +200,7 @@ module Atomy
 
         body.set!
 
-        pattern.deconstruct(g)
+        pattern.deconstruct(g, mod)
 
         current_break = g.break
         g.break = g.new_label
@@ -209,7 +209,7 @@ module Atomy
         g.next = g.new_label
 
         g.state.push_rescue(outer_exc_state)
-        @body.compile(g)
+        mod.compile(g, @body)
         g.state.pop_rescue
 
         g.clear_exception

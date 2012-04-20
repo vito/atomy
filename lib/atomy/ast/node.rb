@@ -62,12 +62,12 @@ module Atomy
             if e.splice? && d == 1
               g.make_array size
               g.send :+, 1 if spliced
-              e.construct(g, d)
+              e.construct(g, mod, d)
               g.send :+, 1
               spliced = true
               size = 0
             else
-              e.construct(g, d)
+              e.construct(g, mod, d)
               size += 1
             end
           end
@@ -112,12 +112,12 @@ EOF
 EOF
 
         class_eval <<EOF
-          def construct(g, d = nil)
+          def construct(g, mod, d = nil)
             get(g)
             g.push_int(@line)
 
             #{@children[:required].collect { |n|
-                "@#{n}.construct(g, d)"
+                "@#{n}.construct(g, mod, d)"
               }.join("; ")}
 
             #{@children[:many].collect { |n|
@@ -133,7 +133,7 @@ EOF
               }.join("; ")}
 
             #{@children[:optional].collect { |n, _|
-                "if @#{n}; @#{n}.construct(g, d); else; g.push_nil; end"
+                "if @#{n}; @#{n}.construct(g, mod, d); else; g.push_nil; end"
               }.join("; ")}
 
             #{@attributes[:optional].collect { |a, _|
@@ -446,7 +446,7 @@ EOF
           :call)
       end
 
-      def evaluate(bnd = nil, *args)
+      def evaluate(mod, bnd = nil, *args)
         if bnd.nil?
           bnd = Binding.setup(
             Rubinius::VariableScope.of_sender,
@@ -454,15 +454,7 @@ EOF
             Rubinius::StaticScope.of_sender)
         end
 
-        Atomy::Compiler.eval(self, bnd, *args)
-      end
-
-      def compile(g)
-        if mod = CodeLoader.module
-          mod.expand(self).bytecode(g)
-        else
-          bytecode(g)
-        end
+        Atomy::Compiler.eval(self, mod, bnd, *args)
       end
 
       def macro_name
@@ -481,7 +473,7 @@ EOF
         sub.extend SentientNode
       end
 
-      def bytecode(g)
+      def bytecode(g, mod)
         raise "no #bytecode for...\n#{inspect}"
       end
     end
@@ -490,9 +482,9 @@ EOF
       children [:nodes]
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         @nodes.each.with_index do |n, i|
-          n.compile(g)
+          mod.compile(g, n)
           g.pop unless i + 1 == @nodes.size
         end
       end
@@ -520,7 +512,7 @@ EOF
         g.pop
       end
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         before = Atomy::Macro::Environment.salt
@@ -528,7 +520,7 @@ EOF
         @body.each.with_index do |n, i|
           g.pop unless i == 0
 
-          n.compile(g)
+          mod.compile(g, n)
         end
 
         after = Atomy::Macro::Environment.salt
@@ -542,6 +534,13 @@ EOF
         @pre_exe = []
         super
       end
+      
+      def bytecode(g, mod)
+        container_bytecode(g) do
+          @body.bytecode(g, mod)
+          g.ret
+        end
+      end
     end
 
     class Script < Rubinius::AST::Container
@@ -550,7 +549,7 @@ EOF
         @pre_exe = []
       end
 
-      def bytecode(g)
+      def bytecode(g, mod)
         @body.pos(g)
 
         super(g)
@@ -563,7 +562,7 @@ EOF
 
           g.state.push_name @name
 
-          @body.bytecode g
+          @body.bytecode(g, mod)
 
           g.state.pop_name
 

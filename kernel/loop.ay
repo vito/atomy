@@ -13,7 +13,7 @@ Atomy AST open:
     LabelBranch(.body, @name)
     GoTo(@name)
 
-  Labels bytecode(g) := do:
+  Labels bytecode(g, mod) := do:
     pos(g)
 
     tags = _ Hash new
@@ -25,12 +25,12 @@ Atomy AST open:
     let(Tags = tags):
       lbls zip(@branches to-a) each [l, t]:
         l set!
-        t body compile(g)
+        mod compile(g, t body)
         g pop
 
     g push-nil
 
-  GoTo bytecode(g) := do:
+  GoTo bytecode(g, _) := do:
     pos(g)
     g goto(^Tags fetch(@name))
 

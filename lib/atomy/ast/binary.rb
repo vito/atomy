@@ -7,8 +7,8 @@ module Atomy
 
       alias :message_name :operator
 
-      def bytecode(g)
-        to_send.bytecode(g)
+      def bytecode(g, mod)
+        to_send.bytecode(g, mod)
       end
 
       def to_send

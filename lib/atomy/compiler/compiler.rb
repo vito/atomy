@@ -10,51 +10,31 @@ module Atomy
       end
     end
 
-    def self.compile(file, output = nil, debug = false)
+    def self.compile(mod, output = nil, debug = false)
       compiler = new :atomy_file, :compiled_file
 
       compiler.parser.root Atomy::AST::Script
-      compiler.parser.input file, 1
+      compiler.parser.input mod
+
+      compiler.generator.module mod
 
       compiler.packager.print.bytecode = debug if debug
 
-      compiler.writer.name = output ? output : compiled_name(file)
+      compiler.writer.name = output ? output : compiled_name(mod.file.to_s)
 
       compiler.run
     end
 
-    def self.compile_file(file, debug = false)
-      compiler = new :atomy_file, :compiled_method
-
-      compiler.parser.root Atomy::AST::Script
-      compiler.parser.input file, 1
-
-      compiler.packager.print.bytecode = debug if debug
-
-      compiler.run
-    end
-
-    def self.compile_string(string,
-                            file = "(eval)", line = 1, debug = false)
-      compiler = new :atomy_string, :compiled_method
-
-      compiler.parser.root Atomy::AST::Script
-      compiler.parser.input string, file, line
-
-      compiler.packager.print.bytecode = debug if debug
-
-      compiler.run
-    end
-
-    def self.compile_eval_string(string, scope = nil,
+    def self.compile_eval_string(string, mod, scope = nil,
                                  file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_string, :compiled_method
 
       compiler.parser.root Atomy::AST::EvalExpression
-      compiler.parser.input string, file, line
+      compiler.parser.input string, mod, file, line
 
       compiler.packager.print.bytecode = debug if debug
 
+      compiler.generator.module mod
       compiler.generator.variable_scope = scope
 
       cm = compiler.run
@@ -62,7 +42,7 @@ module Atomy
       cm
     end
 
-    def self.compile_eval_node(node, scope = nil,
+    def self.compile_eval_node(node, mod, scope = nil,
                                file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_bytecode, :compiled_method
 
@@ -71,6 +51,7 @@ module Atomy
 
       compiler.packager.print.bytecode = debug if debug
 
+      compiler.generator.module mod
       compiler.generator.input expr
       compiler.generator.variable_scope = scope
 
@@ -79,11 +60,11 @@ module Atomy
       cm
     end
 
-    def self.construct_block(string_or_node, binding, file="(eval)", line=1, debug = false)
+    def self.construct_block(string_or_node, mod, binding, file="(eval)", line=1, debug = false)
       if string_or_node.is_a?(String)
-        cm = compile_eval_string string_or_node, binding.variables, file, line, debug
+        cm = compile_eval_string string_or_node, mod, binding.variables, file, line, debug
       else
-        cm = compile_eval_node string_or_node, binding.variables, file, line, debug
+        cm = compile_eval_node string_or_node, mod, binding.variables, file, line, debug
       end
 
       cm.scope = binding.static_scope
@@ -114,7 +95,9 @@ module Atomy
       return be
     end
 
-    def self.eval(string_or_node, binding=nil, filename=nil, line=1, debug = false)
+    def self.eval(
+        string_or_node, mod, binding = nil,
+        filename = nil, line = 1, debug = false)
       filename = filename.to_s if filename
       lineno = lineno.to_i
 
@@ -141,7 +124,7 @@ module Atomy
 
       binding.static_scope = binding.static_scope.dup
 
-      be = Atomy::Compiler.construct_block string_or_node, binding,
+      be = Atomy::Compiler.construct_block string_or_node, mod, binding,
                                            filename, lineno, debug
 
       be.set_eval_binding binding

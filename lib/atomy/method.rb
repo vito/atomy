@@ -12,11 +12,12 @@ end
 
 module Atomy
   class Branch
-    attr_accessor :body, :receiver, :required, :defaults,
+    attr_accessor :module, :body, :receiver, :required, :defaults,
                   :splat, :block
 
-    def initialize(receiver, required = [], defaults = [],
+    def initialize(mod, receiver, required = [], defaults = [],
                    splat = nil, block = nil, &body)
+      @module = mod
       @body = (body && body.block) || proc { raise "branch has no body " }
       @receiver = receiver
       @required = required
@@ -218,6 +219,7 @@ module Atomy
     # same namespace
     def build_methods(g, methods, done)
       methods.each do |meth|
+        mod = meth.module
         recv = meth.receiver
         reqs = meth.required
         defs = meth.defaults
@@ -237,7 +239,7 @@ module Atomy
 
         unless recv.always_matches_self?
           g.push_self
-          recv.matches_self?(g)
+          recv.matches_self?(g, mod)
           g.gif skip
         end
 
@@ -250,7 +252,7 @@ module Atomy
             if a.wildcard?
               g.pop
             else
-              a.matches?(g)
+              a.matches?(g, mod)
               g.gif argmis
             end
           end
@@ -263,14 +265,14 @@ module Atomy
             g.gif no_value
 
             g.shift_array
-            d.matches?(g)
+            d.matches?(g, mod)
             g.gif argmis
 
             no_value.set!
           end
 
           if splat and s = splat.pattern
-            s.matches?(g)
+            s.matches?(g, mod)
             g.gif skip
           else
             g.pop

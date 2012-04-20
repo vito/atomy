@@ -8,7 +8,7 @@ module Atomy
         :"@@#{@identifier}"
       end
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
         if g.state.scope.module?
           g.push :self

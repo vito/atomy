@@ -1,6 +1,8 @@
 %% name = Atomy::Parser
 
 %% {
+  attr_accessor :module
+
   attr_writer :callback
 
   def callback(x)
@@ -12,8 +14,8 @@
   end
 
   def operator?(x)
-    if mod = Atomy::CodeLoader.module
-      !!mod.infix_info(x)
+    if @module
+      !!@module.infix_info(x)
     end
   end
 
@@ -202,9 +204,9 @@
 
   binary_c(pos) = cont(pos) (binary_op:o sig_wsp { o })+:os level3:e
                     { o = os.shift
-                      [ Operator.new(o),
+                      [ Operator.new(@module, o),
                         os.collect do |h|
-                          [private_target, Operator.new(h, true)]
+                          [private_target, Operator.new(@module, h, true)]
                         end,
                         e
                       ]

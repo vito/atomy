@@ -4,9 +4,9 @@ module Atomy
       children :expression
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
-        @expression.construct(g)
+        @expression.construct(g, mod)
       end
     end
   end

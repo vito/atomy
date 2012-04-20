@@ -4,9 +4,9 @@ module Atomy
       children :lhs, :rhs
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
-        @lhs.pattern.assign(g, @rhs)
+        @lhs.pattern.assign(g, mod, @rhs)
       end
     end
   end

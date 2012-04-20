@@ -3,7 +3,7 @@ module Atomy::Patterns
     children([:patterns])
     generate
 
-    def target(g)
+    def target(g, mod)
       g.push_cpath_top
       g.find_const :Array
     end
@@ -16,7 +16,7 @@ module Atomy::Patterns
       end
     end
 
-    def matches?(g)
+    def matches?(g, mod)
       matched = g.new_label
       mismatch = g.new_label
 
@@ -54,7 +54,7 @@ module Atomy::Patterns
           g.push_int i
           g.send :[], 1
         end
-        p.matches?(g)
+        p.matches?(g, mod)
         g.gif mismatch
       end
       g.pop
@@ -69,7 +69,7 @@ module Atomy::Patterns
       matched.set!
     end
 
-    def deconstruct(g, locals = {})
+    def deconstruct(g, mod, locals = {})
       @patterns.each_with_index do |p, i|
         g.dup
         if p.is_a?(Splat)
@@ -79,7 +79,7 @@ module Atomy::Patterns
           g.push_int i
           g.send :[], 1
         end
-        p.deconstruct(g, locals)
+        p.deconstruct(g, mod, locals)
       end
       g.pop
     end

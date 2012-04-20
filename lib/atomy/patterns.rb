@@ -82,15 +82,15 @@ EOF
 EOF
 
       class_eval <<EOF
-        def construct(g)
+        def construct(g, mod)
           get(g)
 
           #{@children[:required].collect { |n|
-              "@#{n}.construct(g)"
+              "@#{n}.construct(g, mod)"
             }.join("; ")}
 
           #{@children[:many].collect { |n|
-              "@#{n}.each { |n| n.construct(g) }; g.make_array @#{n}.size"
+              "@#{n}.each { |n| n.construct(g, mod) }; g.make_array @#{n}.size"
             }.join("; ")}
 
           #{@attributes[:required].collect { |a|
@@ -102,7 +102,7 @@ EOF
             }.join("; ")}
 
           #{@children[:optional].collect { |n, _|
-              "if @#{n}; @#{n}.construct(g, d); else; g.push_nil; end"
+              "if @#{n}; @#{n}.construct(g, mod, d); else; g.push_nil; end"
             }.join("; ")}
 
           #{@attributes[:optional].collect { |a, _|
@@ -110,6 +110,12 @@ EOF
             }.join("; ")}
 
           g.send :new, #{all.size}
+          g.dup
+          g.push_cpath_top
+          g.find_const :Atomy
+          g.send :current_module, 0
+          g.send :in_context, 1
+          g.pop
         end
 EOF
 
@@ -230,34 +236,11 @@ EOF
       sub.extend SentientPattern
     end
 
-    attr_accessor :variable
+    # the module this node was constructed in
+    attr_reader :context
 
-    # push the target class for this pattern in a defition
-    def target(g)
-      raise Rubinius::CompileError, "no #target for #{self}"
-    end
-
-    # test if the pattern mtaches the value at the top of the stack
-    # effect on the stack: top value removed, boolean pushed
-    def matches?(g)
-      raise Rubinius::CompileError, "no #matches? for #{self}"
-    end
-
-    # optimization for patterns such as With, so they can just
-    # push_self rather than evaluating exprs on some new self
-    def matches_self?(g)
-      matches?(g)
-    end
-
-    # does this pattern always match `self' if it's the receiver pattern?
-    def always_matches_self?
-      wildcard?
-    end
-
-    # match the pattern on the value at the top of the stack
-    # effect on the stack: top value removed
-    def deconstruct(g, locals = {})
-      g.pop
+    def in_context(x)
+      @context ||= x
     end
 
     # helper for pushing the current class const onto the stack
@@ -266,29 +249,49 @@ EOF
     end
 
     # create the pattern on the stack
-    def construct(g)
+    def construct(g, mod)
       raise Rubinius::CompileError, "no #construct for #{self}"
     end
 
-    def assign(g, expr, set = false)
+    # push the target class for this pattern in a defition
+    def target(g, mod)
+      raise Rubinius::CompileError, "no #target for #{self}"
+    end
+
+    # test if the pattern mtaches the value at the top of the stack
+    # effect on the stack: top value removed, boolean pushed
+    def matches?(g, mod)
+      raise Rubinius::CompileError, "no #matches? for #{self}"
+    end
+
+    # optimization for patterns such as With, so they can just
+    # push_self rather than evaluating exprs on some new self
+    def matches_self?(g, mod)
+      matches?(g, mod)
+    end
+
+    # match the pattern on the value at the top of the stack
+    # effect on the stack: top value removed
+    def deconstruct(g, mod, locals = {})
+      g.pop
+    end
+
+    # pattern-matching assignment on an expr
+    # effect on the stack: expr's value pushed
+    def assign(g, mod, expr, set = false)
       locals = {}
       local_names.each do |n|
         locals[n] = Atomy.assign_local(g, n, set)
       end
 
-      expr.compile(g)
+      mod.compile(g, expr)
       g.dup
-      match(g, set, locals)
-    end
-
-    # will this pattern match everything?
-    def wildcard?
-      false
+      match(g, mod, set, locals)
     end
 
     # try pattern-matching, erroring on failure
     # effect on the stack: top value removed
-    def match(g, set = false, locals = {})
+    def match(g, mod, set = false, locals = {})
       local_names.each do |n|
         locals[n] ||= Atomy.assign_local(g, n, set)
       end
@@ -298,11 +301,11 @@ EOF
         done = g.new_label
 
         g.dup
-        matches?(g)
+        matches?(g, mod)
         g.gif mismatch
       end
 
-      deconstruct(g, locals)
+      deconstruct(g, mod, locals)
 
       unless wildcard?
         g.goto done
@@ -323,6 +326,16 @@ EOF
 
         done.set!
       end
+    end
+
+    # will this pattern match everything?
+    def wildcard?
+      false
+    end
+
+    # does this pattern always match `self' if it's the receiver pattern?
+    def always_matches_self?
+      wildcard?
     end
 
     # local names bound by this pattern, not including children
@@ -360,7 +373,7 @@ EOF
       singleton_class.dynamic_method(:===) do |g|
         g.total_args = g.required_args = g.local_count = 1
         g.push_local(0)
-        matches?(g)
+        matches?(g, @context)
         g.ret
       end
 
@@ -371,7 +384,7 @@ EOF
     def definition_target
       singleton_class.dynamic_method(:definition_target) do |g|
         g.total_args = g.required_args = g.local_count = 0
-        target(g)
+        target(g, @context)
         g.ret
       end
 

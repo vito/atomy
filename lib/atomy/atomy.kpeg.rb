@@ -353,6 +353,8 @@ class Atomy::Parser
   # :startdoc:
 
 
+  attr_accessor :module
+
   attr_writer :callback
 
   def callback(x)
@@ -364,8 +366,8 @@ class Atomy::Parser
   end
 
   def operator?(x)
-    if mod = Atomy::CodeLoader.module
-      !!mod.infix_info(x)
+    if @module
+      !!@module.infix_info(x)
     end
   end
 
@@ -2426,7 +2428,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # binary_c = cont(pos) (binary_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(o),                         os.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }
+  # binary_c = cont(pos) (binary_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(@module, o),                         os.collect do |h|                           [private_target, Operator.new(@module, h, true)]                         end,                         e                       ]                     }
   def _binary_c(pos)
 
     _save = self.pos
@@ -2505,9 +2507,9 @@ class Atomy::Parser
         break
       end
       @result = begin;  o = os.shift
-                      [ Operator.new(o),
+                      [ Operator.new(@module, o),
                         os.collect do |h|
-                          [private_target, Operator.new(h, true)]
+                          [private_target, Operator.new(@module, h, true)]
                         end,
                         e
                       ]
@@ -3760,7 +3762,7 @@ class Atomy::Parser
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_call] = rule_info("call", "(line:line call:c args:as { Atomy::AST::Call.new(line, c, as) } | line:line name:n args:as { Atomy::AST::Call.new(line, n, as) })")
   Rules[:_binary_op] = rule_info("binary_op", "(operator | identifier:n &{ operator?(n) } { n })")
-  Rules[:_binary_c] = rule_info("binary_c", "cont(pos) (binary_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(o),                         os.collect do |h|                           [private_target, Operator.new(h, true)]                         end,                         e                       ]                     }")
+  Rules[:_binary_c] = rule_info("binary_c", "cont(pos) (binary_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(@module, o),                         os.collect do |h|                           [private_target, Operator.new(@module, h, true)]                         end,                         e                       ]                     }")
   Rules[:_binary_cs] = rule_info("binary_cs", "binary_c(pos)+:bs { bs.flatten }")
   Rules[:_binary] = rule_info("binary", "({ current_position }:pos level3:l binary_cs(pos):c { resolve(nil, l, c).first } | binary_cs(current_position):c { c[0].private = true                       resolve(nil, private_target, c).first                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")

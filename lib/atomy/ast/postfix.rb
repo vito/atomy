@@ -5,8 +5,8 @@ module Atomy
       attributes :operator
       generate
 
-      def bytecode(g)
-        to_send.bytecode(g)
+      def bytecode(g, mod)
+        to_send.bytecode(g, mod)
       end
 
       def message_name

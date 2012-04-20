@@ -4,20 +4,20 @@ module Atomy
       children :expression
       generate
 
-      def construct(g, d = nil)
+      def construct(g, mod, d = nil)
         pos(g)
 
         # unquoting at depth 1; compile
         if d == 1
           if splice?
-            @expression.receiver.compile(g)
+            mod.compile(g, @expression.receiver)
             g.push_cpath_top
             g.find_const :Proc
             g.push_literal :to_node
             g.send :__from_block__, 1
             g.send_with_block :collect, 0, false
           else
-            @expression.compile(g)
+            mod.compile(g, @expression)
             g.send :to_node, 0
           end
 
@@ -28,7 +28,7 @@ module Atomy
           g.push_int @line
           g.push_cpath_top
           g.find_const :Atomy
-          @expression.expression.compile(g)
+          mod.compile(g, @expression.expression)
           g.send :unquote_splice, 1
           g.send :new, 2
 
@@ -40,23 +40,23 @@ module Atomy
         else
           get(g)
           g.push_int @line
-          @expression.construct(g, unquote(d))
+          @expression.construct(g, mod, unquote(d))
           g.send :new, 2
         end
       end
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
-        too_far(g)
+        too_far(g, mod)
       end
 
-      def too_far(g)
+      def too_far(g, mod)
         g.push_self
         g.push_literal @expression
         g.push_cpath_top
         g.find_const :Atomy
         g.find_const :UnquoteDepth
-        @expression.construct(g)
+        @expression.construct(g, mod)
         g.send :new, 1
         g.allow_private
         g.send :raise, 1

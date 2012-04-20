@@ -4,9 +4,9 @@ module Atomy
       children :value
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
-        @value.compile(g)
+        mod.compile(g, @value)
         g.cast_array unless @value.kind_of?(List)
       end
     end

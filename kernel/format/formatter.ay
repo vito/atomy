@@ -312,9 +312,9 @@ Atomy Format open:
     initialize(@line, @segments) :=
       reset!
 
-    bytecode(g) := do:
+    bytecode(g, mod) := do:
       pos(g)
-      construct(g)
+      construct(g, mod)
 
     reset! := do:
       @input = []

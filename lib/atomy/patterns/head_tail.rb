@@ -3,12 +3,12 @@ module Atomy::Patterns
     children(:head, :tail)
     generate
 
-    def target(g)
+    def target(g, mod)
       g.push_cpath_top
       g.find_const :Array
     end
 
-    def matches?(g)
+    def matches?(g, mod)
       mismatch = g.new_label
       matched = g.new_label
 
@@ -25,10 +25,10 @@ module Atomy::Patterns
 
       g.shift_array
 
-      @head.matches?(g)
+      @head.matches?(g, mod)
       g.gif mismatch
 
-      @tail.matches?(g)
+      @tail.matches?(g, mod)
       g.goto matched
 
       mismatch.set!
@@ -38,10 +38,10 @@ module Atomy::Patterns
       matched.set!
     end
 
-    def deconstruct(g, locals = {})
+    def deconstruct(g, mod, locals = {})
       g.shift_array
-      @head.deconstruct(g, locals)
-      @tail.deconstruct(g, locals)
+      @head.deconstruct(g, mod, locals)
+      @tail.deconstruct(g, mod, locals)
     end
   end
 end

@@ -3,15 +3,15 @@ module Atomy::AST
     attributes :pattern
     generate
 
-    def construct(g, d = nil)
+    def construct(g, mod, d = nil)
       get(g)
       g.push_int(@line)
-      @pattern.construct(g)
+      @pattern.construct(g, mod)
       g.send :new, 2
     end
 
-    def bytecode(g)
-      @pattern.construct(g)
+    def bytecode(g, mod)
+      @pattern.construct(g, mod)
     end
 
     def to_pattern

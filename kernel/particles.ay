@@ -76,17 +76,17 @@ Atomy Patterns open:
     attributes(.message)
     generate
 
-    target(g) := do:
+    target(g, _) := do:
       g push-cpath-top
       g find-const(.Atomy)
       g find-const(.Particle)
 
-    matches(g)? := do:
+    matches(g, mod)? := do:
       mismatch = g new-label
       done = g new-label
 
       g dup
-      target(g)
+      target(g, mod)
       g swap
       g kind-of
       g gif(mismatch)
@@ -99,11 +99,11 @@ Atomy Patterns open:
 
       g dup
       g send(.receiver, 0)
-      @receiver matches(g)?
+      @receiver matches(g, mod)?
       g gif(mismatch)
 
       g send(.arguments, 0)
-      @arguments matches(g)?
+      @arguments matches(g, mod)?
       g dup
       g git(done)
 
@@ -113,13 +113,13 @@ Atomy Patterns open:
 
       done set!
 
-    deconstruct(g, locals = _ Hash new) := do:
+    deconstruct(g, mod, locals = _ Hash new) := do:
       g dup
       g send(.receiver, 0)
-      @receiver deconstruct(g, locals)
+      @receiver deconstruct(g, mod, locals)
 
       g send(.arguments, 0)
-      @arguments deconstruct(g, locals)
+      @arguments deconstruct(g, mod, locals)
 
 `.(~r [~*as]) to-pattern :=
   Atomy Patterns Particle new(

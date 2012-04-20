@@ -32,7 +32,7 @@ module Atomy
       # - has a name
       # - doesn't check arg length or whether they match
       #   - this is handled by the main method that this is a branch of
-      def create_block(g)
+      def create_block(g, mod)
         pos(g)
 
         state = g.state
@@ -63,9 +63,9 @@ module Atomy
 
         args.bytecode(blk)
 
-        args.deconstruct_patterns(blk)
+        args.deconstruct_patterns(blk, mod)
 
-        @body.compile(blk)
+        mod.compile(blk, @body)
 
         blk.pop_modifiers
         blk.state.pop_block
@@ -81,7 +81,7 @@ module Atomy
         g.create_block blk
       end
 
-      def push_branch(g)
+      def push_branch(g, mod)
         req = []
         dfs = []
         spl = nil
@@ -100,33 +100,37 @@ module Atomy
         g.find_const :Atomy
         g.find_const :Branch
 
-        receiver_pattern.construct(g)
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.send :current_module, 0
+
+        receiver_pattern.construct(g, mod)
 
         req.each do |r|
-          r.construct(g)
+          r.construct(g, mod)
         end
-
         g.make_array req.size
-        dfs.each do |d|
-          d.construct(g)
-        end
 
+        dfs.each do |d|
+          d.construct(g, mod)
+        end
         g.make_array dfs.size
+
         if spl
-          spl.construct(g)
+          spl.construct(g, mod)
         else
           g.push_nil
         end
 
         if block_pattern
-          block_pattern.construct(g)
+          block_pattern.construct(g, mod)
         else
           g.push_nil
         end
 
-        create_block(g)
+        create_block(g, mod)
 
-        g.send_with_block :new, 5
+        g.send_with_block :new, 6
       end
     end
 
@@ -140,25 +144,25 @@ module Atomy
 
       alias method_name name
 
-      def create_block(g)
+      def create_block(g, mod)
         super
 
         # set the block's module so that super works
         g.dup
         g.push_literal :@module
-        receiver_pattern.target(g)
+        receiver_pattern.target(g, mod)
         g.send :instance_variable_set, 2
         g.pop
       end
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         g.push_cpath_top
         g.find_const :Atomy
-        receiver_pattern.target(g)
+        receiver_pattern.target(g, mod)
         g.push_literal @name
-        push_branch(g)
+        push_branch(g, mod)
         g.push_scope
         g.send :define_branch, 4
       end
@@ -176,7 +180,7 @@ module Atomy
         Patterns::Any.new
       end
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         var = Atomy.assign_local(g, :"#@name:function")
@@ -190,7 +194,7 @@ module Atomy
         g.find_const :Atomy
         g.push_scope
         g.push_literal @name
-        push_branch(g)
+        push_branch(g, mod)
         g.send :add_branch, 3
         g.send :build, 0
 

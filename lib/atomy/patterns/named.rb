@@ -4,23 +4,23 @@ module Atomy::Patterns
     attributes(:name)
     generate
 
-    def match(g, set = false, locals = {})
-      if @pattern.is_a?(Any)
-        deconstruct(g, locals)
+    def match(g, mod, set = false, locals = {})
+      if @pattern.wildcard?
+        deconstruct(g, mod, locals)
       else
         super
       end
     end
 
-    def target(g)
-      @pattern.target(g)
+    def target(g, mod)
+      @pattern.target(g, mod)
     end
 
-    def matches?(g)
-      @pattern.matches?(g)
+    def matches?(g, mod)
+      @pattern.matches?(g, mod)
     end
 
-    def deconstruct(g, locals = {})
+    def deconstruct(g, mod, locals = {})
       if locals[@name]
         local = locals[@name]
       else
@@ -29,7 +29,7 @@ module Atomy::Patterns
 
       if @pattern.binds?
         g.dup
-        @pattern.deconstruct(g, locals)
+        @pattern.deconstruct(g, mod, locals)
       end
 
       local.set_bytecode(g)

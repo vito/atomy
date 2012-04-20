@@ -4,9 +4,9 @@ module Atomy
       children :value
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         if @value
-          @value.compile(g)
+          mod.compile(g, @value)
         else
           g.push_nil
         end

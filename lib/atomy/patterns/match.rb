@@ -12,7 +12,7 @@ module Atomy::Patterns
       end
     end
 
-    def target(g)
+    def target(g, mod)
       case @value
       when :true
         g.push_cpath_top
@@ -35,7 +35,7 @@ module Atomy::Patterns
       end
     end
 
-    def matches?(g)
+    def matches?(g, mod)
       g.push @value
       g.meta_send_op_equal g.find_literal(:==)
     end

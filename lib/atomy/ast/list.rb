@@ -4,11 +4,11 @@ module Atomy
       children [:elements]
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         @elements.each do |e|
-          e.compile(g)
+          mod.compile(g, e)
         end
 
         g.make_array @elements.size

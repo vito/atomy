@@ -17,33 +17,39 @@ Atomy Patterns open:
     attributes(.expression)
     generate
 
-    construct(g) := do:
+    construct(g, mod) := do:
       get(g)
-      @pattern construct(g)
-      @sub-pattern construct(g)
-      @expression construct(g)
+      @pattern construct(g, mod)
+      @sub-pattern construct(g, mod)
+      @expression construct(g, mod)
       g send(.new, 3)
+      g dup
+      g push-cpath-top
+      g find-const(.Atomy)
+      g send(.current_module, 0)
+      g send(.in_context, 1)
+      g pop
 
-    target(g) := @pattern target(g)
+    target(g, mod) := @pattern target(g, mod)
 
-    matches(g)? := do:
+    matches(g, mod)? := do:
       mismatch = g new-label
       done = g new-label
 
       @result = g new-stack-local
 
       g dup
-      @pattern matches(g)?
+      @pattern matches(g, mod)?
       g gif(mismatch)
 
-      `{ ~@expression } bytecode(g)
+      `{ ~@expression } bytecode(g, mod)
       g send(.block, 0)
       g swap
       g push-scope
       g send(.call-under, 2)
       g set-stack-local(@result)
 
-      @sub-pattern matches(g)?
+      @sub-pattern matches(g, mod)?
       g dup
       g git(done)
 
@@ -53,19 +59,19 @@ Atomy Patterns open:
 
       done set!
 
-    matches-self(g)? := do:
+    matches-self(g, mod)? := do:
       mismatch = g new-label
       done = g new-label
 
       @result = g new-stack-local
 
-      @pattern matches-self(g)?
+      @pattern matches-self(g, mod)?
       g gif(mismatch)
 
-      @expression compile(g)
+      mod compile(g, @expression)
       g set-stack-local(@result)
 
-      @sub-pattern matches(g)?
+      @sub-pattern matches(g, mod)?
       g dup
       g git(done)
 
@@ -76,37 +82,37 @@ Atomy Patterns open:
 
       done set!
 
-    deconstruct(g, locals = _ Hash new) := do:
+    deconstruct(g, mod, locals = _ Hash new) := do:
       unless(@result): g dup
-      @pattern deconstruct(g, locals)
+      @pattern deconstruct(g, mod, locals)
 
       if(@result)
         then: g push-stack-local(@result)
         else:
-          `{ ~@expression } bytecode(g)
+          `{ ~@expression } bytecode(g, mod)
           g send(.block, 0)
           g swap
           g push-scope
           g send(.call-under, 2)
 
-      @sub-pattern deconstruct(g, locals)
+      @sub-pattern deconstruct(g, mod, locals)
 
 
   And = Pattern class:
     children(.a, .b)
     generate
 
-    target(g) := @a target(g)
+    target(g, mod) := @a target(g, mod)
 
-    matches(g)? := do:
+    matches(g, mod)? := do:
       mismatch = g new-label
       done = g new-label
 
       g dup
-      @a matches(g)?
+      @a matches(g, mod)?
       g gif(mismatch)
 
-      @b matches(g)?
+      @b matches(g, mod)?
       g dup
       g git(done)
 
@@ -116,27 +122,27 @@ Atomy Patterns open:
 
       done set!
 
-    deconstruct(g, locals = _ Hash new) := do:
+    deconstruct(g, mod, locals = _ Hash new) := do:
       g dup
-      @a deconstruct(g, locals)
-      @b deconstruct(g, locals)
+      @a deconstruct(g, mod, locals)
+      @b deconstruct(g, mod, locals)
 
 
   Or = Pattern class:
     children(.a, .b)
     generate
 
-    target(g) := @a target(g)
+    target(g, mod) := @a target(g, mod)
 
-    matches(g)? := do:
+    matches(g, mod)? := do:
       matched = g new-label
       done = g new-label
 
       g dup
-      @a matches(g)?
+      @a matches(g, mod)?
       g git(matched)
 
-      @b matches(g)?
+      @b matches(g, mod)?
       g dup
       g gif(done)
 
@@ -146,22 +152,22 @@ Atomy Patterns open:
 
       done set!
 
-    deconstruct(g, locals = _ Hash new) := do:
+    deconstruct(g, mod, locals = _ Hash new) := do:
       b = g new-label
       done = g new-label
 
       g dup
       g dup
-      @a matches(g)?
+      @a matches(g, mod)?
       g gif(b)
 
-      @a deconstruct(g, locals)
+      @a deconstruct(g, mod, locals)
       g pop
       g goto(done)
 
       b set!
       g pop
-      @b deconstruct(g, locals)
+      @b deconstruct(g, mod, locals)
 
       done set!
 

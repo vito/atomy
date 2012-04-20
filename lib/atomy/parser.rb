@@ -5,9 +5,10 @@ require base + "/atomy.kpeg.rb"
 module Atomy
   class Parser
     class Operator
-      def initialize(name, private = false)
+      def initialize(mod, name, priv = false)
+        @module = mod
         @name = name
-        @private = private
+        @private = priv
       end
 
       attr_reader :name
@@ -34,7 +35,7 @@ module Atomy
       private
 
       def op_info(op)
-        Atomy::CodeLoader.module.infix_info(op) || {}
+        @module.infix_info(op) || {}
       end
     end
 
@@ -44,15 +45,16 @@ module Atomy
       p.result
     end
 
-    def self.parse_string(source, &callback)
+    def self.parse_string(source, mod = nil, &callback)
       p = new(source)
+      p.module = mod
       p.callback = callback
       p.raise_error unless p.parse
       AST::Tree.new(0, p.result)
     end
 
-    def self.parse_file(name, &callback)
-      parse_string(File.open(name, "rb", &:read), &callback)
+    def self.parse_file(name, mod = nil, &callback)
+      parse_string(File.open(name, "rb", &:read), mod, &callback)
     end
   end
 

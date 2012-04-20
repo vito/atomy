@@ -15,39 +15,39 @@ Atomy AST open:
     Or(.a, .b)
     Negate(.expression)
 
-  And bytecode(g) := do:
+  And bytecode(g, mod) := do:
     pos(g)
     done = g new-label
     no = g new-label
 
-    @a compile(g)
+    mod compile(g, @a)
     g dup
     g gif(done)
 
     g pop
-    @b compile(g)
+    mod compile(g, @b)
 
     done set!
 
-  Or bytecode(g) := do:
+  Or bytecode(g, mod) := do:
     pos(g)
     done = g new-label
 
-    @a compile(g)
+    mod compile(g, @a)
     g dup
     g git(done)
 
     g pop
-    @b compile(g)
+    mod compile(g, @b)
 
     done set!
 
-  Negate bytecode(g) := do:
+  Negate bytecode(g, mod) := do:
     pos(g)
     done = g new-label
     yes = g new-label
 
-    @expression compile(g)
+    mod compile(g, @expression)
     g git(yes)
 
     g push-true

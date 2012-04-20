@@ -3,19 +3,19 @@ module Atomy::Patterns
     children(:pattern)
     generate
 
-    def target(g)
+    def target(g, mod)
       g.push_cpath_top
       g.find_const :Object
     end
 
-    def matches?(g)
+    def matches?(g, mod)
       g.cast_array
-      @pattern.matches?(g)
+      @pattern.matches?(g, mod)
     end
 
-    def deconstruct(g, locals = {})
+    def deconstruct(g, mod, locals = {})
       g.cast_array
-      @pattern.deconstruct(g, locals)
+      @pattern.deconstruct(g, mod, locals)
     end
 
     def wildcard?

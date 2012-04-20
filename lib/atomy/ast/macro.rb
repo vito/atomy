@@ -9,7 +9,7 @@ module Atomy
 
       attr_writer :evaluated
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         g.state.scope.nest_scope self
@@ -19,7 +19,7 @@ module Atomy
 
         pos(blk)
 
-        Atomy::CodeLoader.module.macro_definer(@pattern, @body).bytecode(blk)
+        mod.macro_definer(@pattern, @body).bytecode(blk, mod)
         blk.ret
 
         blk.close

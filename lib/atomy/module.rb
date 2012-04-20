@@ -15,6 +15,14 @@ module Atomy
       @compile_context ||= __binding__
     end
 
+    def compile(gen, node)
+      expand(node).bytecode(gen, self)
+    end
+
+    def eval(string_or_node)
+      Atomy::Compiler.eval(string_or_node, self, compile_context, @file)
+    end
+
     def inspect
       "\#<Atomy::Module '#{name}'>"
     end
@@ -86,6 +94,7 @@ module Atomy
 
     def define_macro(pattern, body, file = @file)
       macro_definer(pattern, body).evaluate(
+        self,
         Binding.setup(
           TOPLEVEL_BINDING.variables,
           TOPLEVEL_BINDING.code,

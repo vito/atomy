@@ -6,8 +6,6 @@ module Atomy
     LOADED = {}
 
     class << self
-      attr_accessor :module
-
       def compiled_name(fn)
         Atomy::Compiler.compiled_name(fn)
       end
@@ -89,17 +87,13 @@ module Atomy
         needs_loading = compilation_needed?(found)
         return loaded if loaded and not needs_loading
 
-        old_module = CodeLoader.module
-
         mod = Atomy.make_wrapper_module(file)
 
         begin
           LOADED[file] = mod
 
-          CodeLoader.module = mod
-
           if needs_loading
-            Compiler.compile fn, nil, debug
+            Compiler.compile mod, nil, debug
           else
             cfn = compiled_name(fn)
             cl = Rubinius::CodeLoader.new(cfn)
@@ -124,8 +118,6 @@ module Atomy
 
           puts "when loading #{file}..."
           raise
-        ensure
-          CodeLoader.module = old_module
         end
       end
     end

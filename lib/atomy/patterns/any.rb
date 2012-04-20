@@ -2,15 +2,15 @@ module Atomy::Patterns
   class Any < Pattern
     generate
 
-    def match(g, set = false, locals = {})
+    def match(g, mod, set = false, locals = {})
       g.pop
     end
 
-    def target(g)
+    def target(g, mod)
       g.push_const :Object
     end
 
-    def matches?(g)
+    def matches?(g, mod)
       g.pop
       g.push_true
     end

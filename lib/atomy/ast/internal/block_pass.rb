@@ -3,8 +3,8 @@ module Atomy::AST
     children :body
     generate
 
-    def bytecode(g)
-      @body.compile(g)
+    def bytecode(g, mod)
+      mod.compile(g, @body)
       nil_block = g.new_label
       g.dup
       g.is_nil

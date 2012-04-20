@@ -3,6 +3,17 @@ require "delegate"
 module Atomy
   module AST
     class FormalArguments < Rubinius::AST::FormalArguments19
+      class Default < Rubinius::AST::Node
+        def initialize(line)
+          @line = line
+        end
+
+        def bytecode(g)
+          pos(g)
+          g.push_undef
+        end
+      end
+
       def initialize(line, required, optional, splat, post, block, patterns)
         if optional
           defaults = Rubinius::AST::Block.new(
@@ -11,7 +22,7 @@ module Atomy
               Rubinius::AST::LocalVariableAssignment.new(
                 line,
                 n,
-                Primitive.new(0, :undefined))
+                Default.new(0))
             })
         end
 
@@ -20,18 +31,18 @@ module Atomy
         @patterns = patterns
       end
 
-      def set_patterns(g)
+      def set_patterns(g, mod)
         @patterns.each do |n, p|
           g.state.scope.search_local(n).get_bytecode(g)
-          p.match(g)
+          p.match(g, mod)
         end
       end
 
-      def deconstruct_patterns(g)
+      def deconstruct_patterns(g, mod)
         @patterns.each do |n, p|
           if p.binds?
             g.state.scope.search_local(n).get_bytecode(g)
-            p.deconstruct(g)
+            p.deconstruct(g, mod)
           end
         end
       end
@@ -92,7 +103,7 @@ module Atomy
         FormalArguments.new(@line, required, optional, splat, post, block, patterns)
       end
 
-      def create_block(g)
+      def create_block(g, mod)
         pos(g)
 
         state = g.state
@@ -122,9 +133,9 @@ module Atomy
 
         args.bytecode(blk)
 
-        args.set_patterns(blk)
+        args.set_patterns(blk, mod)
 
-        body.compile(blk)
+        mod.compile(blk, body)
 
         blk.pop_modifiers
         blk.state.pop_block
@@ -140,8 +151,8 @@ module Atomy
         g.create_block blk
       end
 
-      def bytecode(g)
-        create_block g
+      def bytecode(g, mod)
+        create_block(g, mod)
 
         g.push_cpath_top
         g.find_const :Proc
@@ -161,14 +172,14 @@ module Atomy
         @expressions.empty?
       end
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         g.push_nil if empty?
 
         @expressions.each_with_index do |node,idx|
           g.pop unless idx == 0
-          node.compile(g)
+          mod.compile(g, node)
         end
       end
     end

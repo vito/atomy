@@ -65,14 +65,14 @@ Atomy AST open:
     Break(.value)
     Next(.value)
 
-  Break bytecode(g) := do:
+  Break bytecode(g, mod) := do:
     pos(g)
-    @value compile(g)
+    mod compile(g, @value)
     g raise-break
 
-  Next bytecode(g) := do:
+  Next bytecode(g, mod) := do:
     pos(g)
-    @value compile(g)
+    mod compile(g, @value)
     g ret
 
 
@@ -137,18 +137,18 @@ Atomy AST open:
   ast:
     Super([.arguments], .splat?, .block?)
 
-  Super bytecode(g) := do:
+  Super bytecode(g, mod) := do:
     pos(g)
 
     @arguments each [a]:
-      a compile(g)
+      mod compile(g, a)
 
     when(@splat):
-      @splat compile(g)
+      mod compile(g, @splat)
       g cast-array
 
     if(@block)
-      then: @block compile(g)
+      then: mod compile(g, @block)
       else: g push-nil
 
     name = nil

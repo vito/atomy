@@ -3,16 +3,16 @@ module Atomy::Patterns
     children(:pattern)
     generate
 
-    def target(g)
+    def target(g, mod)
       g.push_const :Object
     end
 
-    def matches?(g)
+    def matches?(g, mod)
       g.pop
       g.push_true
     end
 
-    def deconstruct(g, locals = {})
+    def deconstruct(g, mod, locals = {})
       match = g.new_label
 
       g.dup
@@ -25,7 +25,7 @@ module Atomy::Patterns
       g.send :__from_block__, 1
 
       match.set!
-      @pattern.deconstruct(g, locals)
+      @pattern.deconstruct(g, mod, locals)
     end
 
     def wildcard?

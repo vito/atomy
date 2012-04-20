@@ -3,7 +3,7 @@ module Atomy::AST
     attributes :value
     generate
 
-    def bytecode(g)
+    def bytecode(g, mod)
       pos(g)
       g.push_literal @value
     end
@@ -18,7 +18,7 @@ module Atomy::AST
     attributes :value, :raw?
     generate
 
-    def bytecode(g)
+    def bytecode(g, mod)
       super
       g.string_dup
     end

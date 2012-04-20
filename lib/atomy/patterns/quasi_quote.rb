@@ -9,25 +9,31 @@ module Atomy::Patterns
       end
     end
 
-    def construct(g)
+    def construct(g, mod)
       get(g)
-      @quoted.construct(g, nil)
+      @quoted.construct(g, mod)
       g.send :new, 1
+      g.dup
+      g.push_cpath_top
+      g.find_const :Atomy
+      g.send :current_module, 0
+      g.send :in_context, 1
+      g.pop
     end
 
     def expression
       @quoted.expression
     end
 
-    def target(g)
+    def target(g, mod)
       expression.get(g)
     end
 
-    def matches?(g)
+    def matches?(g, mod)
       mismatch = g.new_label
       done = g.new_label
 
-      Matcher.new(g, mismatch).go(@quoted.expression)
+      Matcher.new(g, mod, mismatch).go(@quoted.expression)
 
       g.push_true
       g.goto done
@@ -38,8 +44,8 @@ module Atomy::Patterns
       done.set!
     end
 
-    def deconstruct(g, locals = {})
-      Deconstructor.new(g).go(@quoted.expression)
+    def deconstruct(g, mod, locals = {})
+      Deconstructor.new(g, mod).go(@quoted.expression)
     end
 
     def local_names
@@ -63,9 +69,10 @@ module Atomy::Patterns
     end
 
     class Walker
-      def initialize(g)
+      def initialize(g, mod)
         @depth = 1
         @g = g
+        @module = mod
       end
 
       def go(x, mismatch = nil)
@@ -106,9 +113,9 @@ module Atomy::Patterns
     end
 
     class Matcher < Walker
-      def initialize(g, m)
-        super(g)
-        @mismatch = m
+      def initialize(g, mod, mis)
+        super(g, mod)
+        @mismatch = mis
       end
 
       # effect on the stack: pop
@@ -180,7 +187,7 @@ module Atomy::Patterns
             @g.send :>=, 1
             @g.git has
 
-            d.expression.to_pattern.default.compile(@g)
+            @module.compile(@g, d.expression.to_pattern.default)
             @g.goto match
 
             has.set!
@@ -191,7 +198,7 @@ module Atomy::Patterns
           end
 
           if splice
-            splice.expression.to_pattern.matches?(@g)
+            splice.expression.to_pattern.matches?(@g, @module)
             @g.gif popmis
           else
             @g.pop
@@ -215,7 +222,7 @@ module Atomy::Patterns
         @depth -= 1
 
         if @depth == 0
-          x.expression.to_pattern.matches?(@g)
+          x.expression.to_pattern.matches?(@g, @module)
           @g.gif @mismatch
         else
           visit(x)
@@ -230,7 +237,7 @@ module Atomy::Patterns
         @depth -= 1
 
         if @depth == 0
-          x.expression.to_pattern.deconstruct(@g)
+          x.expression.to_pattern.deconstruct(@g, @module)
         else
           visit(x)
         end
@@ -278,7 +285,7 @@ module Atomy::Patterns
             @g.send :>=, 1
             @g.git has
 
-            d.expression.to_pattern.default.compile(@g)
+            @module.compile(@g, d.expression.to_pattern.default)
             @g.goto match
 
             has.set!
@@ -289,7 +296,7 @@ module Atomy::Patterns
           end
 
           if splice
-            splice.expression.to_pattern.deconstruct(@g)
+            splice.expression.to_pattern.deconstruct(@g, @module)
           else
             @g.pop
           end

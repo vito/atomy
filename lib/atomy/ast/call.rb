@@ -3,8 +3,8 @@ module Atomy::AST
     children :name, [:arguments]
     generate
 
-    def bytecode(g)
-      to_send.bytecode(g)
+    def bytecode(g, mod)
+      to_send.bytecode(g, mod)
     end
 
     def to_send

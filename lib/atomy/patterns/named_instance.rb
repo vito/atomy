@@ -7,16 +7,16 @@ module Atomy::Patterns
       :"@#{@identifier}"
     end
 
-    def target(g)
+    def target(g, mod)
       g.push_const :Object
     end
 
-    def matches?(g)
+    def matches?(g, mod)
       g.pop
       g.push_true
     end
 
-    def deconstruct(g, locals = {})
+    def deconstruct(g, mod, locals = {})
       Rubinius::AST::InstanceVariableAssignment.new(0, name, nil).bytecode(g)
       g.pop
     end

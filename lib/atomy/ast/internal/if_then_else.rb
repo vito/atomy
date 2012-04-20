@@ -4,18 +4,18 @@ module Atomy
       children :condition, :then, :else
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         done = g.new_label
         nope = g.new_label
 
-        @condition.compile(g)
+        mod.compile(g, @condition)
         g.gif nope
 
-        @then.compile(g)
+        mod.compile(g, @then)
         g.goto done
 
         nope.set!
-        @else.compile(g)
+        mod.compile(g, @else)
 
         done.set!
       end

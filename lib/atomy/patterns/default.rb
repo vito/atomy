@@ -4,22 +4,28 @@ module Atomy::Patterns
     attributes(:default)
     generate
 
-    def construct(g)
+    def construct(g, mod)
       get(g)
-      @pattern.construct(g)
-      @default.construct(g, nil)
+      @pattern.construct(g, mod)
+      @default.construct(g, mod)
       g.send :new, 2
+      g.dup
+      g.push_cpath_top
+      g.find_const :Atomy
+      g.send :current_module, 0
+      g.send :in_context, 1
+      g.pop
     end
 
-    def target(g)
-      @pattern.target(g)
+    def target(g, mod)
+      @pattern.target(g, mod)
     end
 
-    def matches?(g)
-      @pattern.matches?(g)
+    def matches?(g, mod)
+      @pattern.matches?(g, mod)
     end
 
-    def deconstruct(g, locals = {})
+    def deconstruct(g, mod, locals = {})
       defined = g.new_label
 
       g.dup
@@ -28,10 +34,10 @@ module Atomy::Patterns
       g.gif defined
 
       g.pop
-      @default.compile(g)
+      mod.compile(g, @default)
 
       defined.set!
-      @pattern.deconstruct(g, locals)
+      @pattern.deconstruct(g, mod, locals)
     end
 
     def wildcard?

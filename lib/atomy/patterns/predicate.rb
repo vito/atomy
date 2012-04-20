@@ -4,28 +4,34 @@ module Atomy::Patterns
     attributes :test
     generate
 
-    def construct(g)
+    def construct(g, mod)
       get(g)
-      @pattern.construct(g)
-      @test.construct(g)
+      @pattern.construct(g, mod)
+      @test.construct(g, mod)
       g.send(:new, 2)
+      g.dup
+      g.push_cpath_top
+      g.find_const :Atomy
+      g.send :current_module, 0
+      g.send :in_context, 1
+      g.pop
     end
 
-    def target(g)
-      @pattern.target(g)
+    def target(g, mod)
+      @pattern.target(g, mod)
     end
 
-    def matches?(g)
+    def matches?(g, mod)
       mismatch = g.new_label
       done = g.new_label
 
       g.dup
-      @pattern.matches?(g)
+      @pattern.matches?(g, mod)
       g.gif(mismatch)
 
       blk = @test.new_generator(g, :predicate_pattern)
       blk.push_state Rubinius::AST::ClosedScope.new(@line)
-      @test.compile(blk)
+      mod.compile(blk, @test)
       blk.ret
       blk.close
       blk.pop_state
@@ -42,8 +48,8 @@ module Atomy::Patterns
       done.set!
     end
 
-    def deconstruct(g, locals = {})
-      @pattern.deconstruct(g, locals)
+    def deconstruct(g, mod, locals = {})
+      @pattern.deconstruct(g, mod, locals)
     end
 
     def precision

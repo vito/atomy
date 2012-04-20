@@ -4,16 +4,16 @@ module Atomy
       children :expression
       generate
 
-      def construct(g, d = nil)
+      def construct(g, mod, d = nil)
         get(g)
         g.push_int @line
-        @expression.construct(g, quote(d))
+        @expression.construct(g, mod, quote(d))
         g.send :new, 2
       end
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
-        @expression.construct(g, 1)
+        @expression.construct(g, mod, 1)
       end
     end
   end

@@ -15,6 +15,8 @@ Atomy AST open:
     attributes(.which)
     generate
 
+    bytecode(g, _) := super(g)
+
 
 macro($~(x: Primitive ? @value is-a( Integer)? and @value > 0)):
   NthRef new(node line, x value)

@@ -6,14 +6,14 @@ module Atomy
 
       alias :message_name :text
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         var = g.state.scope.search_local(@text)
         if var
           var.get_bytecode(g)
         else
-          to_send.bytecode(g)
+          to_send.bytecode(g, mod)
         end
       end
 

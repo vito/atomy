@@ -3,7 +3,7 @@ module Atomy::AST
     attributes :value
     generate
 
-    def bytecode(g)
+    def bytecode(g, mod)
       pos(g)
       case @value
       when :true

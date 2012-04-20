@@ -4,15 +4,15 @@ module Atomy
       children :target, [:branches]
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         done = g.new_label
 
-        @target.compile(g)
+        mod.compile(g, @target)
 
         @branches.each do |e|
-          e.bytecode(g, done)
+          e.bytecode(g, mod, done)
         end
 
         g.pop
@@ -26,7 +26,7 @@ module Atomy
       children :pattern, :branch
       generate
 
-      def bytecode(g, done)
+      def bytecode(g, mod, done)
         pos(g)
 
         skip = g.new_label
@@ -35,11 +35,11 @@ module Atomy
         exp = @branch
 
         g.dup
-        pat.matches?(g)
+        pat.matches?(g, mod)
         g.gif skip
 
-        pat.deconstruct(g)
-        exp.compile(g)
+        pat.deconstruct(g, mod)
+        mod.compile(g, exp)
         g.goto done
 
         skip.set!

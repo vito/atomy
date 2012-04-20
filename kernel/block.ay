@@ -11,14 +11,20 @@ Atomy Patterns open:
     attributes(.target, .identifier)
     generate
 
-    construct(g) := do:
+    construct(g, mod) := do:
       get(g)
-      @target construct(g)
+      @target construct(g, mod)
       g push-literal(@identifier)
       g send(.new, 2)
+      g dup
+      g push-cpath-top
+      g find-const(.Atomy)
+      g send(.current_module, 0)
+      g send(.in_context, 1)
+      g pop
 
-    deconstruct(g, locals = {}) := do:
-      @target compile(g)
+    deconstruct(g, mod, locals = {}) := do:
+      mod compile(g, @target)
       g swap
       g push-literal(name)
       g swap
@@ -29,16 +35,22 @@ Atomy Patterns open:
     attributes(.target, .identifier)
     generate
 
-    construct(g) := do:
+    construct(g, mod) := do:
       get(g)
-      @target construct(g)
+      @target construct(g, mod)
       g push-literal(@identifier)
       g send(.new, 2)
+      g dup
+      g push-cpath-top
+      g find-const(.Atomy)
+      g send(.current_module, 0)
+      g send(.in_context, 1)
+      g pop
 
-    deconstruct(g, locals = {}) := do:
+    deconstruct(g, mod, locals = {}) := do:
       have-class = g new-label
 
-      @target compile(g)
+      mod compile(g, @target)
       g dup
       g push-cpath-top
       g find-const(.Class)
@@ -61,17 +73,17 @@ Atomy AST open:
     RedirectedClassVariable(.target, @name)
 
 
-  RedirectedInstanceVariable bytecode(g) := do:
+  RedirectedInstanceVariable bytecode(g, mod) := do:
     pos(g)
-    @target compile(g)
+    mod compile(g, @target)
     g push-literal(."@#{@name}")
     g send(.instance-variable-get, 1)
 
-  RedirectedClassVariable bytecode(g) := do:
+  RedirectedClassVariable bytecode(g, mod) := do:
     pos(g)
     have-class = g new-label
 
-    @target compile(g)
+    mod compile(g, @target)
     g dup
     g push-cpath-top
     g find-const(.Class)

@@ -14,7 +14,7 @@ module Atomy
       attributes :message_name, [:private, "false"]
       generate
 
-      def bytecode(g)
+      def bytecode(g, mod)
         pos(g)
 
         # private sends get special semantics
@@ -25,26 +25,26 @@ module Atomy
             g.dup
             g.send :code, 0
             g.send :scope, 0
-            @receiver.compile(g)
+            mod.compile(g, @receiver)
             g.swap
 
             @arguments.each do |a|
-              a.compile(g)
+              mod.compile(g, a)
             end
 
             if @splat
-              @splat.compile(g)
+              mod.compile(g, @splat)
               g.send :to_a, 0
 
               if @block
-                push_block(g)
+                push_block(g, mod)
               else
                 g.push_nil
               end
 
               g.send_with_splat :call_under, @arguments.size + 2
             elsif @block
-              push_block(g)
+              push_block(g, mod)
               g.send_with_block :call_under, @arguments.size + 2
             else
               g.send :call_under, @arguments.size + 2
@@ -56,27 +56,27 @@ module Atomy
           g.push_cpath_top
           g.find_const :Atomy
 
-          @receiver.compile(g)
+          mod.compile(g, @receiver)
           g.push_scope
           g.push_literal @message_name
 
           @arguments.each do |a|
-            a.compile(g)
+            mod.compile(g, a)
           end
 
           if @splat
-            @splat.compile(g)
+            mod.compile(g, @splat)
             g.send :to_a, 0
 
             if @block
-              push_block(g)
+              push_block(g, mod)
             else
               g.push_nil
             end
 
             g.send_with_splat :send_message, @arguments.size + 3
           elsif @block
-            push_block(g)
+            push_block(g, mod)
             g.send_with_block :send_message, @arguments.size + 3
           else
             g.send :send_message, @arguments.size + 3
@@ -85,25 +85,25 @@ module Atomy
           return
         end
 
-        @receiver.compile(g)
+        mod.compile(g, @receiver)
 
         @arguments.each do |a|
-          a.compile(g)
+          mod.compile(g, a)
         end
 
         if @splat
-          @splat.compile(g)
+          mod.compile(g, @splat)
           g.send :to_a, 0
 
           if @block
-            push_block(g)
+            push_block(g, mod)
           else
             g.push_nil
           end
 
           g.send_with_splat @message_name, @arguments.size
         elsif @block
-          push_block(g)
+          push_block(g, mod)
           g.send_with_block @message_name, @arguments.size
         elsif meta = Operators[@message_name]
           g.__send__ meta, g.find_literal(@message_name)
@@ -114,11 +114,11 @@ module Atomy
 
       private
 
-      def push_block(g)
+      def push_block(g, mod)
         if @block.is_a? Block
-          @block.create_block(g)
+          @block.create_block(g, mod)
         else
-          @block.compile(g)
+          mod.compile(g, @block)
         end
       end
     end
