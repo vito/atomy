@@ -1,6 +1,6 @@
 module Atomy
   class MethodFail < ArgumentError
-    attr_reader :method_name
+    attr_reader :method_name, :arguments
 
     def initialize(mn, a)
       @method_name = mn
