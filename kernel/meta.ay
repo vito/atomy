@@ -1,6 +1,5 @@
 use("core")
 use("define")
-use("control-flow")
 use("node")
 
 macro(when-compiling ~(b: Block)):
