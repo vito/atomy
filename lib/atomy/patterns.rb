@@ -579,7 +579,10 @@ EOF
 
   class Atomy::AST::QuasiQuote
     def to_pattern
-      QuasiQuote.new(self)
+      QuasiQuote.new(
+        through_quotes(proc { true }) do |e|
+          e.to_pattern.to_node
+        end)
     end
   end
 end

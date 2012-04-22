@@ -194,13 +194,13 @@ module Atomy::Patterns
           return 1
 
         elsif x.unquote? && y.unquote? && @depth == 0
-          return x.expression.to_pattern <=> y.expression.to_pattern
+          return x.expression.pattern <=> y.expression.pattern
 
         elsif x.unquote? && @depth == 0
-          return x.expression.to_pattern <=> Quote.new(y)
+          return x.expression.pattern <=> Quote.new(y)
 
         elsif y.unquote? && @depth == 0
-          return Quote.new(x) <=> y.expression.to_pattern
+          return Quote.new(x) <=> y.expression.pattern
 
         elsif !x.is_a?(y.class) || !x.details.all? { |d| x.send(d) == y.send(d) }
           fail
@@ -222,11 +222,11 @@ module Atomy::Patterns
             b = ys[i]
 
             if a.nil?
-              unless b && b.splice? && b.expression.to_pattern.wildcard?
+              unless b && b.splice? && b.expression.pattern.wildcard?
                 total -= 1
               end
             elsif b.nil?
-              unless a.splice? && a.expression.to_pattern.wildcard?
+              unless a.splice? && a.expression.pattern.wildcard?
                 total += 1
               end
             elsif a.splice? && !b.splice?
@@ -378,21 +378,21 @@ module Atomy::Patterns
           fail
 
         elsif x.unquote? && y.unquote? && @depth == 0
-          if x.expression.to_pattern =~ y.expression.to_pattern
+          if x.expression.pattern =~ y.expression.pattern
             return true
           else
             fail
           end
 
         elsif x.unquote? && @depth == 0
-          if x.expression.to_pattern =~ Quote.new(y)
+          if x.expression.pattern =~ Quote.new(y)
             return true
           else
             fail
           end
 
         elsif y.unquote? && @depth == 0
-          if Quote.new(x) =~ y.expression.to_pattern
+          if Quote.new(x) =~ y.expression.pattern
             return true
           else
             fail
@@ -418,11 +418,11 @@ module Atomy::Patterns
             b = ys[i]
 
             if a.nil?
-              unless b && b.splice? && b.expression.to_pattern.wildcard?
+              unless b && b.splice? && b.expression.pattern.wildcard?
                 fail
               end
             elsif b.nil?
-              unless a.splice? && a.expression.to_pattern.wildcard?
+              unless a.splice? && a.expression.pattern.wildcard?
                 fail
               end
             elsif a.splice? && !b.splice?

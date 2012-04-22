@@ -4,9 +4,7 @@ module Atomy::Patterns
     generate
 
     def initialize(x)
-      @quoted = x.through_quotes(proc { true }) do |e|
-        e.to_pattern.to_node
-      end
+      @quoted = x
     end
 
     def construct(g, mod)
@@ -52,7 +50,7 @@ module Atomy::Patterns
       names = Set.new
 
       @quoted.through_quotes(proc { true }) do |e|
-        names += e.to_pattern.local_names
+        names += e.pattern.local_names
         e
       end
 
@@ -61,7 +59,7 @@ module Atomy::Patterns
 
     def binds?
       @quoted.through_quotes(proc { true }) do |e|
-        return true if e.to_pattern.binds?
+        return true if e.pattern.binds?
         e
       end
 
@@ -155,7 +153,7 @@ module Atomy::Patterns
 
           # TODO: only handle trailing defaults
           defaults, required = pats.partition do |x|
-            x.unquote? && x.expression.to_pattern.is_a?(Default)
+            x.unquote? && x.expression.pattern.is_a?(Default)
           end
 
           # do we care about size?
@@ -187,7 +185,7 @@ module Atomy::Patterns
             @g.send :>=, 1
             @g.git has
 
-            @module.compile(@g, d.expression.to_pattern.default)
+            @module.compile(@g, d.expression.pattern.default)
             @g.goto match
 
             has.set!
@@ -198,7 +196,7 @@ module Atomy::Patterns
           end
 
           if splice
-            splice.expression.to_pattern.matches?(@g, @module)
+            splice.expression.pattern.matches?(@g, @module)
             @g.gif popmis
           else
             @g.pop
@@ -222,7 +220,7 @@ module Atomy::Patterns
         @depth -= 1
 
         if @depth == 0
-          x.expression.to_pattern.matches?(@g, @module)
+          x.expression.pattern.matches?(@g, @module)
           @g.gif @mismatch
         else
           visit(x)
@@ -237,7 +235,7 @@ module Atomy::Patterns
         @depth -= 1
 
         if @depth == 0
-          x.expression.to_pattern.deconstruct(@g, @module)
+          x.expression.pattern.deconstruct(@g, @module)
         else
           visit(x)
         end
@@ -264,7 +262,7 @@ module Atomy::Patterns
 
           # TODO: only handle trailing defaults
           defaults, required = pats.partition do |x|
-            x.unquote? && x.expression.to_pattern.is_a?(Default)
+            x.unquote? && x.expression.pattern.is_a?(Default)
           end
 
           @g.dup
@@ -285,7 +283,7 @@ module Atomy::Patterns
             @g.send :>=, 1
             @g.git has
 
-            @module.compile(@g, d.expression.to_pattern.default)
+            @module.compile(@g, d.expression.pattern.default)
             @g.goto match
 
             has.set!
@@ -296,7 +294,7 @@ module Atomy::Patterns
           end
 
           if splice
-            splice.expression.to_pattern.deconstruct(@g, @module)
+            splice.expression.pattern.deconstruct(@g, @module)
           else
             @g.pop
           end
