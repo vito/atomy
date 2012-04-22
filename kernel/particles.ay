@@ -76,10 +76,8 @@ Atomy Patterns open:
     attributes(.message)
     generate
 
-    target(g, _) := do:
-      g push-cpath-top
-      g find-const(.Atomy)
-      g find-const(.Particle)
+    target(g, _) :=
+      g push-const(.Particle)
 
     matches(g, mod)? := do:
       mismatch = g new-label
