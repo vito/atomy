@@ -97,7 +97,7 @@ module Atomy
 
     def self.eval(
         string_or_node, mod, binding = nil,
-        filename = nil, line = 1, debug = false)
+        filename = mod.file, line = 1, debug = false)
       filename = filename.to_s if filename
       lineno = lineno.to_i
 
