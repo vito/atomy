@@ -77,7 +77,7 @@ module Atomy
           File.stat(compiled).mtime < File.stat(fn).mtime
       end
 
-      def load_file(fn, r = :load, debug = false)
+      def load_file(fn, debug = false)
         unless found = find_any_file(fn)
           raise LoadError, "no such file to load -- #{fn}"
         end
