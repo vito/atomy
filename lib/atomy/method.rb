@@ -301,22 +301,6 @@ module Atomy
         skip.set!
       end
     end
-
-    # get the "actual" sender; either StaticScope.of_sender
-    # or VariableScope.of_sender's sender ivar if it's set
-    def get_sender_scope(g)
-      g.push_rubinius
-      g.find_const :StaticScope
-      g.send :of_sender, 0
-    end
-
-    # StaticScope equivalency test
-    def equal_scope?(a, b)
-      return a == b unless a and b
-
-      a.module == b.module and \
-        equal_scope?(a.parent, b.parent)
-    end
   end
 
   # build a method from the given branches and add it to
