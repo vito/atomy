@@ -157,6 +157,72 @@ module Atomy
       raise
     end
 
+
+    def pattern_definer(pattern, mod, body)
+      Atomy::AST::Define.new(
+        0,
+        body,
+        Atomy::AST::Block.new(
+          0,
+          [Atomy::AST::Primitive.new(0, :self)],
+          []),
+        [ pattern,
+          mod
+        ],
+        :_pattern)
+    end
+
+    def define_pattern(pattern, mod, body, file = @file)
+      pattern_definer(pattern, mod, body).evaluate(
+        self,
+        Binding.setup(
+          TOPLEVEL_BINDING.variables,
+          TOPLEVEL_BINDING.code,
+          Rubinius::StaticScope.new(Atomy::AST, Rubinius::StaticScope.new(self)),
+          self),
+        file.to_s,
+        pattern.line)
+    end
+
+    def execute_to_pattern(node, mod = self)
+      _pattern(node.copy, mod) if respond_to?(:_pattern)
+    rescue Atomy::MethodFail => e
+      # TODO: make sure this is never a false-positive
+      raise unless e.method_name == :_pattern
+    end
+
+    def make_pattern_using(node, mod = self)
+      if @delegate and res = @delegate.make_pattern(node)
+        return res
+      end
+
+      using.each do |u|
+        expanded = u.execute_to_pattern(node, mod)
+        return expanded if expanded
+      end
+
+      nil
+    end
+
+    def make_pattern(node)
+      with_context(:execute_to_pattern, node) ||
+        with_context(:make_pattern_using, node) ||
+        node.to_pattern
+    rescue
+      if node.respond_to?(:show)
+        begin
+          $stderr.puts "while patternizing #{node.show}"
+        rescue
+          $stderr.puts "while patternizing #{node.inspect}"
+        end
+      else
+        $stderr.puts "while patternizing #{node.inspect}"
+      end
+
+      raise
+    end
+
+
     def use(path)
       x = require(path)
 

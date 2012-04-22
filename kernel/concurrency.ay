@@ -12,7 +12,7 @@ Actor <- v := send(v)
 macro(receive ~(body: Block)):
   names [e]:
     bs =
-      `(~e when('~pat to-pattern) [~pat]: ~exp)
+      `(~e when(make-pattern('~pat)) [~pat]: ~exp)
         for [pat, exp] in pairs-from(body contents)
 
     `(Actor receive [~e]: ~*bs)
@@ -20,7 +20,7 @@ macro(receive ~(body: Block)):
 macro(receive ~(body: Block) after(~timeout) ~(action: Block)):
   names [e]:
     bs =
-      `(~e when('~pat to-pattern) [~pat]: ~exp)
+      `(~e when(make-pattern('~pat)) [~pat]: ~exp)
         for [pat, exp] in pairs-from(body contents)
 
     `(Actor receive [~e]:

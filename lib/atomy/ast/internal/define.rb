@@ -12,20 +12,22 @@ module Atomy
         [:@receiver]
       end
 
-      def implicit_patterns
-        [[:@receiver, receiver_pattern]]
+      def implicit_patterns(mod)
+        [[:@receiver, receiver_pattern(mod)]]
       end
 
-      def argument_patterns
-        @argument_patterns ||= @arguments.collect(&:to_pattern)
+      def receiver_pattern(mod)
+        @recvpat = {}
+        @recvpat[mod] ||=
+          mod.make_pattern(@receiver)
       end
 
-      def receiver_pattern
-        @receiver_pattern ||= @receiver.to_pattern
-      end
+      def block_pattern(mod)
+        return unless @block
 
-      def block_pattern
-        @block && @block.to_pattern
+        @blkpat = {}
+        @blkpat[mod] ||=
+          mod.make_pattern(@block)
       end
 
       # differences from Block:
@@ -38,7 +40,7 @@ module Atomy
         state = g.state
         state.scope.nest_scope self
 
-        args = make_arguments
+        args = make_arguments(mod)
 
         blk = new_block_generator g, args
         blk.name = @name
@@ -85,7 +87,7 @@ module Atomy
         req = []
         dfs = []
         spl = nil
-        argument_patterns.each do |a|
+        argument_patterns(mod).each do |a|
           case a
           when Patterns::Splat
             spl = a
@@ -104,7 +106,7 @@ module Atomy
         g.find_const :Atomy
         g.send :current_module, 0
 
-        receiver_pattern.construct(g, mod)
+        receiver_pattern(mod).construct(g, mod)
 
         req.each do |r|
           r.construct(g, mod)
@@ -122,8 +124,8 @@ module Atomy
           g.push_nil
         end
 
-        if block_pattern
-          block_pattern.construct(g, mod)
+        if blkpat = block_pattern(mod)
+          blkpat.construct(g, mod)
         else
           g.push_nil
         end
@@ -150,7 +152,7 @@ module Atomy
         # set the block's module so that super works
         g.dup
         g.push_literal :@module
-        receiver_pattern.target(g, mod)
+        receiver_pattern(mod).target(g, mod)
         g.send :instance_variable_set, 2
         g.pop
       end
@@ -160,7 +162,7 @@ module Atomy
 
         g.push_cpath_top
         g.find_const :Atomy
-        receiver_pattern.target(g, mod)
+        receiver_pattern(mod).target(g, mod)
         g.push_literal @name
         push_branch(g, mod)
         g.push_scope
@@ -176,7 +178,7 @@ module Atomy
       attributes :name
       generate
 
-      def receiver_pattern
+      def receiver_pattern(mod)
         Patterns::Any.new
       end
 

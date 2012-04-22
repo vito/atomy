@@ -6,7 +6,7 @@ module Atomy
 
       def bytecode(g, mod)
         pos(g)
-        @lhs.pattern.assign(g, mod, @rhs, true)
+        mod.make_pattern(@lhs).assign(g, mod, @rhs, true)
       end
     end
   end

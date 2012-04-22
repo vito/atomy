@@ -1,9 +1,9 @@
 require("operators")
-require("patterns")
 require("errors")
 
 export(
   require("core")
+  require("patterns")
   require("define")
   require("comparison")
   require("loop")

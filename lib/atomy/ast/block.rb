@@ -65,20 +65,28 @@ module Atomy
         []
       end
 
-      def implicit_patterns
+      def implicit_patterns(mod)
         []
       end
 
-      def make_arguments
+      def argument_patterns(mod)
+        @argpats = {}
+        @argpats[mod] ||=
+          @arguments.collect { |a|
+            mod.make_pattern(a)
+          }
+      end
+
+      def make_arguments(mod)
         required = implicit_arguments
         optional = nil
         post = nil
         splat = nil
         block = nil
 
-        patterns = implicit_patterns
+        patterns = implicit_patterns(mod)
 
-        @arguments.collect(&:to_pattern).each.with_index do |p, i|
+        argument_patterns(mod).each.with_index do |p, i|
           name = :"@arg:#{i + 1}"
           patterns << [name, p]
 
@@ -97,7 +105,7 @@ module Atomy
 
         if @block
           block = :@block
-          patterns << [block, @block.to_pattern]
+          patterns << [block, mod.make_pattern(@block)]
         end
 
         FormalArguments.new(@line, required, optional, splat, post, block, patterns)
@@ -109,7 +117,7 @@ module Atomy
         state = g.state
         state.scope.nest_scope self
 
-        args = make_arguments
+        args = make_arguments(mod)
 
         blk = new_block_generator g, args
 

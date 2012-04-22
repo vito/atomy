@@ -117,7 +117,7 @@ macro(condition ~(b: Block)):
 
 macro(~val match ~(b: Block)):
   branches = pairs-from(b contents) collect [x, y]:
-    MatchBranch new(x line, x to-pattern to-node, y)
+    MatchBranch new(x line, x, y)
 
   Match new(node line, val, branches)
 

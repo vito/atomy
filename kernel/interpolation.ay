@@ -5,6 +5,7 @@ use("quotes")
 use("range")
 use("grammar")
 use("node")
+use("patterns")
 
 parser(Parser):
   %atomy := Atomy Parser

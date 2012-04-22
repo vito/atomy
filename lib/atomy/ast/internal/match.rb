@@ -31,7 +31,7 @@ module Atomy
 
         skip = g.new_label
 
-        pat = @pattern.to_pattern
+        pat = mod.make_pattern(@pattern)
         exp = @branch
 
         g.dup

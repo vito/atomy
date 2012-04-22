@@ -5,6 +5,7 @@ use("control-flow")
 use("meta")
 use("interpolation")
 use("node")
+use("patterns")
 
 Atomy Patterns open:
   NamedRedirectedInstance = NamedInstance class:
@@ -97,11 +98,11 @@ Atomy AST open:
     g send(.class-variable-get, 1)
 
 
-  RedirectedInstanceVariable to-pattern :=
-    Atomy Patterns NamedRedirectedInstance new(@target, @name)
+pattern(ri: Atomy AST RedirectedInstanceVariable):
+  Atomy Patterns NamedRedirectedInstance new(node target, node name)
 
-  RedirectedClassVariable to-pattern :=
-    Atomy Patterns NamedRedirectedClass new(@target, @name)
+pattern(rc: Atomy AST RedirectedClassVariable):
+  Atomy Patterns NamedRedirectedClass new(node target, node name)
 
 
 macro(~x onto ~(b: Block)):

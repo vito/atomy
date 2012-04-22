@@ -18,7 +18,7 @@ macro(false): Primitive new(node line, "false" to-sym)
 macro(_): Primitive new(node line, "undefined" to-sym)
 
 -- assignment/pattern-matching
-macro(~x = ~y): Assign new(node line, x to-pattern to-node, y)
+macro(~x = ~y): Assign new(node line, x, y)
 
 macro(_ ~(c: Constant)):
   ToplevelConstant new(node line, c name)
@@ -236,5 +236,6 @@ macro(~x (~Word)(~*args)!):
       r name text = (r name text to-s + "!") to-sym
 
   node
+
 
 use("operators")

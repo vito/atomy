@@ -4,6 +4,7 @@ use("data")
 use("control-flow")
 use("cosmetics")
 use("comparison")
+use("patterns")
 
 data(Particle(@receiver, @message, @arguments))
 
@@ -120,61 +121,62 @@ Atomy Patterns open:
       g send(.arguments, 0)
       @arguments deconstruct(g, mod, locals)
 
-`.(~r [~*as]) to-pattern :=
-  Atomy Patterns Particle new(
-    r to-pattern
-    .[]
-    `[~*as] to-pattern)
 
-`.[] to-pattern :=
+pattern(`.(~r [~*as])):
+  Atomy Patterns Particle new(
+    pattern(r)
+    .[]
+    pattern(`[~*as]))
+
+pattern(`.[]):
   Atomy Patterns Literal new(.[])
 
-`.[~*as] to-pattern :=
+pattern(`.[~*as]):
   Atomy Patterns Particle new(
-    '_ to-pattern
+    pattern('_)
     .[]
-    `[~*as] to-pattern)
+    pattern(`[~*as]))
 
-`.~(x: Atomy AST Binary) to-pattern :=
+pattern(`.~(x: Atomy AST Binary)):
   Atomy Patterns Particle new(
     if(x private)
-      then: '_ to-pattern
-      else: x lhs to-pattern
-    `[~(x rhs)] to-pattern
+      then: pattern('_)
+      else: pattern(x lhs)
+    pattern(`[~(x rhs)])
     x operator)
 
-`.((~(x: Atomy AST Word))(~*as)) to-pattern :=
+pattern(`.((~(x: Atomy AST Word))(~*as))):
   Atomy Patterns Particle new(
-    '_ to-pattern
-    `[~*as] to-pattern
+    pattern('_)
+    pattern(`[~*as])
     x text)
 
-`.((~(x: Atomy AST Word))(~*as)?) to-pattern :=
+pattern(`.((~(x: Atomy AST Word))(~*as)?)):
   Atomy Patterns Particle new(
-    '_ to-pattern
-    `[~*as] to-pattern
+    pattern('_)
+    pattern(`[~*as])
     `((~x)?) to-word text)
 
-`.((~(x: Atomy AST Word))(~*as)!) to-pattern :=
+pattern(`.((~(x: Atomy AST Word))(~*as)!)):
   Atomy Patterns Particle new(
-    '_ to-pattern
-    `[~*as] to-pattern
+    pattern('_)
+    pattern(`[~*as])
     `((~x)!) to-word text)
 
-`.(~r (~(x: Atomy AST Word))(~*as)) to-pattern :=
+pattern(`.(~r (~(x: Atomy AST Word))(~*as))):
   Atomy Patterns Particle new(
-    r to-pattern
-    `[~*as] to-pattern
+    pattern(r)
+    pattern(`[~*as])
     x text)
 
-`.(~r (~(x: Atomy AST Word))(~*as)?) to-pattern :=
+pattern(`.(~r (~(x: Atomy AST Word))(~*as)?)):
   Atomy Patterns Particle new(
-    r to-pattern
-    `[~*as] to-pattern
+    pattern(r)
+    pattern(`[~*as])
     `((~x)?) to-word text)
 
-`.(~r (~(x: Atomy AST Word))(~*as)!) to-pattern :=
+pattern(`.(~r (~(x: Atomy AST Word))(~*as)!)):
   Atomy Patterns Particle new(
-    r to-pattern
-    `[~*as] to-pattern
+    pattern(r)
+    pattern(`[~*as])
     `((~x)!) to-word text)

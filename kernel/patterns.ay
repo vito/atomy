@@ -2,6 +2,8 @@ use("core")
 use("define")
 use("cosmetics")
 use("control-flow")
+use("meta")
+
 
 Atomy Patterns open:
   -- redefine these in atomy so we can have some base cases
@@ -83,7 +85,9 @@ Atomy Patterns open:
       done set!
 
     deconstruct(g, mod, locals = _ Hash new) := do:
-      unless(@result): g dup
+      unless(@result):
+        g dup
+
       @pattern deconstruct(g, mod, locals)
 
       if(@result)
@@ -180,6 +184,7 @@ Atomy Patterns open:
     if(@a <=> x == 1)
       then: 1
       else: @b <=> x
+
   -- an Or precedes x if neither are preceded by
   Or <=> x :=
     if(@a <=> x == -1)
@@ -189,147 +194,160 @@ Atomy Patterns open:
   -- TODO
   (a: And) <=> (b: And) :=
     ((a a <=> b a) + (a b <=> b a) + (a a <=> b b) + (a b <=> b b)) <=> 0
+
   (a: Or) <=> (b: Or) :=
     ((a a <=> b a) + (a b <=> b a) + (a a <=> b b) + (a b <=> b b)) <=> 0
 
 
+-- pattern definition
+macro(pattern(~pat): ~*body):
+  names [mod]:
+    patdef =
+      LetMacro new(
+        node line
+        `(do: ~*body)
+        [`(pattern(~(Unquote new(0, 'x))) =
+            `(~'~mod make-pattern(~x)))])
+
+    `(define-pattern('(node: ~pat), '~mod, '~patdef))
+
+
 -- base patterns
-Atomy Patterns open:
-  (Atomy AST Node ? to-word) to-pattern :=
-    Named new(Any new
-              to-word text)
+pattern(? to-word):
+  Atomy Patterns Named new(Atomy Patterns Any new, node to-word text)
 
-  Atomy AST Primitive to-pattern :=
-    Match new(@value)
+pattern(`(~(x ? to-word): ~y)):
+  Atomy Patterns Named new(pattern(y), x to-word text)
 
-  Atomy AST Literal to-pattern :=
-    Literal new(@value)
+pattern(Primitive):
+  Atomy Patterns Match new(node value)
 
-  Atomy AST List to-pattern :=
-    List new(@elements collect [e]: e to-pattern)
+pattern(Literal):
+  Atomy Patterns Literal new(node value)
 
-  Atomy AST Constant to-pattern :=
-    Constant new(self)
+pattern(`[~*ps]):
+  Atomy Patterns List new(node elements collect [e]: pattern(e))
 
-  Atomy AST ScopedConstant to-pattern :=
-    Constant new(self)
+pattern(Constant):
+  Atomy Patterns Constant new(node)
 
-  Atomy AST ToplevelConstant to-pattern :=
-    Constant new(self)
+pattern(`(_ ~(y: Constant))):
+  Atomy Patterns Constant new(ToplevelConstant new(node line, y name))
 
-  Atomy AST Quote to-pattern :=
-    Quote new(@expression)
+pattern(`(~x ~(y: Constant))):
+  Atomy Patterns Constant new(ScopedConstant new(node line, x, y name))
 
-  Atomy AST Block to-pattern :=
-    SingletonClass new(body)
+pattern(Quote):
+  Atomy Patterns Quote new(node expression)
 
-  Atomy AST QuasiQuote to-pattern :=
-    QuasiQuote new(self)
+pattern(QuasiQuote):
+  Atomy Patterns QuasiQuote new(
+    node through-quotes([_]: true) [e]:
+      pattern(e) to-node)
 
-  `(~x { ~y }) to-pattern :=
-    Named new(y to-pattern, x text)
+pattern(Block):
+  Atomy Patterns SingletonClass new(node body)
 
-  `(_ ~(y: Atomy AST Constant)) to-pattern :=
-    Constant new(Atomy AST ToplevelConstant new(@line, y name))
+pattern(`(? ~t)):
+  Atomy Patterns Predicate new(Atomy Patterns Any new, t)
 
-  `(~x ~(y: Atomy AST Constant)) to-pattern :=
-    Constant new(Atomy AST ScopedConstant new(@line, x, y name))
+pattern(`(~p ? ~t)):
+  Atomy Patterns Predicate new(pattern(p), t)
 
-  `(? ~t) to-pattern :=
-    Predicate new(Any new, t)
+pattern(`@@~(n ? to-word)):
+  Atomy Patterns NamedClass new(n to-word text)
 
-  `(~p ? ~t) to-pattern :=
-    Predicate new(p to-pattern, t)
+pattern(`(~x ~(y ? to-word))):
+  Atomy Patterns Attribute new(x, y to-word text, [])
 
-  `@@~(n: ? to-word) to-pattern :=
-    NamedClass new(n to-word text)
+pattern(`(~x (~(y ? to-word))(~*as))):
+  Atomy Patterns Attribute new(x, y to-word text, as)
 
-  `(~x ~(y: ? to-word)) to-pattern :=
-    Attribute new(x, y to-word text, [])
+pattern(`(~x (~(y: Word))(~*as)?)):
+  Atomy Patterns Attribute new(x, `((~y)?) to-word text, as)
 
-  `(~x (~(y: ? to-word))(~*as)) to-pattern :=
-    Attribute new(x, y to-word text, as)
+pattern(`(~x (~(y: Word))(~*as)!)):
+  Atomy Patterns Attribute new(x, `((~y)!) to-word text, as)
 
-  `(~x (~(y: Atomy AST Word))(~*as)?) to-pattern :=
-    Attribute new(x, `((~y)?) to-word text, as)
+pattern(`(~x with(~e, ~y))):
+  Atomy Patterns With new(pattern(x), pattern(y), e)
 
-  `(~x (~(y: Atomy AST Word))(~*as)!) to-pattern :=
-    Attribute new(x, `((~y)!) to-word text, as)
+pattern(`(with(~e, ~y))):
+  Atomy Patterns With new(Atomy Patterns Any new, pattern(y), e)
 
-  `(~a & ~b) to-pattern :=
-    And new(a to-pattern, b to-pattern)
+pattern(`(~x [~*as])):
+  Atomy Patterns Attribute new(x, ."[]", as)
 
-  `(~a | ~b) to-pattern :=
-    Or new(a to-pattern, b to-pattern)
+pattern('_):
+  Atomy Patterns Any new
 
-  `(~x with(~e, ~y)) to-pattern :=
-    With new(x to-pattern, y to-pattern, e)
+pattern(`(~h . ~t)):
+  Atomy Patterns HeadTail new(pattern(h), pattern(t))
 
-  `(with(~e, ~y)) to-pattern :=
-    With new(Any new, y to-pattern, e)
+pattern(`(~p = ~d)):
+  Atomy Patterns Default new(pattern(p), d)
 
-  `(~x [~*as]) to-pattern :=
-    Attribute new(x, ."[]", as)
+pattern(`$0):
+  Atomy Patterns NamedGlobal new("0")
 
-  '_ to-pattern :=
-    Any new
+pattern(`$exception):
+  Atomy Patterns NamedGlobal new("!")
 
-  `(~h . ~t) to-pattern :=
-    HeadTail new(h to-pattern, t to-pattern)
+pattern(`$path):
+  Atomy Patterns NamedGlobal new(":")
 
-  `(~p = ~d) to-pattern :=
-    Default new(p to-pattern, d)
+pattern(`$separator):
+  Atomy Patterns NamedGlobal new("/")
 
-  `$0 to-pattern :=
-    NamedGlobal new("0")
+pattern(`$~(n: Constant)):
+  Atomy Patterns NamedGlobal new(n name)
 
-  `$exception to-pattern :=
-    NamedGlobal new("!")
+pattern(`$~(n: String)):
+  Atomy Patterns NamedGlobal new(n value)
 
-  `$path to-pattern :=
-    NamedGlobal new(":")
+pattern(`$~(n ? to-word)):
+  Atomy Patterns NamedGlobal new(n to-word text)
 
-  `$separator to-pattern :=
-    NamedGlobal new("/")
+pattern(`@~(n ? to-word)):
+  Atomy Patterns NamedInstance new(n to-word text)
 
-  `$~(n: Atomy AST Constant) to-pattern :=
-    NamedGlobal new(n name)
+pattern(`&~x):
+  Atomy Patterns BlockPass new(pattern(x))
 
-  `$~(n: Atomy AST String) to-pattern :=
-    NamedGlobal new(n value)
+pattern(`*~x):
+  Atomy Patterns Splat new(pattern(x))
 
-  `$~(n: ? to-word) to-pattern :=
-    NamedGlobal new(n to-word text)
+pattern('self):
+  Atomy Patterns Match new(.self)
 
-  `@~(n: ? to-word) to-pattern :=
-    NamedInstance new(n to-word text)
+pattern('true):
+  Atomy Patterns Match new(.true)
 
-  `&~x to-pattern :=
-    BlockPass new(x to-pattern)
+pattern('false):
+  Atomy Patterns Match new(.false)
 
-  `*~x to-pattern :=
-    Splat new(x to-pattern)
+pattern('nil):
+  Atomy Patterns Match new(.nil)
 
-  'self to-pattern :=
-    Match new(.self)
+pattern(`.~(x ? to-word)):
+  Atomy Patterns Literal new(x to-word text)
 
-  'true to-pattern :=
-    Match new(.true)
+pattern(`.~(x: Constant)):
+  Atomy Patterns Literal new(x name)
 
-  'false to-pattern :=
-    Match new(.false)
+pattern(`.~(x: String)):
+  Atomy Patterns Literal new(x value to-sym)
 
-  'nil to-pattern :=
-    Match new(.nil)
 
-  `.~(x: ? to-word) to-pattern :=
-    Literal new(x to-word text)
+pattern(`(~a & ~b)):
+  Atomy Patterns And new(pattern(a), pattern(b))
 
-  `.~(x: Atomy AST Constant) to-pattern :=
-    Literal new(x name)
+pattern(`(~a | ~b)):
+  Atomy Patterns Or new(pattern(a), pattern(b))
 
-  `.~(x: Atomy AST String) to-pattern :=
-    Literal new(x value to-sym)
+pattern(`(~x with(~e, ~y))):
+  Atomy Patterns With new(pattern(x), pattern(y), e)
 
-  Atomy AST Node to-pattern :=
-    raise("unknown pattern:\n" + inspect)
+pattern(`(with(~e, ~y))):
+  Atomy Patterns With new(Atomy Patterns Any new, pattern(y), e)
+

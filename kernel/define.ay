@@ -6,7 +6,7 @@ infix("&= ||= |= += -= /= ^= %=", 10, .right)
 macro(do ~(b: Block)): b body
 
 macro(~x =! ~y):
-  Set new(node line, x to-pattern to-node, y)
+  Set new(node line, x, y)
 
 macro((~name)(~*args) = ~body):
   Function new(node line, body, args, name text)

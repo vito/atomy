@@ -1,6 +1,8 @@
 use("core")
 use("define")
 use("control-flow")
+use("patterns")
+use("particles")
 
 use("therie")
 use("condition")

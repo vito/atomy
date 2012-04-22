@@ -186,7 +186,7 @@ module Atomy
       def bytecode(g, mod, reraise, done, outer_exc_state, next_handler = nil)
         body = g.new_label
 
-        pattern = @pattern.to_pattern
+        pattern = mod.make_pattern(@pattern)
 
         g.dup
         pattern.matches?(g, mod)

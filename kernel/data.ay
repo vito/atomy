@@ -3,6 +3,10 @@ use("define")
 use("control-flow")
 use("comparison")
 
+-- patterns defined by dsl use 'with', so make sure it's exported
+export(use("patterns"))
+
+
 define-class(nil, e: Atomy AST Constant) = `(~e = class:)
 define-class(root, e: Atomy AST Constant) = `(~e = ~root class:)
 define-class(root, `(~n { ~*cs })) =
@@ -28,8 +32,8 @@ define-class(root, `((~name)(~*as): ~*cs)) = do:
   cons = `((~name)(~*tmps))
 
   pat-def =
-    `(~(Atomy AST QuasiQuote new(0, cons)) to-pattern :=
-        ~(Atomy AST QuasiQuote new(0, pat)) to-pattern)
+    `(pattern(~(Atomy AST QuasiQuote new(0, cons))):
+        pattern(~(Atomy AST QuasiQuote new(0, pat))))
 
   parent = root or 'Object
 

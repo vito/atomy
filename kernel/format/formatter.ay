@@ -5,6 +5,7 @@ use("loop")
 use("regexp")
 use("comparison")
 use("particles")
+use("patterns")
 
 pretty = require("pretty")
 
