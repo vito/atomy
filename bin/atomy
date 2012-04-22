@@ -61,29 +61,26 @@ end
 def run_atomy(options)
   if str = options[:evaluate] || options[:start]
     $0 = "(eval)"
+    mod = Atomy.make_wrapper_module(:"(eval)")
     res = Atomy::Compiler.eval(
       str,
+      mod,
       TOPLEVEL_BINDING,
-      "(eval)",
+      mod.file,
       1,
       options[:debug]
     )
 
     if options[:evaluate]
-      if res.respond_to?(:write)
-        res.write
-      else
-        p(res)
-      end
+      p(res)
       return
     end
   end
 
   if file = options[:load] || ARGV[0]
     $0 = file
-    run = ARGV.shift
-    Atomy.load(file, run ? :run : :load, options[:debug])
-    return if run
+    Atomy.load(file, options[:debug])
+    return unless options[:load]
   end
 
 
