@@ -197,7 +197,7 @@ module Atomy
       as = []
       num.times do
         salt = Atomy::Macro::Environment.salt!
-        as << Atomy::AST::Word.new(0, :"s:#{salt}")
+        as << Atomy::AST::Word.new(0, :"#{name}:sym:#{salt}")
       end
 
       if block
