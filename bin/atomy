@@ -79,8 +79,9 @@ def run_atomy(options)
 
   if file = options[:load] || ARGV[0]
     $0 = file
+    run = ARGV.shift
     Atomy.load(file, options[:debug])
-    return unless options[:load]
+    return if run
   end
 
 
