@@ -41,7 +41,7 @@ class Fixnum
   def fib_atomy_3
     a = proc { 1 }.block
     b = proc { 1 }.block
-    c = proc { (self - 2).fib_atomy_2 + (self - 1).fib_atomy_2 }.block
+    c = proc { (self - 2).fib_atomy_3 + (self - 1).fib_atomy_3 }.block
 
     if self == 0
       a.call(self)
@@ -55,7 +55,7 @@ class Fixnum
   def fib_atomy_4
     a = proc { 1 }.block
     b = proc { 1 }.block
-    c = proc { (self - 2).fib_atomy_2 + (self - 1).fib_atomy_2 }.block
+    c = proc { (self - 2).fib_atomy_4 + (self - 1).fib_atomy_4 }.block
 
     if self == 0
       a.call_under(self, a.static_scope, self)
