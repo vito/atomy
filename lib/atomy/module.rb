@@ -67,41 +67,8 @@ module Atomy
       end
     end
 
-    def macro_definer(pattern, body)
-      name = pattern.macro_name
-
-      Atomy::AST::Define.new(
-        0,
-        Atomy::AST::Send.new(
-          body.line,
-          body,
-          [],
-          :to_node),
-        Atomy::AST::Block.new(
-          0,
-          [Atomy::AST::Primitive.new(0, :self)],
-          []),
-        [ Atomy::AST::Compose.new(
-            0,
-            Atomy::AST::Word.new(0, :node),
-            Atomy::AST::Block.new(
-              0,
-              [Atomy::AST::QuasiQuote.new(0, pattern)],
-              []))
-        ],
-        name)
-    end
-
     def define_macro(pattern, body, file = @file)
-      macro_definer(pattern, body).evaluate(
-        self,
-        Binding.setup(
-          TOPLEVEL_BINDING.variables,
-          TOPLEVEL_BINDING.code,
-          Rubinius::StaticScope.new(Atomy::AST, Rubinius::StaticScope.new(self)),
-          self),
-        file.to_s,
-        pattern.line)
+      eval(Atomy::AST::DefineMacro.new(pattern.line, pattern, body))
     end
 
     def execute_macro(node)

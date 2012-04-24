@@ -1,6 +1,6 @@
 module Atomy
   module AST
-    class Macro < Block
+    class DefineMacro < Block
       include NodeLike
       extend SentientNode
 
@@ -8,6 +8,31 @@ module Atomy
       generate
 
       attr_writer :evaluated
+
+      def macro_definer
+        name = @pattern.macro_name
+
+        Atomy::AST::Define.new(
+          0,
+          Atomy::AST::Send.new(
+            @body.line,
+            @body,
+            [],
+            :to_node),
+          Atomy::AST::Block.new(
+            0,
+            [Atomy::AST::Primitive.new(0, :self)],
+            []),
+          [ Atomy::AST::Compose.new(
+              0,
+              Atomy::AST::Word.new(0, :node),
+              Atomy::AST::Block.new(
+                0,
+                [Atomy::AST::QuasiQuote.new(0, @pattern)],
+                []))
+          ],
+          name)
+      end
 
       def bytecode(g, mod)
         pos(g)
@@ -19,7 +44,7 @@ module Atomy
 
         pos(blk)
 
-        mod.macro_definer(@pattern, @body).bytecode(blk, mod)
+        macro_definer.bytecode(blk, mod)
         blk.ret
 
         blk.close
