@@ -19,8 +19,9 @@ module Atomy
       expand(node).bytecode(gen, self)
     end
 
-    def eval(string_or_node)
-      Atomy::Compiler.eval(string_or_node, self, compile_context, @file)
+    def eval(string_or_node, debug = false)
+      Atomy::Compiler.eval(
+        string_or_node, self, compile_context, @file, 1, debug)
     end
 
     def inspect
