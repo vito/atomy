@@ -158,32 +158,6 @@ module Atomy
     end
 
 
-    def pattern_definer(pattern, mod, body)
-      Atomy::AST::Define.new(
-        0,
-        body,
-        Atomy::AST::Block.new(
-          0,
-          [Atomy::AST::Primitive.new(0, :self)],
-          []),
-        [ pattern,
-          mod
-        ],
-        :_pattern)
-    end
-
-    def define_pattern(pattern, mod, body, file = @file)
-      pattern_definer(pattern, mod, body).evaluate(
-        self,
-        Binding.setup(
-          TOPLEVEL_BINDING.variables,
-          TOPLEVEL_BINDING.code,
-          Rubinius::StaticScope.new(Atomy::AST, Rubinius::StaticScope.new(self)),
-          self),
-        file.to_s,
-        pattern.line)
-    end
-
     def execute_to_pattern(node, mod = self)
       _pattern(node.copy, mod) if respond_to?(:_pattern)
     rescue Atomy::MethodFail => e

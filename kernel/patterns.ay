@@ -209,7 +209,7 @@ macro(pattern(~pat): ~*body):
         [`(pattern(~(Unquote new(0, 'x))) =
             `(~'~mod make-pattern(~x)))])
 
-    `(define-pattern('(node: ~pat), '~mod, '~patdef))
+    DefinePattern new(node line, pat, patdef, mod)
 
 
 -- base patterns
