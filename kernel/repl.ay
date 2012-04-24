@@ -9,7 +9,8 @@ require("readline")
 try(source, mod, debug = false) =
   with-restarts(retry -> try(source, bnd), abort -> .ok):
     { signal(.evaluated(mod eval(source)))
-    } rescue: e -> error(e)
+    } rescue:
+      (e: StandardError | ScriptError) -> error(e)
 
 basic-repl(mod, debug = false) =
   loop:
