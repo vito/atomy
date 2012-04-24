@@ -78,6 +78,8 @@ module Atomy
       end
 
       def make_arguments(mod)
+        return @args[mod] if @args && @args[mod]
+
         required = implicit_arguments
         optional = nil
         post = nil
@@ -108,7 +110,10 @@ module Atomy
           patterns << [block, mod.make_pattern(@block)]
         end
 
-        FormalArguments.new(@line, required, optional, splat, post, block, patterns)
+        @args ||= {}
+        @args[mod] =
+          FormalArguments.new(
+            @line, required, optional, splat, post, block, patterns)
       end
 
       def create_block(g, mod)
