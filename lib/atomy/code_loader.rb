@@ -87,7 +87,7 @@ module Atomy
         needs_loading = compilation_needed?(found)
         return loaded if loaded and not needs_loading
 
-        mod = Atomy.make_wrapper_module(file)
+        mod = Atomy::Module.new(file)
 
         begin
           LOADED[file] = mod

@@ -6,7 +6,7 @@ def match(pat, val)
         0,
         pat),
       Atomy::AST::Literal.new(0, val)),
-    Atomy.make_wrapper_module,
+    Atomy::Module.new
     Binding.setup(
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledMethod.of_sender,
@@ -18,7 +18,7 @@ def expr(str)
 end
 
 def pat(str)
-  mod = Atomy.make_wrapper_module
+  mod = Atomy::Module.new
   p = expr(str).to_pattern
   p.in_context(mod)
   p

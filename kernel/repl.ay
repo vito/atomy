@@ -6,13 +6,13 @@ pretty = require("pretty")
 
 require("readline")
 
-try(source, mod, debug = false) =
-  with-restarts(retry -> try(source, bnd), abort -> .ok):
-    { signal(.evaluated(mod eval(source, debug)))
+try(source, module, debug = false) =
+  with-restarts(retry -> try(source, module), abort -> .ok):
+    { signal(.evaluated(module eval(source, debug)))
     } rescue:
       (e: StandardError | ScriptError) -> error(e)
 
-basic-repl(mod, debug = false) =
+basic-repl(module, debug = false) =
   loop:
     prompt =
       with-restarts(use-prompt(p) -> p):
@@ -34,7 +34,7 @@ basic-repl(mod, debug = false) =
 
       source:
         signal(.input(source))
-        try(source, mod, debug)
+        try(source, module, debug)
 
     signal(.loop)
 
@@ -55,7 +55,7 @@ ReplDebugger = class:
       condition DefaultDebugger show-options-for(e)
 
       -- TODO: inherit original binding
-      { basic-repl(Atomy make-wrapper-module) } bind:
+      { basic-repl(Atomy Module new) } bind:
         .prompt -> restart(.use-prompt, "[!]> ")
 
         .special(n ? =~ r"\d+") ->
@@ -63,9 +63,10 @@ ReplDebugger = class:
 
         .quit -> exit(1)
 
-repl(history = nil, bnd = nil, debug = false) := do:
-  mod = Atomy make-wrapper-module(."(repl)")
-  mod use("atomy")
+repl(history = nil, module = nil, debug = false) := do:
+  unless(module):
+    module =! Atomy Module new(."(repl)")
+    module use("atomy")
 
   when(history and File exists(history)?):
     File open(history, "r") [f]:
@@ -79,7 +80,7 @@ repl(history = nil, bnd = nil, debug = false) := do:
         pretty Colored = true):
       frame = 0
 
-      { basic-repl(mod, bnd, debug)
+      { basic-repl(module, debug)
       } bind:
         .prompt ->
           restart(.use-prompt, "[" + frame to-s + "]> ")

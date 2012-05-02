@@ -78,10 +78,9 @@ def run_atomy(options)
     return if run
   end
 
-
   require("repl").repl(
     File.expand_path("~/.atomy_history"),
-    TOPLEVEL_BINDING,
+    nil,
     options[:debug]
   )
 end

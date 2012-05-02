@@ -2,6 +2,21 @@ module Atomy
   class Module < ::Module
     attr_accessor :file, :delegate
 
+    def initialize(file = :local)
+      super()
+
+      @file = file
+
+      unless @file == :local
+        Rubinius::Type.set_module_name(
+          self,
+          File.basename(file.to_s).to_sym,
+          Object)
+      end
+
+      const_set(:Self, self)
+    end
+
     dynamic_method(:__binding__) do |g|
       g.push_self
       g.add_scope

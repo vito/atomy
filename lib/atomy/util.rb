@@ -105,21 +105,4 @@ module Atomy
 
     nil
   end
-
-  def self.make_wrapper_module(file = :local)
-    mod = Atomy::Module.new
-
-    # just to make debugging a bit easier
-    unless file == :local
-      Rubinius::Type.set_module_name(
-        mod,
-        File.basename(file.to_s).to_sym,
-        Object)
-    end
-
-    mod.const_set(:Self, mod)
-    mod.file = file
-
-    mod
-  end
 end

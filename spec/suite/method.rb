@@ -5,7 +5,7 @@ end
 describe(Module) do
   describe(:atomy_methods) do
     it("contains a hash of Atomy-defined methods") do
-      mod = Atomy.make_wrapper_module
+      mod = Atomy::Module.new
 
       x = Module.new
 
@@ -36,7 +36,7 @@ end
 describe(Atomy::Branch) do
   describe(:total_args) do
     it("is the amount of required or default arguments") do
-      mod = Atomy.make_wrapper_module
+      mod = Atomy::Module.new
 
       Atomy::Branch.new(mod, wildcard).total_args.must_equal 0
 
@@ -53,7 +53,7 @@ describe(Atomy::Branch) do
     end
 
     it("does not reflect splatiness") do
-      mod = Atomy.make_wrapper_module
+      mod = Atomy::Module.new
 
       Atomy::Branch.new(
         mod,
@@ -66,7 +66,7 @@ describe(Atomy::Branch) do
 
   describe(:<=>) do
     it("prioritizes a method with more arguments over another") do
-      mod = Atomy.make_wrapper_module
+      mod = Atomy::Module.new
       a = Atomy::Branch.new(mod, wildcard, [wildcard], [wildcard])
       b = Atomy::Branch.new(mod, wildcard, [wildcard])
       (a <=> b).must_equal 1
@@ -78,7 +78,7 @@ end
 describe(Atomy) do
   describe(:define_branch) do
     it("adds a method branch to the target module") do
-      mod = Atomy.make_wrapper_module
+      mod = Atomy::Module.new
 
       x = Class.new
 
@@ -90,7 +90,7 @@ describe(Atomy) do
     end
 
     it("replaces branches with equivalent patterns") do
-      mod = Atomy.make_wrapper_module
+      mod = Atomy::Module.new
 
       x = Class.new
 

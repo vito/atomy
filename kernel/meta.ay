@@ -10,7 +10,7 @@ Atomy AST open:
   ast(LetMacro(.body, [.macros]))
 
   LetMacro bytecode(g, mod) := do:
-    new = Atomy make-wrapper-module(mod file)
+    new = Atomy Module new(mod file)
     new delegate = mod
 
     new send(.include, mod)
