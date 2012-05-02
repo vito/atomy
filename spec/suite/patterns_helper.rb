@@ -6,7 +6,7 @@ def match(pat, val)
         0,
         pat),
       Atomy::AST::Literal.new(0, val)),
-    Atomy::Module.new
+    Atomy::Module.new,
     Binding.setup(
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledMethod.of_sender,
