@@ -455,15 +455,15 @@ EOF
     end
   end
 
-  class Atomy::AST::Binary
+  class Atomy::AST::Infix
     def to_pattern
       case @operator
       when :"."
-        HeadTail.new(@lhs.to_pattern, @rhs.to_pattern)
+        HeadTail.new(@left.to_pattern, @right.to_pattern)
       when :"="
-        Default.new(@lhs.to_pattern, @rhs)
+        Default.new(@left.to_pattern, @right)
       when :"?"
-        Predicate.new(@private ? Any.new : @lhs.to_pattern, @rhs)
+        Predicate.new(@private ? Any.new : @left.to_pattern, @right)
       else
         super
       end
@@ -472,7 +472,7 @@ EOF
 
   class Atomy::AST::Assign
     def to_pattern
-      Default.new(@lhs.to_pattern, @rhs)
+      Default.new(@left.to_pattern, @right)
     end
   end
 

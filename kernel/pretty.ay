@@ -126,7 +126,7 @@ doc(h: Hash) :=
       ( lbrace </>
           tree(
             h to-a collect [k, v]:
-              from(.binary):
+              from(.infix):
                 unamb(k) <+> text("->") <+> unamb(v))
       ) nest(2) </>
         rbrace)
@@ -144,18 +144,18 @@ Atomy AST open:
           | (Tree ? @nodes size < 2)
           | InstanceVariable
           | List
+          | Literal
           | Primitive
           | ScopedConstant
-          | String
           | ToplevelConstant
           | Word) :=
     render(x)
   Self unamb(c: Compose) :=
-    if(from(.binary, .compose)?)
+    if(from(.infix, .compose)?)
       then: render(c)
       else: parens(render(c))
   Self unamb(s: Send) :=
-    if(from(.binary, .compose)?)
+    if(from(.infix, .compose)?)
       then: render(s)
       else: parens(render(s))
   Self unamb(p: Prefix | Postfix | QuasiQuote | Quote | Unquote) :=
@@ -168,13 +168,13 @@ Atomy AST open:
     parens(render(n))
 
 
-  Self doc(b: Binary) :=
-    from(.binary):
+  Self doc(b: Infix) :=
+    from(.infix):
       ( if(b private)
           then:
-            text(b operator) </> unamb(b rhs)
+            text(b operator) </> unamb(b right)
           else:
-            unamb(b lhs) <+> text(b operator) </> unamb(b rhs)
+            unamb(b left) <+> text(b operator) </> unamb(b right)
       ) hang(2)
 
   Self doc(b: Block) := do:
@@ -228,7 +228,7 @@ Atomy AST open:
     from(.scoped-constant):
       unamb(s parent) <> text("::") <> text(s name)
 
-  Self doc(s: String) := text(s value inspect gsub("\\#", "#"))
+  Self doc(s: StringLiteral) := text(s value inspect gsub("\\#", "#"))
 
   Self doc(t: ToplevelConstant) :=
     text("::") <> text(t name)

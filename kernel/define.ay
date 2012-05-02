@@ -9,24 +9,24 @@ macro(~x =! ~y):
   Set new(node line, x, y)
 
 macro((~name)(~*args) = ~body):
-  Function new(node line, body, args, name text)
+  DefineFunction new(node line, body, args, name text)
 
 macro((~name)(~*args) &~b = ~body):
-  Function new(node line, body, args, name text, b)
+  DefineFunction new(node line, body, args, name text, b)
 
 macro(~(x: `((~_)(~*_)?)) = ~body):
-  Function new(node line, body, arguments(x), message-name(x))
+  DefineFunction new(node line, body, arguments(x), message-name(x))
 
 macro(~(x: `((~_)(~*_)?)) &~b = ~body):
-  Function new(node line, body, arguments(x), message-name(x), b)
+  DefineFunction new(node line, body, arguments(x), message-name(x), b)
 
 macro(~(x: `((~_)(~*_)!)) = ~body):
-  Function new(node line, body, arguments(x), message-name(x))
+  DefineFunction new(node line, body, arguments(x), message-name(x))
 
 macro(~(x: `((~_)(~*_)!)) &~b = ~body):
-  Function new(node line, body, arguments(x), message-name(x), b)
+  DefineFunction new(node line, body, arguments(x), message-name(x), b)
 
-arguments(b: Atomy AST Binary) = [b rhs]
+arguments(b: Atomy AST Infix) = [b right]
 arguments(? to-word) = []
 arguments(Atomy AST Prefix) = []
 arguments(Atomy AST Postfix) = []
@@ -43,7 +43,7 @@ arguments(x) =
   raise(ArgumentError, "cannot get arguments from:\n" + x inspect)
 
 
-receiver(b: Atomy AST Binary) = b lhs
+receiver(b: Atomy AST Infix) = b left
 receiver(p: Atomy AST Prefix) = p receiver
 receiver(p: Atomy AST Postfix) = p receiver
 receiver(? to-word) = Atomy AST Primitive new(0, .self)
@@ -56,7 +56,7 @@ receiver(x) =
   raise(ArgumentError, "cannot get receiver from:\n" + x inspect)
 
 
-message-name(b: Atomy AST Binary) = b operator
+message-name(b: Atomy AST Infix) = b operator
 message-name(p: Atomy AST Prefix) = p message-name
 message-name(p: Atomy AST Postfix) = p message-name
 message-name(w: ? to-word) = w to-word text
@@ -78,7 +78,7 @@ block(_) = nil
 
 
 macro(~x := ~y):
-  Define new(
+  DefineMethod new(
     node line,
     y,
     receiver(x),

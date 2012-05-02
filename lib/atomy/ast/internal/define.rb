@@ -136,7 +136,7 @@ module Atomy
       end
     end
 
-    class Define < Branch
+    class DefineMethod < Branch
       include NodeLike
       extend SentientNode
 
@@ -170,7 +170,7 @@ module Atomy
       end
     end
 
-    class Function < Branch
+    class DefineFunction < Branch
       include NodeLike
       extend SentientNode
 

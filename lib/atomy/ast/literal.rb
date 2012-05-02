@@ -14,7 +14,7 @@ module Atomy::AST
     end
   end
 
-  class String < Literal
+  class StringLiteral < Literal
     attributes :value, :raw?
     generate
 

@@ -84,7 +84,7 @@ Atomy Patterns open:
 
       done set!
 
-    deconstruct(g, mod, locals = _ Hash new) := do:
+    deconstruct(g, mod, locals = Hash new) := do:
       unless(@result):
         g dup
 
@@ -126,7 +126,7 @@ Atomy Patterns open:
 
       done set!
 
-    deconstruct(g, mod, locals = _ Hash new) := do:
+    deconstruct(g, mod, locals = Hash new) := do:
       g dup
       @a deconstruct(g, mod, locals)
       @b deconstruct(g, mod, locals)
@@ -156,7 +156,7 @@ Atomy Patterns open:
 
       done set!
 
-    deconstruct(g, mod, locals = _ Hash new) := do:
+    deconstruct(g, mod, locals = Hash new) := do:
       b = g new-label
       done = g new-label
 
@@ -302,7 +302,7 @@ pattern(`$separator):
 pattern(`$~(n: Constant)):
   Atomy Patterns NamedGlobal new(n name)
 
-pattern(`$~(n: String)):
+pattern(`$~(n: StringLiteral)):
   Atomy Patterns NamedGlobal new(n value)
 
 pattern(`$~(n ? to-word)):
@@ -335,7 +335,7 @@ pattern(`.~(x ? to-word)):
 pattern(`.~(x: Constant)):
   Atomy Patterns Literal new(x name)
 
-pattern(`.~(x: String)):
+pattern(`.~(x: StringLiteral)):
   Atomy Patterns Literal new(x value to-sym)
 
 

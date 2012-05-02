@@ -57,13 +57,5 @@ module Atomy
       parse_string(File.open(name, "rb", &:read), mod, &callback)
     end
   end
-
-  path = File.expand_path("../ast", __FILE__)
-
-  require path + "/node"
-
-  Dir["#{path}/**/*.rb"].sort.each do |f|
-    require f
-  end
 end
 

@@ -12,7 +12,7 @@ module Atomy
       def macro_definer
         name = @pattern.macro_name
 
-        Atomy::AST::Define.new(
+        Atomy::AST::DefineMethod.new(
           0,
           Atomy::AST::Send.new(
             @body.line,

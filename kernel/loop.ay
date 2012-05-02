@@ -16,7 +16,7 @@ Atomy AST open:
   Labels bytecode(g, mod) := do:
     pos(g)
 
-    tags = _ Hash new
+    tags = Hash new
 
     lbls =
       @branches to-a collect [t]:

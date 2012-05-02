@@ -19,9 +19,9 @@ macro(~Primitive m-foo-7): '3
 macro((~x + 1) m-foo-8): `[~x, 1]
 
 macro((~x + 1) m-foo-9): `1
-macro(~Binary m-foo-9): `2
+macro(~Infix m-foo-9): `2
 
-macro(~Binary m-foo-10): `2
+macro(~Infix m-foo-10): `2
 macro((~x + 1) m-foo-10): `1
 
 macro(~x m-foo-11): `(macro(~x): '42)

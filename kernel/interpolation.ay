@@ -57,7 +57,7 @@ interpolated(x) :=
 macro-quoter(i) [_, _, v]: interpolated(v)
 
 -- symbol literals with interpolation
-macro(.~(x: String)):
+macro(.~(x: StringLiteral)):
   i = interpolated(x value)
   if(i interpolated?)
     then: `(~i to-sym)

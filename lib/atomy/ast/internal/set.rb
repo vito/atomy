@@ -1,12 +1,12 @@
 module Atomy
   module AST
     class Set < Node
-      children :lhs, :rhs
+      children :left, :right
       generate
 
       def bytecode(g, mod)
         pos(g)
-        mod.make_pattern(@lhs).assign(g, mod, @rhs, true)
+        mod.make_pattern(@left).assign(g, mod, @right, true)
       end
     end
   end

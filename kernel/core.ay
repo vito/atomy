@@ -138,7 +138,7 @@ macro((~(c: Constant))(~*args) &~_):
 -- TODO?: x Foo(...)
 
 macro(_LINE): node line
-macro(_FILE): File new(node line)
+macro(_FILE): ActivePath new(node line)
 
 macro(&~x):
   BlockPass new(node line, x)
@@ -155,7 +155,7 @@ macro(@@~(x: ? to-word)):
 macro($0):
   GlobalVariable new(node line, "0" to-sym)
 
-macro($~(x: String)):
+macro($~(x: StringLiteral)):
   GlobalVariable new(node line, x value)
 
 macro($~(x: Constant)):
@@ -179,7 +179,7 @@ macro(.~(x: Constant)):
 macro(.~(x: ? to-word)):
   Literal new(node line, x to-word text)
 
-macro(.~(x: String)):
+macro(.~(x: StringLiteral)):
   Literal new(node line, x value to-sym)
 
 macro(.[]): ."[]"

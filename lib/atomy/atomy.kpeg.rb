@@ -353,6 +353,16 @@ class Atomy::Parser
   # :startdoc:
 
 
+  path = File.expand_path("../ast", __FILE__)
+
+  require path + "/node"
+
+  Dir["#{path}/**/*.rb"].sort.each do |f|
+    require f
+  end
+
+  include Atomy::AST
+
   attr_accessor :module
 
   attr_writer :callback
@@ -398,11 +408,7 @@ class Atomy::Parser
   end
 
   def private_target(line=0)
-    Atomy::AST::Primitive.new(line, :self)
-  end
-
-  def binary(o, l, r, p = false)
-    Atomy::AST::Binary.new(l.line, l, r, o, p)
+    Primitive.new(line, :self)
   end
 
   def resolve(a, e, chain)
@@ -415,7 +421,7 @@ class Atomy::Parser
     else
       e2, *rest2 = rest
       r, rest3 = resolve(b, e2, rest2)
-      resolve(a, binary(b.name, e, r, b.private?), rest3)
+      resolve(a, Infix.new(e.line, e, r, b.name, b.private?), rest3)
     end
   end
 
@@ -1295,7 +1301,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # level4 = (language | binary | level3)
+  # level4 = (language | infix | level3)
   def _level4
 
     _save = self.pos
@@ -1303,7 +1309,7 @@ class Atomy::Parser
       _tmp = apply(:_language)
       break if _tmp
       self.pos = _save
-      _tmp = apply(:_binary)
+      _tmp = apply(:_infix)
       break if _tmp
       self.pos = _save
       _tmp = apply(:_level3)
@@ -1316,7 +1322,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # number = (line:line < /[\+\-]?0[oO][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\+\-]?0[xX][\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\+\-]?\d+\.\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\+\-]?\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })
+  # number = (line:line < /[\+\-]?0[oO][0-7]+/ > { Primitive.new(line, text.to_i(8)) } | line:line < /[\+\-]?0[xX][\da-fA-F]+/ > { Primitive.new(line, text.to_i(16)) } | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > { Literal.new(line, text.to_f) } | line:line < /[\+\-]?\d+\.\d+/ > { Literal.new(line, text.to_f) } | line:line < /[\+\-]?\d+/ > { Primitive.new(line, text.to_i) })
   def _number
 
     _save = self.pos
@@ -1339,7 +1345,7 @@ class Atomy::Parser
           self.pos = _save1
           break
         end
-        @result = begin;  Atomy::AST::Primitive.new(line, text.to_i(8)) ; end
+        @result = begin;  Primitive.new(line, text.to_i(8)) ; end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -1367,7 +1373,7 @@ class Atomy::Parser
           self.pos = _save2
           break
         end
-        @result = begin;  Atomy::AST::Primitive.new(line, text.to_i(16)) ; end
+        @result = begin;  Primitive.new(line, text.to_i(16)) ; end
         _tmp = true
         unless _tmp
           self.pos = _save2
@@ -1395,7 +1401,7 @@ class Atomy::Parser
           self.pos = _save3
           break
         end
-        @result = begin;  Atomy::AST::Literal.new(line, text.to_f) ; end
+        @result = begin;  Literal.new(line, text.to_f) ; end
         _tmp = true
         unless _tmp
           self.pos = _save3
@@ -1423,7 +1429,7 @@ class Atomy::Parser
           self.pos = _save4
           break
         end
-        @result = begin;  Atomy::AST::Literal.new(line, text.to_f) ; end
+        @result = begin;  Literal.new(line, text.to_f) ; end
         _tmp = true
         unless _tmp
           self.pos = _save4
@@ -1451,7 +1457,7 @@ class Atomy::Parser
           self.pos = _save5
           break
         end
-        @result = begin;  Atomy::AST::Primitive.new(line, text.to_i) ; end
+        @result = begin;  Primitive.new(line, text.to_i) ; end
         _tmp = true
         unless _tmp
           self.pos = _save5
@@ -1506,7 +1512,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # quote = line:line "'" level2:e { Atomy::AST::Quote.new(line, e) }
+  # quote = line:line "'" level2:e { Quote.new(line, e) }
   def _quote
 
     _save = self.pos
@@ -1528,7 +1534,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::Quote.new(line, e) ; end
+      @result = begin;  Quote.new(line, e) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1540,7 +1546,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # quasi_quote = line:line "`" level2:e { Atomy::AST::QuasiQuote.new(line, e) }
+  # quasi_quote = line:line "`" level2:e { QuasiQuote.new(line, e) }
   def _quasi_quote
 
     _save = self.pos
@@ -1562,7 +1568,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::QuasiQuote.new(line, e) ; end
+      @result = begin;  QuasiQuote.new(line, e) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1574,7 +1580,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # unquote = line:line "~" level2:e { Atomy::AST::Unquote.new(line, e) }
+  # unquote = line:line "~" level2:e { Unquote.new(line, e) }
   def _unquote
 
     _save = self.pos
@@ -1596,7 +1602,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::Unquote.new(line, e) ; end
+      @result = begin;  Unquote.new(line, e) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1652,7 +1658,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # string = line:line "\"" < ("\\" escape | str_seq)*:c > "\"" { Atomy::AST::String.new(                         line,                         c.join,                         text.gsub("\\\"", "\"")                       )                     }
+  # string = line:line "\"" < ("\\" escape | str_seq)*:c > "\"" { StringLiteral.new(                         line,                         c.join,                         text.gsub("\\\"", "\"")                       )                     }
   def _string
 
     _save = self.pos
@@ -1715,7 +1721,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::String.new(
+      @result = begin;  StringLiteral.new(
                         line,
                         c.join,
                         text.gsub("\\\"", "\"")
@@ -1758,7 +1764,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # constant = line:line constant_name:n { Atomy::AST::Constant.new(line, n) }
+  # constant = line:line constant_name:n { Constant.new(line, n) }
   def _constant
 
     _save = self.pos
@@ -1775,7 +1781,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::Constant.new(line, n) ; end
+      @result = begin;  Constant.new(line, n) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1787,7 +1793,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # word = line:line identifier:n !{ no_op && operator?(n) } { Atomy::AST::Word.new(line, n) }
+  # word = line:line identifier:n !{ no_op && operator?(n) } { Word.new(line, n) }
   def _word(no_op)
 
     _save = self.pos
@@ -1812,7 +1818,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::Word.new(line, n) ; end
+      @result = begin;  Word.new(line, n) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1824,7 +1830,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # prefix = line:line op_letter:o level2:e { Atomy::AST::Prefix.new(line, e, o) }
+  # prefix = line:line op_letter:o level2:e { Prefix.new(line, e, o) }
   def _prefix
 
     _save = self.pos
@@ -1847,7 +1853,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::Prefix.new(line, e, o) ; end
+      @result = begin;  Prefix.new(line, e, o) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1859,7 +1865,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # postfix = (line:line postfix:e op_letter:o { Atomy::AST::Postfix.new(line, e, o) } | line:line level1:e op_letter:o { Atomy::AST::Postfix.new(line, e, o) })
+  # postfix = (line:line postfix:e op_letter:o { Postfix.new(line, e, o) } | line:line level1:e op_letter:o { Postfix.new(line, e, o) })
   def _postfix
 
     _save = self.pos
@@ -1885,7 +1891,7 @@ class Atomy::Parser
           self.pos = _save1
           break
         end
-        @result = begin;  Atomy::AST::Postfix.new(line, e, o) ; end
+        @result = begin;  Postfix.new(line, e, o) ; end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -1916,7 +1922,7 @@ class Atomy::Parser
           self.pos = _save2
           break
         end
-        @result = begin;  Atomy::AST::Postfix.new(line, e, o) ; end
+        @result = begin;  Postfix.new(line, e, o) ; end
         _tmp = true
         unless _tmp
           self.pos = _save2
@@ -1933,7 +1939,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # block = (line:line ":" !op_letter wsp expressions?:es (wsp ";")? { Atomy::AST::Block.new(line, Array(es), []) } | line:line "{" wsp expressions?:es wsp "}" { Atomy::AST::Block.new(line, Array(es), []) })
+  # block = (line:line ":" !op_letter wsp expressions?:es (wsp ";")? { Block.new(line, Array(es), []) } | line:line "{" wsp expressions?:es wsp "}" { Block.new(line, Array(es), []) })
   def _block
 
     _save = self.pos
@@ -2001,7 +2007,7 @@ class Atomy::Parser
           self.pos = _save1
           break
         end
-        @result = begin;  Atomy::AST::Block.new(line, Array(es), []) ; end
+        @result = begin;  Block.new(line, Array(es), []) ; end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -2052,7 +2058,7 @@ class Atomy::Parser
           self.pos = _save6
           break
         end
-        @result = begin;  Atomy::AST::Block.new(line, Array(es), []) ; end
+        @result = begin;  Block.new(line, Array(es), []) ; end
         _tmp = true
         unless _tmp
           self.pos = _save6
@@ -2069,7 +2075,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # list = line:line "[" wsp expressions?:es wsp "]" { Atomy::AST::List.new(line, Array(es)) }
+  # list = line:line "[" wsp expressions?:es wsp "]" { List.new(line, Array(es)) }
   def _list
 
     _save = self.pos
@@ -2112,7 +2118,7 @@ class Atomy::Parser
         self.pos = _save
         break
       end
-      @result = begin;  Atomy::AST::List.new(line, Array(es)) ; end
+      @result = begin;  List.new(line, Array(es)) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -2124,7 +2130,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # composes = (line:line compose:l cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) } | line:line level2:l cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) })
+  # composes = (line:line compose:l cont(pos) level2:r { Compose.new(line, l, r) } | line:line level2:l cont(pos) level2:r { Compose.new(line, l, r) })
   def _composes(pos)
 
     _save = self.pos
@@ -2155,7 +2161,7 @@ class Atomy::Parser
           self.pos = _save1
           break
         end
-        @result = begin;  Atomy::AST::Compose.new(line, l, r) ; end
+        @result = begin;  Compose.new(line, l, r) ; end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -2191,7 +2197,7 @@ class Atomy::Parser
           self.pos = _save2
           break
         end
-        @result = begin;  Atomy::AST::Compose.new(line, l, r) ; end
+        @result = begin;  Compose.new(line, l, r) ; end
         _tmp = true
         unless _tmp
           self.pos = _save2
@@ -2215,7 +2221,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # name = (line:line name:n op_letter:o { Atomy::AST::Postfix.new(line, n, o) } | grouped | level0(false))
+  # name = (line:line name:n op_letter:o { Postfix.new(line, n, o) } | grouped | level0(false))
   def _name
 
     _save = self.pos
@@ -2241,7 +2247,7 @@ class Atomy::Parser
           self.pos = _save1
           break
         end
-        @result = begin;  Atomy::AST::Postfix.new(line, n, o) ; end
+        @result = begin;  Postfix.new(line, n, o) ; end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -2313,7 +2319,7 @@ class Atomy::Parser
     return _tmp
   end
 
-  # call = (line:line call:c args:as { Atomy::AST::Call.new(line, c, as) } | line:line name:n args:as { Atomy::AST::Call.new(line, n, as) })
+  # call = (line:line call:c args:as { Call.new(line, c, as) } | line:line name:n args:as { Call.new(line, n, as) })
   def _call
 
     _save = self.pos
@@ -2339,7 +2345,7 @@ class Atomy::Parser
           self.pos = _save1
           break
         end
-        @result = begin;  Atomy::AST::Call.new(line, c, as) ; end
+        @result = begin;  Call.new(line, c, as) ; end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -2370,7 +2376,7 @@ class Atomy::Parser
           self.pos = _save2
           break
         end
-        @result = begin;  Atomy::AST::Call.new(line, n, as) ; end
+        @result = begin;  Call.new(line, n, as) ; end
         _tmp = true
         unless _tmp
           self.pos = _save2
@@ -2387,8 +2393,8 @@ class Atomy::Parser
     return _tmp
   end
 
-  # binary_op = (operator | identifier:n &{ operator?(n) } { n })
-  def _binary_op
+  # infix_op = (operator | identifier:n &{ operator?(n) } { n })
+  def _infix_op
 
     _save = self.pos
     while true # choice
@@ -2424,12 +2430,12 @@ class Atomy::Parser
       break
     end # end choice
 
-    set_failed_rule :_binary_op unless _tmp
+    set_failed_rule :_infix_op unless _tmp
     return _tmp
   end
 
-  # binary_c = cont(pos) (binary_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(@module, o),                         os.collect do |h|                           [private_target, Operator.new(@module, h, true)]                         end,                         e                       ]                     }
-  def _binary_c(pos)
+  # infix_c = cont(pos) (infix_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(@module, o),                         os.collect do |h|                           [private_target, Operator.new(@module, h, true)]                         end,                         e                       ]                     }
+  def _infix_c(pos)
 
     _save = self.pos
     while true # sequence
@@ -2443,7 +2449,7 @@ class Atomy::Parser
 
       _save2 = self.pos
       while true # sequence
-        _tmp = apply(:_binary_op)
+        _tmp = apply(:_infix_op)
         o = @result
         unless _tmp
           self.pos = _save2
@@ -2468,7 +2474,7 @@ class Atomy::Parser
 
           _save3 = self.pos
           while true # sequence
-            _tmp = apply(:_binary_op)
+            _tmp = apply(:_infix_op)
             o = @result
             unless _tmp
               self.pos = _save3
@@ -2521,22 +2527,22 @@ class Atomy::Parser
       break
     end # end sequence
 
-    set_failed_rule :_binary_c unless _tmp
+    set_failed_rule :_infix_c unless _tmp
     return _tmp
   end
 
-  # binary_cs = binary_c(pos)+:bs { bs.flatten }
-  def _binary_cs(pos)
+  # infix_cs = infix_c(pos)+:bs { bs.flatten }
+  def _infix_cs(pos)
 
     _save = self.pos
     while true # sequence
       _save1 = self.pos
       _ary = []
-      _tmp = apply_with_args(:_binary_c, pos)
+      _tmp = apply_with_args(:_infix_c, pos)
       if _tmp
         _ary << @result
         while true
-          _tmp = apply_with_args(:_binary_c, pos)
+          _tmp = apply_with_args(:_infix_c, pos)
           _ary << @result if _tmp
           break unless _tmp
         end
@@ -2558,12 +2564,12 @@ class Atomy::Parser
       break
     end # end sequence
 
-    set_failed_rule :_binary_cs unless _tmp
+    set_failed_rule :_infix_cs unless _tmp
     return _tmp
   end
 
-  # binary = ({ current_position }:pos level3:l binary_cs(pos):c { resolve(nil, l, c).first } | binary_cs(current_position):c { c[0].private = true                       resolve(nil, private_target, c).first                     })
-  def _binary
+  # infix = ({ current_position }:pos level3:l infix_cs(pos):c { resolve(nil, l, c).first } | infix_cs(current_position):c { c[0].private = true                       resolve(nil, private_target, c).first                     })
+  def _infix
 
     _save = self.pos
     while true # choice
@@ -2583,7 +2589,7 @@ class Atomy::Parser
           self.pos = _save1
           break
         end
-        _tmp = apply_with_args(:_binary_cs, pos)
+        _tmp = apply_with_args(:_infix_cs, pos)
         c = @result
         unless _tmp
           self.pos = _save1
@@ -2602,7 +2608,7 @@ class Atomy::Parser
 
       _save2 = self.pos
       while true # sequence
-        _tmp = apply_with_args(:_binary_cs, current_position)
+        _tmp = apply_with_args(:_infix_cs, current_position)
         c = @result
         unless _tmp
           self.pos = _save2
@@ -2623,7 +2629,7 @@ class Atomy::Parser
       break
     end # end choice
 
-    set_failed_rule :_binary unless _tmp
+    set_failed_rule :_infix unless _tmp
     return _tmp
   end
 
@@ -3740,31 +3746,31 @@ class Atomy::Parser
   Rules[:_level1] = rule_info("level1", "(call | grouped | level0(true))")
   Rules[:_level2] = rule_info("level2", "(postfix | level1)")
   Rules[:_level3] = rule_info("level3", "(compose | level2)")
-  Rules[:_level4] = rule_info("level4", "(language | binary | level3)")
-  Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][0-7]+/ > { Atomy::AST::Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][\\da-fA-F]+/ > { Atomy::AST::Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Atomy::AST::Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Atomy::AST::Primitive.new(line, text.to_i) })")
+  Rules[:_level4] = rule_info("level4", "(language | infix | level3)")
+  Rules[:_number] = rule_info("number", "(line:line < /[\\+\\-]?0[oO][0-7]+/ > { Primitive.new(line, text.to_i(8)) } | line:line < /[\\+\\-]?0[xX][\\da-fA-F]+/ > { Primitive.new(line, text.to_i(16)) } | line:line < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > { Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+\\.\\d+/ > { Literal.new(line, text.to_f) } | line:line < /[\\+\\-]?\\d+/ > { Primitive.new(line, text.to_i) })")
   Rules[:_language] = rule_info("language", "\"\#language\" wsp identifier:n { set_lang(n) } %lang.root")
-  Rules[:_quote] = rule_info("quote", "line:line \"'\" level2:e { Atomy::AST::Quote.new(line, e) }")
-  Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level2:e { Atomy::AST::QuasiQuote.new(line, e) }")
-  Rules[:_unquote] = rule_info("unquote", "line:line \"~\" level2:e { Atomy::AST::Unquote.new(line, e) }")
+  Rules[:_quote] = rule_info("quote", "line:line \"'\" level2:e { Quote.new(line, e) }")
+  Rules[:_quasi_quote] = rule_info("quasi_quote", "line:line \"`\" level2:e { QuasiQuote.new(line, e) }")
+  Rules[:_unquote] = rule_info("unquote", "line:line \"~\" level2:e { Unquote.new(line, e) }")
   Rules[:_escape] = rule_info("escape", "(number_escapes | escapes)")
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
-  Rules[:_string] = rule_info("string", "line:line \"\\\"\" < (\"\\\\\" escape | str_seq)*:c > \"\\\"\" { Atomy::AST::String.new(                         line,                         c.join,                         text.gsub(\"\\\\\\\"\", \"\\\"\")                       )                     }")
+  Rules[:_string] = rule_info("string", "line:line \"\\\"\" < (\"\\\\\" escape | str_seq)*:c > \"\\\"\" { StringLiteral.new(                         line,                         c.join,                         text.gsub(\"\\\\\\\"\", \"\\\"\")                       )                     }")
   Rules[:_constant_name] = rule_info("constant_name", "< /[A-Z][a-zA-Z0-9_]*/ > { text.to_sym }")
-  Rules[:_constant] = rule_info("constant", "line:line constant_name:n { Atomy::AST::Constant.new(line, n) }")
-  Rules[:_word] = rule_info("word", "line:line identifier:n !{ no_op && operator?(n) } { Atomy::AST::Word.new(line, n) }")
-  Rules[:_prefix] = rule_info("prefix", "line:line op_letter:o level2:e { Atomy::AST::Prefix.new(line, e, o) }")
-  Rules[:_postfix] = rule_info("postfix", "(line:line postfix:e op_letter:o { Atomy::AST::Postfix.new(line, e, o) } | line:line level1:e op_letter:o { Atomy::AST::Postfix.new(line, e, o) })")
-  Rules[:_block] = rule_info("block", "(line:line \":\" !op_letter wsp expressions?:es (wsp \";\")? { Atomy::AST::Block.new(line, Array(es), []) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Atomy::AST::Block.new(line, Array(es), []) })")
-  Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { Atomy::AST::List.new(line, Array(es)) }")
-  Rules[:_composes] = rule_info("composes", "(line:line compose:l cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) } | line:line level2:l cont(pos) level2:r { Atomy::AST::Compose.new(line, l, r) })")
+  Rules[:_constant] = rule_info("constant", "line:line constant_name:n { Constant.new(line, n) }")
+  Rules[:_word] = rule_info("word", "line:line identifier:n !{ no_op && operator?(n) } { Word.new(line, n) }")
+  Rules[:_prefix] = rule_info("prefix", "line:line op_letter:o level2:e { Prefix.new(line, e, o) }")
+  Rules[:_postfix] = rule_info("postfix", "(line:line postfix:e op_letter:o { Postfix.new(line, e, o) } | line:line level1:e op_letter:o { Postfix.new(line, e, o) })")
+  Rules[:_block] = rule_info("block", "(line:line \":\" !op_letter wsp expressions?:es (wsp \";\")? { Block.new(line, Array(es), []) } | line:line \"{\" wsp expressions?:es wsp \"}\" { Block.new(line, Array(es), []) })")
+  Rules[:_list] = rule_info("list", "line:line \"[\" wsp expressions?:es wsp \"]\" { List.new(line, Array(es)) }")
+  Rules[:_composes] = rule_info("composes", "(line:line compose:l cont(pos) level2:r { Compose.new(line, l, r) } | line:line level2:l cont(pos) level2:r { Compose.new(line, l, r) })")
   Rules[:_compose] = rule_info("compose", "@composes(current_position)")
-  Rules[:_name] = rule_info("name", "(line:line name:n op_letter:o { Atomy::AST::Postfix.new(line, n, o) } | grouped | level0(false))")
+  Rules[:_name] = rule_info("name", "(line:line name:n op_letter:o { Postfix.new(line, n, o) } | grouped | level0(false))")
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
-  Rules[:_call] = rule_info("call", "(line:line call:c args:as { Atomy::AST::Call.new(line, c, as) } | line:line name:n args:as { Atomy::AST::Call.new(line, n, as) })")
-  Rules[:_binary_op] = rule_info("binary_op", "(operator | identifier:n &{ operator?(n) } { n })")
-  Rules[:_binary_c] = rule_info("binary_c", "cont(pos) (binary_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(@module, o),                         os.collect do |h|                           [private_target, Operator.new(@module, h, true)]                         end,                         e                       ]                     }")
-  Rules[:_binary_cs] = rule_info("binary_cs", "binary_c(pos)+:bs { bs.flatten }")
-  Rules[:_binary] = rule_info("binary", "({ current_position }:pos level3:l binary_cs(pos):c { resolve(nil, l, c).first } | binary_cs(current_position):c { c[0].private = true                       resolve(nil, private_target, c).first                     })")
+  Rules[:_call] = rule_info("call", "(line:line call:c args:as { Call.new(line, c, as) } | line:line name:n args:as { Call.new(line, n, as) })")
+  Rules[:_infix_op] = rule_info("infix_op", "(operator | identifier:n &{ operator?(n) } { n })")
+  Rules[:_infix_c] = rule_info("infix_c", "cont(pos) (infix_op:o sig_wsp { o })+:os level3:e { o = os.shift                       [ Operator.new(@module, o),                         os.collect do |h|                           [private_target, Operator.new(@module, h, true)]                         end,                         e                       ]                     }")
+  Rules[:_infix_cs] = rule_info("infix_cs", "infix_c(pos)+:bs { bs.flatten }")
+  Rules[:_infix] = rule_info("infix", "({ current_position }:pos level3:l infix_cs(pos):c { resolve(nil, l, c).first } | infix_cs(current_position):c { c[0].private = true                       resolve(nil, private_target, c).first                     })")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SO\" { \"\\016\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SOH\" { \"\\001\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")
   Rules[:_number_escapes] = rule_info("number_escapes", "(/[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack(\"U\") } | < /\\d{1,6}/ > { [text.to_i].pack(\"U\") } | /[oO]/ < /[0-7]{1,7}/ > { [text.to_i(16)].pack(\"U\") } | /[uU]/ < /[0-9a-fA-F]{4}/ > { [text.to_i(16)].pack(\"U\") })")
   Rules[:_top] = rule_info("top", "expression:e { callback(e) }")

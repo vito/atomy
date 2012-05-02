@@ -61,13 +61,13 @@ macro(.(~r (~x)(~*as))!):
 macro(.(~r [~*as])):
   `(Particle new(~r, .[], ~as))
 
-macro(.~(x: Binary)):
+macro(.~(x: Infix)):
   `(Particle new(
       ~(if(x private)
           then: '_
-          else: x lhs)
+          else: x left)
       ~(x operator)
-      [~(x rhs)]))
+      [~(x right)]))
 
 
 Atomy Patterns open:
@@ -111,7 +111,7 @@ Atomy Patterns open:
 
       done set!
 
-    deconstruct(g, mod, locals = _ Hash new) := do:
+    deconstruct(g, mod, locals = Hash new) := do:
       g dup
       g send(.receiver, 0)
       @receiver deconstruct(g, mod, locals)
@@ -135,12 +135,12 @@ pattern(`.[~*as]):
     .[]
     pattern(`[~*as]))
 
-pattern(`.~(x: Atomy AST Binary)):
+pattern(`.~(x: Atomy AST Infix)):
   Atomy Patterns Particle new(
     if(x private)
       then: pattern('_)
-      else: pattern(x lhs)
-    pattern(`[~(x rhs)])
+      else: pattern(x left)
+    pattern(`[~(x right)])
     x operator)
 
 pattern(`.((~(x: Atomy AST Word))(~*as))):

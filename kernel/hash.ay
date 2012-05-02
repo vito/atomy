@@ -32,9 +32,9 @@ hash-pairs-from(es) =
 
 
 Atomy AST open:
-  ast(Hash([.keys], [.values]))
+  ast(HashLiteral([.keys], [.values]))
 
-  Hash bytecode(g, mod) := do:
+  HashLiteral bytecode(g, mod) := do:
     pos(g)
 
     g push-cpath-top
@@ -54,4 +54,4 @@ macro(#: ~*elements):
   pairs = hash-pairs-from(elements)
   keys = pairs collect [k, _]: k
   values = pairs collect [_, v]: v
-  Hash new(node line, keys, values)
+  HashLiteral new(node line, keys, values)

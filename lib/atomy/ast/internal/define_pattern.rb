@@ -9,7 +9,7 @@ module Atomy
       generate
 
       def pattern_definer
-        Atomy::AST::Define.new(
+        Atomy::AST::DefineMethod.new(
           0,
           @body,
           Atomy::AST::Block.new(

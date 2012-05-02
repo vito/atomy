@@ -5,7 +5,7 @@ use("comparison")
 
 macro(macro-quoter(~n) [~*as]: ~*body):
   names [str, args]:
-    strpat = Unquote new(0, `(~str: Atomy AST String))
+    strpat = Unquote new(0, `(~str: StringLiteral))
     argpat = Unquote new(0, `*~args)
 
     raw = as shift

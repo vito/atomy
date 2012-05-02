@@ -594,7 +594,7 @@ end
 
 class String
   def to_node
-    Atomy::AST::String.new -1, self
+    Atomy::AST::StringLiteral.new -1, self
   end
 end
 

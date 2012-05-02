@@ -1,6 +1,16 @@
 %% name = Atomy::Parser
 
 %% {
+  path = File.expand_path("../ast", __FILE__)
+
+  require path + "/node"
+
+  Dir["#{path}/**/*.rb"].sort.each do |f|
+    require f
+  end
+
+  include Atomy::AST
+
   attr_accessor :module
 
   attr_writer :callback
@@ -46,11 +56,7 @@
   end
 
   def private_target(line=0)
-    Atomy::AST::Primitive.new(line, :self)
-  end
-
-  def binary(o, l, r, p = false)
-    Atomy::AST::Binary.new(l.line, l, r, o, p)
+    Primitive.new(line, :self)
   end
 
   def resolve(a, e, chain)
@@ -63,7 +69,7 @@
     else
       e2, *rest2 = rest
       r, rest3 = resolve(b, e2, rest2)
-      resolve(a, binary(b.name, e, r, b.private?), rest3)
+      resolve(a, Infix.new(e.line, e, r, b.name, b.private?), rest3)
     end
   end
 
@@ -127,33 +133,33 @@
          level3 = compose
                 | level2
          level4 = language
-                | binary
+                | infix
                 | level3
 
          number = line:line < /[\+\-]?0[oO][0-7]+/ >
-                    { Atomy::AST::Primitive.new(line, text.to_i(8)) }
+                    { Primitive.new(line, text.to_i(8)) }
                 | line:line < /[\+\-]?0[xX][\da-fA-F]+/ >
-                    { Atomy::AST::Primitive.new(line, text.to_i(16)) }
+                    { Primitive.new(line, text.to_i(16)) }
                 | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ >
-                    { Atomy::AST::Literal.new(line, text.to_f) }
+                    { Literal.new(line, text.to_f) }
                 | line:line < /[\+\-]?\d+\.\d+/ >
-                    { Atomy::AST::Literal.new(line, text.to_f) }
+                    { Literal.new(line, text.to_f) }
                 | line:line < /[\+\-]?\d+/ >
-                    { Atomy::AST::Primitive.new(line, text.to_i) }
+                    { Primitive.new(line, text.to_i) }
 
        language = "#language" wsp identifier:n { set_lang(n) } %lang.root
 
           quote = line:line "'" level2:e
-                    { Atomy::AST::Quote.new(line, e) }
+                    { Quote.new(line, e) }
     quasi_quote = line:line "`" level2:e
-                    { Atomy::AST::QuasiQuote.new(line, e) }
+                    { QuasiQuote.new(line, e) }
         unquote = line:line "~" level2:e
-                    { Atomy::AST::Unquote.new(line, e) }
+                    { Unquote.new(line, e) }
 
          escape = number_escapes | escapes
         str_seq = < /[^\\"]+/ > { text }
          string = line:line "\"" < (("\\" escape) | str_seq)*:c > "\""
-                    { Atomy::AST::String.new(
+                    { StringLiteral.new(
                         line,
                         c.join,
                         text.gsub("\\\"", "\"")
@@ -162,47 +168,47 @@
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text.to_sym }
        constant = line:line constant_name:n
-                  { Atomy::AST::Constant.new(line, n) }
+                  { Constant.new(line, n) }
 
     word(no_op) = line:line identifier:n !{ no_op && operator?(n) }
-                    { Atomy::AST::Word.new(line, n) }
+                    { Word.new(line, n) }
 
          prefix = line:line op_letter:o level2:e
-                    { Atomy::AST::Prefix.new(line, e, o) }
+                    { Prefix.new(line, e, o) }
 
         postfix = line:line postfix:e op_letter:o
-                    { Atomy::AST::Postfix.new(line, e, o) }
+                    { Postfix.new(line, e, o) }
                 | line:line level1:e op_letter:o
-                    { Atomy::AST::Postfix.new(line, e, o) }
+                    { Postfix.new(line, e, o) }
 
           block = line:line ":" !op_letter wsp expressions?:es (wsp ";")?
-                    { Atomy::AST::Block.new(line, Array(es), []) }
+                    { Block.new(line, Array(es), []) }
                 | line:line "{" wsp expressions?:es wsp "}"
-                    { Atomy::AST::Block.new(line, Array(es), []) }
+                    { Block.new(line, Array(es), []) }
 
            list = line:line "[" wsp expressions?:es wsp "]"
-                    { Atomy::AST::List.new(line, Array(es)) }
+                    { List.new(line, Array(es)) }
 
   composes(pos) = line:line compose:l cont(pos) level2:r
-                    { Atomy::AST::Compose.new(line, l, r) }
+                    { Compose.new(line, l, r) }
                 | line:line level2:l cont(pos) level2:r
-                    { Atomy::AST::Compose.new(line, l, r) }
+                    { Compose.new(line, l, r) }
         compose = @composes(current_position)
 
            name = line:line name:n op_letter:o
-                    { Atomy::AST::Postfix.new(line, n, o) }
+                    { Postfix.new(line, n, o) }
                 | grouped
                 | level0(false)
            args = "(" wsp expressions?:as wsp ")" { Array(as) }
            call = line:line call:c args:as
-                    { Atomy::AST::Call.new(line, c, as) }
+                    { Call.new(line, c, as) }
                 | line:line name:n args:as
-                    { Atomy::AST::Call.new(line, n, as) }
+                    { Call.new(line, n, as) }
 
-      binary_op = operator
+       infix_op = operator
                 | identifier:n &{ operator?(n) } { n }
 
-  binary_c(pos) = cont(pos) (binary_op:o sig_wsp { o })+:os level3:e
+   infix_c(pos) = cont(pos) (infix_op:o sig_wsp { o })+:os level3:e
                     { o = os.shift
                       [ Operator.new(@module, o),
                         os.collect do |h|
@@ -211,11 +217,11 @@
                         e
                       ]
                     }
- binary_cs(pos) = binary_c(pos)+:bs { bs.flatten }
+  infix_cs(pos) = infix_c(pos)+:bs { bs.flatten }
 
-         binary = { current_position }:pos level3:l binary_cs(pos):c
+         infix = { current_position }:pos level3:l infix_cs(pos):c
                     { resolve(nil, l, c).first }
-                | binary_cs(current_position):c
+                | infix_cs(current_position):c
                     { c[0].private = true
                       resolve(nil, private_target, c).first
                     }

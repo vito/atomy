@@ -1,7 +1,7 @@
 module Atomy
   module AST
-    class Binary < Node
-      children :lhs, :rhs
+    class Infix < Node
+      children :left, :right
       attributes :operator, [:private, "false"]
       generate
 
@@ -14,8 +14,8 @@ module Atomy
       def to_send
         Send.new(
           @line,
-          @lhs,
-          [@rhs],
+          @left,
+          [@right],
           @operator,
           nil,
           nil,

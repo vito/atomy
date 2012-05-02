@@ -1,6 +1,6 @@
 module Atomy
   module AST
-    class File < Node
+    class ActivePath < Node
       generate
 
       def bytecode(g, mod)

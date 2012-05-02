@@ -78,10 +78,10 @@ process-val(g, `(<(~x)>)) = do:
 process-val(g, `(@<(~x)>)) =
   `(~g bounds(~process-val(g, x)))
 
-process-val(g, s: Atomy AST String) =
+process-val(g, s: Atomy AST StringLiteral) =
   `(~g str(~s))
 
-process-val(g, `(/(~(b: Atomy AST String))/)) =
+process-val(g, `(/(~(b: Atomy AST StringLiteral))/)) =
   `(~g reg(~(b raw)))
 
 process-val(g, c: Atomy AST Call) = do:
