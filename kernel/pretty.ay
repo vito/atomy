@@ -8,8 +8,9 @@ use("range")
 use("regexp")
 use("array")
 use("patterns")
-
+use("interpolation")
 use("dynamic")
+
 doc = use("doc")
 io = require("io")
 
@@ -51,20 +52,19 @@ colored(color, doc) = do:
   unless(^Colored and ^(io OutputPort) tty?):
     return(doc)
 
-  codes =
-    [ .black
-      .red
-      .green
-      .yellow
-      .blue
-      .magenta
-      .cyan
-      .white
-    ] to-a zip((0 .. 7) to-a)
+  codes = [
+    .black
+    .red
+    .green
+    .yellow
+    .blue
+    .magenta
+    .cyan
+    .white
+  ]
 
-  hash = Hash [codes]
+  raw(i"\e[3#{codes index(color)}m") <> doc <> raw("\e[0m")
 
-  raw("\e[9" + hash [color] to-s + "m") <> doc <> raw("\e[0m")
 
 unamb(x) := render(x)
 
