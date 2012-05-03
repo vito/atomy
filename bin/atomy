@@ -61,7 +61,7 @@ end
 def run_atomy(options)
   if str = options[:evaluate] || options[:start]
     $0 = "(eval)"
-    mod = Atomy.make_wrapper_module(:"(eval)")
+    mod = Atomy::Module.new(:"(eval)")
     mod.use("atomy")
     res = mod.eval(str, options[:debug])
 
