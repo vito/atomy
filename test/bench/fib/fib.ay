@@ -10,11 +10,12 @@ Fixnum open:
       else:
         if(self == 1)
           then: 1
-          else: (- 2) fib-cond + (- 1) fib-cond
+          -- TODO: (- 2) etc. is slow because of send_message
+          else: (self - 2) fib-cond + (self - 1) fib-cond
 
 0 fib-atomy := 1
 1 fib-atomy := 1
-Fixnum fib-atomy := (- 2) fib-atomy + (- 1) fib-atomy
+Fixnum fib-atomy := (self - 2) fib-atomy + (self - 1) fib-atomy
 
 Benchmark ips [x]:
   x report("20 fib-cond"):
