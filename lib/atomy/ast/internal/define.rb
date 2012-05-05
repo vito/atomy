@@ -8,14 +8,6 @@ module Atomy
       attributes :name
       generate
 
-      def implicit_arguments
-        [:@receiver]
-      end
-
-      def implicit_patterns(mod)
-        [[:@receiver, receiver_pattern(mod)]]
-      end
-
       def receiver_pattern(mod)
         @recvpat = {}
         @recvpat[mod] ||=
@@ -63,7 +55,14 @@ module Atomy
         blk.redo = blk.new_label
         blk.redo.set!
 
+        # order matters quite a lot here
         args.bytecode(blk)
+
+        recv = receiver_pattern(mod)
+        if recv.binds?
+          blk.push_self
+          recv.deconstruct(blk, mod)
+        end
 
         args.deconstruct_patterns(blk, mod)
 

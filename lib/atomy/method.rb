@@ -282,16 +282,15 @@ module Atomy
         g.push_literal body
         g.push_self
         g.push_literal body.static_scope
-        g.push_self
         if has_args or splat
           g.push_local 0
           g.push_proc
-          g.send_with_splat :call_under, 3, true
+          g.send_with_splat :call_under, 2, true
         elsif block
           g.push_proc
-          g.send_with_block :call_under, 3, true
+          g.send_with_block :call_under, 2, true
         else
-          g.send :call_under, 3
+          g.send :call_under, 2
         end
         g.goto done
 

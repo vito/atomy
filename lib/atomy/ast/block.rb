@@ -81,14 +81,6 @@ module Atomy
 
       alias :caller :body
 
-      def implicit_arguments
-        []
-      end
-
-      def implicit_patterns(mod)
-        []
-      end
-
       def argument_patterns(mod)
         @argpats = {}
         @argpats[mod] ||=
@@ -100,13 +92,13 @@ module Atomy
       def make_arguments(mod)
         return @args[mod] if @args && @args[mod]
 
-        required = implicit_arguments
+        required = []
         optional = nil
         post = nil
         splat = nil
         block = nil
 
-        patterns = implicit_patterns(mod)
+        patterns = []
 
         argument_patterns(mod).each.with_index do |p, i|
           name = :"@arg:#{i + 1}"
