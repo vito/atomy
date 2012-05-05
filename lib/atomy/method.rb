@@ -12,13 +12,13 @@ end
 
 module Atomy
   class Branch
-    attr_accessor :module, :body, :receiver, :required, :defaults,
+    attr_accessor :module, :name, :body, :receiver, :required, :defaults,
                   :splat, :block
 
     def initialize(mod, receiver, required = [], defaults = [],
                    splat = nil, block = nil, &body)
       @module = mod
-      @body = (body && body.block) || proc { raise "branch has no body " }
+      @body = (body && body.block) || proc { raise "branch has no body" }
       @receiver = receiver
       @required = required
       @defaults = defaults
@@ -105,8 +105,12 @@ module Atomy
       @sorted = false
     end
 
-    def add(branch)
-      insert(branch, @branches)
+    def new_name
+      :"#{@name}:#{Macro::Environment.salt!}"
+    end
+
+    def add(branch, named = false)
+      insert(branch, @branches, named)
       nil
     end
 
@@ -121,7 +125,7 @@ module Atomy
     def build
       g = Rubinius::Generator.new
       g.name = @name
-      g.file = :wrapper
+      g.file = :"(wrapper: #{@name})"
       g.set_line 0
 
       done = g.new_label
@@ -200,18 +204,22 @@ module Atomy
     #
     # during insertion, branches with equivalent patterns will
     # be replaced
-    def insert(new, branches)
+    def insert(new, branches, named = false)
       branches.each_with_index do |branch, i|
         case new <=> branch
         when 1
+          new.name = new_name if named
           return branches.insert(i, new)
         when 0
           if new =~ branch
+            new.name = branch.name if named
             branches[i] = new
             return branches
           end
         end
       end
+
+      new.name = new_name if named
 
       branches << new
     end
@@ -280,18 +288,32 @@ module Atomy
           end
         end
 
-        g.push_literal body
-        g.push_self
-        g.push_literal body.static_scope
-        if has_args or splat
-          g.push_local 0
-          g.push_proc
-          g.send_with_splat :call_under, 2, true
-        elsif block
-          g.push_proc
-          g.send_with_block :call_under, 2, true
+        if meth.name
+          g.push_self
+          if has_args or splat
+            g.push_local 0
+            g.push_block
+            g.send_with_splat meth.name, 0, true
+          elsif block
+            g.push_block
+            g.send_with_block meth.name, 0, true
+          else
+            g.send_vcall meth.name
+          end
         else
-          g.send :call_under, 2
+          g.push_literal body
+          g.push_self
+          g.push_literal body.static_scope
+          if has_args or splat
+            g.push_local 0
+            g.push_proc
+            g.send_with_splat :call_under, 2, true
+          elsif block
+            g.push_proc
+            g.send_with_block :call_under, 2, true
+          else
+            g.send :call_under, 2
+          end
         end
         g.goto done
 
@@ -309,14 +331,14 @@ module Atomy
     Rubinius.add_method name, method.build, target, :public
   end
 
-  def self.add_branch(target, name, branch)
+  def self.add_branch(target, name, branch, named = false)
     methods = target.atomy_methods
 
     if method = methods[name]
-      method.add(branch)
+      method.add(branch, named)
     else
       method = Method.new(name)
-      method.add(branch)
+      method.add(branch, named)
       methods[name] = method
     end
 
@@ -325,8 +347,16 @@ module Atomy
 
   # define a new method branch
   def self.define_branch(target, name, branch, scope)
-    add_method(target, name, add_branch(target, name, branch)).tap do
-      target.send(:module_function, name) if target.is_a?(Atomy::Module)
+    add_method(target, name, add_branch(target, name, branch, true)).tap do
+      Rubinius.add_method(
+        branch.name,
+        Rubinius::BlockEnvironment::AsMethod.new(branch.body),
+        target, :private)
+
+      if target.is_a?(Atomy::Module)
+        target.send(:module_function, branch.name)
+        target.send(:module_function, name)
+      end
     end
   end
 
