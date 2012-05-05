@@ -96,6 +96,64 @@ END
           args << ", #{x}_ = #{d}"
         end
 
+        req_as =
+          (@attributes[:required] + @attributes[:many]).collect { |a|
+            ", @#{a}"
+          }.join
+
+        opt_as = @attributes[:optional].collect { |a, _|
+            ", @#{a}"
+          }.join
+
+        creq_cs =
+          @children[:required].collect { |n|
+            ", f.call(@#{n})"
+          }.join
+
+        cmany_cs =
+          @children[:many].collect { |n|
+            ", @#{n}.collect { |n| f.call(n) }"
+          }.join
+
+        copt_cs =
+          @children[:optional].collect { |n, _|
+            ", @#{n} ? f.call(@#{n}) : nil"
+          }.join
+
+        child_names =
+          @children[:required] + @children[:many] +
+            @children[:optional].collect(&:first)
+
+        attrs =
+          @attributes[:required] + @attributes[:many] +
+            @attributes[:optional].collect(&:first)
+
+        all_ivars = child_names.collect { |n| "@#{n}" }
+
+        copyreq_as =
+          (@attributes[:required] + @attributes[:many]).collect { |a|
+            ", @#{a}.copy"
+          }.join
+
+        copyopt_as = @attributes[:optional].collect { |a, _|
+            ", @#{a}.copy"
+          }.join
+
+        copyreq_cs =
+          @children[:required].collect { |n|
+            ", @#{n}.copy"
+          }.join
+
+        copymany_cs =
+          @children[:many].collect { |n|
+            ", @#{n}.collect { |n| n.copy }"
+          }.join
+
+        copyopt_cs =
+          @children[:optional].collect { |n, _|
+            ", @#{n} ? @#{n}.copy : nil"
+          }.join
+
         attr_accessor :line, *all
 
         class_eval <<EOF
@@ -108,9 +166,7 @@ END
             @line = line
             #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
           end
-EOF
 
-        class_eval <<EOF
           def construct(g, mod, d = nil)
             get(g)
             g.push_int(@line)
@@ -147,105 +203,35 @@ EOF
             g.send :in_context, 1
             g.pop
           end
-EOF
 
-        class_eval <<EOF
           def eql?(b)
             b.kind_of?(self.class) \\
             #{all.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
           end
 
           alias :== :eql?
-EOF
 
-        req_as =
-          (@attributes[:required] + @attributes[:many]).collect { |a|
-            ", @#{a}"
-          }.join
-
-        opt_as = @attributes[:optional].collect { |a, _|
-            ", @#{a}"
-          }.join
-
-        creq_cs =
-          @children[:required].collect { |n|
-            ", f.call(@#{n})"
-          }.join
-
-        cmany_cs =
-          @children[:many].collect { |n|
-            ", @#{n}.collect { |n| f.call(n) }"
-          }.join
-
-        copt_cs =
-          @children[:optional].collect { |n, _|
-            ", @#{n} ? f.call(@#{n}) : nil"
-          }.join
-
-        child_names =
-          @children[:required] + @children[:many] +
-            @children[:optional].collect(&:first)
-
-        attrs =
-          @attributes[:required] + @attributes[:many] +
-            @attributes[:optional].collect(&:first)
-
-        all = child_names.collect { |n| "@#{n}" }
-
-        class_eval <<EOF
           def children(&f)
             if block_given?
               self.class.new(
                 @line#{creq_cs + cmany_cs + req_as + copt_cs + opt_as})
             else
-              [#{all.join(", ")}]
+              [#{all_ivars.join(", ")}]
             end
           end
-EOF
 
-        class_eval <<EOF
           def bottom?
             #{@children.values.flatten(1).empty?.inspect}
           end
-EOF
 
-        class_eval <<EOF
           def details
             #{attrs.inspect}
           end
-EOF
 
-        class_eval <<EOF
           def child_names
             #{child_names.inspect}
           end
-EOF
 
-        copyreq_as =
-          (@attributes[:required] + @attributes[:many]).collect { |a|
-            ", @#{a}.copy"
-          }.join
-
-        copyopt_as = @attributes[:optional].collect { |a, _|
-            ", @#{a}.copy"
-          }.join
-
-        copyreq_cs =
-          @children[:required].collect { |n|
-            ", @#{n}.copy"
-          }.join
-
-        copymany_cs =
-          @children[:many].collect { |n|
-            ", @#{n}.collect { |n| n.copy }"
-          }.join
-
-        copyopt_cs =
-          @children[:optional].collect { |n, _|
-            ", @#{n} ? @#{n}.copy : nil"
-          }.join
-
-        class_eval <<EOF
           def copy
             self.class.new(
               @line#{copyreq_cs + copymany_cs + copyreq_as + copyopt_cs + copyopt_as}

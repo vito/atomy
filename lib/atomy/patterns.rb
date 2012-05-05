@@ -67,6 +67,39 @@ module Atomy::Patterns
         args << "#{x}_ = #{d}"
       end
 
+      req_as =
+        (@attributes[:required] + @attributes[:many]).collect { |a|
+          "@#{a}"
+        }
+
+      opt_as = @attributes[:optional].collect { |a, _|
+          "@#{a}"
+        }
+
+      creq_cs =
+        @children[:required].collect { |n|
+          "f.call(@#{n})"
+        }
+
+      cmany_cs =
+        @children[:many].collect { |n|
+          "@#{n}.collect { |n| f.call(n) }"
+        }
+
+      copt_cs =
+        @children[:optional].collect { |n, _|
+          "@#{n} ? f.call(@#{n}) : nil"
+        }
+
+      all_ivars =
+        (@children[:required] +
+          @children[:many] +
+          @children[:optional]).collect { |n, _| "@#{n}" }
+
+      attrs =
+        @attributes[:required] + @attributes[:many] +
+          @attributes[:optional].collect(&:first)
+
       attr_accessor :line, *all
 
       class_eval <<EOF
@@ -77,9 +110,7 @@ module Atomy::Patterns
 
           #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
         end
-EOF
 
-      class_eval <<EOF
         def construct(g, mod)
           get(g)
 
@@ -115,56 +146,19 @@ EOF
           g.send :in_context, 1
           g.pop
         end
-EOF
 
-      class_eval <<EOF
         def eql?(b)
           b.kind_of?(self.class)#{all.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
         end
 
         alias :== :eql?
-EOF
 
-      req_as =
-        (@attributes[:required] + @attributes[:many]).collect { |a|
-          "@#{a}"
-        }
-
-      opt_as = @attributes[:optional].collect { |a, _|
-          "@#{a}"
-        }
-
-      creq_cs =
-        @children[:required].collect { |n|
-          "f.call(@#{n})"
-        }
-
-      cmany_cs =
-        @children[:many].collect { |n|
-          "@#{n}.collect { |n| f.call(n) }"
-        }
-
-      copt_cs =
-        @children[:optional].collect { |n, _|
-          "@#{n} ? f.call(@#{n}) : nil"
-        }
-
-      all =
-        (@children[:required] +
-          @children[:many] +
-          @children[:optional]).collect { |n, _| "@#{n}" }
-
-      attrs =
-        @attributes[:required] + @attributes[:many] +
-          @attributes[:optional].collect(&:first)
-
-      class_eval <<EOF
         def children(&f)
           if block_given?
             self.class.new(
               #{(creq_cs + cmany_cs + req_as + copt_cs + opt_as).join ", "})
           else
-            [#{all.join(", ")}]
+            [#{all_ivars.join(", ")}]
           end
         end
 EOF
