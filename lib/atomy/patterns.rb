@@ -67,9 +67,7 @@ module Atomy::Patterns
         args << "#{x}_ = #{d}"
       end
 
-      class_eval <<EOF
-        attr_accessor #{all.collect { |a| ":#{a}" }.join(", ")}
-EOF
+      attr_accessor :line, *all
 
       class_eval <<EOF
         def initialize(#{args.join ", "})
@@ -170,64 +168,6 @@ EOF
           end
         end
 EOF
-
-      class_eval <<EOF
-        def walk_with(b, stop = nil, &f)
-          f.call(self, b)
-
-          return if !b.is_a?(self.class) || (stop && stop.call(self, b))
-
-          #{attrs.collect { |a| "return if @#{a} != b.#{a}" }.join("; ")}
-
-          children.zip(b.children).each do |x, y|
-            if x.respond_to?(:each)
-              num = [x.size, y.size].max
-              num.times do |i|
-                x2, y2 = x[i], y[i]
-                if x2
-                  x2.walk_with(y2, stop, &f)
-                elsif y2
-                  f.call(x2, y2)
-                end
-              end
-            elsif x
-              x.walk_with(y, stop, &f)
-            elsif y
-              # x is nil, y is not
-              f.call(x, y)
-            end
-          end
-        end
-EOF
-
-      class_eval <<EOF
-        def bottom?
-          #{@children.values.flatten(1).empty?.inspect}
-        end
-EOF
-
-      class_eval <<EOF
-        def details
-          #{attrs.inspect}
-        end
-EOF
-
-      required = @children[:required].collect { |c| ", [:\"#{c}\", @#{c}.to_sexp]" }.join
-      many = @children[:many].collect { |c| ", [:\"#{c}\", @#{c}.collect(&:to_sexp)]" }.join
-      optional = @children[:optional].collect { |c, _| ", [:\"#{c}\", @#{c} && @#{c}.to_sexp]" }.join
-
-      a_required = @attributes[:required].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
-      a_many = @attributes[:many].collect { |c| ", [:\"#{c}\", @#{c}]" }.join
-      a_optional = @attributes[:optional].collect { |c, _| ", [:\"#{c}\", @#{c}]" }.join
-
-      class_eval <<EOF
-        def to_sexp
-          name = self.class.name
-          meth = name ? name.split("::").last.downcase.to_sym : :anonymous
-          [meth#{required}#{many}#{optional}#{a_required}#{a_many}#{a_optional}]
-        end
-EOF
-
     end
   end
 
