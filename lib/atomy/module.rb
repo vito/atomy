@@ -51,16 +51,19 @@ module Atomy
       @infix ||= {}
 
       if op
-        if info = @infix[op]
-          info
+        if @infix.key? op
+          @infix[op]
         else
           using.each do |m|
             if info = m.infix_info(op)
+              # cache
+              @infix[op] = info
               return info
             end
           end
 
-          nil
+          # cache
+          @infix[op] = nil
         end
       else
         @infix
