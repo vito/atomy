@@ -473,6 +473,8 @@ EOF
     end
 
     class ScriptBody < Node
+      generate
+
       def initialize(line, body)
         @line = line
         @body = body
