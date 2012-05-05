@@ -14,49 +14,43 @@ class Fixnum
 end
 
 class Fixnum
-  def fib_atomy_sub_1; 1; end
-  def fib_atomy_sub_2; 1; end
-  def fib_atomy_sub_3; (self - 2).fib_atomy + (self - 1).fib_atomy; end
-
-  def fib_atomy
-    if self == 0
-      fib_atomy_sub_1
-    elsif self == 1
-      fib_atomy_sub_2
-    else
-      fib_atomy_sub_3
-    end
+  def fib_atomy_method_1; 1; end
+  def fib_atomy_method_2; 1; end
+  def fib_atomy_method_3
+    (self - 2).fib_atomy_methods + (self - 1).fib_atomy_methods
   end
 
-  def fib_atomy_2
+  def fib_atomy_methods
     if self == 0
-      proc { 1 }.call(self)
+      fib_atomy_method_1
     elsif self == 1
-      proc { 1 }.call(self)
+      fib_atomy_method_2
     else
-      proc { (self - 2).fib_atomy_2 + (self - 1).fib_atomy_2 }.call(self)
+      fib_atomy_method_3
     end
   end
+end
 
-  def fib_atomy_3
-    a = proc { 1 }.block
-    b = proc { 1 }.block
-    c = proc { (self - 2).fib_atomy_3 + (self - 1).fib_atomy_3 }.block
+class Fixnum
+  define_method(:fib_closure_1) { 1 }
+  define_method(:fib_closure_2) { 1 }
+  define_method(:fib_closure_3) {
+    (self - 2).fib_atomy_closure + (self - 1).fib_atomy_closure
+  }
 
+  def fib_atomy_closure
     if self == 0
-      a.call(self)
+      fib_closure_1
     elsif self == 1
-      b.call(self)
+      fib_closure_2
     else
-      c.call(self)
+      fib_closure_3
     end
   end
+end
 
-  def fib_atomy_4
-    a = proc { 1 }.block
-    b = proc { 1 }.block
-    c = proc { (self - 2).fib_atomy_4 + (self - 1).fib_atomy_4 }.block
-
+class Fixnum
+  def fib_atomy_blocks(a, b, c)
     if self == 0
       a.call_under(self, a.static_scope, self)
     elsif self == 1
@@ -67,24 +61,26 @@ class Fixnum
   end
 end
 
+a = proc { 1 }.block
+b = proc { 1 }.block
+c = proc {
+  (self - 2).fib_atomy_blocks(a, b, c) + (self - 1).fib_atomy_blocks(a, b, c)
+}.block
+
 Benchmark.ips do |x|
   x.report("20.fib_cond") do
     20.fib_cond
   end
 
-  x.report("20.fib_atomy") do
-    20.fib_atomy
+  x.report("20.fib_atomy_methods") do
+    20.fib_atomy_methods
   end
 
-  x.report("20.fib_atomy_2") do
-    20.fib_atomy_2
+  x.report("20.fib_atomy_closure") do
+    20.fib_atomy_closure
   end
 
-  x.report("20.fib_atomy_3") do
-    20.fib_atomy_3
-  end
-
-  x.report("20.fib_atomy_4") do
-    20.fib_atomy_4
+  x.report("20.fib_atomy_blocks") do
+    20.fib_atomy_blocks(a, b, c)
   end
 end
