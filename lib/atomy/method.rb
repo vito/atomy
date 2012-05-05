@@ -171,8 +171,9 @@ module Atomy
       g.ret
       g.close
 
-      g.local_names = g.state.scope.local_names
-      g.local_count = g.state.scope.local_count
+      # never actually assigned as arguments but this fixes decoding
+      g.local_names = [:arguments]
+      g.local_count = 1
 
       g.pop_state
       g.use_detected
