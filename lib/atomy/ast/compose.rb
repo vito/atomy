@@ -16,7 +16,7 @@ module Atomy
           s = args.last
           if s.is_a?(Prefix) && s.operator == :*
             splat = s.receiver
-            args.pop
+            args = args[0..-2]
           else
             splat = nil
           end
