@@ -29,16 +29,21 @@ module Atomy
       def spec(into, specs)
         specs.each do |s|
           if s.respond_to?(:[]) and s.respond_to?(:size)
+            name = s[0]
             if s.size == 2
               into[:optional] << s
             else
-              into[:many] << s[0]
+              into[:many] << name
             end
           elsif s.to_s[-1] == ??
-            into[:optional] << [s.to_s[0..-2].to_sym, "nil"]
+            name = s.to_s[0..-2].to_sym
+            into[:optional] << [name, nil]
           else
-            into[:required] << s
+            name = s
+            into[:required] << name
           end
+
+          attr_accessor name
         end
 
         into
@@ -52,13 +57,150 @@ module Atomy
         spec(@children, specs)
       end
 
-      # TODO: spec for multi-splice
-      def many_construct(n)
-        x = <<END
+      def generate
+      end
+    end
 
+    module NodeLike
+      attr_accessor :line
+
+      # the module this node was constructed in
+      attr_reader :context
+
+      def initialize(line, *args)
+        @line = line
+
+        childs = self.class.children
+        attrs = self.class.attributes
+
+        arg = 0
+        childs[:required].each do |n|
+          send(:"#{n}=", args[arg])
+          arg += 1
+        end
+
+        childs[:many].each do |n|
+          send(:"#{n}=", args[arg])
+          arg += 1
+        end
+
+        attrs[:required].each do |n|
+          send(:"#{n}=", args[arg].freeze)
+          arg += 1
+        end
+
+        attrs[:many].each do |n|
+          send(:"#{n}=", args[arg].freeze)
+          arg += 1
+        end
+
+        childs[:optional].each do |n, d|
+          send(:"#{n}=", args.size > arg ? args[arg] : d)
+          arg += 1
+        end
+
+        attrs[:optional].each do |n, d|
+          send(:"#{n}=", args.size > arg ? args[arg].freeze : d)
+          arg += 1
+        end
+      end
+
+      def children(&f)
+        childs = self.class.children
+
+        if block_given?
+          attrs = self.class.attributes
+
+          args = []
+
+          childs[:required].each do |n|
+            args << f.call(send(n))
+          end
+
+          childs[:many].each do |n|
+            args << send(n).collect { |x| f.call(x) }
+          end
+
+          attrs[:required].each do |n|
+            args << send(n)
+          end
+
+          attrs[:many].each do |n|
+            args << send(n)
+          end
+
+          childs[:optional].each do |n, _|
+            args <<
+              if val = send(n)
+                f.call(val)
+              end
+          end
+
+          attrs[:optional].each do |n, _|
+            args << send(n)
+          end
+
+          self.class.new(@line, *args)
+        else
+          child_names.collect { |n| send(n) }
+        end
+      end
+      
+      def eql?(b)
+        b.kind_of?(self.class) &&
+          children.eql?(b.children) &&
+          details.eql?(b.details)
+      end
+
+      alias :== :eql?
+
+      def copy
+        childs = self.class.children
+        attrs = self.class.attributes
+
+        x = dup
+
+        childs[:required].each do |n|
+          x.send(:"#{n}=", x.send(n).copy)
+        end
+
+        childs[:many].each do |n|
+          x.send(:"#{n}=", x.send(n).copy)
+        end
+
+        attrs[:required].each do |n|
+          x.send(:"#{n}=", x.send(n).copy)
+        end
+
+        attrs[:many].each do |n|
+          x.send(:"#{n}=", x.send(n).copy)
+        end
+
+        childs[:optional].each do |n, _|
+          val = x.send(n)
+          x.send(:"#{n}=", val && val.copy)
+        end
+
+        x
+      end
+
+      def construct(g, mod, d = nil)
+        get(g)
+        g.push_int(@line)
+
+        childs = self.class.children
+        attrs = self.class.attributes
+
+        args = 1
+        childs[:required].each do |n|
+          send(n).construct(g, mod, d)
+          args += 1
+        end
+
+        childs[:many].each do |n|
           spliced = false
           size = 0
-          @#{n}.each do |e|
+          send(n).each do |e|
             if e.splice? && d == 1
               g.make_array size
               g.send :+, 1 if spliced
@@ -75,191 +217,72 @@ module Atomy
           g.make_array size
 
           g.send :+, 1 if spliced
-END
-        x
-      end
 
-      # TODO: this is gross. do some rubinius macro magic?
-      def generate
-        all = []
-        args = ""
-        (@children[:required] + @children[:many] +
-         @attributes[:required] + @attributes[:many]).each do |x|
-          all << x.to_s
-          args << ", #{x}_"
+          args += 1
         end
 
-        lists = @children[:many] + @attributes[:many]
-
-        (@children[:optional] + @attributes[:optional]).each do |x, d|
-          all << x.to_s
-          args << ", #{x}_ = #{d}"
+        attrs[:required].each do |n|
+          g.push_literal(send(n))
+          args += 1
         end
 
-        req_as =
-          (@attributes[:required] + @attributes[:many]).collect { |a|
-            ", @#{a}"
-          }.join
+        attrs[:many].each do |n|
+          vals = send(n)
 
-        opt_as = @attributes[:optional].collect { |a, _|
-            ", @#{a}"
-          }.join
-
-        creq_cs =
-          @children[:required].collect { |n|
-            ", f.call(@#{n})"
-          }.join
-
-        cmany_cs =
-          @children[:many].collect { |n|
-            ", @#{n}.collect { |n| f.call(n) }"
-          }.join
-
-        copt_cs =
-          @children[:optional].collect { |n, _|
-            ", @#{n} ? f.call(@#{n}) : nil"
-          }.join
-
-        child_names =
-          @children[:required] + @children[:many] +
-            @children[:optional].collect(&:first)
-
-        attrs =
-          @attributes[:required] + @attributes[:many] +
-            @attributes[:optional].collect(&:first)
-
-        all_ivars = child_names.collect { |n| "@#{n}" }
-
-        copyreq_as =
-          (@attributes[:required] + @attributes[:many]).collect { |a|
-            ", @#{a}.copy"
-          }.join
-
-        copyopt_as = @attributes[:optional].collect { |a, _|
-            ", @#{a}.copy"
-          }.join
-
-        copyreq_cs =
-          @children[:required].collect { |n|
-            ", @#{n}.copy"
-          }.join
-
-        copymany_cs =
-          @children[:many].collect { |n|
-            ", @#{n}.collect { |n| n.copy }"
-          }.join
-
-        copyopt_cs =
-          @children[:optional].collect { |n, _|
-            ", @#{n} ? @#{n}.copy : nil"
-          }.join
-
-        attr_accessor :line, *all
-
-        class_eval <<EOF
-          def initialize(line#{args})
-            raise "initialized with non-integer `line': \#{line}" unless line.is_a?(Integer)
-            #{@children[:required].collect { |n| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(NodeLike)" }.join("; ")}
-            #{@children[:many].collect { |n| "raise \"initialized with non-homogenous list `#{n}': \#{#{n}_.inspect}\" unless #{n}_.all? { |x| x.is_a?(NodeLike) }" }.join("; ")}
-            #{@children[:optional].collect { |n, _| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(NodeLike)" }.join("; ")}
-
-            @line = line
-
-            #{(@children[:required] + @children[:optional]).collect { |x, _|
-                "@#{x} = #{x}_"
-              }.join("; ")}
-
-            #{@children[:many].collect { |x|
-                "@#{x} = #{x}_.freeze"
-              }.join("; ")}
-
-            #{(@attributes[:required] + @attributes[:many] +
-                  @attributes[:optional]).collect { |x, _|
-                "@#{x} = #{x}_.freeze"
-              }.join("; ")}
+          vals.each do |v|
+            g.push_literal(v)
           end
 
-          def construct(g, mod, d = nil)
-            get(g)
-            g.push_int(@line)
+          g.make_array vals.size
 
-            #{@children[:required].collect { |n|
-                "@#{n}.construct(g, mod, d)"
-              }.join("; ")}
+          args += 1
+        end
 
-            #{@children[:many].collect { |n|
-                many_construct(n)
-              }.join("; ")}
-
-            #{@attributes[:required].collect { |a|
-                "g.push_literal(@#{a})"
-              }.join("; ")}
-
-            #{@attributes[:many].collect { |a|
-                "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
-              }.join("; ")}
-
-            #{@children[:optional].collect { |n, _|
-                "if @#{n}; @#{n}.construct(g, mod, d); else; g.push_nil; end"
-              }.join("; ")}
-
-            #{@attributes[:optional].collect { |a, _|
-                "g.push_literal(@#{a})"
-              }.join("; ")}
-
-            g.send :new, #{all.size + 1}
-            g.dup
-            g.push_cpath_top
-            g.find_const :Atomy
-            g.send :current_module, 0
-            g.send :in_context, 1
-            g.pop
+        childs[:optional].each do |n, _|
+          if v = send(n)
+            v.construct(g, mod, d)
+          else
+            g.push_nil
           end
 
-          def eql?(b)
-            b.kind_of?(self.class) \\
-            #{all.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
-          end
+          args += 1
+        end
 
-          alias :== :eql?
+        attrs[:optional].each do |n, _|
+          g.push_literal(send(n))
+          args += 1
+        end
 
-          def children(&f)
-            if block_given?
-              self.class.new(
-                @line#{creq_cs + cmany_cs + req_as + copt_cs + opt_as})
-            else
-              [#{all_ivars.join(", ")}]
-            end
-          end
-
-          def bottom?
-            #{@children.values.flatten(1).empty?.inspect}
-          end
-
-          def details
-            #{attrs.inspect}
-          end
-
-          def child_names
-            #{child_names.inspect}
-          end
-
-          def copy
-            self.class.new(
-              @line#{copyreq_cs + copymany_cs + copyreq_as + copyopt_cs + copyopt_as}
-            ).tap do |x|
-              x.in_context(@context)
-            end
-          end
-EOF
+        g.send :new, args
+        g.dup
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.send :current_module, 0
+        g.send :in_context, 1
+        g.pop
       end
-    end
 
-    module NodeLike
-      attr_accessor :line
+      def child_names
+        childs = self.class.children
+        childs[:required] + childs[:many] +
+          childs[:optional].collect(&:first)
+      end
 
-      # the module this node was constructed in
-      attr_reader :context
+      def attribute_names
+        attrs = self.class.attributes
+        attrs[:required] + attrs[:many] +
+          attrs[:optional].collect(&:first)
+      end
+
+      def details
+        attribute_names.collect { |n| send(n) }
+      end
+
+      def bottom?
+        self.class.children.all? do |k, v|
+          v.empty?
+        end
+      end
 
       def accept(x)
         name = self.class.name
@@ -374,7 +397,7 @@ EOF
 
         name = self.class.name.split("::").last
 
-        attrs = details.collect do |d|
+        attrs = attribute_names.collect do |d|
           "(#{d} = #{send(d)})"
         end
 

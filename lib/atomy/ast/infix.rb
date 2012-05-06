@@ -2,7 +2,7 @@ module Atomy
   module AST
     class Infix < Node
       children :left, :right
-      attributes :operator, [:private, "false"]
+      attributes :operator, [:private, false]
       generate
 
       alias :message_name :operator

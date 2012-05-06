@@ -128,7 +128,7 @@ module Atomy::Patterns
         @g.kind_of
         @g.gif popmis
 
-        x.details.each do |n|
+        x.attribute_names.each do |n|
           @g.dup
           @g.send n, 0
           push_literal x.send(n)

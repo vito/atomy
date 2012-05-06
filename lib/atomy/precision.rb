@@ -202,7 +202,7 @@ module Atomy::Patterns
         elsif y.unquote? && @depth == 0
           return Quote.new(x) <=> y.expression.pattern
 
-        elsif !x.is_a?(y.class) || !x.details.all? { |d| x.send(d) == y.send(d) }
+        elsif !x.is_a?(y.class) || !x.attribute_names.all? { |d| x.send(d) == y.send(d) }
           fail
 
         elsif x.bottom? || y.bottom?
@@ -275,6 +275,12 @@ module Atomy::Patterns
       else
         self == other
       end
+    end
+  end
+
+  class SingletonClass
+    def =~(other)
+      true
     end
   end
 
@@ -398,7 +404,7 @@ module Atomy::Patterns
             fail
           end
 
-        elsif !x.is_a?(y.class) || !x.details.all? { |d| x.send(d) == y.send(d) }
+        elsif !x.is_a?(y.class) || !x.attribute_names.all? { |d| x.send(d) == y.send(d) }
           fail
 
         elsif x.bottom? || y.bottom?
