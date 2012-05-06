@@ -165,7 +165,7 @@ END
 
             @line = line
 
-            #{(@children[:required] + @children[:optional]).collect { |x|
+            #{(@children[:required] + @children[:optional]).collect { |x, _|
                 "@#{x} = #{x}_"
               }.join("; ")}
 
