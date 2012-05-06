@@ -37,7 +37,10 @@ process-val(g, `(%(~grammar)(~name))) = do:
 
 process-val(g, `((~name)=(~v))) = do:
   val = process-val(g, v)
-  when(^rule-vars): ^rule-vars << name text
+
+  when(^rule-vars):
+    ^rule-vars << name text
+
   `(~g t(~val, ~(name text to-s)))
 
 process-val(g, `(~a ~b)) =
@@ -72,7 +75,10 @@ process-val(g, a: `{ ~*bs }) =
 
 process-val(g, `(<(~x)>)) = do:
   val = process-val(g, x)
-  when(^rule-vars): ^rule-vars << .text
+
+  when(^rule-vars):
+    ^rule-vars << .text
+
   `(~g collect(~val))
 
 process-val(g, `(@<(~x)>)) =
