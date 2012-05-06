@@ -135,7 +135,7 @@ module Atomy
 
       g.state.push_name @name
 
-      has_args = @branches.any? { |b| b.total_args > 0 }
+      has_args = @branches.any? { |b| b.total_args > 0 || b.splat }
 
       if has_args
         g.splat_index = 0
