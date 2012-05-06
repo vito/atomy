@@ -55,7 +55,7 @@ ReplDebugger = class:
       condition DefaultDebugger show-options-for(e)
 
       -- TODO: inherit original binding
-      { basic-repl(Atomy Module new) } bind:
+      { basic-repl(Atomy Module new tap [m]: m use("atomy")) } bind:
         .prompt -> restart(.use-prompt, "[!]> ")
 
         .special(n ? =~ r"\d+") ->
