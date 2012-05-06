@@ -164,7 +164,18 @@ END
             #{@children[:optional].collect { |n, _| "raise \"initialized with non-node `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(NodeLike)" }.join("; ")}
 
             @line = line
-            #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
+
+            #{(@children[:required] + @children[:optional]).collect { |x|
+                "@#{x} = #{x}_"
+              }.join("; ")}
+
+            #{@children[:many].collect { |x| "@#{x} = #{x}_.freeze" }.join("; ")}
+
+            #{(@attributes[:required] +
+                  @attributes[:many] +
+                  @attributes[:optional]).collect { |x, _|
+                "@#{x} = #{x}_.freeze"
+              }.join("; ")}
           end
 
           def construct(g, mod, d = nil)
