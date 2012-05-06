@@ -191,6 +191,7 @@ module Atomy
       end
 
       g.pop_state
+      g.use_detected
       g.encode
 
       cm = g.package Rubinius::CompiledMethod
