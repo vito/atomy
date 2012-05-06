@@ -8,15 +8,15 @@ macro(macro-quoter(~n) [~*as]: ~*body):
     strpat = Unquote new(0, `(~str: StringLiteral))
     argpat = Unquote new(0, `*~args)
 
-    raw = as shift
+    raw = as[0]
     when(raw):
       raw =! `(~raw = ~str raw or ~str value)
 
-    flags = as shift
+    flags = as[1]
     when(flags):
       flags =! `(~flags = ~args collect .text)
 
-    val = as shift
+    val = as[2]
     when(val):
       val =! `(~val = ~str value)
 

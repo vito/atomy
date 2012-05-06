@@ -92,7 +92,7 @@ module Atomy
 
     def execute_macro(node)
       meth = node.macro_name
-      send(meth, node.copy) if respond_to? meth
+      send(meth, node) if respond_to? meth
     rescue Atomy::MethodFail => e
       # TODO: make sure this is never a false-positive
       raise unless e.method_name == meth
@@ -145,7 +145,7 @@ module Atomy
 
 
     def execute_to_pattern(node, mod = self)
-      _pattern(node.copy, mod) if respond_to?(:_pattern)
+      _pattern(node, mod) if respond_to?(:_pattern)
     rescue Atomy::MethodFail => e
       # TODO: make sure this is never a false-positive
       raise unless e.method_name == :_pattern

@@ -28,19 +28,22 @@ macro(~x ~(c: Constant)):
 
 -- [x, y] { x + y }
 macro([~*args] ~(b: Block)):
-  b arguments = args
-  b
+  x = b dup
+  x arguments = args
+  x
 
 -- [x, y] &z { x + y }
 macro([~*args] &~blk ~(b: Block)):
-  b arguments = args
-  b block = blk
-  b
+  x = b dup
+  x arguments = args
+  x block = blk
+  x
 
 -- &z { x + y }
 macro(&~blk ~(b: Block)):
-  b block = blk
-  b
+  x = b dup
+  x block = blk
+  x
 
 -- foo { bar }
 macro(~(w ? to-word) ~(b: Block)):
@@ -68,30 +71,36 @@ macro(~_ (~(? to-word))(~*_) ~(b: Block)):
 
 -- collect [x] { x + 1 }
 macro(~(? to-word) [~*ys] ~(z: Block)):
-  z arguments = ys
+  b = z dup
+  b arguments = ys
+
   x = node left left to-send
-  x block = z
+  x block = b
   x
 
 -- collect(a) [x] { x + 1 }
-macro(~(call: `((~(? to-word))(~*_))) [~*ys] ~(z: Block)):
-  z arguments = ys
-  x = call to-send
-  x block = z
+macro((~(? to-word))(~*_) [~*ys] ~(z: Block)):
+  b = z dup
+  b arguments = ys
+
+  x = node left left to-send
+  x block = b
   x
 
 -- [1, 2, 3] collect [x] { x + 1 }
-macro(~(call: `(~_ ~(? to-word))) [~*ys] ~(z: Block)):
-  z arguments = ys
-  x = call to-send
-  x block = z
+macro(~_ ~(? to-word) [~*ys] ~(z: Block)):
+  b = z dup
+  b arguments = ys
+  x = node left left to-send
+  x block = b
   x
 
 -- [1, 2, 3] collect(a) [x] { x + 1 }
-macro(~(call: `(~_ (~(? to-word))(~*_))) [~*ys] ~(z: Block)):
-  z arguments = ys
-  x = call to-send
-  x block = z
+macro(~_ (~(? to-word))(~*_) [~*ys] ~(z: Block)):
+  b = z dup
+  b arguments = ys
+  x = node left left to-send
+  x block = b
   x
 
 -- particle/symbol block-passing shorthand
@@ -186,56 +195,46 @@ macro(.[]): ."[]"
 macro(.[]=): ."[]="
 
 -- bar?
-macro((~Word)?):
-  node receiver tap [r]:
-    r text = (r text to-s + "?") to-sym
+macro((~Word)?): node to-word
 
 -- x bar?
 macro(~x (~Word)?):
-  node right =
-    node right receiver tap [r]:
-      r text = (r text to-s + "?") to-sym
+  node dup tap [c]:
+    c right = node right to-word
 
-  node
 
 -- bar(...)?
 macro((~Word)(~*args)?):
-  node receiver tap [r]:
+  node receiver copy tap [r]:
     r name text = (r name text to-s + "?") to-sym
 
 -- foo bar(...)?
 macro(~x (~Word)(~*args)?):
-  node right =
-    node right receiver tap [r]:
-      r name text = (r name text to-s + "?") to-sym
-
-  node
+  node copy tap [c]:
+    c right =
+      c right receiver tap [r]:
+        r name text = (r name text to-s + "?") to-sym
 
 -- bar!
-macro((~Word)!):
-  node receiver tap [r]:
-    r text = (r text to-s + "!") to-sym
+macro((~Word)!): node to-word
 
 -- x bar!
 macro(~x (~Word)!):
-  node right =
-    node right receiver tap [r]:
-      r text = (r text to-s + "!") to-sym
+  node dup tap [c]:
+    c right = c right to-word
 
-  node
 
 -- bar(...)!
 macro((~Word)(~*args)!):
-  node receiver tap [r]:
+  node receiver copy tap [r]:
     r name text = (r name text to-s + "!") to-sym
 
 -- foo bar(...)!
 macro(~x (~Word)(~*args)!):
-  node right =
-    node right receiver tap [r]:
-      r name text = (r name text to-s + "!") to-sym
-
-  node
+  node copy tap [c]:
+    c right =
+      c right receiver tap [r]:
+        r name text = (r name text to-s + "!") to-sym
 
 
 use("operators")
