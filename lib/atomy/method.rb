@@ -135,7 +135,12 @@ module Atomy
 
       g.state.push_name @name
 
-      g.splat_index = 0
+      has_args = @branches.any? { |b| b.total_args > 0 }
+
+      if has_args
+        g.splat_index = 0
+      end
+
       g.total_args = 0
       g.required_args = 0
 
@@ -162,7 +167,11 @@ module Atomy
       g.find_const :Atomy
       g.find_const :MethodFail
       g.push_literal @name
-      g.push_local 0
+      if has_args
+        g.push_local 0
+      else
+        g.push_nil
+      end
       g.send :new, 2
       g.allow_private
       g.send :raise, 1
@@ -176,11 +185,12 @@ module Atomy
       g.close
 
       # never actually assigned as arguments but this fixes decoding
-      g.local_names = [:arguments]
-      g.local_count = 1
+      if has_args
+        g.local_names = [:arguments]
+        g.local_count = 1
+      end
 
       g.pop_state
-      g.use_detected
       g.encode
 
       cm = g.package Rubinius::CompiledMethod
