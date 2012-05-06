@@ -17,9 +17,34 @@ Fixnum open:
 1 fib-atomy := 1
 Fixnum fib-atomy := (self - 2) fib-atomy + (self - 1) fib-atomy
 
+--profiler = Rubinius Profiler Instrumenter new
+--profiler start
+
 Benchmark ips [x]:
   x report("20 fib-cond"):
     20 fib-cond
 
   x report("20 fib-atomy"):
     20 fib-atomy
+
+--profiler stop
+--profiler show
+
+--puts("")
+--puts(.fib-cond)
+--puts(20 method(.fib-cond) executable decode)
+--20 class atomy-methods[.fib-cond] each [b]:
+  --puts("")
+  --puts(b name)
+  --puts(20 method(b name) executable block-env code decode)
+
+--puts("")
+--puts(.fib-atomy)
+--puts(20 method(.fib-atomy) executable decode)
+--20 class atomy-methods[.fib-atomy] each [b]:
+  --puts("")
+  --puts(b name)
+  --puts(20 method(b name) executable block-env code decode)
+
+
+--require(File expand-path("../fib.rb", _FILE))

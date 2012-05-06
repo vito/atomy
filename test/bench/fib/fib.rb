@@ -67,20 +67,36 @@ c = proc {
   (self - 2).fib_atomy_blocks(a, b, c) + (self - 1).fib_atomy_blocks(a, b, c)
 }.block
 
+#profiler = Rubinius::Profiler::Instrumenter.new
+#profiler.start
+
 Benchmark.ips do |x|
   x.report("20.fib_cond") do
     20.fib_cond
   end
 
-  x.report("20.fib_atomy_methods") do
-    20.fib_atomy_methods
-  end
+  #x.report("20.fib_atomy_methods") do
+    #20.fib_atomy_methods
+  #end
 
   x.report("20.fib_atomy_closure") do
     20.fib_atomy_closure
   end
 
-  x.report("20.fib_atomy_blocks") do
-    20.fib_atomy_blocks(a, b, c)
-  end
+  #x.report("20.fib_atomy_blocks") do
+    #20.fib_atomy_blocks(a, b, c)
+  #end
 end
+
+#profiler.stop
+#profiler.show
+
+#puts ""
+#puts "fib_atomy_closure"
+#puts 20.method(:fib_atomy_closure).executable.decode
+
+#[:fib_closure_1, :fib_closure_2, :fib_closure_3].each do |m|
+  #puts ""
+  #puts m
+  #puts 20.method(m).executable.block_env.code.decode
+#end
