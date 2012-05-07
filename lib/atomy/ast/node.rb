@@ -169,10 +169,11 @@ END
                 "@#{x} = #{x}_"
               }.join("; ")}
 
-            #{@children[:many].collect { |x| "@#{x} = #{x}_.freeze" }.join("; ")}
+            #{@children[:many].collect { |x|
+                "@#{x} = #{x}_.freeze"
+              }.join("; ")}
 
-            #{(@attributes[:required] +
-                  @attributes[:many] +
+            #{(@attributes[:required] + @attributes[:many] +
                   @attributes[:optional]).collect { |x, _|
                 "@#{x} = #{x}_.freeze"
               }.join("; ")}
