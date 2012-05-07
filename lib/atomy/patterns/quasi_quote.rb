@@ -147,7 +147,7 @@ module Atomy::Patterns
 
         defaults = 0
         pats.reverse_each do |p|
-          if x.unquote? && x.expression.pattern.is_a?(Default)
+          if p.unquote? && p.expression.pattern.is_a?(Default)
             defaults += 1
           else
             break
