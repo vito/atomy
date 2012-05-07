@@ -115,92 +115,119 @@ module Atomy::Patterns
         @mismatch = mis
       end
 
+      def match_kind(x, mismatch)
+        @g.dup
+        x.get(@g)
+        @g.swap
+        @g.kind_of
+        @g.gif mismatch
+      end
+
+      def match_attribute(x, n, mismatch)
+        @g.dup
+        @g.send n, 0
+        push_literal x.send(n)
+        @g.send :==, 1
+        @g.gif mismatch
+      end
+
+      def match_required(x, c, mismatch)
+        @g.dup
+        @g.send c, 0
+        go(x.send(c), mismatch)
+      end
+
+      def match_many(x, c, popmis, popmis2)
+        pats = x.send(c)
+
+        if pats.last && pats.last.splice?
+          splice = pats.last
+          pats = pats[0..-2]
+        end
+
+        defaults = 0
+        pats.reverse_each do |p|
+          if x.unquote? && x.expression.pattern.is_a?(Default)
+            defaults += 1
+          else
+            break
+          end
+        end
+
+        required = pats.size - defaults
+
+        # do we care about size?
+        inexact = splice || defaults > 0
+
+        @g.dup
+        @g.send c, 0
+
+        unless inexact && required == 0
+          @g.dup
+          @g.send :size, 0
+          @g.push_int required
+          @g.send(inexact ? :>= : :==, 1)
+          @g.gif popmis2
+        end
+
+        required.times do |i|
+          @g.shift_array
+          go(pats[i], popmis2)
+        end
+
+        defaults.times do |i|
+          d = pats[required + i]
+
+          has = @g.new_label
+          match = @g.new_label
+
+          @g.dup
+          @g.send :size, 0
+          @g.push_int(i + 1)
+          @g.send :>=, 1
+          @g.git has
+
+          @module.compile(@g, d.expression.pattern.default)
+          @g.goto match
+
+          has.set!
+          @g.shift_array
+
+          match.set!
+          go(d, popmis2)
+        end
+
+        if splice
+          splice.expression.pattern.matches?(@g, @module)
+          @g.gif popmis
+        else
+          @g.pop
+        end
+      end
+
       # effect on the stack: pop
       def visit(x)
         popmis = @g.new_label
         popmis2 = @g.new_label
         done = @g.new_label
 
-        @g.dup
-        x.get(@g)
-        @g.swap
-        @g.kind_of
-        @g.gif popmis
+        childs = x.class.children
 
-        x.attribute_names.each do |n|
-          @g.dup
-          @g.send n, 0
-          push_literal x.send(n)
-          @g.send :==, 1
-          @g.gif popmis
+        match_kind(x, popmis)
+
+        x.attribute_names.each do |a|
+          match_attribute(x, a, popmis)
+        end
+
+        childs[:required].each do |c|
+          match_required(x, c, popmis)
+        end
+
+        childs[:many].each do |c|
+          match_many(x, c, popmis, popmis2)
         end
 
         # TODO: optionals
-
-        x.class.children[:required].each do |c|
-          @g.dup
-          @g.send c, 0
-          go(x.send(c), popmis)
-        end
-
-        x.class.children[:many].each do |c|
-          pats = x.send(c).dup
-
-          if pats.last && pats.last.splice?
-            splice = pats.pop
-          end
-
-          # TODO: only handle trailing defaults
-          defaults, required = pats.partition do |x|
-            x.unquote? && x.expression.pattern.is_a?(Default)
-          end
-
-          # do we care about size?
-          inexact = splice || !defaults.empty?
-
-          @g.dup
-          @g.send c, 0
-
-          unless inexact && required.empty?
-            @g.dup
-            @g.send :size, 0
-            @g.push_int required.size
-            @g.send(inexact ? :>= : :==, 1)
-            @g.gif popmis2
-          end
-
-          required.each do |p|
-            @g.shift_array
-            go(p, popmis2)
-          end
-
-          defaults.each.with_index do |d, i|
-            has = @g.new_label
-            match = @g.new_label
-
-            @g.dup
-            @g.send :size, 0
-            @g.push_int(i + 1)
-            @g.send :>=, 1
-            @g.git has
-
-            @module.compile(@g, d.expression.pattern.default)
-            @g.goto match
-
-            has.set!
-            @g.shift_array
-
-            match.set!
-            go(d, popmis2)
-          end
-
-          if splice
-            splice.expression.pattern.matches?(@g, @module)
-            @g.gif popmis
-          else
-            @g.pop
-          end
-        end
 
         @g.goto done
 
