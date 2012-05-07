@@ -28,16 +28,21 @@ module Atomy::Patterns
     def spec(into, specs)
       specs.each do |s|
         if s.respond_to?(:[]) and s.respond_to?(:size)
+          name = s[0]
           if s.size == 2
             into[:optional] << s
           else
-            into[:many] << s[0]
+            into[:many] << name
           end
         elsif s.to_s[-1] == ??
-          into[:optional] << [s.to_s[0..-2].to_sym, "nil"]
+          name = s.to_s[0..-2].to_sym
+          into[:optional] << [name, nil]
         else
-          into[:required] << s
+          name = s
+          into[:required] << name
         end
+
+        attr_accessor name
       end
 
       into
@@ -52,116 +57,6 @@ module Atomy::Patterns
     end
 
     def generate
-      all = []
-      args = []
-      (@children[:required] + @children[:many] +
-        @attributes[:required] + @attributes[:many]).each do |x|
-        all << x.to_s
-        args << "#{x}_"
-      end
-
-      lists = @children[:many] + @attributes[:many]
-
-      (@children[:optional] + @attributes[:optional]).each do |x, d|
-        all << x.to_s
-        args << "#{x}_ = #{d}"
-      end
-
-      req_as =
-        (@attributes[:required] + @attributes[:many]).collect { |a|
-          "@#{a}"
-        }
-
-      opt_as = @attributes[:optional].collect { |a, _|
-          "@#{a}"
-        }
-
-      creq_cs =
-        @children[:required].collect { |n|
-          "f.call(@#{n})"
-        }
-
-      cmany_cs =
-        @children[:many].collect { |n|
-          "@#{n}.collect { |n| f.call(n) }"
-        }
-
-      copt_cs =
-        @children[:optional].collect { |n, _|
-          "@#{n} ? f.call(@#{n}) : nil"
-        }
-
-      all_ivars =
-        (@children[:required] +
-          @children[:many] +
-          @children[:optional]).collect { |n, _| "@#{n}" }
-
-      attrs =
-        @attributes[:required] + @attributes[:many] +
-          @attributes[:optional].collect(&:first)
-
-      attr_accessor :line, *all
-
-      class_eval <<EOF
-        def initialize(#{args.join ", "})
-          #{@children[:required].collect { |n| "raise \"initialized with non-pattern `#{n}': \#{#{n}_.inspect}\" unless #{n}_ and #{n}_.is_a?(Pattern)" }.join("; ")}
-          #{@children[:many].collect { |n| "raise \"initialized with non-homogenous list `#{n}': \#{#{n}_.inspect}\" unless #{n}_.all? { |x| x.is_a?(Pattern) }" }.join("; ")}
-          #{@children[:optional].collect { |n, _| "raise \"initialized with non-pattern `#{n}': \#{#{n}_.inspect}\" unless #{n}_.nil? or #{n}_.is_a?(Pattern)" }.join("; ")}
-
-          #{all.collect { |a| "@#{a} = #{a}_" }.join("; ")}
-        end
-
-        def construct(g, mod)
-          get(g)
-
-          #{@children[:required].collect { |n|
-              "@#{n}.construct(g, mod)"
-            }.join("; ")}
-
-          #{@children[:many].collect { |n|
-              "@#{n}.each { |n| n.construct(g, mod) }; g.make_array @#{n}.size"
-            }.join("; ")}
-
-          #{@attributes[:required].collect { |a|
-              "g.push_literal(@#{a})"
-            }.join("; ")}
-
-          #{@attributes[:many].collect { |a|
-              "@#{a}.each { |n| g.push_literal n }; g.make_array @#{a}.size"
-            }.join("; ")}
-
-          #{@children[:optional].collect { |n, _|
-              "if @#{n}; @#{n}.construct(g, mod, d); else; g.push_nil; end"
-            }.join("; ")}
-
-          #{@attributes[:optional].collect { |a, _|
-              "g.push_literal(@#{a})"
-            }.join("; ")}
-
-          g.send :new, #{all.size}
-          g.dup
-          g.push_cpath_top
-          g.find_const :Atomy
-          g.send :current_module, 0
-          g.send :in_context, 1
-          g.pop
-        end
-
-        def eql?(b)
-          b.kind_of?(self.class)#{all.collect { |a| " and @#{a}.eql?(b.#{a})" }.join}
-        end
-
-        alias :== :eql?
-
-        def children(&f)
-          if block_given?
-            self.class.new(
-              #{(creq_cs + cmany_cs + req_as + copt_cs + opt_as).join ", "})
-          else
-            [#{all_ivars.join(", ")}]
-          end
-        end
-EOF
     end
   end
 
@@ -170,8 +65,174 @@ EOF
       sub.extend SentientPattern
     end
 
-    # the module this node was constructed in
+    # the module this pattern was constructed in
     attr_reader :context
+
+    def initialize(*args)
+      childs = self.class.children
+      attrs = self.class.attributes
+
+      arg = 0
+      childs[:required].each do |n|
+        send(:"#{n}=", args[arg])
+        arg += 1
+      end
+
+      childs[:many].each do |n|
+        send(:"#{n}=", args[arg])
+        arg += 1
+      end
+
+      attrs[:required].each do |n|
+        send(:"#{n}=", args[arg])
+        arg += 1
+      end
+
+      attrs[:many].each do |n|
+        send(:"#{n}=", args[arg])
+        arg += 1
+      end
+
+      childs[:optional].each do |n, d|
+        send(:"#{n}=", args.size > arg ? args[arg] : d)
+        arg += 1
+      end
+
+      attrs[:optional].each do |n, d|
+        send(:"#{n}=", args.size > arg ? args[arg] : d)
+        arg += 1
+      end
+    end
+
+    def children(&f)
+      childs = self.class.children
+
+      if block_given?
+        attrs = self.class.attributes
+
+        args = []
+
+        childs[:required].each do |n|
+          args << f.call(send(n))
+        end
+
+        childs[:many].each do |n|
+          args << send(n).collect { |x| f.call(x) }
+        end
+
+        attrs[:required].each do |n|
+          args << send(n)
+        end
+
+        attrs[:many].each do |n|
+          args << send(n)
+        end
+
+        childs[:optional].each do |n, _|
+          args <<
+            if val = send(n)
+              f.call(val)
+            end
+        end
+
+        attrs[:optional].each do |n, _|
+          args << send(n)
+        end
+
+        self.class.new(*args)
+      else
+        child_names.collect { |n| send(n) }
+      end
+    end
+
+    def eql?(b)
+      b.kind_of?(self.class) &&
+        children.eql?(b.children) &&
+        details.eql?(b.details)
+    end
+
+    alias :== :eql?
+
+    def construct(g, mod)
+      get(g)
+
+      childs = self.class.children
+      attrs = self.class.attributes
+
+      args = 0
+      childs[:required].each do |n|
+        send(n).construct(g, mod)
+        args += 1
+      end
+
+      childs[:many].each do |n|
+        vals = send(n)
+
+        vals.each do |e|
+          e.construct(g, mod)
+        end
+
+        g.make_array vals.size
+
+        args += 1
+      end
+
+      attrs[:required].each do |n|
+        g.push_literal(send(n))
+        args += 1
+      end
+
+      attrs[:many].each do |n|
+        vals = send(n)
+
+        vals.each do |v|
+          g.push_literal(v)
+        end
+
+        g.make_array vals.size
+
+        args += 1
+      end
+
+      childs[:optional].each do |n, _|
+        if v = send(n)
+          v.construct(g, mod)
+        else
+          g.push_nil
+        end
+
+        args += 1
+      end
+
+      attrs[:optional].each do |n, _|
+        g.push_literal(send(n))
+        args += 1
+      end
+
+      g.send :new, args
+      g.dup
+      g.push_cpath_top
+      g.find_const :Atomy
+      g.send :current_module, 0
+      g.send :in_context, 1
+      g.pop
+    end
+
+    def child_names
+      childs = self.class.children
+      childs[:required] + childs[:many] +
+        childs[:optional].collect(&:first)
+    end
+
+    def attribute_names
+      attrs = self.class.attributes
+      attrs[:required] + attrs[:many] +
+        attrs[:optional].collect(&:first)
+    end
+
+    def details
+      attribute_names.collect { |n| send(n) }
+    end
 
     def in_context(x)
       @context ||= x
@@ -180,11 +241,6 @@ EOF
     # helper for pushing the current class const onto the stack
     def get(g)
       Atomy.const_from_string(g, self.class.name)
-    end
-
-    # create the pattern on the stack
-    def construct(g, mod)
-      raise Rubinius::CompileError, "no #construct for #{self}"
     end
 
     # push the target class for this pattern in a defition
