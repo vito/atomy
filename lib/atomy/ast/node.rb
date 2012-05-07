@@ -28,7 +28,7 @@ module Atomy
 
       def spec(into, specs)
         specs.each do |s|
-          if s.respond_to?(:[]) and s.respond_to?(:size)
+          if s.is_a?(Array)
             name = s[0]
             if s.size == 2
               into[:optional] << s
