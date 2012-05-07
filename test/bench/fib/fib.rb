@@ -61,11 +61,11 @@ class Fixnum
   end
 end
 
-a = proc { 1 }.block
-b = proc { 1 }.block
+a = proc { 1 }
+b = proc { 1 }
 c = proc {
   (self - 2).fib_atomy_blocks(a, b, c) + (self - 1).fib_atomy_blocks(a, b, c)
-}.block
+}
 
 #profiler = Rubinius::Profiler::Instrumenter.new
 #profiler.start
