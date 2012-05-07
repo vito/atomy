@@ -1,5 +1,3 @@
-require "delegate"
-
 module Atomy
   module AST
     class Block < Rubinius::AST::Iter

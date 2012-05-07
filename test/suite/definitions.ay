@@ -7,15 +7,15 @@ describe("definitions"):
   describe("static scope"):
     it("retains the proper static scope for each branch"):
       module:
-        Foo = 1
-        0 fizz := Foo
+        Foo = .first
+        0 fizz := [0, Foo]
 
       module:
-        Foo = 2
-        1 fizz := Foo
+        Foo = .second
+        1 fizz := [1, Foo]
 
-      0 fizz should-be(1)
-      1 fizz should-be(2)
+      0 fizz should-be([0, .first])
+      1 fizz should-be([1, .second])
 
 
   describe("lexical scope"):

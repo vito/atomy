@@ -303,10 +303,10 @@ module Atomy
           g.push_self
           if has_args or splat
             g.push_local 0
-            g.push_block
+            g.push_proc
             g.send_with_splat meth.name, 0, true
           elsif block
-            g.push_block
+            g.push_proc
             g.send_with_block meth.name, 0, true
           else
             g.send_vcall meth.name

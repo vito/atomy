@@ -47,8 +47,8 @@ module Atomy::Patterns
       @pattern.wildcard?
     end
 
-    def matches_self?
-      @pattern.matches_self?
+    def matches_self?(g, mod)
+      @pattern.matches_self?(g, mod)
     end
 
     def always_matches_self?
