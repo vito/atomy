@@ -8,10 +8,6 @@ module Atomy
   def self.load(*as)
     CodeLoader.load_file *as
   end
-
-  def self.load_kernel
-    require(File.expand_path("../../../kernel/boot", __FILE__))
-  end
 end
 
 require "rubygems"
