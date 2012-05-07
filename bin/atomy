@@ -34,10 +34,6 @@ unless ARGV.empty? || ARGV[0][0] != ?-
       options[:load] = v
     end
 
-    o.on("-x", "--skip-kernel", "don't load the kernel") do
-      options[:skip_kernel] = true
-    end
-
     o.on("-p", "--profile", "perform profiling") do
       options[:profile] = true
     end
@@ -49,16 +45,12 @@ unless ARGV.empty? || ARGV[0][0] != ?-
   end.parse!
 end
 
-unless options[:skip_kernel]
-  require("boot")
-end
-
-if options[:profile]
-  profiler = Rubinius::Profiler::Instrumenter.new
-  profiler.start
-end
-
 def run_atomy(options)
+  if options[:profile]
+    profiler = Rubinius::Profiler::Instrumenter.new
+    profiler.start
+  end
+
   if str = options[:evaluate] || options[:start]
     $0 = "(eval)"
     mod = Atomy::Module.new(:"(eval)")
@@ -83,10 +75,6 @@ def run_atomy(options)
     nil,
     options[:debug]
   )
-end
-
-begin
-  run_atomy(options)
 ensure
   if options[:profile]
     profiler.stop
@@ -94,3 +82,5 @@ ensure
     profiler.show
   end
 end
+
+run_atomy(options)
