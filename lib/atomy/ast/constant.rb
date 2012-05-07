@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Constant < Node
       attributes :name
-      generate
 
       def bytecode(g, mod)
         pos(g)
@@ -23,7 +22,6 @@ module Atomy
 
     class ToplevelConstant < Node
       attributes :name
-      generate
 
       def bytecode(g, mod)
         pos(g)
@@ -42,7 +40,6 @@ module Atomy
     class ScopedConstant < Node
       children :parent
       attributes :name
-      generate
 
       def bytecode(g, mod)
         pos(g)

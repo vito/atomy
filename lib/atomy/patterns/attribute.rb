@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class Attribute < Pattern
     attributes(:receiver, :name, :arguments)
-    generate
 
     def construct(g, mod)
       get(g)

@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Splat < Node
       children :value
-      generate
 
       def bytecode(g, mod)
         pos(g)

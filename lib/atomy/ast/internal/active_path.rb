@@ -1,8 +1,6 @@
 module Atomy
   module AST
     class ActivePath < Node
-      generate
-
       def bytecode(g, mod)
         pos(g)
         g.push_scope

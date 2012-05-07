@@ -2,7 +2,6 @@ module Atomy
   module AST
     class QuasiQuote < Node
       children :expression
-      generate
 
       def construct(g, mod, d = nil)
         get(g)

@@ -2,7 +2,6 @@ module Atomy::Patterns
   class Named < Pattern
     children(:pattern)
     attributes(:name)
-    generate
 
     def match(g, mod, set = false, locals = {})
       if @pattern.wildcard?

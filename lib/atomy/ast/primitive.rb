@@ -1,7 +1,6 @@
 module Atomy::AST
   class Primitive < Node
     attributes :value
-    generate
 
     def bytecode(g, mod)
       pos(g)

@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class NamedGlobal < Pattern
     attributes(:identifier)
-    generate
 
     def name
       :"$#{@identifier}"

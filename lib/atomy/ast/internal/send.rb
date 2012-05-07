@@ -12,7 +12,6 @@ module Atomy
 
       children :receiver, [:arguments], :splat?, :block?
       attributes :message_name, [:private, false]
-      generate
 
       def bytecode(g, mod)
         pos(g)

@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class BlockPass < Pattern
     children(:pattern)
-    generate
 
     def target(g, mod)
       g.push_const :Object

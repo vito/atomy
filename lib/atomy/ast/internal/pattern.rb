@@ -1,7 +1,6 @@
 module Atomy::AST
   class Pattern < Node
     attributes :pattern
-    generate
 
     def construct(g, mod, d = nil)
       get(g)

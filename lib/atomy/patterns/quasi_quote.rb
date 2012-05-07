@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class QuasiQuote < Pattern
     attributes(:quoted)
-    generate
 
     def initialize(x)
       @quoted = x

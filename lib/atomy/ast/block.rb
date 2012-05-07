@@ -7,7 +7,6 @@ module Atomy
       extend SentientNode
 
       children [:contents], [:arguments], :block?
-      generate
 
       class Arguments < Rubinius::AST::FormalArguments19
         class Default < Rubinius::AST::Node
@@ -57,7 +56,6 @@ module Atomy
 
       class Body < Node
         children [:expressions]
-        generate
 
         def empty?
           @expressions.empty?

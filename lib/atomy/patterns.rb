@@ -55,9 +55,6 @@ module Atomy::Patterns
     def children(*specs)
       spec(@children, specs)
     end
-
-    def generate
-    end
   end
 
   class Pattern

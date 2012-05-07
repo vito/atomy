@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Assign < Node
       children :left, :right
-      generate
 
       def bytecode(g, mod)
         pos(g)

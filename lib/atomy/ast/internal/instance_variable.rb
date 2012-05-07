@@ -2,7 +2,6 @@ module Atomy
   module AST
     class InstanceVariable < Node
       attributes :identifier
-      generate
 
       def name
         :"@#{@identifier}"

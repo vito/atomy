@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class Literal < Pattern
     attributes(:value)
-    generate
 
     def target(g, mod)
       Atomy.const_from_string(g, @value.class.name)

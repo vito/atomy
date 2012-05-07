@@ -5,7 +5,6 @@ module Atomy
       extend SentientNode
 
       children :pattern, :body
-      generate
 
       attr_writer :evaluated
 

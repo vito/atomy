@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Compose < Node
       children :left, :right
-      generate
 
       def to_send
         case @right

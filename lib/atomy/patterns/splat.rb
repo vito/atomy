@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class Splat < Pattern
     children(:pattern)
-    generate
 
     def target(g, mod)
       g.push_cpath_top

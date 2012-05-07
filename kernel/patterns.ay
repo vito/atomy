@@ -17,7 +17,6 @@ Atomy Patterns open:
   With = Pattern class:
     children(.pattern, .sub-pattern)
     attributes(.expression)
-    generate
 
     construct(g, mod) := do:
       get(g)
@@ -104,7 +103,6 @@ Atomy Patterns open:
 
   And = Pattern class:
     children(.a, .b)
-    generate
 
     target(g, mod) := @a target(g, mod)
 
@@ -134,7 +132,6 @@ Atomy Patterns open:
 
   Or = Pattern class:
     children(.a, .b)
-    generate
 
     target(g, mod) := @a target(g, mod)
 

@@ -2,7 +2,6 @@ module Atomy::Patterns
   class Predicate < Pattern
     children :pattern
     attributes :test
-    generate
 
     def construct(g, mod)
       get(g)

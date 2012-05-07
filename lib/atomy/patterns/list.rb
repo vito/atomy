@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class List < Pattern
     children([:patterns])
-    generate
 
     def target(g, mod)
       g.push_cpath_top

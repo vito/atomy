@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Match < Node
       children :target, [:branches]
-      generate
 
       def bytecode(g, mod)
         pos(g)
@@ -24,7 +23,6 @@ module Atomy
 
     class MatchBranch < Node
       children :pattern, :branch
-      generate
 
       def bytecode(g, mod, done)
         pos(g)

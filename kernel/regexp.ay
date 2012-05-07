@@ -13,7 +13,6 @@ Atomy AST open:
     include(NodeLike)
     extend(SentientNode)
     attributes(.which)
-    generate
 
     bytecode(g, _) := super(g)
 

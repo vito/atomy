@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Return < Node
       children :value
-      generate
 
       def bytecode(g, mod)
         if @value

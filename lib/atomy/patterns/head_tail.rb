@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class HeadTail < Pattern
     children(:head, :tail)
-    generate
 
     def target(g, mod)
       g.push_cpath_top

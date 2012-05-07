@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class Constant < Pattern
     attributes(:constant, :value?)
-    generate
 
     def construct(g, mod)
       get(g)

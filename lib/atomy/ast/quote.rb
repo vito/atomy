@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Quote < Node
       children :expression
-      generate
 
       def bytecode(g, mod)
         pos(g)

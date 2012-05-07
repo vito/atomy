@@ -10,8 +10,7 @@ process-arg(c, as, cs) = cs << c
 define-class(root, `(~n { ~*cs })) = define-class(root, `((~n)() { ~*cs }))
 define-class(root, x: `((~name)(~*as))) = define-class(root, `(~x {}))
 define-class(root, e: Atomy AST Constant) =
-  `(~e = ~root class:
-      generate)
+  `(~e = ~root class:)
 define-class(root, `((~name)(~*as): ~*cs)) = do:
   children = []
   attributes = []
@@ -23,7 +22,6 @@ define-class(root, `((~name)(~*as): ~*cs)) = do:
       ~name = ~root class:
         children(~*children)
         attributes(~*attributes)
-        generate
 
       ~*(cs collect [c]: define-class(name, c)))
 

@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Unquote < Node
       children :expression
-      generate
 
       def construct(g, mod, d = nil)
         pos(g)

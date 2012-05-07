@@ -2,7 +2,6 @@ module Atomy
   module AST
     class List < Node
       children [:elements]
-      generate
 
       def bytecode(g, mod)
         pos(g)

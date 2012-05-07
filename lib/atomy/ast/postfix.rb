@@ -3,7 +3,6 @@ module Atomy
     class Postfix < Node
       children :receiver
       attributes :operator
-      generate
 
       def bytecode(g, mod)
         to_send.bytecode(g, mod)

@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Rescue < Node
       children :body, [:handlers], :else?
-      generate
 
       # via Rubinius::AST::Rescue
       def bytecode(g, mod)
@@ -181,7 +180,6 @@ module Atomy
 
     class RescueHandler < Node
       children :pattern, :body
-      generate
 
       def bytecode(g, mod, reraise, done, outer_exc_state, next_handler = nil)
         body = g.new_label

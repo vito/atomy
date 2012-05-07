@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Word < Node
       attributes :text
-      generate
 
       alias :message_name :text
 

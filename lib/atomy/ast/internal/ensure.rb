@@ -2,7 +2,6 @@ module Atomy
   module AST
     class Ensure < Node
       children :body, :ensure
-      generate
 
       def bytecode(g, mod)
         pos(g)

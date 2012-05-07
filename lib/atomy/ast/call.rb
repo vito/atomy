@@ -1,7 +1,6 @@
 module Atomy::AST
   class Call < Node
     children :name, [:arguments]
-    generate
 
     def bytecode(g, mod)
       to_send.bytecode(g, mod)

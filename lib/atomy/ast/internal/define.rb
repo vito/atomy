@@ -6,7 +6,6 @@ module Atomy
 
       children :body, :receiver, [:arguments], :block?
       attributes :name
-      generate
 
       def receiver_pattern(mod)
         @recvpat = {}
@@ -141,7 +140,6 @@ module Atomy
 
       children :body, :receiver, [:arguments], :block?
       attributes :name
-      generate
 
       alias method_name name
 
@@ -175,7 +173,6 @@ module Atomy
 
       children :body, [:arguments], :block?
       attributes :name
-      generate
 
       def receiver_pattern(mod)
         Patterns::Any.new

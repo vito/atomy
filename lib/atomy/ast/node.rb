@@ -56,9 +56,6 @@ module Atomy
       def children(*specs)
         spec(@children, specs)
       end
-
-      def generate
-      end
     end
 
     module NodeLike
@@ -479,7 +476,6 @@ module Atomy
 
     class Tree < Node
       children [:nodes]
-      generate
 
       def bytecode(g, mod)
         @nodes.each.with_index do |n, i|
@@ -494,8 +490,6 @@ module Atomy
     end
 
     class ScriptBody < Node
-      generate
-
       def initialize(line, body)
         @line = line
         @body = body

@@ -2,7 +2,6 @@ module Atomy::Patterns
   class Default < Pattern
     children(:pattern)
     attributes(:default)
-    generate
 
     def construct(g, mod)
       get(g)

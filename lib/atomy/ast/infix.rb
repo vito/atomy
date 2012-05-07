@@ -3,7 +3,6 @@ module Atomy
     class Infix < Node
       children :left, :right
       attributes :operator, [:private, false]
-      generate
 
       alias :message_name :operator
 

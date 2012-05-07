@@ -10,7 +10,6 @@ use("patterns")
 Atomy Patterns open:
   NamedRedirectedInstance = NamedInstance class:
     attributes(.target, .identifier)
-    generate
 
     construct(g, mod) := do:
       get(g)
@@ -34,7 +33,6 @@ Atomy Patterns open:
 
   NamedRedirectedClass = NamedClass class:
     attributes(.target, .identifier)
-    generate
 
     construct(g, mod) := do:
       get(g)

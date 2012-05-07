@@ -2,7 +2,6 @@ module Atomy
   module AST
     class IfThenElse < Node
       children :condition, :then, :else
-      generate
 
       def bytecode(g, mod)
         done = g.new_label

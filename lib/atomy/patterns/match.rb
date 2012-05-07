@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class Match < Pattern
     attributes(:value)
-    generate
 
     def initialize(value)
       case value

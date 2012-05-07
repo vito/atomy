@@ -1,7 +1,6 @@
 module Atomy::AST
   class BlockPass < Node
     children :body
-    generate
 
     def bytecode(g, mod)
       mod.compile(g, @body)

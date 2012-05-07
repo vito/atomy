@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class Quote < Pattern
     attributes(:expression)
-    generate
 
     def construct(g, mod)
       get(g)

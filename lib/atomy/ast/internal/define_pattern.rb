@@ -6,7 +6,6 @@ module Atomy
 
       children :pattern, :body
       attributes :module_name
-      generate
 
       def pattern_definer
         Atomy::AST::DefineMethod.new(

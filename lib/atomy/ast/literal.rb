@@ -1,7 +1,6 @@
 module Atomy::AST
   class Literal < Node
     attributes :value
-    generate
 
     def bytecode(g, mod)
       pos(g)
@@ -16,7 +15,6 @@ module Atomy::AST
 
   class StringLiteral < Literal
     attributes :value, :raw?
-    generate
 
     def bytecode(g, mod)
       super

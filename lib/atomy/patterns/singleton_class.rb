@@ -1,7 +1,6 @@
 module Atomy::Patterns
   class SingletonClass < Pattern
     attributes(:body)
-    generate
 
     def construct(g, mod)
       get(g)
