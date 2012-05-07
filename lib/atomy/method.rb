@@ -129,13 +129,27 @@ module Atomy
       g.set_line 0
 
       done = g.new_label
-      mismatch = g.new_label
 
       g.push_state Rubinius::AST::ClosedScope.new(0)
 
       g.state.push_name @name
 
       has_args = @branches.any? { |b| b.total_args > 0 || b.splat }
+
+      always_matches =
+        @branches.any? { |b|
+          # receiver must always match
+          b.receiver.always_matches_self? &&
+            # must take no arguments (otherwise calling with invalid arg count
+            # would mismatch, as branches can take different arg sizes)
+            #
+            # TODO?: if all branches take same arg size, check if any are
+            # wildcards
+            (b.total_args == 0) &&
+
+            # and either have no splat or a wildcard splat
+            (!b.splat || b.splat.wildcard?)
+        }
 
       if has_args
         g.splat_index = 0
@@ -146,35 +160,40 @@ module Atomy
 
       build_methods(g, @branches, done)
 
-      unless @name == :initialize
-        g.invoke_primitive :vm_check_super_callable, 0
-        g.gif mismatch
+      unless always_matches
+        unless @name == :initialize
+          no_super = g.new_label
 
-        g.push_proc
-        if g.state.super?
-          g.zsuper g.state.super.name
-        else
-          g.zsuper nil
+          g.invoke_primitive :vm_check_super_callable, 0
+          g.gif no_super
+
+          g.push_proc
+          if g.state.super?
+            g.zsuper g.state.super.name
+          else
+            g.zsuper nil
+          end
+
+          g.goto done
+
+          no_super.set!
         end
 
-        g.goto done
+        # no method branches matched; fail
+        g.push_self
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.find_const :MethodFail
+        g.push_literal @name
+        if has_args
+          g.push_local 0
+        else
+          g.push_nil
+        end
+        g.send :new, 2
+        g.allow_private
+        g.send :raise, 1
       end
-
-      # no method branches matched; fail
-      mismatch.set!
-      g.push_self
-      g.push_cpath_top
-      g.find_const :Atomy
-      g.find_const :MethodFail
-      g.push_literal @name
-      if has_args
-        g.push_local 0
-      else
-        g.push_nil
-      end
-      g.send :new, 2
-      g.allow_private
-      g.send :raise, 1
 
       # successfully evaluated a branch
       done.set!
