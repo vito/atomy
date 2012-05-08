@@ -17,17 +17,12 @@ module Atomy
       const_set(:Self, self)
     end
 
-    dynamic_method(:__binding__) do |g|
-      g.push_self
-      g.add_scope
-
-      g.push_self
-      g.send :binding, 0, true
-      g.ret
-    end
-
     def compile_context
-      @compile_context ||= __binding__
+      @compile_context ||=
+        Binding.setup(
+          Rubinius::VariableScope.current,
+          Rubinius::CompiledMethod.current,
+          Rubinius::StaticScope.new(self, Rubinius::StaticScope.new(Object)))
     end
 
     def compile(gen, node)
