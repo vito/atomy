@@ -75,8 +75,8 @@ Atomy Patterns open:
     children(.receiver, .arguments)
     attributes(.message)
 
-    target(g, _) :=
-      g push-const(.Particle)
+    target(g, mod) :=
+      mod compile(g, 'Particle)
 
     matches(g, mod)? := do:
       mismatch = g new-label
