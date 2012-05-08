@@ -8,7 +8,7 @@ require("readline")
 
 try(source, module, debug = false) =
   with-restarts(retry -> try(source, module), abort -> .ok):
-    { signal(.evaluated(module eval(source, debug)))
+    { signal(.evaluated(module eval(source, 1, debug)))
     } rescue:
       (e: StandardError | ScriptError) -> error(e)
 
