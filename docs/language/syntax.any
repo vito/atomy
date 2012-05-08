@@ -172,7 +172,7 @@
       }
     }
 
-    \hl{constants}{
+    \item{constants}{
       \definitions{
         \item{\hl{Constant}}{
           \hl{Foo}, \hl{Bar}, ...
@@ -183,28 +183,6 @@
           \example{
             Kernel
             Atomy
-          }
-        }
-
-        \item{\hl{ToplevelConstant}}{
-          \hl{::Foo}, \hl{::Bar}, ...
-
-          A constant indicating it should be accessed from the top scope.
-
-          \example{
-            ::Kernel
-            ::Atomy
-          }
-        }
-
-        \item{\hl{ScopedConstant}}{
-          \hl{Foo::Bar}, \hl{foo::Bar}, \hl{foo(bar)::Baz}, ...
-
-          A constant indicating it should be accessed from a certain value.
-
-          \example{
-            Atomy::Module
-            ::Atomy::Module
           }
         }
       }
