@@ -24,12 +24,10 @@ Atomy Patterns open:
       @sub-pattern construct(g, mod)
       @expression construct(g, mod)
       g send(.new, 3)
-      g dup
       g push-cpath-top
       g find-const(.Atomy)
       g send(.current_module, 0)
       g send(.in_context, 1)
-      g pop
 
     target(g, mod) := @pattern target(g, mod)
 

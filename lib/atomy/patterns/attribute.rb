@@ -11,12 +11,10 @@ module Atomy::Patterns
       end
       g.make_array @arguments.size
       g.send :new, 3
-      g.dup
       g.push_cpath_top
       g.find_const :Atomy
       g.send :current_module, 0
       g.send :in_context, 1
-      g.pop
     end
 
     def target(g, mod)

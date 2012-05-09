@@ -16,12 +16,10 @@ Atomy Patterns open:
       @target construct(g, mod)
       g push-literal(@identifier)
       g send(.new, 2)
-      g dup
       g push-cpath-top
       g find-const(.Atomy)
       g send(.current_module, 0)
       g send(.in_context, 1)
-      g pop
 
     deconstruct(g, mod, locals = {}) := do:
       mod compile(g, @target)
@@ -39,12 +37,10 @@ Atomy Patterns open:
       @target construct(g, mod)
       g push-literal(@identifier)
       g send(.new, 2)
-      g dup
       g push-cpath-top
       g find-const(.Atomy)
       g send(.current_module, 0)
       g send(.in_context, 1)
-      g pop
 
     deconstruct(g, mod, locals = {}) := do:
       have-class = g new-label

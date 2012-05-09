@@ -10,12 +10,10 @@ module Atomy::Patterns
       get(g)
       @quoted.construct(g, mod)
       g.send :new, 1
-      g.dup
       g.push_cpath_top
       g.find_const :Atomy
       g.send :current_module, 0
       g.send :in_context, 1
-      g.pop
     end
 
     def expression
