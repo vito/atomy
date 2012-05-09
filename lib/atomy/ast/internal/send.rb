@@ -18,46 +18,14 @@ module Atomy
 
         # private sends get special semantics
         # see Atomy.send_message
-        if @private
-          if var = g.state.scope.search_local(:"#@message_name:function")
-            var.get_bytecode(g)
-            g.dup
-            g.send :code, 0
-            g.send :scope, 0
-            mod.compile(g, @receiver)
-            g.swap
-
-            @arguments.each do |a|
-              mod.compile(g, a)
-            end
-
-            if @splat
-              mod.compile(g, @splat)
-              g.send :to_a, 0
-
-              if @block
-                push_block(g, mod)
-              else
-                g.push_nil
-              end
-
-              g.send_with_splat :call_under, @arguments.size + 2
-            elsif @block
-              push_block(g, mod)
-              g.send_with_block :call_under, @arguments.size + 2
-            else
-              g.send :call_under, @arguments.size + 2
-            end
-
-            return
-          end
-
-          g.push_cpath_top
-          g.find_const :Atomy
-
+        if @private &&
+            var = g.state.scope.search_local(:"#@message_name:function")
+          var.get_bytecode(g)
+          g.dup
+          g.send :code, 0
+          g.send :scope, 0
           mod.compile(g, @receiver)
-          g.push_scope
-          g.push_literal @message_name
+          g.swap
 
           @arguments.each do |a|
             mod.compile(g, a)
@@ -73,12 +41,12 @@ module Atomy
               g.push_nil
             end
 
-            g.send_with_splat :send_message, @arguments.size + 3
+            g.send_with_splat :call_under, @arguments.size + 2
           elsif @block
             push_block(g, mod)
-            g.send_with_block :send_message, @arguments.size + 3
+            g.send_with_block :call_under, @arguments.size + 2
           else
-            g.send :send_message, @arguments.size + 3
+            g.send :call_under, @arguments.size + 2
           end
 
           return
@@ -100,14 +68,14 @@ module Atomy
             g.push_nil
           end
 
-          g.send_with_splat @message_name, @arguments.size
+          g.send_with_splat @message_name, @arguments.size, @private
         elsif @block
           push_block(g, mod)
-          g.send_with_block @message_name, @arguments.size
+          g.send_with_block @message_name, @arguments.size, @private
         elsif meta = Operators[@message_name]
           g.__send__ meta, g.find_literal(@message_name)
         else
-          g.send @message_name, @arguments.size
+          g.send @message_name, @arguments.size, @private
         end
       end
 

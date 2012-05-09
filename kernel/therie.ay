@@ -1,6 +1,7 @@
 use("atomy")
 
 io = require("io")
+condition = require("condition")
 
 nesting-level = dynamic(0)
 running-stats = dynamic
@@ -111,7 +112,7 @@ x should-error(y) :=
 
     (e: Error):
       when(e kind-of(y)?):
-        restart(.errored)
+        condition restart(.errored)
 
       raise(f"expected error %s, got: %s" [y, e message])
   }

@@ -65,9 +65,9 @@ Doc nest(i) := Nest new(i, self)
 Empty       flatten := empty
 Cat(x, y)   flatten := x flatten <> y flatten
 Nest(i, x)  flatten := x flatten
-Text(s)     flatten := text(s)
+Text(s)     flatten := Self text(s)
 Raw(s)      flatten := raw(s)
-Line(true)  flatten := text(" ")
+Line(true)  flatten := Self text(" ")
 Line(false) flatten := empty
 Union       flatten := x flatten
 Column(f)   flatten := column [x]: f [x] flatten
@@ -77,7 +77,7 @@ Nesting(f)  flatten := nesting [x]: f [x] flatten
 Doc hang(i) := align(nest(i))
 
 -- full indentation
-Doc indent(i) := (text(" " * i) <> self) hang(i)
+Doc indent(i) := (Self text(" " * i) <> self) hang(i)
 
 -- p punctuate([d1, d2, ..., dn]) => [d1 <> p, d2 <> p, ..., dn]
 Doc punctuate([])     := []

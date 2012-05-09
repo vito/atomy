@@ -39,31 +39,6 @@ module Atomy
     ctx.module.const_missing(name)
   end
 
-  # note that this is only used for `foo' and `foo(...)' forms
-  def self.send_message(recv, ctx, name, *args, &blk)
-    Rubinius::CompiledMethod.current.scope =
-      Rubinius::StaticScope.of_sender
-
-    if recv.respond_to?(name, true)
-      recv.__send__(name, *args, &blk)
-    else
-      scope = ctx
-      while scope
-        mod = scope.module
-
-        if mod.respond_to?(name, true) &&
-            !mod.class.method_defined?(name)
-          return mod.__send__(name, *args, &blk)
-        end
-
-        scope = scope.parent
-      end
-
-      # TODO: this is to just trigger method_missing
-      recv.__send__(name, *args, &blk)
-    end
-  end
-
   def self.unquote_splice(n)
     Atomy::AST::Prefix.new(
       0,
