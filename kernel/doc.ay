@@ -90,17 +90,17 @@ Doc separate(ds) := align(sep(punctuate(ds)))
 -- concatenate two documents, with a space in-between
 Empty <+> y     := y
 Doc   <+> Empty := self
-Doc   <+> y     := self <> space <> y
+Doc   <+> y     := self <> Self space <> y
 
 -- concatenates two documents, with a `softline' in between
 Empty </> y     := y
 Doc   </> Empty := self
-Doc   </> y     := self <> softline <> y
+Doc   </> y     := self <> Self softline <> y
 
 -- concatenates two documents, with a `softbreak' in between
 Empty <//> y     := y
 Doc   <//> Empty := self
-Doc   <//> y     := self <> softbreak <> y
+Doc   <//> y     := self <> Self softbreak <> y
 
 -- concatenates two documents, with a `line' in between
 Empty <$> y     := y
