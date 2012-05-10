@@ -142,9 +142,6 @@ DefaultDebugger = class:
         puts("*** " + l)
 
     define(show-options-for(e)):
-      when(^Restarts empty?):
-        exit(1)
-
       puts("")
       puts("restarts:")
       ^Restarts each-with-index [r, i]:
@@ -153,9 +150,14 @@ DefaultDebugger = class:
     define(run(e)):
       show-error-banner(e)
 
-      show-options-for(e)
+      if(^Restarts empty?)
+        then:
+          puts(Rubinius Backtrace backtrace(e backtrace) show)
+          exit(1)
+        else:
+          show-options-for(e)
 
-      print("!> ")
-      ^Restarts [gets to-i] invoke
+          print("!> ")
+          ^Restarts [gets to-i] invoke
 
 Debugger = dynamic(DefaultDebugger)
