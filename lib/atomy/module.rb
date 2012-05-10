@@ -18,11 +18,35 @@ module Atomy
     end
 
     def compile_context
-      @compile_context ||=
-        Binding.setup(
-          Rubinius::VariableScope.current,
-          Rubinius::CompiledMethod.current,
-          Rubinius::StaticScope.new(self, Rubinius::StaticScope.new(Object)))
+      return @compile_context if @compile_context
+
+      scope = Rubinius::StaticScope.new(
+        self,
+        Rubinius::StaticScope.new(Object))
+
+      meth = proc {}.block.code
+      meth.metadata = nil
+      meth.name = :"__module_init__"
+      meth.scope = scope
+
+      variables = Rubinius::VariableScope.synthesize(
+        meth,
+        self,
+        nil,
+        self,
+        nil,
+        Rubinius::Tuple.new(0))
+
+      if @file
+        script = meth.create_script
+        script.file_path = @file.to_s
+        script.data_path = File.expand_path(@file.to_s)
+        script.make_main!
+
+        scope.script = script
+      end
+
+      @compile_context = Binding.setup(variables, meth, scope)
     end
 
     def compile(gen, node)

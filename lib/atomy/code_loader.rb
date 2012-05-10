@@ -99,11 +99,6 @@ module Atomy
             cl = Rubinius::CodeLoader.new(cfn)
             cm = cl.load_compiled_file(cfn, 0, 0)
 
-            script = Rubinius::CompiledMethod::Script.new(cm)
-            script.file_path = file.to_s
-
-            mod.compile_context.static_scope.script = script
-
             Rubinius.attach_method(:__module_init__, cm, mod.compile_context.static_scope, mod)
             mod.__module_init__
           end

@@ -70,13 +70,15 @@ module Atomy
       cm.scope = binding.static_scope
       cm.name = binding.variables.method.name
 
-      # This has to be setup so __FILE__ works in eval.
-      script = Rubinius::CompiledMethod::Script.new(cm, file, true)
-      if string_or_node.is_a?(String)
-        script.eval_source = string_or_node
-      end
+      unless cm.scope.script
+        # This has to be setup so __FILE__ works in eval.
+        script = Rubinius::CompiledMethod::Script.new(cm, file, true)
+        if string_or_node.is_a?(String)
+          script.eval_source = string_or_node
+        end
 
-      cm.scope.script = script
+        cm.scope.script = script
+      end
 
       be = Rubinius::BlockEnvironment.new
       be.under_context binding.variables, cm
