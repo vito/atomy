@@ -62,16 +62,16 @@ Doc  <|> y := Union new({ self }, { y })
 Doc nest(i) := Nest new(i, self)
 
 -- flatten a document
-Empty       flatten := empty
+Empty       flatten := Self empty
 Cat(x, y)   flatten := x flatten <> y flatten
 Nest(i, x)  flatten := x flatten
 Text(s)     flatten := Self text(s)
-Raw(s)      flatten := raw(s)
+Raw(s)      flatten := Self raw(s)
 Line(true)  flatten := Self text(" ")
-Line(false) flatten := empty
+Line(false) flatten := Self empty
 Union       flatten := x flatten
-Column(f)   flatten := column [x]: f [x] flatten
-Nesting(f)  flatten := nesting [x]: f [x] flatten
+Column(f)   flatten := Self column [x]: f [x] flatten
+Nesting(f)  flatten := Self nesting [x]: f [x] flatten
 
 -- hanging indentation
 Doc hang(i) := align(nest(i))
