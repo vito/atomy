@@ -202,6 +202,14 @@ module Atomy
     end
 
 
+    def require(path)
+      if path.start_with? "./"
+        Kernel.require(File.expand_path("../" + path, @file.to_s))
+      else
+        Kernel.require(path)
+      end
+    end
+
     def use(path)
       x = require(path)
 
