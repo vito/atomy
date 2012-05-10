@@ -74,7 +74,7 @@ Column(f)   flatten := Self column [x]: f [x] flatten
 Nesting(f)  flatten := Self nesting [x]: f [x] flatten
 
 -- hanging indentation
-Doc hang(i) := align(nest(i))
+Doc hang(i) := Self align(Self nest(i))
 
 -- full indentation
 Doc indent(i) := (Self text(" " * i) <> self) hang(i)
@@ -85,7 +85,7 @@ Doc punctuate([d])    := [d]
 Doc punctuate(d . ds) := [d <> self] + punctuate(ds)
 
 -- sep + punctuate
-Doc separate(ds) := align(sep(punctuate(ds)))
+Doc separate(ds) := Self align(Self sep(Self punctuate(ds)))
 
 -- concatenate two documents, with a space in-between
 Empty <+> y     := y
@@ -105,12 +105,12 @@ Doc   <//> y     := self <> Self softbreak <> y
 -- concatenates two documents, with a `line' in between
 Empty <$> y     := y
 Doc   <$> Empty := self
-Doc   <$> y     := self <> line <> y
+Doc   <$> y     := self <> Self line <> y
 
 -- concatenates two documents, with a `linebreak' in between
 Empty <$$> y     := y
 Doc   <$$> Empty := self
-Doc   <$$> y     := self <> linebreak <> y
+Doc   <$$> y     := self <> Self linebreak <> y
 
 -- helper for `best' by linearizing documents
 be(_, _, []) = SEmpty new
