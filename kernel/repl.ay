@@ -1,7 +1,7 @@
 use("atomy")
 
 use("doc")
-condition = use("condition")
+condition = require("condition")
 pretty = require("pretty")
 
 require("readline")
@@ -39,29 +39,26 @@ basic-repl(module, debug = false) =
     signal(.loop)
 
 
-ReplDebugger = class:
-  singleton:
-    show-backtrace(e) := do:
-      puts(Rubinius Backtrace backtrace(e backtrace) show)
-      debug(e)
+condition DefaultDebugger data(ReplDebugger(@err))
 
-    run(e) := do:
-      condition DefaultDebugger show-error-banner(e)
+ReplDebugger(e) run := do:
+  show-banner
 
-      with-restarts(backtrace -> show-backtrace(e)):
-        debug(e)
+  with-restarts(backtrace -> show-backtrace(e)):
+    debug
 
-    debug(e) := do:
-      condition DefaultDebugger show-options-for(e)
+ReplDebugger debug := do:
+  show-restarts
 
-      -- TODO: inherit original binding
-      { basic-repl(Atomy Module new tap [m]: m use("atomy")) } bind:
-        .prompt -> restart(.use-prompt, "[!]> ")
+  -- TODO: inherit original binding
+  { /basic-repl(Atomy Module new tap [m]: m use("atomy")) } bind:
+    .prompt -> /restart(.use-prompt, "[!]> ")
 
-        .special(n ? =~ r"\d+") ->
-          ^(condition Restarts) [n to-i] invoke
+    .special(n ? =~ r"\d+") ->
+      ^(condition Restarts) [n to-i] invoke
 
-        .quit -> exit(1)
+    .quit -> exit(1)
+
 
 repl(history = nil, module = nil, debug = false) := do:
   unless(module):

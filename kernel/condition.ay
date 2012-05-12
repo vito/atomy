@@ -110,7 +110,7 @@ error(x) := do:
   signal(e)
 
   with-output-to(^(io ErrorPort)):
-    ^Debugger run(e)
+    ^Debugger new(e) run
 
 
 warning(x) :=
@@ -134,30 +134,33 @@ warning(x) :=
 
 
 -- TODO: this is awkward
-DefaultDebugger = class:
-  singleton:
-    define(show-error-banner(e)):
-      puts("-" * 78)
-      (e name + ": " + e message) split("\n") each [l]:
-        puts("*** " + l)
+data(DefaultDebugger(@err))
 
-    define(show-options-for(e)):
-      puts("")
-      puts("restarts:")
-      ^Restarts each-with-index [r, i]:
-        puts("  :" + i to-s + " -> " + r name to-s)
+DefaultDebugger(e) show-banner := do:
+  puts("-" * 78)
+  (e name + ": " + e message) split("\n") each [l]:
+    puts("*** " + l)
 
-    define(run(e)):
-      show-error-banner(e)
+DefaultDebugger(e) show-restarts := do:
+  puts("")
+  puts("restarts:")
+  ^Restarts each-with-index [r, i]:
+    puts("  :" + i to-s + " -> " + r name to-s)
 
-      if(^Restarts empty?)
-        then:
-          puts(Rubinius Backtrace backtrace(e backtrace) show)
-          exit(1)
-        else:
-          show-options-for(e)
+DefaultDebugger(e) show-backtrace := do:
+  puts(Rubinius Backtrace backtrace(e backtrace) show)
+  exit(1)
 
-          print("!> ")
-          ^Restarts [gets to-i] invoke
+DefaultDebugger(e) run := do:
+  show-banner
+
+  if(^Restarts empty?)
+    then:
+      show-backtrace
+    else:
+      show-restarts
+
+      print("!> ")
+      ^Restarts [gets to-i] invoke
 
 Debugger = dynamic(DefaultDebugger)
