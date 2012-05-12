@@ -64,6 +64,9 @@ macro(data ~(children: Block)):
 macro(data(~x)):
   `(Object data(~x) {})
 
+macro(~root data(~x)):
+  `(~root data(~x) {})
+
 macro(data(~parent): ~*children):
   `(Object data(~parent): ~*children)
 
