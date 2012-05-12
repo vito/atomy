@@ -16,8 +16,7 @@ module Atomy
       def bytecode(g, mod)
         pos(g)
 
-        # private sends get special semantics
-        # see Atomy.send_message
+        # private sends can be function calls
         if @private &&
             var = g.state.scope.search_local(:"#@message_name:function")
           var.get_bytecode(g)

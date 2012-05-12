@@ -39,7 +39,7 @@ basic-repl(module, debug = false) =
     signal(.loop)
 
 
-condition DefaultDebugger data(ReplDebugger(@err))
+condition DefaultDebugger data(ReplDebugger(@error))
 
 ReplDebugger(e) run := do:
   show-banner

@@ -133,8 +133,7 @@ warning(x) :=
     nil
 
 
--- TODO: this is awkward
-data(DefaultDebugger(@err))
+data(DefaultDebugger(@error))
 
 DefaultDebugger(e) show-banner := do:
   puts("-" * 78)
