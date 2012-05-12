@@ -135,7 +135,7 @@ module Atomy::Patterns
 
       it("targets the constant's value for definition") do
         pat("Array").definition_target.must_equal Array
-        pat("_ String").definition_target.must_equal ::String
+        pat("//String").definition_target.must_equal ::String
         pat("Atomy Patterns").definition_target.must_equal Atomy::Patterns
       end
 

@@ -62,22 +62,22 @@ Doc  <|> y := Union new({ self }, { y })
 Doc nest(i) := Nest new(i, self)
 
 -- flatten a document
-Empty       flatten := Self empty
+Empty       flatten := /empty
 Cat(x, y)   flatten := x flatten <> y flatten
 Nest(i, x)  flatten := x flatten
-Text(s)     flatten := Self text(s)
-Raw(s)      flatten := Self raw(s)
-Line(true)  flatten := Self text(" ")
-Line(false) flatten := Self empty
+Text(s)     flatten := /text(s)
+Raw(s)      flatten := /raw(s)
+Line(true)  flatten := /text(" ")
+Line(false) flatten := /empty
 Union       flatten := x flatten
-Column(f)   flatten := Self column [x]: f [x] flatten
-Nesting(f)  flatten := Self nesting [x]: f [x] flatten
+Column(f)   flatten := /(column [x]: f [x] flatten)
+Nesting(f)  flatten := /(nesting [x]: f [x] flatten)
 
 -- hanging indentation
-Doc hang(i) := Self align(Self nest(i))
+Doc hang(i) := /align(/nest(i))
 
 -- full indentation
-Doc indent(i) := (Self text(" " * i) <> self) hang(i)
+Doc indent(i) := (/text(" " * i) <> self) hang(i)
 
 -- p punctuate([d1, d2, ..., dn]) => [d1 <> p, d2 <> p, ..., dn]
 Doc punctuate([])     := []
@@ -85,32 +85,32 @@ Doc punctuate([d])    := [d]
 Doc punctuate(d . ds) := [d <> self] + punctuate(ds)
 
 -- sep + punctuate
-Doc separate(ds) := Self align(Self sep(Self punctuate(ds)))
+Doc separate(ds) := /align(/sep(/punctuate(ds)))
 
 -- concatenate two documents, with a space in-between
 Empty <+> y     := y
 Doc   <+> Empty := self
-Doc   <+> y     := self <> Self space <> y
+Doc   <+> y     := self <> /space <> y
 
 -- concatenates two documents, with a `softline' in between
 Empty </> y     := y
 Doc   </> Empty := self
-Doc   </> y     := self <> Self softline <> y
+Doc   </> y     := self <> /softline <> y
 
 -- concatenates two documents, with a `softbreak' in between
 Empty <//> y     := y
 Doc   <//> Empty := self
-Doc   <//> y     := self <> Self softbreak <> y
+Doc   <//> y     := self <> /softbreak <> y
 
 -- concatenates two documents, with a `line' in between
 Empty <$> y     := y
 Doc   <$> Empty := self
-Doc   <$> y     := self <> Self line <> y
+Doc   <$> y     := self <> /line <> y
 
 -- concatenates two documents, with a `linebreak' in between
 Empty <$$> y     := y
 Doc   <$$> Empty := self
-Doc   <$$> y     := self <> Self linebreak <> y
+Doc   <$$> y     := self <> /linebreak <> y
 
 -- helper for `best' by linearizing documents
 be(_, _, []) = SEmpty new

@@ -182,20 +182,20 @@ macro(grammar: ~*body): names [g]:
 
       `((~name)(~*args) := ~val) -> do:
         let(rule = name text,
-            rule-vars = _ Set new(args collect .text)):
+            rule-vars = //Set new(args collect .text)):
           `(~g set(~(name text to-s)
                    ~process-val(g, val)
                    ~(args collect [x]: x text to-s)))
 
       `(~name := ~val) -> do:
         let(rule = name text,
-            rule-vars = _ Set new):
+            rule-vars = //Set new):
           `(~g set(~(name text to-s), ~process-val(g, val)))
 
       u ->
         raise("unknown toplevel grammar form:\n" + u inspect)
 
-  `(_ KPeg Grammar new tap [~g]: ~*b)
+  `(//KPeg Grammar new tap [~g]: ~*b)
 
 
 macro(parser(~name): ~*grammar):
@@ -212,10 +212,10 @@ macro(parser(~name): ~*grammar):
     def =
       Atomy AST ParserDefiner new(
         node line
-        _ KPeg CodeGenerator new(const-name(name), g) output)
+        //KPeg CodeGenerator new(const-name(name), g) output)
 
     `(do:
-        ~name = _ KPeg CompiledParser class:
+        ~name = //KPeg CompiledParser class:
           { self } setups := @setups ||= ~^setups
           { self } vars := @vars ||= ~^vars
 

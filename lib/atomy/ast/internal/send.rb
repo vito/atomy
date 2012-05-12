@@ -79,6 +79,10 @@ module Atomy
         end
       end
 
+      def to_send
+        self
+      end
+
       private
 
       def push_block(g, mod)

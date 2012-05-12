@@ -226,8 +226,11 @@ pattern(`[~*ps]):
 pattern(Constant):
   Atomy Patterns Constant new(node)
 
-pattern(`(_ ~(y: Constant))):
+pattern(`(//~(y: Constant))):
   Atomy Patterns Constant new(ToplevelConstant new(node line, y name))
+
+pattern(`(/~(y: Constant))):
+  Atomy Patterns Constant new(ScopedConstant new(node line, 'Self, y name))
 
 pattern(`(~x ~(y: Constant))):
   Atomy Patterns Constant new(ScopedConstant new(node line, x, y name))

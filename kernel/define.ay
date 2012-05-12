@@ -39,6 +39,8 @@ arguments(`(~_ (~_)(~*args))) = args
 arguments(`(~_ ~(? to-word))) = []
 arguments(`(~_ [~*args])) = args
 arguments(`(~a &~_)) = arguments(a)
+arguments(`/~x) = arguments(x)
+arguments(`//~x) = arguments(x)
 arguments(x) =
   raise(ArgumentError, "cannot get arguments from:\n" + x inspect)
 
@@ -52,6 +54,8 @@ receiver(`((~_)(~*_)?)) = Atomy AST Primitive new(0, .self)
 receiver(`((~_)(~*_)!)) = Atomy AST Primitive new(0, .self)
 receiver(`(~a &~_)) = receiver(a)
 receiver(`(~a ~_)) = a
+receiver(`/~_) = 'Self
+receiver(`//~_) = 'Kernel
 receiver(x) =
   raise(ArgumentError, "cannot get receiver from:\n" + x inspect)
 
@@ -69,6 +73,8 @@ message-name(`(~_ (~(w: Atomy AST Word))(~*_)?)) = (w text to-s + "?") to-sym
 message-name(`(~_ (~(w: Atomy AST Word))(~*_)!)) = (w text to-s + "!") to-sym
 message-name(`(~_ [~*_])) = .[]
 message-name(`(~a &~_)) = message-name(a)
+message-name(`/~x) = message-name(x)
+message-name(`//~x) = message-name(x)
 message-name(x) =
   raise(ArgumentError, "cannot get message-name from:\n" + x inspect)
 
@@ -118,13 +124,13 @@ WithModule bytecode(g, _) := do:
   g push-nil
 
 macro(class: ~*body):
-  `(_ Class new open: ~*body, self)
+  `(//Class new open: ~*body, self)
 
 macro(~super class: ~*body):
-  `(_ Class new(~super) open: ~*body, self)
+  `(//Class new(~super) open: ~*body, self)
 
 macro(module: ~*body):
-  `(_ Module new open: ~*body, self)
+  `(//Module new open: ~*body, self)
 
 macro(~x open: ~*body):
   `(~x module-eval:

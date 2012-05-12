@@ -29,7 +29,7 @@ macro(ast(~x)):
   `(ast: ~x)
 
 macro(ast: ~*nodes):
-  `(ast(_ Atomy AST Node): ~*nodes)
+  `(ast(//Atomy AST Node): ~*nodes)
 
 macro(ast(~root): ~*nodes):
   `(do:

@@ -35,4 +35,4 @@ macro-quoter(r) [r, fs]:
   -- UTF8 by default
   flags |= Regexp KCODE_UTF8
 
-  `(_ Regexp new(~interpolated(r), ~flags))
+  `(//Regexp new(~interpolated(r), ~flags))

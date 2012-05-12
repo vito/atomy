@@ -520,6 +520,27 @@ module Atomy::Patterns
         BlockPass.new(@receiver.to_pattern)
       when :"*"
         Splat.new(@receiver.to_pattern)
+      when :"/"
+        case @receiver
+        when Atomy::AST::Prefix
+          if @receiver.operator == :"/" &&
+              @receiver.receiver.is_a?(Atomy::AST::Constant)
+            Constant.new(
+              Atomy::AST::ToplevelConstant.new(
+                @line,
+                @receiver.receiver.name))
+          else
+            super
+          end
+        when Atomy::AST::Constant
+          Constant.new(
+            Atomy::AST::ScopedConstant.new(
+              @line,
+              Atomy::AST::Constant.new(@line, :Self),
+              @receiver))
+        else
+          super
+        end
       else
         super
       end
@@ -540,23 +561,29 @@ module Atomy::Patterns
 
   class Atomy::AST::Compose
     def to_pattern
-      if @right.is_a?(Atomy::AST::Block) and \
-          @left.is_a?(Atomy::AST::Word)
-        Named.new(@right.contents[0].to_pattern, @left.text)
-      elsif @right.is_a?(Atomy::AST::Word)
-        Attribute.new(@left, @right.text, [])
-      elsif @right.is_a?(Atomy::AST::Call) and \
-              @right.name.is_a?(Atomy::AST::Word)
-        Attribute.new(@left, @right.name.text, @right.arguments)
-      elsif @right.is_a?(Atomy::AST::List)
-        Attribute.new(@left, :[], @right.elements)
-      elsif @right.is_a?(Atomy::AST::Constant)
-        if @left.is_a?(Atomy::AST::Word) and \
-             @left.text == :_
-          Constant.new(Atomy::AST::ToplevelConstant.new(@line, @right.name))
+      case @right
+      when Atomy::AST::Block
+        if @left.is_a?(Atomy::AST::Word)
+          Named.new(@right.contents[0].to_pattern, @left.text)
         else
-          Constant.new(Atomy::AST::ScopedConstant.new(@line, @left, @right.name))
+          super
         end
+      when Atomy::AST::Word
+        Attribute.new(@left, @right.text, [])
+      when Atomy::AST::Call
+        if @right.name.is_a?(Atomy::AST::Word)
+          Attribute.new(@left, @right.name.text, @right.arguments)
+        else
+          super
+        end
+      when Atomy::AST::List
+        Attribute.new(@left, :[], @right.elements)
+      when Atomy::AST::Constant
+        Constant.new(
+          Atomy::AST::ScopedConstant.new(
+            @line,
+            @left,
+            @right.name))
       else
         super
       end

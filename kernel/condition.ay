@@ -57,7 +57,7 @@ macro(~body bind { ~*handlers }):
     callback = `([~a]: ~a match: ~*handlers)
     `(let(Handlers = Handler new(~callback, ^Handlers)):
         ~body rescue:
-          (e: StandardError) -> Self error(e))
+          (e: StandardError) -> /error(e))
 
 
 macro(with-restarts(~*restarts) ~(block: Block)):
@@ -69,7 +69,7 @@ macro(with-restarts(~*restarts) ~(block: Block)):
         [~*arguments(n)] &~block(n) { ~e }))
 
   body =
-    pairs reduce(`{ ~block rescue: (e: StandardError) -> Self error(e) })
+    pairs reduce(`{ ~block rescue: (e: StandardError) -> /error(e) })
       [x, [name, _]]:
         `{ catch(~catcher(name)) ~x }
 

@@ -134,7 +134,7 @@ doc(h: Hash) :=
 doc(w: Atomy AST Word) := ident(w text to-s)
 
 Atomy AST open:
-  Self unamb(
+  /unamb(
       x:
         Block
           | ClassVariable
@@ -150,25 +150,25 @@ Atomy AST open:
           | ToplevelConstant
           | Word) :=
     render(x)
-  Self unamb(c: Compose) :=
+  /unamb(c: Compose) :=
     if(from(.infix, .compose)?)
       then: render(c)
       else: parens(render(c))
-  Self unamb(s: Send) :=
+  /unamb(s: Send) :=
     if(from(.infix, .compose)?)
       then: render(s)
       else: parens(render(s))
-  Self unamb(p: Prefix | Postfix | QuasiQuote | Quote | Unquote) :=
+  /unamb(p: Prefix | Postfix | QuasiQuote | Quote | Unquote) :=
     if(from(.postfix)?)
       then: parens(render(p))
       else: render(p)
-  Self unamb(p: Pattern) :=
+  /unamb(p: Pattern) :=
     unamb(p pattern)
-  Self unamb(n: Node) :=
+  /unamb(n: Node) :=
     parens(render(n))
 
 
-  Self doc(b: Infix) :=
+  /doc(b: Infix) :=
     from(.infix):
       ( if(b private)
           then:
@@ -177,7 +177,7 @@ Atomy AST open:
             unamb(b left) <+> text(b operator) </> unamb(b right)
       ) hang(2)
 
-  Self doc(b: Block) := do:
+  /doc(b: Block) := do:
     args =
       if(b arguments empty?)
         then: empty
@@ -187,28 +187,28 @@ Atomy AST open:
 
     align(args <+> (lbrace </> contents) nest(2) </> rbrace)
 
-  Self doc(c: Call) :=
+  /doc(c: Call) :=
     render(c name) <> tupled(render-sequence(c arguments))
 
-  Self doc(c: Compose) := render(c left) <+> render(c right)
+  /doc(c: Compose) := render(c left) <+> render(c right)
 
-  Self doc(c: Constant) := text(c name)
+  /doc(c: Constant) := text(c name)
 
-  Self doc(l: List) :=
+  /doc(l: List) :=
     from(.list):
       list(render-sequence(l elements))
 
-  Self doc(l: Literal) := render(l value)
+  /doc(l: Literal) := render(l value)
 
-  Self doc(p: Postfix) :=
+  /doc(p: Postfix) :=
     from(.postfix):
       unamb(p receiver) <> text(p operator)
 
-  Self doc(p: Prefix) :=
+  /doc(p: Prefix) :=
     from(.prefix):
       text(p operator) <> unamb(p receiver)
 
-  Self doc(p: Primitive) :=
+  /doc(p: Primitive) :=
     p value match:
       .self -> text("self")
       .true -> text("true")
@@ -216,79 +216,79 @@ Atomy AST open:
       .nil -> text("nil")
       x -> text(x inspect)
 
-  Self doc(q: QuasiQuote) :=
+  /doc(q: QuasiQuote) :=
     from(.prefix):
       text("`") <> unamb(q expression)
 
-  Self doc(q: Quote) :=
+  /doc(q: Quote) :=
     from(.prefix):
       text("'") <> unamb(q expression)
 
-  Self doc(s: ScopedConstant) :=
+  /doc(s: ScopedConstant) :=
     from(.scoped-constant):
       unamb(s parent) <> text("::") <> text(s name)
 
-  Self doc(s: StringLiteral) := text(s value inspect gsub("\\#", "#"))
+  /doc(s: StringLiteral) := text(s value inspect gsub("\\#", "#"))
 
-  Self doc(t: ToplevelConstant) :=
+  /doc(t: ToplevelConstant) :=
     text("::") <> text(t name)
 
-  Self doc(u: Unquote) :=
+  /doc(u: Unquote) :=
     from(.prefix):
       text("~") <> unamb(u expression)
 
-  Self doc(w: Word) := ident(w text to-s)
+  /doc(w: Word) := ident(w text to-s)
 
-  Self doc(t: Tree) :=
+  /doc(t: Tree) :=
     if(^Multiline)
       then: from(.top): vcat(render-sequence(t nodes))
       else: from(.list): tree(render-sequence(t nodes))
 
-  Self doc(p: Pattern) := render(p pattern)
+  /doc(p: Pattern) := render(p pattern)
 
 
 Atomy Patterns open:
-  Self doc(a: And) := render(`(~(a a) & ~(a b)))
-  Self doc(Any) := text("_")
-  Self doc(a: Attribute) :=
+  /doc(a: And) := render(`(~(a a) & ~(a b)))
+  /doc(Any) := text("_")
+  /doc(a: Attribute) :=
     render(`(~(a receiver) ~(Atomy AST Word new(-1, a name))))
-  Self doc(b: BlockPass) := render(`&~(b pattern))
-  Self doc(c: Constant) := render(c constant)
-  Self doc(d: Default) := render(`(~(d pattern) = ~(d default)))
-  Self doc(h: HeadTail) := render(`(~(h head) . ~(h tail)))
-  Self doc(l: List) := list(render-sequence(@patterns))
-  Self doc(l: Literal) := render(l value)
-  Self doc(m: Match) := render(m value)
-  Self doc(n: Named) :=
+  /doc(b: BlockPass) := render(`&~(b pattern))
+  /doc(c: Constant) := render(c constant)
+  /doc(d: Default) := render(`(~(d pattern) = ~(d default)))
+  /doc(h: HeadTail) := render(`(~(h head) . ~(h tail)))
+  /doc(l: List) := list(render-sequence(@patterns))
+  /doc(l: Literal) := render(l value)
+  /doc(m: Match) := render(m value)
+  /doc(n: Named) :=
     if(n pattern is-a(Any)?)
       then: text(n name)
       else: text(n name) <> text(":") <+> render(n pattern)
-  Self doc(n: NamedClass) :=
+  /doc(n: NamedClass) :=
     render(`(@@~(Atomy AST Word new(-1, n identifier))))
-  Self doc(n: NamedInstance) :=
+  /doc(n: NamedInstance) :=
     render(`(@~(Atomy AST Word new(-1, n identifier))))
-  Self doc(n: NamedGlobal) :=
+  /doc(n: NamedGlobal) :=
     render(`($~(Atomy AST Word new(-1, n identifier))))
-  Self doc(o: Or) :=
+  /doc(o: Or) :=
     render(`(~(o a) | ~(o b)))
-  Self doc(p: Particle) :=
+  /doc(p: Particle) :=
     render(
       Particle new(
         p receiver
         p message
         p arguments patterns))
-  Self doc(p: Predicate) := render(`(~(p pattern) ? ~(p test)))
-  Self doc(q: QuasiQuote) := render(q quoted)
-  Self doc(q: Quote) := render(`'~(q expression))
-  Self doc(s: SingletonClass) := render(s body)
-  Self doc(s: Splat) := render(`*~(s pattern))
-  Self doc(w: With) :=
+  /doc(p: Predicate) := render(`(~(p pattern) ? ~(p test)))
+  /doc(q: QuasiQuote) := render(q quoted)
+  /doc(q: Quote) := render(`'~(q expression))
+  /doc(s: SingletonClass) := render(s body)
+  /doc(s: Splat) := render(`*~(s pattern))
+  /doc(w: With) :=
     render(`(~(w pattern) with(~(w expression), ~(w sub-pattern))))
 
-  Self unamb(
+  /unamb(
       x: And | Attribute | Default | HeadTail | Or | Predicate | With) :=
     parens(render(x))
-  Self unamb(n: Named) :=
+  /unamb(n: Named) :=
     if(n pattern is-a(Any)?)
       then: render(n)
       else: parens(render(n))
