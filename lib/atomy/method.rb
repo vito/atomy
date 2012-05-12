@@ -381,11 +381,11 @@ module Atomy
       Rubinius.add_method(
         branch.name,
         Rubinius::BlockEnvironment::AsMethod.new(branch.body),
-        target, :private)
+        target,
+        :private)
 
       if target.is_a?(Atomy::Module)
-        target.send(:module_function, branch.name)
-        target.send(:module_function, name)
+        target.send(:module_function, branch.name, name)
       end
     end
   end
