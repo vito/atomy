@@ -41,7 +41,12 @@ basic-repl(module, debug = false) =
 
 condition DefaultDebugger data(ReplDebugger(@error))
 
+ReplDebugger open:
+  attr-accessor(.module)
+
 ReplDebugger(e) run := do:
+  /signal(.debug(self))
+
   show-banner
 
   with-restarts(backtrace -> show-backtrace(e)):
@@ -50,8 +55,7 @@ ReplDebugger(e) run := do:
 ReplDebugger debug := do:
   show-restarts
 
-  -- TODO: inherit original binding
-  { /basic-repl(Atomy Module new tap [m]: m use("atomy")) } bind:
+  { /basic-repl(@module) } bind:
     .prompt -> /restart(.use-prompt, "[!]> ")
 
     .special(n ? =~ r"\d+") ->
@@ -91,6 +95,9 @@ repl(history = nil, module = nil, debug = false) := do:
 
         .special("h") ->
           puts(":h\thelp")
+
+        .debug(dbg) ->
+          (dbg module = module)
 
         .evaluated(r) ->
           puts((text(" =>") <+> pretty doc(r)) render(76))
