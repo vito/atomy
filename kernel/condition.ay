@@ -45,10 +45,16 @@ ExceptionError name := @exception class name
 
 Condition message := inspect
 
-SimpleError message := @value to-s
+SimpleError(s: String) message := s
+SimpleError(v) message := pretty show(v)
+
+SimpleWarning(s: String) message := s
+SimpleWarning(v) message := pretty show(v)
+
 ExceptionError message := @exception message
-SimpleWarning message := @value to-s
+
 NoRestartError message := "unknown restart " + pretty show(@restart)
+
 EndOfFile message := "unexpected end-of-file for " + pretty show(@port)
 
 
