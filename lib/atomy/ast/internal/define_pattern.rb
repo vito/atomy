@@ -24,7 +24,8 @@ module Atomy
                 [])),
             @module_name
           ],
-          :_pattern)
+          :_pattern,
+          true)
       end
 
       def bytecode(g, mod)

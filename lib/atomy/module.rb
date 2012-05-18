@@ -112,9 +112,6 @@ module Atomy
     def execute_macro(node)
       meth = node.macro_name
       send(meth, node) if respond_to? meth
-    rescue Atomy::MethodFail => e
-      # TODO: make sure this is never a false-positive
-      raise unless e.method_name == meth
     end
 
     def expand_using(node)
@@ -165,9 +162,6 @@ module Atomy
 
     def execute_to_pattern(node, mod = self)
       _pattern(node, mod) if respond_to?(:_pattern)
-    rescue Atomy::MethodFail => e
-      # TODO: make sure this is never a false-positive
-      raise unless e.method_name == :_pattern
     end
 
     def make_pattern_using(node, mod = self)

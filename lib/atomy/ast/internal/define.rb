@@ -5,7 +5,7 @@ module Atomy
       extend SentientNode
 
       children :body, :receiver, [:arguments], :block?
-      attributes :name
+      attributes :name, :always_match?
 
       def receiver_pattern(mod)
         @recvpat = {}
@@ -128,9 +128,15 @@ module Atomy
           g.push_nil
         end
 
+        if @always_match
+          g.push_true
+        else
+          g.push_false
+        end
+
         create_block(g, mod)
 
-        g.send_with_block :new, 6
+        g.send_with_block :new, 7
       end
     end
 
@@ -139,7 +145,7 @@ module Atomy
       extend SentientNode
 
       children :body, :receiver, [:arguments], :block?
-      attributes :name
+      attributes :name, :always_match?
 
       alias method_name name
 
@@ -172,7 +178,7 @@ module Atomy
       extend SentientNode
 
       children :body, [:arguments], :block?
-      attributes :name
+      attributes :name, :always_match?
 
       def receiver_pattern(mod)
         Patterns::Any.new

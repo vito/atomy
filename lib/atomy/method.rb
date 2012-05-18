@@ -13,10 +13,10 @@ end
 module Atomy
   class Branch
     attr_accessor :module, :name, :body, :receiver, :required, :defaults,
-                  :splat, :block
+                  :splat, :block, :always_match
 
     def initialize(mod, receiver, required = [], defaults = [],
-                   splat = nil, block = nil, &body)
+                   splat = nil, block = nil, always_match = false, &body)
       @module = mod
       @body = (body && body.block) || proc { raise "branch has no body" }
       @receiver = receiver
@@ -24,6 +24,7 @@ module Atomy
       @defaults = defaults
       @splat = splat
       @block = block
+      @always_match = always_match
     end
 
     def ==(b)
@@ -138,17 +139,20 @@ module Atomy
 
       always_matches =
         @branches.any? { |b|
-          # receiver must always match
-          b.receiver.always_matches_self? &&
-            # must take no arguments (otherwise calling with invalid arg count
-            # would mismatch, as branches can take different arg sizes)
-            #
-            # TODO?: if all branches take same arg size, check if any are
-            # wildcards
-            (b.total_args == 0) &&
+          # branch indicates the method should never fail (e.g. expansion)
+          b.always_match ||
 
-            # and either have no splat or a wildcard splat
-            (!b.splat || b.splat.wildcard?)
+            # receiver must always match
+            b.receiver.always_matches_self? &&
+              # must take no arguments (otherwise calling with invalid arg count
+              # would mismatch, as branches can take different arg sizes)
+              #
+              # TODO?: if all branches take same arg size, check if any are
+              # wildcards
+              (b.total_args == 0) &&
+
+              # and either have no splat or a wildcard splat
+              (!b.splat || b.splat.wildcard?)
         }
 
       if has_args
@@ -160,7 +164,9 @@ module Atomy
 
       build_methods(g, @branches, done)
 
-      unless always_matches
+      if always_matches
+        g.push_nil
+      else
         unless @name == :initialize
           no_super = g.new_label
 

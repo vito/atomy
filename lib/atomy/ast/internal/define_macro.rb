@@ -30,7 +30,8 @@ module Atomy
                 [Atomy::AST::QuasiQuote.new(0, @pattern)],
                 []))
           ],
-          name)
+          name,
+          true)
       end
 
       def bytecode(g, mod)
