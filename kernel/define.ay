@@ -12,19 +12,19 @@ macro((~name)(~*args) = ~body):
   DefineFunction new(node line, body, args, name text)
 
 macro((~name)(~*args) &~b = ~body):
-  DefineFunction new(node line, body, args, name text, false, b)
+  DefineFunction new(node line, body, args, name text, b)
 
 macro(~(x: `((~_)(~*_)?)) = ~body):
   DefineFunction new(node line, body, arguments(x), message-name(x))
 
 macro(~(x: `((~_)(~*_)?)) &~b = ~body):
-  DefineFunction new(node line, body, arguments(x), message-name(x), false, b)
+  DefineFunction new(node line, body, arguments(x), message-name(x), b)
 
 macro(~(x: `((~_)(~*_)!)) = ~body):
   DefineFunction new(node line, body, arguments(x), message-name(x))
 
 macro(~(x: `((~_)(~*_)!)) &~b = ~body):
-  DefineFunction new(node line, body, arguments(x), message-name(x), false, b)
+  DefineFunction new(node line, body, arguments(x), message-name(x), b)
 
 arguments(b: Atomy AST Infix) = [b right]
 arguments(? to-word) = []
@@ -90,7 +90,6 @@ macro(~x := ~y):
     receiver(x),
     arguments(x),
     message-name(x),
-    false,
     block(x))
 
 

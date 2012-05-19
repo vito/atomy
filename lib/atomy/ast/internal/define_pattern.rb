@@ -25,6 +25,7 @@ module Atomy
             @module_name
           ],
           :_pattern,
+          nil,
           true)
       end
 
