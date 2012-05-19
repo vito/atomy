@@ -169,14 +169,13 @@ macro(grammar: ~*body): names [g]:
         `(~g add-foreign-grammar(~(name text to-s), ~const-name(const)))
 
       `(%~name = ~expr) -> do:
-        -- TODO: fix this, yo
         call =
           if(^vars)
             then:
-              ^vars << `{ ~*xs }
-              "vars[" + (^vars size - 1) to-s + "][]"
+              ^vars << expr
+              "vars[" + (^vars size - 1) to-s + "]"
             else:
-              `{ ~*xs }
+              expr
 
         `(~g set-variable(~(name text to-s), call))
 
