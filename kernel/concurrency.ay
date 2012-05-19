@@ -3,7 +3,7 @@ use("define")
 use("array")
 
 -- TODO: HACK: this gives us pairs-from
-use("control-flow")
+cont = require("control-flow")
 
 require("actor")
 
@@ -13,7 +13,7 @@ macro(receive ~(body: Block)):
   names [e]:
     bs =
       `(~e when(make-pattern('~pat)) [~pat]: ~exp)
-        for [pat, exp] in pairs-from(body contents)
+        for [pat, exp] in cont pairs-from(body contents)
 
     `(Actor receive [~e]: ~*bs)
 
@@ -21,7 +21,7 @@ macro(receive ~(body: Block) after(~timeout) ~(action: Block)):
   names [e]:
     bs =
       `(~e when(make-pattern('~pat)) [~pat]: ~exp)
-        for [pat, exp] in pairs-from(body contents)
+        for [pat, exp] in cont pairs-from(body contents)
 
     `(Actor receive [~e]:
         ~*bs

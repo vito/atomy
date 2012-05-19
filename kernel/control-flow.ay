@@ -88,20 +88,19 @@ macro(next):
 macro(next(~x)):
   Next new(node line, x)
 
--- TODO: function
-key-from(x) := x
-key-from(x: Atomy AST Compose) :=
+key-from(x) = x
+key-from(x: Atomy AST Compose) =
   if(x right is-a(Atomy AST Block)?)
     then: x
     else: x right
 
-pair-from(x) :=
+pair-from(x) =
   raise("unknown pair `" + x inspect + "'")
 
-pair-from(`(~k -> ~v)) :=
+pair-from(`(~k -> ~v)) =
   [[k, v]]
 
-pair-from(p: `(~x { ~*ys })) := do:
+pair-from(p: `(~x { ~*ys })) = do:
   this = [[key-from(x), `(do: ~*ys)]]
 
   if(x is-a(Atomy AST Compose)? and not x right is-a(Atomy AST Block)?)
