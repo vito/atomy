@@ -146,6 +146,12 @@ macro([~*_] &~_):
     s private = true
     s block = node right
 
+-- Foo &bar
+macro(~(c: Constant) &~_):
+  `((~c)()) to-send tap [x]:
+    x message-name = c name
+    x block = node right
+
 -- Foo(...)
 macro((~(c: Constant))(~*args)):
   node to-send tap [x]:
@@ -157,7 +163,28 @@ macro((~(c: Constant))(~*args) &~_):
     x message-name = c name
     x block = node right
 
--- TODO?: x Foo(...)
+-- x Foo(...)
+macro(~r (~(c: Constant))(~*args)):
+  node right to-send tap [x]:
+    x message-name = c name
+    x receiver = r
+    x private = false
+
+-- x Foo &baz
+macro(~r ~(c: Constant) &~_):
+  `((~c)()) to-send tap [x]:
+    x message-name = c name
+    x receiver = r
+    x block = node right
+    x private = false
+
+-- x Foo(...) &baz
+macro(~r (~(c: Constant))(~*args) &~_):
+  `((~c)(~*args)) to-send tap [x]:
+    x message-name = c name
+    x receiver = r
+    x block = node right
+    x private = false
 
 macro(_LINE): node line
 macro(_FILE): ActivePath new(node line)
