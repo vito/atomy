@@ -281,23 +281,32 @@ module Atomy::Patterns
           pats = x.send(c).dup
 
           if pats.last && pats.last.splice?
-            splice = pats.pop
+            splice = pats.last
+            pats = pats[0..-2]
           end
 
-          # TODO: only handle trailing defaults
-          defaults, required = pats.partition do |x|
-            x.unquote? && x.expression.pattern.is_a?(Default)
+          defaults = 0
+          pats.reverse_each do |p|
+            if p.unquote? && p.expression.pattern.is_a?(Default)
+              defaults += 1
+            else
+              break
+            end
           end
+
+          required = pats.size - defaults
 
           @g.dup
           @g.send c, 0
 
-          required.each do |p|
+          required.times do |i|
             @g.shift_array
-            go(p)
+            go(pats[i])
           end
 
-          defaults.each.with_index do |d, i|
+          defaults.times do |i|
+            d = pats[required + i]
+
             has = @g.new_label
             match = @g.new_label
 
