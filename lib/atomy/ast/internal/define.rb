@@ -33,8 +33,7 @@ module Atomy
 
         args = make_arguments(mod)
 
-        blk = new_block_generator g, args
-        blk.name = @name
+        blk = new_generator g, @name, args
 
         blk.push_state self
 
