@@ -58,7 +58,7 @@ NoRestartError message := "unknown restart " + pretty show(@restart)
 EndOfFile message := "unexpected end-of-file for " + pretty show(@port)
 
 
-macro(~body bind { ~*handlers }):
+macro(~body bind: ~*handlers):
   names [a]:
     callback = `([~a]: ~a match: ~*handlers)
     `(let(Handlers = Handler new(~callback, ^Handlers)):
@@ -66,7 +66,7 @@ macro(~body bind { ~*handlers }):
           (e: StandardError) -> /error(e))
 
 
-macro(with-restarts(~*restarts) ~(block: Block)):
+macro(with-restarts(~*restarts): ~*body):
   pairs = pairs-from(restarts)
 
   rs = pairs collect [n, e]:
@@ -74,12 +74,12 @@ macro(with-restarts(~*restarts) ~(block: Block)):
         ~message-name(n)
         [~*arguments(n)] &~block(n) { ~e }))
 
-  body =
-    pairs reduce(`{ ~block rescue: (e: StandardError) -> /error(e) })
+  with =
+    pairs reduce(`{ { ~*body } rescue: (e: StandardError) -> /error(e) })
       [x, [name, _]]:
         `{ catch(~catcher(name)) ~x }
 
-  `(let(Restarts = [~*rs] + ^Restarts) ~body)
+  `(let(Restarts = [~*rs] + ^Restarts) ~with)
 
 
 restart(name, *args) := do:
