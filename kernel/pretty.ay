@@ -143,6 +143,8 @@ doc(h: Hash) :=
 
 doc(w: Atomy AST Word) := ident(w text to-s)
 
+grouped(x) = from(.top): parens(render(x))
+
 Atomy AST open:
   /unamb(
       x:
@@ -163,19 +165,19 @@ Atomy AST open:
   /unamb(c: Compose) :=
     if(from(.infix, .compose)?)
       then: render(c)
-      else: parens(render(c))
+      else: grouped(c)
   /unamb(s: Send) :=
     if(from(.infix, .compose)?)
       then: render(s)
-      else: parens(render(s))
+      else: grouped(s)
   /unamb(p: Prefix | Postfix | QuasiQuote | Quote | Unquote) :=
     if(from(.postfix)?)
-      then: parens(render(p))
+      then: grouped(p)
       else: render(p)
   /unamb(p: Pattern) :=
     unamb(p pattern)
   /unamb(n: Node) :=
-    parens(render(n))
+    grouped(n)
 
 
   /doc(b: Infix) :=
@@ -325,8 +327,8 @@ Atomy Patterns open:
 
   /unamb(
       x: And | Attribute | Default | HeadTail | Or | Predicate | With) :=
-    parens(render(x))
+    grouped(x)
   /unamb(n: Named) :=
     if(n pattern is-a(Any)?)
       then: render(n)
-      else: parens(render(n))
+      else: grouped(n)
