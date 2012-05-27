@@ -135,7 +135,7 @@ be(w, k, [i, d] . ds, pref = false) =
     Nest(j, x) -> be(w, k, [i + j, x] . ds, pref)
     Text(s)    -> SText new(s, { be(w, k + s size, ds, pref) })
     Raw(s)     -> SRaw new(s, { be(w, k, ds, pref) })
-    Line(s)    -> SLine new(s, i, { be(w, i, ds, pref) })
+    Line(s)    -> SLine new(s, i, { be(w, i, ds, false) })
     Column(f)  -> be(w, k, [i, f[k]] . ds, pref)
     Nesting(f) -> be(w, k, [i, f[i]] . ds, pref)
     Union:
