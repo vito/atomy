@@ -5,6 +5,7 @@ use("control-flow")
 use("comparison")
 use("array")
 use("patterns")
+use("condition")
 
 infix("</> <//> <$> <$$>", 60, .right)
 infix("<> <+>", 70, .right)
@@ -17,7 +18,7 @@ data(Doc):
   Text(@value)
   Raw(@value)
   Line(@space?)
-  Union(@x-thunk, @y-thunk)
+  Union(@x-thunk, @y-thunk, @prefer? = false)
   Column(@thunk) -- @thunk is (Integer -> Doc)
   Nesting(@thunk) -- @thunk is (Integer -> Doc)
 
@@ -40,7 +41,7 @@ Nest    to-sexp := [.nest, @depth, @doc]
 Text    to-sexp := [.text, @value]
 Raw     to-sexp := [.raw, @value]
 Line    to-sexp := [.line, @space?]
-Union   to-sexp := [.union, x to-sexp, y to-sexp]
+Union   to-sexp := [.union, x to-sexp, y to-sexp, @prefer?]
 Column  to-sexp := .column
 Nesting to-sexp := .nesting
 
@@ -58,6 +59,9 @@ Doc <> y     := Cat new(self, y)
 
 Proc <|> y := Union new(self, y)
 Doc  <|> y := Union new({ self }, { y })
+
+Proc <||> y := Union new(self, y, true)
+Doc  <||> y := Union new({ self }, { y }, true)
 
 Doc nest(i) := Nest new(i, self)
 
@@ -97,10 +101,20 @@ Empty </> y     := y
 Doc   </> Empty := self
 Doc   </> y     := self <> /softline <> y
 
+-- concatenates two documents, with a `suggestline' in between
+Empty <\> y     := y
+Doc   <\> Empty := self
+Doc   <\> y     := self <> /suggestline <> y
+
 -- concatenates two documents, with a `softbreak' in between
 Empty <//> y     := y
 Doc   <//> Empty := self
 Doc   <//> y     := self <> /softbreak <> y
+
+-- concatenates two documents, with a `suggestbreak' in between
+Empty <\\> y     := y
+Doc   <\\> Empty := self
+Doc   <\\> y     := self <> /suggestbreak <> y
 
 -- concatenates two documents, with a `line' in between
 Empty <$> y     := y
@@ -113,28 +127,44 @@ Doc   <$$> Empty := self
 Doc   <$$> y     := self <> /linebreak <> y
 
 -- helper for `best' by linearizing documents
-be(_, _, []) = SEmpty new
-be(w, k, [i, d] . ds) =
+be(_, _, [], pref = false) = SEmpty new
+be(w, k, [i, d] . ds, pref = false) =
   d match:
-    Empty      -> be(w, k, ds)
-    Cat(x, y)  -> be(w, k, [[i, x], [i, y]] + ds)
-    Nest(j, x) -> be(w, k, [i + j, x] . ds)
-    Text(s)    -> SText new(s, { be(w, k + s size, ds) })
-    Raw(s)     -> SRaw new(s, { be(w, k, ds) })
-    Line(s)    -> SLine new(s, i, { be(w, i, ds) })
-    Column(f)  -> be(w, k, [i, f[k]] . ds)
-    Nesting(f) -> be(w, k, [i, f[i]] . ds)
+    Empty      -> be(w, k, ds, pref)
+    Cat(x, y)  -> be(w, k, [[i, x], [i, y]] + ds, pref)
+    Nest(j, x) -> be(w, k, [i + j, x] . ds, pref)
+    Text(s)    -> SText new(s, { be(w, k + s size, ds, pref) })
+    Raw(s)     -> SRaw new(s, { be(w, k, ds, pref) })
+    Line(s)    -> SLine new(s, i, { be(w, i, ds, pref) })
+    Column(f)  -> be(w, k, [i, f[k]] . ds, pref)
+    Nesting(f) -> be(w, k, [i, f[i]] . ds, pref)
     Union:
-      flattened = be(w, k, [i, d x] . ds)
-      if(flattened fits(w - k)?)
-        then: flattened
-        else: be(w, k, [i, d y] . ds)
+      if(d prefer? and not pref)
+        then:
+          { with-restarts(use-fit -> be(w, k, [i, d y] . ds, false)):
+              flattened = be(w, k, [i, d x] . ds, true)
+              if(flattened fits(w - k)?)
+                then:
+                  flattened
+                else:
+                  /signal(.no-fit)
+          } bind:
+            .no-fit -> /restart(.use-fit)
+        else:
+          flattened = be(w, k, [i, d x] . ds, pref)
+          if(flattened fits(w - k)?)
+            then:
+              flattened
+            else:
+              /signal(.no-fit)
+              be(w, k, [i, d y] . ds, pref)
 
 -- find the best configuration to fit document X in width w
 Doc best(w, k) := be(w, k, [[0, self]])
 
 -- test that a document can fit in a given width
 SText fits(w)? := w >= 0 and rest fits(w - @value size)?
+SRaw  fits(w)? := w >= 0 and rest fits(w)?
 SDoc  fits(w)? := w >= 0
 
 -- rendering to a string
@@ -176,8 +206,11 @@ linebreak := Line new(false)
 column &f := Column new(f)
 nesting &f := Nesting new(f)
 group(x) := { x flatten } <|> { x }
+preferred-group(x) := { x flatten } <||> { x }
 softline := group(line)
 softbreak := group(linebreak)
+suggestline := preferred-group(line)
+suggestbreak := preferred-group(linebreak)
 
 -- render x with the nesting level set to the current column
 align(x) :=
@@ -202,12 +235,14 @@ hsep(xs) := xs inject-right(empty) [x, y]: x <+> y
 vsep(xs) := xs inject-right(empty) [x, y]: x <$> y
 sep(xs) := group(vsep(xs))
 fill-sep(xs) := xs inject-right(empty) [x, y]: x </> y
+suggest-sep(xs) := xs inject-right(empty) [x, y]: x <\> y
 
 -- concatenating lists
 hcat(xs) := xs inject-right(empty) [x, y]: x <> y
 vcat(xs) := xs inject-right(empty) [x, y]: x <$$> y
 cat(xs) := group(vcat(xs))
 fill-cat(xs) := xs inject-right(empty) [x, y]: x <//> y
+suggest-cat(xs) := xs inject-right(empty) [x, y]: x <\\> y
 
 -- fill a document with whitespace to width `i'
 fill(i, d) :=

@@ -9,7 +9,7 @@ use("array")
 use("dynamic")
 
 io = use("io")
-pretty = require("pretty")
+pretty() = @pretty ||= require("pretty")
 
 data(Handler(@callback, @rest = nil)):
   BaseHandler()
