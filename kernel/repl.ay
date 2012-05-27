@@ -76,9 +76,7 @@ repl(history = nil, module = nil, debug = false) := do:
 
   sane-history = []
 
-  { let(condition Debugger = ReplDebugger,
-        pretty Multiline = true,
-        pretty Colored = true):
+  { let(condition Debugger = ReplDebugger):
       frame = 0
 
       { basic-repl(module, debug)
@@ -100,7 +98,9 @@ repl(history = nil, module = nil, debug = false) := do:
           (dbg module = module)
 
         .evaluated(r) ->
-          puts((text(" =>") <+> pretty doc(r)) render(76))
+          let(pretty Multiline = true,
+              pretty Colored = true):
+            puts((text(" =>") <+> pretty doc(r)) render(76))
   } ensuring:
     when(history):
       File open(history, "a") [f]:
