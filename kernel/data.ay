@@ -54,6 +54,11 @@ define-class(root, `((~name)(~*as): ~*cs)) = do:
 
             ~copy
 
+          inspect :=
+            ~(name name to-s) + "(" +
+              [~*attrs] collect .inspect join(", ") +
+              ")"
+
         ~pat-def
 
         ~*(cs collect [c]: define-class(name, c)))
