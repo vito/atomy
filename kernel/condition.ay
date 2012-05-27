@@ -155,7 +155,6 @@ DefaultDebugger(e) show-restarts := do:
 DefaultDebugger(e) show-backtrace := do:
   Atomy trim-backtrace(e backtrace)!
   puts(Rubinius Backtrace backtrace(e backtrace) show)
-  exit(1)
 
 DefaultDebugger(e) run := do:
   show-banner
@@ -163,6 +162,7 @@ DefaultDebugger(e) run := do:
   if(^Restarts empty?)
     then:
       show-backtrace
+      exit(1)
     else:
       show-restarts
 
