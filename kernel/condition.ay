@@ -8,7 +8,7 @@ use("array")
 
 use("dynamic")
 
-io = require("io")
+io = use("io")
 pretty = require("pretty")
 
 data(Handler(@callback, @rest = nil)):
