@@ -180,27 +180,11 @@ Atomy AST open:
     grouped(n)
 
 
-  /doc(b: Infix) :=
-    from(.infix):
-      ( if(b private)
-          then:
-            text(b operator) </> unamb(b right)
-          else:
-            unamb(b left) <+> text(b operator) <\> unamb(b right)
-      ) hang(2)
-
-  /doc(b: Block) := do:
-    args =
-      if(b arguments empty?)
-        then: empty
-        else: list(render-sequence(b arguments))
-
-    contents = body(b contents)
-
-    align(args <+> (lbrace </> contents) nest(2) <\> rbrace)
-
-  /doc(c: Call) :=
-    from(.call) { unamb(c name) } <> tupled(render-sequence(c arguments))
+  braces-block(contents, left = /empty) =
+    align(left <+> (lbrace <+> body(contents)) nest(2) <+> rbrace) <||>
+      if(left empty?)
+        then: align((lbrace <+> vbody(contents)) nest(2) <$> rbrace)
+        else: align(left <+> (lbrace <$> vbody(contents)) nest(2) <$> rbrace)
 
   proc-arg(left, contents) =
     if(from(.top)?)
@@ -211,8 +195,27 @@ Atomy AST open:
 
         align((left <> block) nest(2))
       else:
-        align((left <+> lbrace <\> body(contents)) nest(2) <\> rbrace)
+        braces-block(contents, left)
 
+
+  /doc(b: Infix) :=
+    from(.infix):
+      ( if(b private)
+          then:
+            text(b operator) </> unamb(b right)
+          else:
+            unamb(b left) <+> text(b operator) <\> unamb(b right)
+      ) hang(2)
+
+  /doc(b: Block) :=
+    braces-block(
+      b contents
+      if(b arguments empty?)
+        then: empty
+        else: list(render-sequence(b arguments)))
+
+  /doc(c: Call) :=
+    from(.call) { unamb(c name) } <> tupled(render-sequence(c arguments))
 
   /doc(`(~x [~*ys] { ~*zs })) :=
     proc-arg(
