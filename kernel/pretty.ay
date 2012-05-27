@@ -186,7 +186,7 @@ Atomy AST open:
           then:
             text(b operator) </> unamb(b right)
           else:
-            unamb(b left) <+> text(b operator) </> unamb(b right)
+            unamb(b left) <+> text(b operator) <\> unamb(b right)
       ) hang(2)
 
   /doc(b: Block) := do:
