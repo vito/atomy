@@ -47,6 +47,16 @@ render-sequence([x]) = [from(.top): render(x)]
 render-sequence(x . xs) = [from(.list): render(x)] + render-sequence(xs)
 
 tree(xs) = align(fill-sep(comma punctuate(xs)))
+body(xs) = tree(render-sequence(xs))
+
+vtree(xs) = align(vcat(xs))
+vbody(xs) = from(.top): vtree(render(x) for x in xs)
+
+array(xs) =
+  enclose(
+    lbracket
+    rbracket
+    align(suggest-sep(comma punctuate(xs))))
 
 colored(color, doc) = do:
   unless(^Colored and ^(io OutputPort) tty?):
@@ -183,20 +193,48 @@ Atomy AST open:
         then: empty
         else: list(render-sequence(b arguments))
 
-    contents = tree(render-sequence(b contents))
+    contents = body(b contents)
 
-    align(args <+> (lbrace </> contents) nest(2) </> rbrace)
+    align(args <+> (lbrace </> contents) nest(2) <\> rbrace)
 
   /doc(c: Call) :=
-    render(c name) <> tupled(render-sequence(c arguments))
+    unamb(c name) <> tupled(render-sequence(c arguments))
 
-  /doc(c: Compose) := render(c left) <+> render(c right)
+  proc-arg(left, contents) =
+    if(from(.top)?)
+      then:
+        block =
+          (colon <+> body(contents)) <||>
+            (colon <$> vbody(contents))
+
+        align((left <> block) nest(2))
+      else:
+        align((left <+> lbrace <\> body(contents)) nest(2) <\> rbrace)
+
+
+  /doc(`(~x [~*ys] { ~*zs })) :=
+    proc-arg(
+      from(.compose) { unamb(x) } <+>
+        list(render-sequence(ys))
+      zs)
+
+  /doc(`(~x { ~*ys })) := do:
+    proc-arg(
+      from(.compose): unamb(x)
+      ys)
+
+  /doc(c: Compose) :=
+    from(.compose):
+      unamb(c left) <+> unamb(c right)
 
   /doc(c: Constant) := text(c name)
 
   /doc(l: List) :=
-    from(.list):
-      list(render-sequence(l elements))
+    array(render-sequence(l elements)) <||>
+      align(
+        lbracket <+>
+          vbody(l elements) <$>
+          rbracket)
 
   /doc(l: Literal) := render(l value)
 
@@ -241,8 +279,8 @@ Atomy AST open:
 
   /doc(t: Tree) :=
     if(^Multiline)
-      then: from(.top): vcat(render-sequence(t nodes))
-      else: from(.list): tree(render-sequence(t nodes))
+      then: vbody(t nodes)
+      else: body(t nodes)
 
   /doc(p: Pattern) := render(p pattern)
 
@@ -256,7 +294,7 @@ Atomy Patterns open:
   /doc(c: Constant) := render(c constant)
   /doc(d: Default) := render(`(~(d pattern) = ~(d default)))
   /doc(h: HeadTail) := render(`(~(h head) . ~(h tail)))
-  /doc(l: List) := list(render-sequence(@patterns))
+  /doc(l: List) := array(render-sequence(@patterns))
   /doc(l: Literal) := render(l value)
   /doc(m: Match) := render(m value)
   /doc(n: Named) :=
