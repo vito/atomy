@@ -171,7 +171,7 @@ Atomy AST open:
       then: render(s)
       else: grouped(s)
   /unamb(p: Prefix | Postfix | QuasiQuote | Quote | Unquote) :=
-    if(from(.postfix)?)
+    if(from(.postfix, .call)?)
       then: grouped(p)
       else: render(p)
   /unamb(p: Pattern) :=
@@ -200,7 +200,7 @@ Atomy AST open:
     align(args <+> (lbrace </> contents) nest(2) <\> rbrace)
 
   /doc(c: Call) :=
-    unamb(c name) <> tupled(render-sequence(c arguments))
+    from(.call) { unamb(c name) } <> tupled(render-sequence(c arguments))
 
   proc-arg(left, contents) =
     if(from(.top)?)
