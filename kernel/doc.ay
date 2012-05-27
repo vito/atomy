@@ -126,41 +126,41 @@ Empty <$$> y     := y
 Doc   <$$> Empty := self
 Doc   <$$> y     := self <> /linebreak <> y
 
+-- predeclare so pick-union can use it
+fit() = nil
+
+-- chose the side of a Union that best fits the given width
+pick-union(w, k, i, ds, x, y, prefer?) = do:
+  flattened = fit(w, k, [i, x] . ds, prefer?)
+  if(flattened fits(w - k)?)
+    then: flattened
+    else:
+      /signal(.no-fit)
+      fit(w, k, [i, y] . ds, prefer?)
+
 -- helper for `best' by linearizing documents
-be(_, _, [], pref = false) = SEmpty new
-be(w, k, [i, d] . ds, pref = false) =
+fit(_, _, [], pref = false) = SEmpty new
+fit(w, k, [i, d] . ds, pref = false) =
   d match:
-    Empty      -> be(w, k, ds, pref)
-    Cat(x, y)  -> be(w, k, [[i, x], [i, y]] + ds, pref)
-    Nest(j, x) -> be(w, k, [i + j, x] . ds, pref)
-    Text(s)    -> SText new(s, { be(w, k + s size, ds, pref) })
-    Raw(s)     -> SRaw new(s, { be(w, k, ds, pref) })
-    Line(s)    -> SLine new(s, i, { be(w, i, ds, false) })
-    Column(f)  -> be(w, k, [i, f[k]] . ds, pref)
-    Nesting(f) -> be(w, k, [i, f[i]] . ds, pref)
+    Empty      -> fit(w, k, ds, pref)
+    Cat(x, y)  -> fit(w, k, [[i, x], [i, y]] + ds, pref)
+    Nest(j, x) -> fit(w, k, [i + j, x] . ds, pref)
+    Text(s)    -> SText new(s, { fit(w, k + s size, ds, pref) })
+    Raw(s)     -> SRaw new(s, { fit(w, k, ds, pref) })
+    Line(s)    -> SLine new(s, i, { fit(w, i, ds, false) })
+    Column(f)  -> fit(w, k, [i, f[k]] . ds, pref)
+    Nesting(f) -> fit(w, k, [i, f[i]] . ds, pref)
     Union:
       if(d prefer? and not pref)
         then:
-          { with-restarts(use-fit -> be(w, k, [i, d y] . ds, false)):
-              flattened = be(w, k, [i, d x] . ds, true)
-              if(flattened fits(w - k)?)
-                then:
-                  flattened
-                else:
-                  /signal(.no-fit)
+          { with-restarts(use-fit -> fit(w, k, [i, d y] . ds, false)):
+              pick-union(w, k, i, ds, d x, d y, true)
           } bind:
             .no-fit -> /restart(.use-fit)
-        else:
-          flattened = be(w, k, [i, d x] . ds, pref)
-          if(flattened fits(w - k)?)
-            then:
-              flattened
-            else:
-              /signal(.no-fit)
-              be(w, k, [i, d y] . ds, pref)
+        else: pick-union(w, k, i, ds, d x, d y, pref)
 
 -- find the best configuration to fit document X in width w
-Doc best(w, k) := be(w, k, [[0, self]])
+Doc best(w, k) := fit(w, k, [[0, self]])
 
 -- test that a document can fit in a given width
 SText fits(w)? := w >= 0 and rest fits(w - @value size)?
