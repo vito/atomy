@@ -30,9 +30,9 @@ data(SDoc):
 
 -- helpful for debugging
 SEmpty to-sexp := .sempty
-SText  to-sexp := [.stext, @value, @next-thunk [] to-sexp]
-SRaw   to-sexp := [.sraw, @value, @next-thunk [] to-sexp]
-SLine  to-sexp := [.sline, @space?, @indentation, @next-thunk [] to-sexp]
+SText  to-sexp := [.stext, @value, @rest-thunk [] to-sexp]
+SRaw   to-sexp := [.sraw, @value, @rest-thunk [] to-sexp]
+SLine  to-sexp := [.sline, @space?, @indentation, @rest-thunk [] to-sexp]
 
 Empty   to-sexp := .empty
 Cat     to-sexp := [.cat, @x to-sexp, @y to-sexp]
@@ -74,7 +74,7 @@ Column(f)   flatten := /(column [x]: f [x] flatten)
 Nesting(f)  flatten := /(nesting [x]: f [x] flatten)
 
 -- hanging indentation
-Doc hang(i) := /align(/nest(i))
+Doc hang(i) := /align(nest(i))
 
 -- full indentation
 Doc indent(i) := (/text(" " * i) <> self) hang(i)
