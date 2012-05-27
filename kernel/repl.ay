@@ -44,12 +44,12 @@ condition DefaultDebugger data(ReplDebugger(@error))
 ReplDebugger open:
   attr-accessor(.module)
 
-ReplDebugger(e) run := do:
+ReplDebugger run := do:
   /signal(.debug(self))
 
   show-banner
 
-  with-restarts(backtrace -> show-backtrace(e)):
+  with-restarts(backtrace -> show-backtrace):
     debug
 
 ReplDebugger debug := do:
