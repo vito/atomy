@@ -104,23 +104,31 @@ Atomy Patterns open:
 
     target(g, mod) := @a target(g, mod)
 
-    matches(g, mod)? := do:
-      mismatch = g new-label
-      done = g new-label
+    matches(g, mod)? :=
+      condition:
+        @a wildcard? ->
+          @b matches(g, mod)?
 
-      g dup
-      @a matches(g, mod)?
-      g gif(mismatch)
+        @b wildcard? ->
+          @a matches(g, mod)?
 
-      @b matches(g, mod)?
-      g dup
-      g git(done)
+        otherwise:
+          mismatch = g new-label
+          done = g new-label
 
-      mismatch set!
-      g pop
-      g push-false
+          g dup
+          @a matches(g, mod)?
+          g gif(mismatch)
 
-      done set!
+          @b matches(g, mod)?
+          g dup
+          g git(done)
+
+          mismatch set!
+          g pop
+          g push-false
+
+          done set!
 
     deconstruct(g, mod, locals = Hash new) := do:
       g dup
