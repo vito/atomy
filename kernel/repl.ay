@@ -100,7 +100,7 @@ repl(history = nil, module = nil, debug = false) := do:
         .evaluated(r) ->
           let(pretty Multiline = true,
               pretty Colored = true):
-            puts((text(" =>") <+> pretty doc(r)) render(76))
+            puts((text(" =>") <+> pretty doc(r)) render(56))
   } ensuring:
     when(history):
       File open(history, "a") [f]:
