@@ -24,6 +24,12 @@ module Atomy
       end
     end
 
+    def create(cls, *args)
+      n = cls.new(*args)
+      n.file = @module.file if @module
+      n
+    end
+
     def operator?(x)
       if @module
         !!@module.infix_info(x)

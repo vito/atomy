@@ -59,7 +59,10 @@ module Atomy
     end
 
     module NodeLike
-      attr_accessor :line
+      # source location
+      #
+      # file should be an absolute file path
+      attr_accessor :line, :file
 
       # the module this node was constructed in
       attr_reader :context

@@ -65,10 +65,10 @@ module Atomy
             node = vars.locals[node_idx]
 
             ctx =
-              if node.context
-                "#{node.context.name}:#{node.line}"
+              if node.file
+                "#{File.basename(node.file)}:#{node.line}"
               else
-                "#{node.class.split("::").last}@#{node.line}"
+                "#{node.class.name.split("::").last}@#{node.line}"
               end
 
             str = "expand(#{ctx})"

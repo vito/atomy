@@ -50,7 +50,7 @@ module Atomy
     end
 
     def compile(gen, node)
-      expand(node.in_context(self)).bytecode(gen, self)
+      expand(node).bytecode(gen, self)
     end
 
     def eval(string_or_node, line = 1, debug = false)
