@@ -4,13 +4,12 @@ Gem::Specification.new do |s|
   s.name = "atomy"
 
   s.version = Atomy::VERSION
-  s.date = "2011-02-26"
 
   s.authors = ["Alex Suraci"]
-  s.email = "i.am@toogeneric.com"
+  s.email = "suraci.alex@gmail.com"
 
   s.license = "BSD"
-  s.homepage = "http://www.atomy-lang.org"
+  s.homepage = "http://atomy-lang.org"
   s.summary = "the Atomy programming language"
   s.description = s.summary
   s.has_rdoc = false
@@ -21,12 +20,9 @@ Gem::Specification.new do |s|
 
   ignores = File.readlines(".gitignore").grep(/\S+/).map(&:chomp)
 
-  s.files = Dir["**/*"].reject { |f|
-    File.directory?(f) ||
-      ignores.any? { |i| File.fnmatch(i, f) }
-  } + [".gitignore"]
+  s.files = %w{LICENSE Gemfile} + Dir["{lib,kernel,bin}/**/*"]
 
   s.executables = ["atomy"]
 
-  s.require_paths = ['lib']
+  s.require_paths = ["lib"]
 end
