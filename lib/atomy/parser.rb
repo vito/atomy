@@ -47,6 +47,10 @@ module Atomy
       @line_lengths ||= lines.collect { |l| l.size }
     end
 
+    def current_line(x=pos)
+      current_position(x)[0]
+    end
+
     def current_column(x=pos)
       current_position(x)[1]
     end
