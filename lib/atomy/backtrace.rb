@@ -60,19 +60,23 @@ module Atomy
 
           if loc.receiver.is_a?(Atomy::Module) &&
                 loc.method.name.to_s.start_with?("_expand")
-            vars = loc.variables
-            node_idx = vars.method.local_names.to_a.index(:node)
-            node = vars.locals[node_idx]
-
-            ctx =
-              if node.file
-                "#{File.basename(node.file)}:#{node.line}"
-              else
-                "#{node.class.name.split("::").last}@#{node.line}"
-              end
-
-            str = "expand(#{ctx})"
             macro = true
+
+            if vars = loc.variables
+              node_idx = vars.method.local_names.to_a.index(:node)
+              node = vars.locals[node_idx]
+
+              ctx =
+                if node.file
+                  "#{File.basename(node.file.to_s)}:#{node.line}"
+                else
+                  "#{node.class.name.split("::").last}@#{node.line}"
+                end
+
+              str = "expand(#{ctx})"
+            else
+              str = loc.describe
+            end
           elsif loc.receiver.is_a?(Atomy::Module) &&
                   loc.is_block && loc.name == :__script__ &&
                   loc.method.name != :__block__
