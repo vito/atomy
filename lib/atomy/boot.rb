@@ -12,28 +12,17 @@ module Rubinius
 end
 
 module Atomy
-  def self.load(*as)
-    CodeLoader.load_file *as
-  rescue => e
-    trim_backtrace!(e.locations)
-    raise
+  def self.load(file, debug = false)
+    CodeLoader.load_file file, debug
   end
 
-  # clean up internal plumbing from backtraces
-  def self.trim_backtrace!(bt)
-    bt.reject! do |l|
-      # wrapper methods (which call the matching branch)
-      if l.file == "__wrapper__"
-        true
-
-      # module toplevel
-      elsif l.is_block && l.name == :__module_init__ &&
-              l.method.name != :__block__
-        l.name = nil
-        l.flags ^= 1
-        false
-      end
-    end
+  def self.run(file, debug = false)
+    load(file, debug)
+  rescue SystemExit => e
+    Kernel.exit(e.status)
+  rescue Object => e
+    e.render "An exception occurred running #{file}"
+    Kernel.exit(1)
   end
 end
 
@@ -54,3 +43,4 @@ require base + "/patterns"
 require base + "/precision"
 require base + "/code_loader"
 require base + "/rubygems"
+require base + "/backtrace"

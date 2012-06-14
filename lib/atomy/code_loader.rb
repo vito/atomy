@@ -99,8 +99,13 @@ module Atomy
             cl = Rubinius::CodeLoader.new(cfn)
             cm = cl.load_compiled_file(cfn, 0, 0)
 
-            Rubinius.attach_method(:__module_init__, cm, mod.compile_context.constant_scope, mod)
-            mod.__module_init__
+            Rubinius.attach_method(
+              :__script__,
+              cm,
+              mod.compile_context.constant_scope,
+              mod)
+
+            mod.__script__
           end
 
           mod
@@ -111,7 +116,6 @@ module Atomy
             LOADED.delete file
           end
 
-          puts "when loading #{file}..."
           raise
         end
       end

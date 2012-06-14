@@ -52,6 +52,11 @@ ReplDebugger run := do:
   with-restarts(backtrace -> show-backtrace):
     debug
 
+ReplDebugger(e) show-banner := do:
+  puts("-" * 78)
+  (e name + ": " + e message) split("\n") each [l]:
+    puts("*** " + l)
+
 ReplDebugger debug := do:
   show-restarts
 

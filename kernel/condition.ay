@@ -106,13 +106,12 @@ error(x) := do:
         ExceptionError new(x) tap [err]:
           err backtrace = x locations
 
-      Error ->
-        x tap [err]:
-          err backtrace = Rubinius VM backtrace(0)
+      Error -> x
 
-      _ ->
-        SimpleError new(x) tap [err]:
-          err backtrace = Rubinius VM backtrace(0)
+      _ -> SimpleError new(x)
+
+  unless(e backtrace):
+    e backtrace = Rubinius VM backtrace(1, true)
 
   signal(e)
 
@@ -124,13 +123,11 @@ warning(x) :=
   with-restarts(muffle-warning -> nil):
     w =
       x match:
-        Warning ->
-          x tap [wrn]:
-            wrn backtrace = Rubinius VM backtrace(0)
+        Warning -> x
 
-        _ ->
-          SimpleWarning new(x) tap [wrn]:
-            wrn backtrace = Rubinius VM backtrace(0)
+        _ -> SimpleWarning new(x)
+
+    w backtrace = Rubinius VM backtrace(1, true)
 
     signal(w)
 
@@ -143,9 +140,14 @@ warning(x) :=
 data(DefaultDebugger(@error))
 
 DefaultDebugger(e) show-banner := do:
-  puts("-" * 78)
-  (e name + ": " + e message) split("\n") each [l]:
-    puts("*** " + l)
+  puts("An error occurred:")
+
+  (msg . desc) = e message to-s split("\n")
+
+  puts("    " + msg + " (" + e name + ")")
+
+  desc each [l]:
+    puts(l)
 
 DefaultDebugger(e) show-restarts := do:
   puts("")
@@ -153,15 +155,16 @@ DefaultDebugger(e) show-restarts := do:
   ^Restarts each-with-index [r, i]:
     puts("  :" + i to-s + " -> " + r name to-s)
 
-DefaultDebugger(e) show-backtrace := do:
-  Atomy trim-backtrace(e backtrace)!
-  puts(Rubinius Backtrace backtrace(e backtrace) show)
+DefaultDebugger(e) show-backtrace :=
+  puts(Atomy Backtrace backtrace(e backtrace) show)
 
 DefaultDebugger(e) run := do:
   show-banner
 
   if(^Restarts empty?)
     then:
+      puts("")
+      puts("Backtrace:")
       show-backtrace
       exit(1)
     else:

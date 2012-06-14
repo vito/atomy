@@ -26,7 +26,7 @@ module Atomy
 
       meth = proc {}.block.code
       meth.metadata = nil
-      meth.name = :"__module_init__"
+      meth.name = :__script__
       meth.scope = scope
 
       variables = Rubinius::VariableScope.synthesize(
@@ -50,7 +50,7 @@ module Atomy
     end
 
     def compile(gen, node)
-      expand(node).bytecode(gen, self)
+      expand(node.in_context(self)).bytecode(gen, self)
     end
 
     def eval(string_or_node, line = 1, debug = false)
@@ -145,18 +145,6 @@ module Atomy
       else
         node
       end
-    rescue
-      if node.respond_to?(:show)
-        begin
-          $stderr.puts "while expanding #{node.show}"
-        rescue
-          $stderr.puts "while expanding #{node.inspect}"
-        end
-      else
-        $stderr.puts "while expanding #{node.inspect}"
-      end
-
-      raise
     end
 
 
