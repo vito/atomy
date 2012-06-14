@@ -446,7 +446,7 @@ module Atomy
           bnd = Binding.setup(
             Rubinius::VariableScope.of_sender,
             Rubinius::CompiledMethod.of_sender,
-            Rubinius::StaticScope.of_sender)
+            Rubinius::ConstantScope.of_sender)
         end
 
         Atomy::Compiler.eval(self, mod, bnd, *args)

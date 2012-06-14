@@ -4,7 +4,7 @@ class Module
   end
 end
 
-class Rubinius::StaticScope
+class Rubinius::ConstantScope
   def atomy_methods
     @atomy_methods ||= {}
   end
@@ -221,7 +221,7 @@ module Atomy
 
       cm = g.package Rubinius::CompiledMethod
 
-      cm.scope = Rubinius::StaticScope.new(Object)
+      cm.scope = Rubinius::ConstantScope.new(Object)
 
       cm
     end
@@ -339,7 +339,7 @@ module Atomy
         else
           g.push_literal body
           g.push_self
-          g.push_literal body.static_scope
+          g.push_literal body.constant_scope
           if has_args or splat
             g.push_local 0
             g.push_proc
@@ -397,7 +397,7 @@ module Atomy
   end
 
   def self.dynamic_branch(
-      target, name, branch, scope = Rubinius::StaticScope.of_sender)
+      target, name, branch, scope = Rubinius::ConstantScope.of_sender)
     define_branch(target, name, branch, scope)
   end
 end

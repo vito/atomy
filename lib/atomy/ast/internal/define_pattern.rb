@@ -48,12 +48,12 @@ module Atomy
         g.create_block blk
         g.push_self
         g.push_rubinius
-        g.find_const :StaticScope
+        g.find_const :ConstantScope
         g.push_cpath_top
         g.find_const :Atomy
         g.find_const :AST
         g.push_rubinius
-        g.find_const :StaticScope
+        g.find_const :ConstantScope
         g.push_self
         g.send :new, 1
         g.send :new, 2

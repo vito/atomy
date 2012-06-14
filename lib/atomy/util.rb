@@ -68,7 +68,7 @@ module Atomy
   end
 
   def self.current_module
-    scope = Rubinius::StaticScope.of_sender
+    scope = Rubinius::ConstantScope.of_sender
     mod = nil
     while scope
       if scope.module.is_a?(Atomy::Module)

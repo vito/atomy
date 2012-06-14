@@ -4,8 +4,8 @@ use("define")
 use("therie")
 
 describe("definitions"):
-  describe("static scope"):
-    it("retains the proper static scope for each branch"):
+  describe("constant scope"):
+    it("retains the proper constant scope for each branch"):
       module:
         Foo = .first
         0 fizz := [0, Foo]

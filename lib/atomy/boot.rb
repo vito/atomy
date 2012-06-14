@@ -22,12 +22,15 @@ module Atomy
   # clean up internal plumbing from backtraces
   def self.trim_backtrace!(bt)
     bt.reject! do |l|
+      # wrapper methods (which call the matching branch)
       if l.file == "__wrapper__"
         true
-      elsif l.is_block && l.name == :__module_init__ && l.method.name != :__block__
+
+      # module toplevel
+      elsif l.is_block && l.name == :__module_init__ &&
+              l.method.name != :__block__
         l.name = nil
         l.flags ^= 1
-
         false
       end
     end

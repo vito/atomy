@@ -374,7 +374,7 @@ module Atomy::Patterns
         Match.new(:nil).definition_target.must_equal NilClass
       end
 
-      it("targets the static scope's definition target for :self") do
+      it("targets the scope's definition target for :self") do
         # this test is a quirk of definition_target atm
         x = Match.new(:self)
         x.definition_target.must_equal x.singleton_class

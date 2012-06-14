@@ -52,11 +52,11 @@ end
 class Fixnum
   def fib_atomy_blocks(a, b, c)
     if self == 0
-      a.call_under(self, a.static_scope, self)
+      a.call_under(self, a.constant_scope, self)
     elsif self == 1
-      b.call_under(self, b.static_scope, self)
+      b.call_under(self, b.constant_scope, self)
     else
-      c.call_under(self, c.static_scope, self)
+      c.call_under(self, c.constant_scope, self)
     end
   end
 end

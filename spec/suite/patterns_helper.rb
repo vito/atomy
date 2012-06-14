@@ -10,7 +10,7 @@ def match(pat, val)
     Binding.setup(
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledMethod.of_sender,
-      Rubinius::StaticScope.of_sender))
+      Rubinius::ConstantScope.of_sender))
 end
 
 def expr(str)

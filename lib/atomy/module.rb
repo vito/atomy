@@ -20,9 +20,9 @@ module Atomy
     def compile_context
       return @compile_context if @compile_context
 
-      scope = Rubinius::StaticScope.new(
+      scope = Rubinius::ConstantScope.new(
         self,
-        Rubinius::StaticScope.new(Object))
+        Rubinius::ConstantScope.new(Object))
 
       meth = proc {}.block.code
       meth.metadata = nil

@@ -67,7 +67,7 @@ module Atomy
         cm = compile_eval_node string_or_node, mod, binding.variables, file, line, debug
       end
 
-      cm.scope = binding.static_scope
+      cm.scope = binding.constant_scope
       cm.name = binding.variables.method.name
 
       unless cm.scope.script
@@ -114,17 +114,17 @@ module Atomy
           raise ArgumentError, "unknown type of binding"
         end
 
-        filename ||= binding.static_scope.active_path
+        filename ||= binding.constant_scope.active_path
       else
         binding = Binding.setup(Rubinius::VariableScope.of_sender,
                                 Rubinius::CompiledMethod.of_sender,
-                                Rubinius::StaticScope.of_sender,
+                                Rubinius::ConstantScope.of_sender,
                                 self)
 
         filename ||= "(eval)"
       end
 
-      binding.static_scope = binding.static_scope.dup
+      binding.constant_scope = binding.constant_scope.dup
 
       be = Atomy::Compiler.construct_block string_or_node, mod, binding,
                                            filename, lineno, debug
