@@ -26,7 +26,7 @@ macro(//~(c: Constant)):
 macro(/~(c: Constant)):
   ScopedConstant new(node line, 'Self, c name)
 
-macro(/~(w: ? to-word)):
+macro(/~(w ? to-word)):
   x = w to-send
   x receiver = 'Self
   x

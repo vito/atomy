@@ -113,10 +113,10 @@ macro(with-variables-of(~x) ~(b: Block)):
     body = b contents collect [c]:
       c through-quotes([n]: n match: `@~_ -> true) [n]:
         n match:
-          `@@~(name: ? to-word) ->
+          `@@~(name ? to-word) ->
             RedirectedClassVariable new(n line, val, name to-word text)
 
-          `@~(name: ? to-word) ->
+          `@~(name ? to-word) ->
             RedirectedInstanceVariable new(n line, val, name to-word text)
 
           _ -> n
