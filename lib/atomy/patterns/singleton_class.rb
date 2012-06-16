@@ -1,11 +1,12 @@
 module Atomy::Patterns
-  class SingletonClass < Pattern
-    attributes(:body)
+  class SingletonClass < Constant
+    attributes(:body, :value?)
 
     def construct(g, mod)
       get(g)
       @body.construct(g, mod)
-      g.send :new, 1
+      target(g, mod)
+      g.send :new, 2
       g.push_cpath_top
       g.find_const :Atomy
       g.send :current_module, 0
@@ -13,17 +14,18 @@ module Atomy::Patterns
     end
 
     def target(g, mod)
-      mod.compile(g, @body)
-      g.send :singleton_class, 0
+      if @value
+        g.push_literal @value
+      else
+        mod.compile(g, @body)
+        g.send :singleton_class, 0
+      end
     end
 
-    def matches?(g, mod)
-      g.pop
-      g.push_true
-    end
-
-    def wildcard?
-      true
+    def assign(g, mod, e, set = false)
+      mod.compile(g, e)
+      g.dup
+      match(g, mod, set)
     end
   end
 end

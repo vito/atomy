@@ -649,16 +649,22 @@ module Atomy::Patterns
     end
 
     describe(SingletonClass) do
-      it("is a wildcard") do
-        assert SingletonClass.new(nil).wildcard?
+      it("is not a wildcard") do
+        refute SingletonClass.new(nil).wildcard?
       end
 
       it("does not perform binding") do
         refute SingletonClass.new(nil).binds?
       end
 
-      it("matches anything") do
-        SingletonClass.new(nil).must_be :===, Object.new
+      it("matches by singleton class") do
+        x = Object.new
+        p = SingletonClass.new(Atomy::AST::Literal.new(0, x))
+        p.in_context(Atomy::Module.new)
+
+        p.must_be :===, x
+        p.wont_be :===, Object
+        p.wont_be :===, Object.new
       end
 
       it("targets the singleton class of its body for definition") do

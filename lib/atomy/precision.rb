@@ -280,7 +280,13 @@ module Atomy::Patterns
 
   class SingletonClass
     def =~(other)
-      true
+      return false unless other.is_a?(self.class)
+
+      if value && other.value
+        value == other.value
+      else
+        false
+      end
     end
   end
 

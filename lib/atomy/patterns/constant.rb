@@ -5,11 +5,7 @@ module Atomy::Patterns
     def construct(g, mod)
       get(g)
       @constant.construct(g, mod)
-      if @value
-        g.push_literal @value
-      else
-        @constant.bytecode(g, mod)
-      end
+      target(g, mod)
       g.send :new, 2
       g.push_cpath_top
       g.find_const :Atomy
