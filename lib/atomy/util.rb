@@ -28,12 +28,11 @@ module Atomy
 
     scope = ctx
     while scope
-      # TODO: use const_defined? once it's fixed to search
-      begin
+      if scope.module.const_defined?(name)
         return scope.module.const_get(name)
-      rescue NameError
-        scope = scope.parent
       end
+
+      scope = scope.parent
     end
 
     ctx.module.const_missing(name)
