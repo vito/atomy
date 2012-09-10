@@ -10,6 +10,7 @@ use("array")
 use("patterns")
 use("interpolation")
 use("dynamic")
+use("patterns")
 
 doc = use("doc")
 io = require("io")
@@ -92,10 +93,10 @@ show(x) :=
 puts(x) := x tap: ^(io OutputPort) puts(show(x))
 print(x) := x tap: ^(io OutputPort) print(show(x))
 
-doc(o: Object) := text(o inspect)
+doc(x) := text(x inspect)
+
 doc(s: String) := colored(.yellow, text(s inspect gsub("\\#", "#")))
-doc(x: Integer) := colored(.blue, text(x inspect))
-doc(x: Float) := colored(.blue, text(x inspect))
+doc(x: Numeric) := colored(.blue, text(x inspect))
 doc(true) := colored(.green, text("true"))
 doc(false) := colored(.red, text("false"))
 doc(nil) := colored(.black, text("nil"))
@@ -141,8 +142,6 @@ doc(h: Hash) :=
       ) nest(2) </>
         rbrace)
 
-doc(w: Atomy AST Word) := ident(w text to-s)
-
 grouped(x) = from(.top): parens(render(x))
 
 Atomy AST open:
@@ -158,8 +157,6 @@ Atomy AST open:
           | List
           | Literal
           | Primitive
-          | ScopedConstant
-          | ToplevelConstant
           | Word) :=
     render(x)
   /unamb(c: Compose) :=
@@ -251,13 +248,11 @@ Atomy AST open:
     from(.prefix):
       text(p operator) <> unamb(p receiver)
 
-  /doc(p: Primitive) :=
-    p value match:
-      .self -> text("self")
-      .true -> text("true")
-      .false -> text("false")
-      .nil -> text("nil")
-      x -> text(x inspect)
+  /doc(Primitive with(@value, .self)) := text("self")
+  /doc(Primitive with(@value, .true)) := text("true")
+  /doc(Primitive with(@value, .false)) := text("false")
+  /doc(Primitive with(@value, .nil)) := text("nil")
+  /doc(Primitive with(@value, v)) := text(v inspect)
 
   /doc(q: QuasiQuote) :=
     from(.prefix):
@@ -268,13 +263,14 @@ Atomy AST open:
       text("'") <> unamb(q expression)
 
   /doc(s: ScopedConstant) :=
-    from(.scoped-constant):
-      unamb(s parent) <> text("::") <> text(s name)
+    from(.compose):
+      unamb(s parent) <+> text(s name)
 
   /doc(s: StringLiteral) := text(s value inspect gsub("\\#", "#"))
 
   /doc(t: ToplevelConstant) :=
-    text("::") <> text(t name)
+    from(.compose):
+      text("_") <+> text(t name)
 
   /doc(u: Unquote) :=
     from(.prefix):
