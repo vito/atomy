@@ -181,6 +181,7 @@ Atomy Patterns open:
 
   Pattern <=> (a: And) := -(a <=> self)
   Pattern <=> (o: Or) := -(o <=> self)
+  Pattern <=> (w: With) := <=> w pattern
 
   -- an And precedes x if either precede it
   And <=> x :=
@@ -194,12 +195,19 @@ Atomy Patterns open:
       then: -1
       else: @b <=> x
 
+  With <=> x := @pattern <=> x
+
   -- TODO
   (a: And) <=> (b: And) :=
     ((a a <=> b a) + (a b <=> b a) + (a a <=> b b) + (a b <=> b b)) <=> 0
 
   (a: Or) <=> (b: Or) :=
     ((a a <=> b a) + (a b <=> b a) + (a a <=> b b) + (a b <=> b b)) <=> 0
+
+  (a: With) <=> (b: With) :=
+    if(a pattern <=> b pattern == -1)
+      then: -1
+      else: a sub-pattern <=> b sub-pattern
 
 
 -- pattern definition
@@ -274,12 +282,6 @@ pattern(`(~x (~(y: Word))(~*as)?)):
 
 pattern(`(~x (~(y: Word))(~*as)!)):
   Atomy Patterns Attribute new(x, `((~y)!) to-word text, as)
-
-pattern(`(~x with(~e, ~y))):
-  Atomy Patterns With new(pattern(x), pattern(y), e)
-
-pattern(`(with(~e, ~y))):
-  Atomy Patterns With new(Atomy Patterns Any new, pattern(y), e)
 
 pattern(`(~x [~*as])):
   Atomy Patterns Attribute new(x, ."[]", as)
@@ -356,4 +358,3 @@ pattern(`(~x with(~e, ~y))):
 
 pattern(`(with(~e, ~y))):
   Atomy Patterns With new(Atomy Patterns Any new, pattern(y), e)
-
