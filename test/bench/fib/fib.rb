@@ -98,5 +98,5 @@ end
 #[:fib_closure_1, :fib_closure_2, :fib_closure_3].each do |m|
   #puts ""
   #puts m
-  #puts 20.method(m).executable.block_env.code.decode
+  #puts 20.method(m).executable.block_env.compiled_code.decode
 #end
