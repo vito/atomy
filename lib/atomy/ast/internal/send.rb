@@ -21,7 +21,7 @@ module Atomy
             var = g.state.scope.search_local(:"#@message_name:function")
           var.get_bytecode(g)
           g.dup
-          g.send :code, 0
+          g.send :compiled_code, 0
           g.send :scope, 0
           mod.compile(g, @receiver)
           g.swap

@@ -24,7 +24,7 @@ module Atomy
         self,
         Rubinius::ConstantScope.new(Object))
 
-      meth = proc {}.block.code
+      meth = proc {}.block.compiled_code
       meth.metadata = nil
       meth.name = :__script__
       meth.scope = scope
