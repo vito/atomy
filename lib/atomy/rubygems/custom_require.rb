@@ -29,3 +29,16 @@ module Kernel
   private :atomy_original_gem_original_require
   private :atomy_original_require
 end
+
+# this is here so it's more likely to be filtered out of caller checks
+#
+# (e.g. sinatra/base)
+class Atomy::Module
+  def require(path)
+    if path.start_with? "./"
+      Kernel.require(File.expand_path("../" + path, @file.to_s))
+    else
+      Kernel.require(path)
+    end
+  end
+end
