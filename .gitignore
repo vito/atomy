@@ -6,4 +6,6 @@ _out/
 _doodle/
 .rbx/
 .rbenv-gemsets
+.rbenv-version
+.DS_Store
 Gemfile.lock
