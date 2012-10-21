@@ -34,9 +34,6 @@ module Atomy
           ex = g.new_label
           g.setup_unwind ex, Rubinius::AST::RescueType
 
-          # TODO: ?
-          g.new_label.set!
-
           if current_break = g.break
             # Make a break available to use, which we'll use to
             # lazily generate a cleanup area

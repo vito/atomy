@@ -197,17 +197,18 @@ Atomy Patterns open:
 
   With <=> x := @pattern <=> x
 
-  -- TODO
   (a: And) <=> (b: And) :=
     ((a a <=> b a) + (a b <=> b a) + (a a <=> b b) + (a b <=> b b)) <=> 0
 
   (a: Or) <=> (b: Or) :=
     ((a a <=> b a) + (a b <=> b a) + (a a <=> b b) + (a b <=> b b)) <=> 0
 
-  (a: With) <=> (b: With) :=
-    if(a pattern <=> b pattern == -1)
-      then: -1
-      else: a sub-pattern <=> b sub-pattern
+  (a: With) <=> (b: With) := do:
+    main = a pattern <=> b pattern
+
+    if(main == 0)
+      then: a sub-pattern <=> b sub-pattern
+      else: main
 
 
 -- pattern definition

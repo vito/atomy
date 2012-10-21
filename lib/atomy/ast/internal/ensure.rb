@@ -10,9 +10,6 @@ module Atomy
         ex = g.new_label
         g.setup_unwind ex, Rubinius::AST::EnsureType
 
-        # TODO: ?
-        g.new_label.set!
-
         g.push_exception_state
         outer_exc_state = g.new_stack_local
         g.set_stack_local outer_exc_state
