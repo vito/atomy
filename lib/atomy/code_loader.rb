@@ -2,8 +2,69 @@ require("stringio")
 
 module Atomy
   class CodeLoader
-    # TODO: make thread-safe
-    LOADED = {}
+    LOADED_MODULES = {}
+
+    Lock = Object.new
+
+    class RequireRequest
+      def initialize(map, key)
+        @map = map
+        @key = key
+        @for = nil
+        @module = nil
+        @loaded = false
+        @remove = true
+      end
+
+      attr_accessor :module
+
+      def take!
+        lock
+        @for = Thread.current
+      end
+
+      def current_thread?
+        @for == Thread.current
+      end
+
+      def lock
+        Rubinius.lock(self)
+      end
+
+      def unlock
+        Rubinius.unlock(self)
+      end
+
+      def wait
+        Rubinius.synchronize(Lock) do
+          @remove = false
+        end
+
+        take!
+
+        Rubinius.synchronize(Lock) do
+          if @loaded
+            @map.delete @key
+          end
+        end
+
+        return @loaded
+      end
+
+      def passed!
+        @loaded = true
+      end
+
+      def remove!
+        Rubinius.synchronize(Lock) do
+          if @loaded or @remove
+            @map.delete @key
+          end
+        end
+
+        unlock
+      end
+    end
 
     class << self
       def compiled_name(fn)
@@ -82,20 +143,71 @@ module Atomy
           raise LoadError, "no such file to load -- #{fn}"
         end
 
-        file = found.to_sym
-        loaded = LOADED[file]
-        needs_loading = compilation_needed?(found)
+        require(found, debug)
+      end
+
+      def require(file, debug = false)
+        wait = false
+        req = nil
+
+        reqs = load_map
+
+        Rubinius.synchronize(Lock) do
+          if req = reqs[file]
+            return req.module if req.current_thread?
+            wait = true
+          else
+            req = RequireRequest.new(reqs, file)
+            reqs[file] = req
+            req.take!
+          end
+        end
+
+        if wait
+          if req.wait
+            # While waiting the code was loaded by another thread.
+            # We need to release the lock so other threads can continue too.
+            req.unlock
+            return req.module
+          end
+
+          # The other thread doing the lock raised an exception
+          # through the require, so we try and load it again here.
+        end
+
+        begin
+          mod = load_atomy(req, file, debug)
+        else
+          req.passed!
+        ensure
+          req.remove!
+        end
+
+        mod
+      end
+
+      private
+
+      def load_map
+        @load_map ||= {}
+      end
+
+      def load_atomy(req, filename, debug = false)
+        file = filename.to_sym
+        loaded = LOADED_MODULES[file]
+        needs_loading = compilation_needed?(filename)
         return loaded if loaded and not needs_loading
 
         mod = Atomy::Module.new(file)
+        req.module = mod
 
         begin
-          LOADED[file] = mod
+          LOADED_MODULES[file] = mod
 
           if needs_loading
             Compiler.compile mod, nil, debug
           else
-            cfn = compiled_name(fn)
+            cfn = compiled_name(filename)
             cl = Rubinius::CodeLoader.new(cfn)
             cm = cl.load_compiled_file(cfn, 0, 0)
 
@@ -111,9 +223,9 @@ module Atomy
           mod
         rescue
           if loaded
-            LOADED[file] = loaded
+            LOADED_MODULES[file] = loaded
           else
-            LOADED.delete file
+            LOADED_MODULES.delete file
           end
 
           raise
