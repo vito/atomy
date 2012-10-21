@@ -1,6 +1,5 @@
 use("core")
 use("define")
-use("comparison")
 use("quotes")
 use("patterns")
 use("control-flow")

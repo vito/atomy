@@ -1,7 +1,6 @@
 use("core")
 use("define")
 use("control-flow")
-use("comparison")
 use("array")
 use("node")
 

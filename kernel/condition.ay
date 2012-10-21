@@ -2,7 +2,6 @@ use("core")
 define = use("define")
 use("data")
 use("control-flow")
-use("comparison")
 use("loop")
 use("interpolation")
 use("array")
@@ -10,6 +9,7 @@ use("array")
 use("dynamic")
 
 io = use("io")
+pairs = require("pairs")
 pretty() = @pretty ||= require("pretty")
 
 data(Handler(@callback, @rest = nil)):
@@ -68,15 +68,15 @@ macro(~body bind: ~*handlers):
 
 
 macro(with-restarts(~*restarts): ~*body):
-  pairs = pairs-from(restarts)
+  branches = pairs from(restarts)
 
-  rs = pairs collect [n, e]:
+  rs = branches collect [n, e]:
     `(Restart new(
         ~message-name(n)
         [~*arguments(n)] &~block(n) { ~e }))
 
   with =
-    pairs reduce(`{ { ~*body } rescue: (e: StandardError) -> /error(e) })
+    branches reduce(`{ { ~*body } rescue: (e: StandardError) -> /error(e) })
       [x, [name, _]]:
         `{ catch(~catcher(name)) ~x }
 

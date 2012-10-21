@@ -1,7 +1,6 @@
 use("core")
 use("therie")
 use("control-flow")
-use("comparison")
 use("interpolation")
 
 glob = ARGV at(0) || "*"

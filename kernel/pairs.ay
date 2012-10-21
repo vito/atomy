@@ -1,0 +1,25 @@
+use("core")
+use("define")
+
+
+key-from(x) = x
+key-from(x: `(~_ ~(Atomy AST Block))) = x
+key-from(x: Atomy AST Compose) = x
+
+base-pair(x, ys) = [[key-from(x), `(do: ~*ys)]]
+
+pair-from(x) = raise("unknown pair `" + x inspect + "'")
+
+pair-from(`(~k -> ~v)) =
+  [[k, v]]
+
+pair-from(p: `(~(x: `(~_ ~(Atomy AST Block))) { ~*ys })) =
+  base-pair(x, ys)
+
+pair-from(p: `(~(x: `(~rest ~_)) { ~*ys })) =
+  pair-from(rest) + base-pair(x, ys)
+
+pair-from(p: `(~x { ~*ys })) =
+  base-pair(x, ys)
+
+from(es) := es collect [e] { pair-from(e) } flatten(1)

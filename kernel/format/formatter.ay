@@ -3,7 +3,6 @@ use("define")
 use("control-flow")
 use("loop")
 use("regexp")
-use("comparison")
 use("particles")
 use("patterns")
 

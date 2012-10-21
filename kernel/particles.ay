@@ -3,7 +3,6 @@ use("define")
 use("data")
 use("control-flow")
 use("cosmetics")
-use("comparison")
 use("patterns")
 
 data(Particle(@receiver, @message, @arguments))

@@ -1,7 +1,6 @@
 use("core")
 use("define")
 use("control-flow")
-use("comparison")
 
 -- patterns defined by dsl use 'with', so make sure it's exported
 export(use("patterns"))

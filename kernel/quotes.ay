@@ -1,7 +1,6 @@
 use("core")
 use("define")
 use("control-flow")
-use("comparison")
 
 macro(macro-quoter(~n) [~*as]: ~*body):
   names [str, args]:

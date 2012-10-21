@@ -3,7 +3,6 @@ use("define")
 use("control-flow")
 use("dynamic")
 use("particles")
-use("comparison")
 use("node")
 
 require("kpeg")
