@@ -203,12 +203,17 @@ Atomy AST open:
             unamb(b left) <+> text(b operator) <\> unamb(b right)
       ) hang(2)
 
-  /doc(b: Block) :=
+  /doc(b: Block) := do:
+    block-arg =
+      if(b block)
+        then: doc(`&~(b block))
+        else: empty
+
     braces-block(
       b contents
       if(b arguments empty?)
-        then: empty
-        else: list(render-sequence(b arguments)))
+        then: block-arg
+        else: list(render-sequence(b arguments)) <+> block-arg)
 
   /doc(c: Call) :=
     from(.call) { unamb(c name) } <> tupled(render-sequence(c arguments))
