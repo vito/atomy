@@ -137,6 +137,19 @@ module Atomy
 
       has_args = @branches.any? { |b| b.total_args > 0 || b.splat }
 
+      all_same_size = true
+      last_size = nil
+      @branches.each do |b|
+        last_size ||= b.total_args
+
+        if b.total_args != last_size
+          all_same_size = false
+          break
+        else
+          last_size = b.total_args
+        end
+      end
+
       always_matches =
         @branches.any? { |b|
           # branch indicates the method should never fail (e.g. expansion)
@@ -144,25 +157,19 @@ module Atomy
 
             # receiver must always match
             b.receiver.always_matches_self? &&
-              # must take no arguments (otherwise calling with invalid arg count
-              # would mismatch, as branches can take different arg sizes)
-              #
-              # TODO?: if all branches take same arg size, check if any are
-              # wildcards
-              (b.total_args == 0) &&
+              # must take no arguments (otherwise calling with invalid arg
+              # count would match, as branches can take different arg sizes)
+              (all_same_size && b.total_args == 0) &&
 
               # and either have no splat or a wildcard splat
               (!b.splat || b.splat.wildcard?)
         }
 
-      if has_args
-        g.splat_index = 0
-      end
-
+      g.splat_index = 0 if has_args
       g.total_args = 0
       g.required_args = 0
 
-      build_methods(g, @branches, done)
+      build_methods(g, @branches, has_args, done)
 
       if always_matches
         g.push_nil
@@ -262,7 +269,7 @@ module Atomy
 
     # build all the method branches, assumed to be from the
     # same namespace
-    def build_methods(g, methods, done)
+    def build_methods(g, methods, any_have_args, done)
       methods.each do |meth|
         mod = meth.module
         recv = meth.receiver
@@ -277,8 +284,11 @@ module Atomy
         skip = g.new_label
         argmis = g.new_label
 
-        if reqs.size > 0
-          g.passed_arg(reqs.size - 1)
+        if any_have_args
+          g.push_local 0
+          g.send :size, 0
+          g.push_int reqs.size
+          g.send has_args || splat ? :>= : :==, 1
           g.gif skip
         end
 
