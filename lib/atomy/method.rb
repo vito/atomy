@@ -288,7 +288,11 @@ module Atomy
           g.push_local 0
           g.send :size, 0
           g.push_int reqs.size
-          g.send has_args || splat ? :>= : :==, 1
+          if splat || meth.total_args > reqs.size
+            g.send :>=, 1
+          else
+            g.send :==, 1
+          end
           g.gif skip
         end
 
