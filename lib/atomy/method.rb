@@ -12,16 +12,16 @@ end
 
 module Atomy
   class Branch
-    attr_accessor :module, :name, :body, :receiver, :required, :defaults,
+    attr_accessor :module, :name, :body, :receiver, :required, :optional,
                   :splat, :block, :always_match
 
-    def initialize(mod, receiver, required = [], defaults = [],
+    def initialize(mod, receiver, required = [], optional = [],
                    splat = nil, block = nil, always_match = false, &body)
       @module = mod
       @body = (body && body.block) || proc { raise "branch has no body" }
       @receiver = receiver
       @required = required
-      @defaults = defaults
+      @optional = optional
       @splat = splat
       @block = block
       @always_match = always_match
@@ -31,13 +31,13 @@ module Atomy
       equal?(b) or \
         @receiver == b.receiver and \
         @required == b.required and \
-        @defaults == b.defaults and \
+        @optional == b.optional and \
         @splat == b.splat and \
         @block == b.block
     end
 
     def total_args
-      @required.size + @defaults.size
+      @required.size + @optional.size
     end
 
     # compare one branch's precision to another
@@ -56,7 +56,7 @@ module Atomy
         total += x <=> y unless y.nil?
       end
 
-      @defaults.zip(other.defaults) do |x, y|
+      @optional.zip(other.optional) do |x, y|
         total += x <=> y unless y.nil?
       end
 
@@ -81,7 +81,7 @@ module Atomy
         return false unless x =~ y
       end
 
-      @defaults.zip(other.defaults) do |x, y|
+      @optional.zip(other.optional) do |x, y|
         return false unless x =~ y
       end
 
@@ -267,7 +267,7 @@ module Atomy
         mod = meth.module
         recv = meth.receiver
         reqs = meth.required
-        defs = meth.defaults
+        opts = meth.optional
         splat = meth.splat
         block = meth.block
         body = meth.body
@@ -302,7 +302,7 @@ module Atomy
             end
           end
 
-          defs.each_with_index do |d, i|
+          opts.each_with_index do |d, i|
             no_value = g.new_label
 
             num = reqs.size + i
