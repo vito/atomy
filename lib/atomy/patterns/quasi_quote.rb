@@ -135,6 +135,18 @@ module Atomy::Patterns
         go(x.send(c), mismatch)
       end
 
+      def match_optional(x, c, mismatch)
+        @g.dup
+        @g.send c, 0
+
+        if x.send(c)
+          go(x.send(c), mismatch)
+        else
+          @g.send :nil?, 0
+          @g.gif mismatch
+        end
+      end
+
       def match_many(x, c, popmis, popmis2)
         pats = x.send(c)
 
@@ -225,7 +237,9 @@ module Atomy::Patterns
           match_many(x, c, popmis, popmis2)
         end
 
-        # TODO: optionals
+        childs[:optional].each do |c, _|
+          match_optional(x, c, popmis)
+        end
 
         @g.goto done
 
@@ -269,8 +283,6 @@ module Atomy::Patterns
 
       # effect on the stack: pop
       def visit(x)
-        # TODO: optionals
-
         x.class.children[:required].each do |c|
           @g.dup
           @g.send c, 0
@@ -331,6 +343,14 @@ module Atomy::Patterns
           else
             @g.pop
           end
+        end
+
+        x.class.children[:optional].each do |c, _|
+          next unless pat = x.send(c)
+
+          @g.dup
+          @g.send c, 0
+          go(pat)
         end
 
         @g.pop
