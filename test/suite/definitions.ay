@@ -33,6 +33,20 @@ describe("definitions"):
 
 
   describe("arguments"):
+    describe("required"):
+      it("accepts N arguments when expecting N"):
+        r0(a, b) := .ok
+        r0(1, 2) should-be(.ok)
+
+      it("rejects too few arguments"):
+        r1(a, b) := .ok
+        { r1(1) } should-raise(Atomy MethodFail)
+
+      it("rejects too many arguments"):
+        r2(a, b) := .ok
+        { r2(1, 2, 3) } should-raise(Atomy MethodFail)
+
+
     describe("splats"):
       it("consumes the rest of the arguments"):
         fizz(*args) := args
@@ -45,14 +59,14 @@ describe("definitions"):
 
       it("starts after required args"):
         bar(a, *bs) := [a, bs]
-        : bar ; should-raise(ArgumentError)
+        : bar ; should-raise(Atomy MethodFail)
         bar(1) should-be([1, []])
         bar(1, 2) should-be([1, [2]])
         bar(1, 2, 3) should-be([1, [2, 3]])
 
       it("works with an explicit receiver"):
         x bar-2(a, *bs) := [x, a, bs]
-        : bar-2 ; should-raise(ArgumentError)
+        : bar-2 ; should-raise(Atomy MethodFail)
         0 bar-2(1) should-be([0, 1, []])
         0 bar-2(1, 2) should-be([0, 1, [2]])
         0 bar-2(1, 2, 3) should-be([0, 1, [2, 3]])
@@ -60,7 +74,7 @@ describe("definitions"):
       it("appears before a block arg"):
         baz(a, *bs) &c := [a, bs, c]
         x = :;
-        : baz ; should-raise(ArgumentError)
+        : baz ; should-raise(Atomy MethodFail)
         res = baz(1) &x
         res at(0) should-be(1)
         res at(1) should-be([])
@@ -127,3 +141,11 @@ describe("definitions"):
 
         v1(1) should-be(1)
         v1(1, 2) should-be(2)
+
+      it("does not accept extra arguments for other branches"):
+        v2(0) := 1
+        v2 := 2
+
+        v2(0) should-be(1)
+        v2 should-be(2)
+        { v2(1) } should-raise(Atomy MethodFail)
