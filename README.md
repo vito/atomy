@@ -2,7 +2,7 @@
 
 A DSL-oriented programming language targeting the Rubinius VM.
 
-IRC: [#atomo on freenode](irc://char.freenode.net/atomo)
+IRC: [#atomy on freenode](irc://chat.freenode.net/atomy)
 
 Atomy provides the foundation for a language that grows with its users.
 
