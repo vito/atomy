@@ -17,23 +17,36 @@ end
 
 module Atomy
   def self.find_const(name, ctx)
+    undefined = Rubinius.asm { set_line 0; push_undef }
+
+    # search in immediate context
     scope = ctx
     while scope
-      if scope.module.const_defined?(name, false)
-        return scope.module.const_get(name)
-      end
+      find = scope.module.constant_table.fetch name, undefined
+
+      return find unless find.equal?(undefined)
 
       scope = scope.parent
     end
 
     scope = ctx
     while scope
-      if scope.module.const_defined?(name)
-        return scope.module.const_get(name)
+      current = scope.module
+
+      while current
+        find = current.constant_table.fetch name, undefined
+
+        return find unless find.equal?(undefined)
+
+        current = current.direct_superclass
       end
 
       scope = scope.parent
     end
+
+    find = Object.constant_table.fetch name, undefined
+
+    return find unless find.equal?(undefined)
 
     ctx.module.const_missing(name)
   end
