@@ -23,6 +23,7 @@
     \example{
       a = spawn: receive \{ 42 -> .ok \} write
       a <- 42
+      sleep(.01)
     }{concurrency}
   }
 
@@ -38,6 +39,7 @@
       a <- 0
       a <- 2
       a <- 1
+      sleep(.01)
     }{concurrency}
   }
 
@@ -48,7 +50,7 @@
     perform if it times out.
   
     \example{
-      receive \{ 1 -> .ok \} after(1): .too-slow
+      receive \{ 1 -> .ok \} after(0.01): .too-slow
     }{concurrency}
   }
 }
@@ -61,6 +63,7 @@
   
     \example{
       spawn: (2 + 2) write
+      sleep(.01)
     }{concurrency}
   }
 
@@ -72,6 +75,7 @@
   
     \example{
       spawn-link: (2 + 2) write
+      sleep(.01)
     }{concurrency}
   }
 }
