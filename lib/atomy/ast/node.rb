@@ -105,6 +105,12 @@ module Atomy
         end
       end
 
+      def self.included(cls)
+        cls.singleton_class.send(:define_method, :macro_name) do
+          @macro_name ||= :"_expand_#{name.split("::").last.to_sym}"
+        end
+      end
+
       def children(&f)
         childs = self.class.children
 
@@ -145,7 +151,7 @@ module Atomy
           child_names.collect { |n| send(n) }
         end
       end
-      
+
       def eql?(b)
         b.kind_of?(self.class) &&
           children.eql?(b.children) &&
@@ -456,7 +462,7 @@ module Atomy
       end
 
       def macro_name
-        :"_expand_#{self.class.name.split("::").last}"
+        self.class.macro_name
       end
 
       def to_word
@@ -531,7 +537,7 @@ module Atomy
         @pre_exe = []
         super
       end
-      
+
       def bytecode(g, mod)
         container_bytecode(g) do
           @body.bytecode(g, mod)
