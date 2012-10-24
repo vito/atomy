@@ -53,10 +53,21 @@ define-class(root, `((~name)(~*as): ~*cs)) = do:
 
             ~copy
 
-          inspect :=
-            ~(name name to-s) + "(" +
-              [~*attrs] collect .inspect join(", ") +
-              ")"
+          inspect := do:
+            comma = ", "
+            result = ~(name name to-s) + "("
+
+            recursed = //Thread detect-recursion(self):
+              [~*attrs] each [v]:
+                result << v inspect << comma
+
+            when(recursed):
+              return(result + "...)")
+
+            Rubinius Type infect(result, self)
+            result shorten(2)!
+
+            result << ")"
 
         ~pat-def
 
