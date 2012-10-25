@@ -49,24 +49,6 @@ class Fixnum
   end
 end
 
-class Fixnum
-  def fib_atomy_blocks(a, b, c)
-    if self == 0
-      a.call_under(self, a.constant_scope, self)
-    elsif self == 1
-      b.call_under(self, b.constant_scope, self)
-    else
-      c.call_under(self, c.constant_scope, self)
-    end
-  end
-end
-
-a = proc { 1 }
-b = proc { 1 }
-c = proc {
-  (self - 2).fib_atomy_blocks(a, b, c) + (self - 1).fib_atomy_blocks(a, b, c)
-}
-
 #profiler = Rubinius::Profiler::Instrumenter.new
 #profiler.start
 
@@ -75,17 +57,13 @@ Benchmark.ips do |x|
     20.fib_cond
   end
 
-  #x.report("20.fib_atomy_methods") do
-    #20.fib_atomy_methods
-  #end
+  x.report("20.fib_atomy_methods") do
+    20.fib_atomy_methods
+  end
 
   x.report("20.fib_atomy_closure") do
     20.fib_atomy_closure
   end
-
-  #x.report("20.fib_atomy_blocks") do
-    #20.fib_atomy_blocks(a, b, c)
-  #end
 end
 
 #profiler.stop

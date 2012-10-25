@@ -33,17 +33,20 @@ Benchmark ips [x]:
 --puts(.fib-cond)
 --puts(20 method(.fib-cond) executable decode)
 --20 class atomy-methods[.fib-cond] each [b]:
+  --unless(b name):
+    --next
+
   --puts("")
   --puts(b name)
-  --puts(20 method(b name) executable block-env code decode)
+  --puts(20 method(b name) executable block-env compiled-code decode)
 
 --puts("")
 --puts(.fib-atomy)
 --puts(20 method(.fib-atomy) executable decode)
 --20 class atomy-methods[.fib-atomy] each [b]:
+  --unless(b name):
+    --next
+
   --puts("")
   --puts(b name)
-  --puts(20 method(b name) executable block-env code decode)
-
-
---require(File expand-path("../fib.rb", _FILE))
+  --puts(20 method(b name) executable block-env compiled-code decode)
