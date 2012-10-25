@@ -1,4 +1,7 @@
-$main = me
+use("atomy")
+use("concurrency")
+
+main = me
 
 start(token) := do:
   h = (2 .. 503) to-a reverse inject(me) [pid, id]:
@@ -16,7 +19,7 @@ roundtrip(id, pid) :=
 
       1 -> do:
         id println
-        $main <- .done
+        main <- .done
 
       token ->
         (pid <- (token - 1))
