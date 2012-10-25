@@ -133,9 +133,13 @@ module Atomy
           g.push_false
         end
 
-        create_block(g, mod)
+        if @body.is_a?(Primitive) || @body.is_a?(Literal)
+          @body.construct(g, mod)
+          primitive = true
+        end
 
-        g.send_with_block :new, 7
+        create_block(g, mod)
+        g.send_with_block :new, primitive ? 8 : 7
       end
     end
 

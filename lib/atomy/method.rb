@@ -13,10 +13,11 @@ end
 module Atomy
   class Branch
     attr_accessor :module, :name, :body, :receiver, :required, :optional,
-                  :splat, :block, :always_match
+                  :splat, :block, :always_match, :primitive
 
     def initialize(mod, receiver, required = [], optional = [],
-                   splat = nil, block = nil, always_match = false, &body)
+                   splat = nil, block = nil, always_match = false,
+                   primitive = nil, &body)
       @module = mod
       @body = (body && body.block) || proc { raise "branch has no body" }
       @receiver = receiver
@@ -25,6 +26,7 @@ module Atomy
       @splat = splat
       @block = block
       @always_match = always_match
+      @primitive = primitive
     end
 
     def ==(b)
@@ -278,6 +280,7 @@ module Atomy
         splat = meth.splat
         block = meth.block
         body = meth.body
+        prim = meth.primitive
 
         has_args = meth.total_args > 0
 
@@ -338,7 +341,9 @@ module Atomy
           end
         end
 
-        if meth.name
+        if prim
+          mod.compile(g, prim)
+        elsif meth.name
           g.push_self
           if has_args or splat
             g.push_local 0
@@ -397,7 +402,13 @@ module Atomy
 
   # define a new method branch
   def self.define_branch(target, name, branch, scope)
-    add_method(target, name, add_branch(target, name, branch, true)).tap do
+    meth =
+      add_method(
+        target,
+        name,
+        add_branch(target, name, branch, !branch.primitive))
+
+    if branch.name
       Rubinius.add_method(
         branch.name,
         Rubinius::BlockEnvironment::AsMethod.new(branch.body),
@@ -405,9 +416,15 @@ module Atomy
         :private)
 
       if target.is_a?(Atomy::Module)
-        target.send(:module_function, branch.name, name)
+        target.send(:module_function, branch.name)
       end
     end
+
+    if target.is_a?(Atomy::Module)
+      target.send(:module_function, name)
+    end
+
+    meth
   end
 
   def self.dynamic_branch(
