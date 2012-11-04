@@ -1,6 +1,8 @@
 use("core")
 use("define")
 
+infix("<- ->", 20, .right)
+
 
 key-from(x) = x
 key-from(x: `(~_: ~*_)) = x
