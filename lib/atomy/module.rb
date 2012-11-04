@@ -29,13 +29,9 @@ module Atomy
       meth.name = :__script__
       meth.scope = scope
 
-      variables = Rubinius::VariableScope.synthesize(
-        meth,
-        self,
-        nil,
-        self,
-        nil,
-        Rubinius::Tuple.new(0))
+      variables =
+        Rubinius::VariableScope.synthesize(
+          meth, self, nil, self, nil, Rubinius::Tuple.new(0))
 
       if @file
         script = meth.create_script
