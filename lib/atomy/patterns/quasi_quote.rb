@@ -169,6 +169,8 @@ module Atomy::Patterns
         # do we care about size?
         inexact = splice || defaults > 0
 
+        return if pats.empty? && splice && splice.expression.pattern.wildcard?
+
         @g.dup
         @g.send c, 0
 
@@ -283,19 +285,23 @@ module Atomy::Patterns
 
       # effect on the stack: pop
       def visit(x)
-        x.class.children[:required].each do |c|
+        childs = x.class.children
+
+        childs[:required].each do |c|
           @g.dup
           @g.send c, 0
           go(x.send(c))
         end
 
-        x.class.children[:many].each do |c|
-          pats = x.send(c).dup
+        childs[:many].each do |c|
+          pats = x.send(c)
 
           if pats.last && pats.last.splice?
             splice = pats.last
             pats = pats[0..-2]
           end
+
+          next if pats.empty? && !(splice && splice.expression.pattern.binds?)
 
           defaults = 0
           pats.reverse_each do |p|
@@ -345,7 +351,7 @@ module Atomy::Patterns
           end
         end
 
-        x.class.children[:optional].each do |c, _|
+        childs[:optional].each do |c, _|
           next unless pat = x.send(c)
 
           @g.dup
