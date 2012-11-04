@@ -14,8 +14,7 @@ Atomy Format open:
     %atomy := Atomy Parser
 
     text(e) := [
-      -- TODO
-      <(/"[^\\%#{Regexp.quote(e)}]+"/)> { text }
+      <(/"[^\\%#{Regexp quote(e)}]+"/)> { text }
       "\\" <(/"[%\(\)\{\}\[\]]"/)> { text }
       "\\" e=(%atomy(escape)) { e }
     ]

@@ -12,6 +12,7 @@ require("set")
 
 -- lazily load this module to prevent circular dependency
 pretty() = @pretty ||= require("pretty")
+intp() = @intp ||= require("interpolation")
 
 
 actions = dynamic
@@ -87,7 +88,23 @@ process-val(g, s: Atomy AST StringLiteral) =
   `(~g str(~s))
 
 process-val(g, `(/(~(b: Atomy AST StringLiteral))/)) =
-  `(~g reg(~(b raw)))
+  if(^actions)
+    then:
+      vars = ^rule-vars to-a
+
+      -- this is a bit gross because it has to parse as a valid regexp
+      -- so we use .call() because actions[0][] is invalid
+      --
+      -- should be fine as the embedded parts are limited to numbers and words
+      call =
+        "#{actions[" + ^actions size to-s +
+          "].call(" + vars collect .to-s join(", ") + ")}"
+
+      ^actions << [`{ ~(intp interpolated(b raw)) }, vars]
+
+      `(~g reg(~call))
+    else:
+      `(~g reg(~(b raw)))
 
 process-val(g, c: Atomy AST Call) = do:
   args = "(" + c arguments collect .(pretty show(_)) join(", ") + ")"
