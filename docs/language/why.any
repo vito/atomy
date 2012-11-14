@@ -159,9 +159,5 @@
     \item{Potion & Poison}{
       colon block syntax + commas
     }
-
-    \item{Erlang}{
-      message-sending concurrency
-    }
   }
 }
