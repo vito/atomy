@@ -65,7 +65,7 @@ Atomy Format open:
       Formatter new(0, Array(as))
     }
 
-    root := sub("")
+    root := x=(sub("")) !(/"."/) { x }
 
 
   Parser singleton:
