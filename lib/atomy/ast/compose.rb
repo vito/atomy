@@ -21,19 +21,18 @@ module Atomy
           end
 
           Send.new(
-            @line,
-            @left,
-            args,
-            :[],
-            splat)
+            :line => @line,
+            :receiver => @left,
+            :arguments => args,
+            :message_name => :[],
+            :splat => splat)
         else
           word = @right.to_word
 
           Send.new(
-            @line,
-            @left,
-            [],
-            word && word.text)
+            :line => @line,
+            :receiver => @left,
+            :message_name => word && word.text)
         end
       end
     end

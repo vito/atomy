@@ -380,7 +380,7 @@ module Atomy::Patterns
     end
 
     def to_node
-      Atomy::AST::Pattern.new(0, self)
+      Atomy::AST::Pattern.new(:line => 0, :pattern => self)
     end
   end
 
@@ -529,17 +529,17 @@ module Atomy::Patterns
               @receiver.receiver.is_a?(Atomy::AST::Constant)
             Constant.new(
               Atomy::AST::ToplevelConstant.new(
-                @line,
-                @receiver.receiver.name))
+                :line => @line,
+                :name => @receiver.receiver.name))
           else
             super
           end
         when Atomy::AST::Constant
           Constant.new(
             Atomy::AST::ScopedConstant.new(
-              @line,
-              Atomy::AST::Constant.new(@line, :Self),
-              @receiver))
+              :line => @line,
+              :parent => Atomy::AST::Constant.new(@line, :Self),
+              :name => @receiver))
         else
           super
         end
@@ -583,9 +583,9 @@ module Atomy::Patterns
       when Atomy::AST::Constant
         Constant.new(
           Atomy::AST::ScopedConstant.new(
-            @line,
-            @left,
-            @right.name))
+            :line => @line,
+            :parent => @left,
+            :name => @right.name))
       else
         super
       end

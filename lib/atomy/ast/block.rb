@@ -72,7 +72,7 @@ module Atomy
       end
 
       def body
-        Body.new @line, @contents
+        Body.new :line => @line, :expressions => @contents
       end
 
       alias :caller :body

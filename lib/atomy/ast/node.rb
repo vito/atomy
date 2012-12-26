@@ -56,6 +56,46 @@ module Atomy
       def children(*specs)
         spec(@children, specs)
       end
+
+      def bootstrap(line, *args)
+        opts = { :line => line }
+
+        childs = children
+        attrs = attributes
+
+        arg = 0
+        childs[:required].each do |n|
+          opts[n] = args[arg]
+          arg += 1
+        end
+
+        childs[:many].each do |n|
+          opts[n] = args[arg]
+          arg += 1
+        end
+
+        attrs[:required].each do |n|
+          opts[n] = args[arg].freeze
+          arg += 1
+        end
+
+        attrs[:many].each do |n|
+          opts[n] = args[arg].freeze
+          arg += 1
+        end
+
+        childs[:optional].each do |n, d|
+          opts[n] = args.size > arg ? args[arg] : d
+          arg += 1
+        end
+
+        attrs[:optional].each do |n, d|
+          opts[n] = args.size > arg ? args[arg].freeze : d
+          arg += 1
+        end
+
+        new(opts)
+      end
     end
 
     module NodeLike
@@ -67,41 +107,32 @@ module Atomy
       # the module this node was constructed in
       attr_reader :context
 
-      def initialize(line, *args)
-        @line = line
+      def initialize(opts = nil)
+        @line = 0
 
         childs = self.class.children
         attrs = self.class.attributes
 
-        arg = 0
-        childs[:required].each do |n|
-          send(:"#{n}=", args[arg])
-          arg += 1
-        end
-
         childs[:many].each do |n|
-          send(:"#{n}=", args[arg])
-          arg += 1
-        end
-
-        attrs[:required].each do |n|
-          send(:"#{n}=", args[arg].freeze)
-          arg += 1
+          send(:"#{n}=", [])
         end
 
         attrs[:many].each do |n|
-          send(:"#{n}=", args[arg].freeze)
-          arg += 1
+          send(:"#{n}=", [])
         end
 
         childs[:optional].each do |n, d|
-          send(:"#{n}=", args.size > arg ? args[arg] : d)
-          arg += 1
+          send(:"#{n}=", d)
         end
 
         attrs[:optional].each do |n, d|
-          send(:"#{n}=", args.size > arg ? args[arg].freeze : d)
-          arg += 1
+          send(:"#{n}=", d)
+        end
+
+        return unless opts
+
+        opts.each do |k, v|
+          send(:"#{k}=", v)
         end
       end
 
@@ -115,38 +146,23 @@ module Atomy
         childs = self.class.children
 
         if block_given?
-          attrs = self.class.attributes
-
-          args = []
+          obj = dup
 
           childs[:required].each do |n|
-            args << f.call(send(n))
+            obj.send(:"#{n}=", f.call(send(n)))
           end
 
           childs[:many].each do |n|
-            args << send(n).collect { |x| f.call(x) }
-          end
-
-          attrs[:required].each do |n|
-            args << send(n)
-          end
-
-          attrs[:many].each do |n|
-            args << send(n)
+            obj.send(:"#{n}=", send(n).collect { |x| f.call(x) })
           end
 
           childs[:optional].each do |n, _|
-            args <<
-              if val = send(n)
-                f.call(val)
-              end
+            if val = send(n)
+              obj.send(:"#{n}=", f.call(val))
+            end
           end
 
-          attrs[:optional].each do |n, _|
-            args << send(n)
-          end
-
-          self.class.new(@line, *args)
+          obj
         else
           child_names.collect { |n| send(n) }
         end
@@ -192,18 +208,30 @@ module Atomy
 
       def construct(g, mod, d = nil)
         get(g)
-        g.push_int(@line)
+
+        g.send :new, 0
+        g.push_cpath_top
+        g.find_const :Atomy
+        g.send :current_module, 0
+        g.send :in_context, 1
+
+        g.dup
+        g.push_int @line
+        g.send :line=, 1
+        g.pop
 
         childs = self.class.children
         attrs = self.class.attributes
 
-        args = 1
         childs[:required].each do |n|
+          g.dup
           send(n).construct(g, mod, d)
-          args += 1
+          g.send :"#{n}=", 1
+          g.pop
         end
 
         childs[:many].each do |n|
+          g.dup
           spliced = false
           size = 0
           send(n).each do |e|
@@ -224,15 +252,20 @@ module Atomy
 
           g.send :+, 1 if spliced
 
-          args += 1
+          g.send :"#{n}=", 1
+          g.pop
         end
 
         attrs[:required].each do |n|
+          g.dup
           g.push_literal(send(n))
-          args += 1
+          g.send :"#{n}=", 1
+          g.pop
         end
 
         attrs[:many].each do |n|
+          g.dup
+
           vals = send(n)
 
           vals.each do |v|
@@ -240,30 +273,29 @@ module Atomy
           end
 
           g.make_array vals.size
-
-          args += 1
+          g.send :"#{n}=", 1
+          g.pop
         end
 
         childs[:optional].each do |n, _|
+          g.dup
+
           if v = send(n)
             v.construct(g, mod, d)
           else
             g.push_nil
           end
 
-          args += 1
+          g.send :"#{n}=", 1
+          g.pop
         end
 
         attrs[:optional].each do |n, _|
+          g.dup
           g.push_literal(send(n))
-          args += 1
+          g.send :"#{n}=", 1
+          g.pop
         end
-
-        g.send :new, args
-        g.push_cpath_top
-        g.find_const :Atomy
-        g.send :current_module, 0
-        g.send :in_context, 1
       end
 
       def child_names
@@ -443,11 +475,7 @@ module Atomy
       end
 
       def caller
-        Send.new(
-          @line,
-          self,
-          [],
-          :call)
+        Send.new(:line => @line, :receiver => self, :message_name => :call)
       end
 
       def evaluate(mod, bnd = nil, *args)
@@ -493,7 +521,7 @@ module Atomy
       end
 
       def collect
-        Tree.new(0, @nodes.collect { |n| yield n })
+        Tree.new(:line => @line, :nodes => @nodes.collect { |n| yield n })
       end
     end
 
@@ -585,36 +613,36 @@ end
 
 class Integer
   def to_node
-    Atomy::AST::Primitive.new -1, self
+    Atomy::AST::Primitive.new :value => self
   end
 end
 
 class Float
   def to_node
-    Atomy::AST::Literal.new -1, self
+    Atomy::AST::Literal.new :value => self
   end
 end
 
 class String
   def to_node
-    Atomy::AST::StringLiteral.new -1, self
+    Atomy::AST::StringLiteral.new :value => self
   end
 end
 
 class Array
   def to_node
-    Atomy::AST::List.new(-1, collect(&:to_node))
+    Atomy::AST::List.new(:elements => collect(&:to_node))
   end
 end
 
 class NilClass
   def to_node
-    Atomy::AST::Primitive.new -1, :nil
+    Atomy::AST::Primitive.new :value => :nil
   end
 end
 
 class Symbol
   def to_node
-    Atomy::AST::Literal.new -1, self
+    Atomy::AST::Literal.new :value => self
   end
 end

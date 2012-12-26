@@ -53,16 +53,16 @@ module Atomy
 
   def self.unquote_splice(n)
     Atomy::AST::Prefix.new(
-      0,
-      n.collect do |x|
+      :receiver => n.collect do |x|
         x = x.to_node
-        Atomy::AST::Quote.new(x.line, x)
+        Atomy::AST::Quote.new(:line => x.line, :expression => x)
       end.to_node,
-      :*)
+      :operator => :*)
   end
 
   def self.const_from_string(g, name)
     g.push_cpath_top
+
     name.split("::").each do |s|
       next if s.empty?
       g.find_const s.to_sym

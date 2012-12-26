@@ -23,4 +23,4 @@ Atomy AST open:
     new compile(g, body)
 
 macro(let-macro(~*ms) ~(b: Block)):
-  LetMacro new(node line, b body, ms)
+  LetMacro bootstrap(node line, b body, ms)

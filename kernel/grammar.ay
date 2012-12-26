@@ -221,11 +221,11 @@ macro(parser(~name): ~*grammar):
 
     acts =
       ^actions collect [action, as]:
-        args = as collect [a]: Atomy AST Word new(0, a)
+        args = as collect [a]: Atomy AST Word bootstrap(0, a)
         `([~*args] ~action)
 
     def =
-      Atomy AST ParserDefiner new(
+      Atomy AST ParserDefiner bootstrap(
         node line
         //KPeg CodeGenerator new(const-name(name), g) output)
 

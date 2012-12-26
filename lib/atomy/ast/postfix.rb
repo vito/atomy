@@ -18,17 +18,16 @@ module Atomy
 
       def to_send
         Send.new(
-          @line,
-          @receiver,
-          [],
-          message_name)
+          :line => @line,
+          :receiver => @receiver,
+          :message_name => message_name)
       end
 
       def to_word
         return unless @receiver.is_a?(Word)
         case @operator
         when :"!", :"?", :"="
-          Word.new(@line, :"#{@receiver.text}#{@operator}")
+          Word.new(:line => @line, :text => :"#{@receiver.text}#{@operator}")
         end
       end
     end

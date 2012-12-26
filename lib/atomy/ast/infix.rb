@@ -12,13 +12,11 @@ module Atomy
 
       def to_send
         Send.new(
-          @line,
-          @left,
-          [@right],
-          @operator,
-          nil,
-          nil,
-          @private)
+          :line => @line,
+          :receiver => @left,
+          :arguments => [@right],
+          :message_name => @operator,
+          :private => @private)
       end
 
       def macro_name

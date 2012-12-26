@@ -59,73 +59,75 @@
                 | level3
 
          number = line:line < /[\+\-]?0[oO][0-7]+/ >
-                    { create(Primitive, line, text.to_i(8)) }
+                    { create(Primitive, line, :value => text.to_i(8)) }
                 | line:line < /[\+\-]?0[xX][\da-fA-F]+/ >
-                    { create(Primitive, line, text.to_i(16)) }
+                    { create(Primitive, line, :value => text.to_i(16)) }
                 | line:line < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ >
-                    { create(Literal, line, text.to_f) }
+                    { create(Literal, line, :value => text.to_f) }
                 | line:line < /[\+\-]?\d+\.\d+/ >
-                    { create(Literal, line, text.to_f) }
+                    { create(Literal, line, :value => text.to_f) }
                 | line:line < /[\+\-]?\d+/ >
-                    { create(Primitive, line, text.to_i) }
+                    { create(Primitive, line, :value => text.to_i) }
 
        language = "#language" wsp identifier:n { set_lang(n) } %lang.root
 
           quote = line:line "'" level2:e
-                    { create(Quote, line, e) }
+                    { create(Quote, line, :expression => e) }
     quasi_quote = line:line "`" level2:e
-                    { create(QuasiQuote, line, e) }
+                    { create(QuasiQuote, line, :expression => e) }
         unquote = line:line "~" level2:e
-                    { create(Unquote, line, e) }
+                    # TODO: node, not expression
+                    { create(Unquote, line, :expression => e) }
 
          escape = number_escapes | escapes
         str_seq = < /[^\\"]+/ > { text }
          string = line:line "\"" < (("\\" escape) | str_seq)*:c > "\""
-                    { StringLiteral.new(
-                        line,
-                        c.join,
-                        text.gsub("\\\"", "\"")
-                      )
+                    { create(StringLiteral, line,
+                        :value => c.join,
+                        :raw => text.gsub("\\\"", "\""))
                     }
 
   constant_name = < /[A-Z][a-zA-Z0-9_]*/ > { text.to_sym }
        constant = line:line constant_name:n
-                    { create(Constant, line, n) }
+                    { create(Constant, line, :name => n) }
 
     word(no_op) = line:line identifier:n !{ no_op && operator?(n) }
-                    { create(Word, line, n) }
+                    { create(Word, line, :text => n) }
 
          prefix = line:line op_letter:o level2:e
-                    { create(Prefix, line, e, o) }
+                    { create(Prefix, line, :receiver => e, :operator => o) }
 
         postfix = line:line postfix:e op_letter:o
-                    { create(Postfix, line, e, o) }
+                    { create(Postfix, line, :receiver => e, :operator => o) }
                 | line:line level1:e op_letter:o
-                    { create(Postfix, line, e, o) }
+                    { create(Postfix, line, :receiver => e, :operator => o) }
 
           block = line:line ":" !op_letter wsp expressions?:es (wsp ";")?
-                    { create(Block, line, Array(es), []) }
+                    { create(Block, line, :contents => Array(es)) }
                 | line:line "{" wsp expressions?:es wsp "}"
-                    { create(Block, line, Array(es), []) }
+                    { create(Block, line, :contents => Array(es)) }
 
            list = line:line "[" wsp expressions?:es wsp "]"
-                    { create(List, line, Array(es)) }
+                    # TODO: contents vs. elements vs. nodes? (see block)
+                    { create(List, line, :elements => Array(es)) }
 
   composes(pos) = line:line compose:l cont(pos) level2:r
-                    { create(Compose, line, l, r) }
+                    { create(Compose, line, :left => l, :right => r) }
                 | line:line level2:l cont(pos) level2:r
-                    { create(Compose, line, l, r) }
+                    { create(Compose, line, :left => l, :right => r) }
         compose = @composes(current_position)
 
            name = line:line name:n op_letter:o
-                    { create(Postfix, line, n, o) }
+                    { create(Postfix, line, :receiver => n, :operator => o) }
                 | grouped
                 | level0(false)
            args = "(" wsp expressions?:as wsp ")" { Array(as) }
+
+           # TOOD: don't like :name
            call = line:line call:c args:as
-                    { create(Call, line, c, as) }
+                    { create(Call, line, :name => c, :arguments => as) }
                 | line:line name:n args:as
-                    { create(Call, line, n, as) }
+                    { create(Call, line, :name => n, :arguments => as) }
 
        infix_op = operator
                 | identifier:n &{ operator?(n) } { n }

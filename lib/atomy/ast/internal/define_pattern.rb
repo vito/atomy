@@ -9,24 +9,22 @@ module Atomy
 
       def pattern_definer
         Atomy::AST::DefineMethod.new(
-          0,
-          @body,
-          Atomy::AST::Block.new(
-            0,
-            [Atomy::AST::Primitive.new(0, :self)],
-            []),
-          [ Atomy::AST::Compose.new(
-              0,
-              Atomy::AST::Word.new(0, :node),
-              Atomy::AST::Block.new(
-                0,
-                [@pattern],
-                [])),
+          :line => 0,
+          :body => @body,
+          :receiver => Atomy::AST::Block.new(
+            :line => 0,
+            :contents => [Atomy::AST::Primitive.new(:line => 0, :value => :self)]),
+          :arguments => [
+            Atomy::AST::Compose.new(
+              :line => 0,
+              :left => Atomy::AST::Word.new(:line => 0, :text => :node),
+              :right => Atomy::AST::Block.new(
+                :line => 0,
+                :contents => [@pattern])),
             @module_name
           ],
-          :_pattern,
-          nil,
-          true)
+          :name => :_pattern,
+          :always_match => true)
       end
 
       def bytecode(g, mod)

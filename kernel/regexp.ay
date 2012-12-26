@@ -17,7 +17,7 @@ Atomy AST open:
 
 
 macro($~(x: Primitive ? @value is-a(//Integer)? and @value > 0)):
-  NthRef new(node line, x value)
+  NthRef bootstrap(node line, x value)
 
 macro-quoter(r) [r, fs]:
   flags = 0

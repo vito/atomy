@@ -294,7 +294,7 @@ Atomy Patterns open:
   /doc(a: And) := render(`(~(a a) & ~(a b)))
   /doc(Any) := text("_")
   /doc(a: Attribute) :=
-    render(`(~(a receiver) ~(Atomy AST Word new(-1, a name))))
+    render(`(~(a receiver) ~(Atomy AST Word bootstrap(-1, a name))))
   /doc(b: BlockPass) := render(`&~(b pattern))
   /doc(c: Constant) := render(c constant)
   /doc(d: Default) := render(`(~(d pattern) = ~(d default)))
@@ -307,11 +307,11 @@ Atomy Patterns open:
       then: text(n name)
       else: text(n name) <> text(":") <+> render(n pattern)
   /doc(n: NamedClass) :=
-    render(`(@@~(Atomy AST Word new(-1, n identifier))))
+    render(`(@@~(Atomy AST Word bootstrap(-1, n identifier))))
   /doc(n: NamedInstance) :=
-    render(`(@~(Atomy AST Word new(-1, n identifier))))
+    render(`(@~(Atomy AST Word bootstrap(-1, n identifier))))
   /doc(n: NamedGlobal) :=
-    render(`($~(Atomy AST Word new(-1, n identifier))))
+    render(`($~(Atomy AST Word bootstrap(-1, n identifier))))
   /doc(o: Or) :=
     render(`(~(o a) | ~(o b)))
   /doc(p: Particle) :=

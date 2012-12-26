@@ -1,6 +1,5 @@
 module Atomy::Patterns
   class Any < Pattern
-
     def match(g, mod, set = false, locals = {})
       g.pop
     end

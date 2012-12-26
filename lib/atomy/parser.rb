@@ -24,8 +24,9 @@ module Atomy
       end
     end
 
-    def create(cls, *args)
-      n = cls.new(*args)
+    def create(cls, line, opts = {})
+      n = cls.new(opts)
+      n.line = line
       n.file = @module.file if @module
       n
     end
@@ -66,8 +67,8 @@ module Atomy
       y[0] >= x[0] && y[1] > x[1]
     end
 
-    def private_target(line=0)
-      Primitive.new(line, :self)
+    def private_target(line = 0)
+      Primitive.new(:line => line, :value => :self)
     end
 
     def resolve(a, e, chain)
@@ -80,7 +81,14 @@ module Atomy
       else
         e2, *rest2 = rest
         r, rest3 = resolve(b, e2, rest2)
-        resolve(a, Infix.new(e.line, e, r, b.name, b.private?), rest3)
+        resolve(
+          a,
+          Infix.new(:line => e.line,
+            :left => e,
+            :right => r,
+            :operator => b.name,
+            :private => b.private?),
+          rest3)
       end
     end
 
@@ -134,7 +142,7 @@ module Atomy
       p.module = mod
       p.callback = callback
       p.raise_error unless p.parse
-      AST::Tree.new(0, p.result)
+      AST::Tree.new(:line => 0, :nodes => p.result)
     end
 
     def self.parse_file(name, mod = nil, &callback)

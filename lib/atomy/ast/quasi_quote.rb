@@ -5,9 +5,17 @@ module Atomy
 
       def construct(g, mod, d = nil)
         get(g)
+        g.send :new, 0
+
+        g.dup
         g.push_int @line
+        g.send :line=, 1
+        g.pop
+
+        g.dup
         @expression.construct(g, mod, quote(d))
-        g.send :new, 2
+        g.send :expression=, 1
+        g.pop
       end
 
       def bytecode(g, mod)

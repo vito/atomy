@@ -6,25 +6,25 @@ infix("&= ||= |= += -= /= ^= %=", 10, .right)
 macro(do ~(b: Block)): b body
 
 macro(~x =! ~y):
-  Set new(node line, x, y)
+  Set bootstrap(node line, x, y)
 
 macro((~name)(~*args) = ~body):
-  DefineFunction new(node line, body, args, name text)
+  DefineFunction bootstrap(node line, body, args, name text)
 
 macro((~name)(~*args) &~b = ~body):
-  DefineFunction new(node line, body, args, name text, b)
+  DefineFunction bootstrap(node line, body, args, name text, b)
 
 macro(~(x: `((~_)(~*_)?)) = ~body):
-  DefineFunction new(node line, body, arguments(x), message-name(x))
+  DefineFunction bootstrap(node line, body, arguments(x), message-name(x))
 
 macro(~(x: `((~_)(~*_)?)) &~b = ~body):
-  DefineFunction new(node line, body, arguments(x), message-name(x), b)
+  DefineFunction bootstrap(node line, body, arguments(x), message-name(x), b)
 
 macro(~(x: `((~_)(~*_)!)) = ~body):
-  DefineFunction new(node line, body, arguments(x), message-name(x))
+  DefineFunction bootstrap(node line, body, arguments(x), message-name(x))
 
 macro(~(x: `((~_)(~*_)!)) &~b = ~body):
-  DefineFunction new(node line, body, arguments(x), message-name(x), b)
+  DefineFunction bootstrap(node line, body, arguments(x), message-name(x), b)
 
 arguments(b: Atomy AST Infix) = [b right]
 arguments(? to-word) = []
@@ -48,10 +48,10 @@ arguments(x) =
 receiver(b: Atomy AST Infix) = b left
 receiver(p: Atomy AST Prefix) = p receiver
 receiver(p: Atomy AST Postfix) = p receiver
-receiver(? to-word) = Atomy AST Primitive new(0, .self)
-receiver(Atomy AST Call) = Atomy AST Primitive new(0, .self)
-receiver(`((~_)(~*_)?)) = Atomy AST Primitive new(0, .self)
-receiver(`((~_)(~*_)!)) = Atomy AST Primitive new(0, .self)
+receiver(? to-word) = Atomy AST Primitive bootstrap(0, .self)
+receiver(Atomy AST Call) = Atomy AST Primitive bootstrap(0, .self)
+receiver(`((~_)(~*_)?)) = Atomy AST Primitive bootstrap(0, .self)
+receiver(`((~_)(~*_)!)) = Atomy AST Primitive bootstrap(0, .self)
 receiver(`(~a &~_)) = receiver(a)
 receiver(`(~a ~_)) = a
 receiver(`/~_) = 'Self
@@ -84,7 +84,7 @@ block(_) = nil
 
 
 macro(~x := ~y):
-  DefineMethod new(
+  DefineMethod bootstrap(
     node line,
     y,
     receiver(x),
@@ -134,7 +134,7 @@ macro(module: ~*body):
 
 macro(~x open: ~*body):
   `(~x module-eval:
-      ~(WithModule new(node line))
+      ~(WithModule bootstrap(node line))
       ~*body)
 
 macro(~x singleton: ~*body):

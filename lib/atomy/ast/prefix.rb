@@ -18,10 +18,9 @@ module Atomy
 
       def to_send
         Send.new(
-          @line,
-          @receiver,
-          [],
-          message_name)
+          :line => @line,
+          :receiver => @receiver,
+          :message_name => message_name)
       end
     end
   end

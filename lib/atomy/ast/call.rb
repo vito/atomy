@@ -19,13 +19,12 @@ module Atomy::AST
 
       word = @name.to_word
       Send.new(
-        @line,
-        Primitive.new(@line, :self),
-        args,
-        word && word.text,
-        splat,
-        nil,
-        true)
+        :line => @line,
+        :receiver => Primitive.new(:line => @line, :value => :self),
+        :arguments => args,
+        :message_name => word && word.text,
+        :splat => splat,
+        :private => true)
     end
   end
 end

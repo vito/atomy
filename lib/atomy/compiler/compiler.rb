@@ -46,7 +46,7 @@ module Atomy
                                file = "(eval)", line = 1, debug = false)
       compiler = new :atomy_bytecode, :compiled_method
 
-      expr = Atomy::AST::EvalExpression.new(AST::Tree.new(line, [node]))
+      expr = Atomy::AST::EvalExpression.new(AST::Tree.new(:line => line, :nodes => [node]))
       expr.file = file
 
       compiler.packager.print.bytecode = debug if debug
@@ -93,7 +93,7 @@ module Atomy
       end
 
       be.from_eval!
-     
+
       return be
     end
 

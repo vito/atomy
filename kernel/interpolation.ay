@@ -11,7 +11,7 @@ parser(Parser):
   %atomy := Atomy Parser
 
   root := %atomy(wsp) es=(%atomy(expressions)) %atomy(wsp) "}" {
-    Atomy AST Tree new(0, Array(es))
+    Atomy AST Tree bootstrap(0, Array(es))
   }
 
 
@@ -52,7 +52,7 @@ Atomy AST open:
 
 
 interpolated(x) :=
-  Atomy AST Interpolation new(0, intp-segments(x))
+  Atomy AST Interpolation bootstrap(0, intp-segments(x))
 
 macro-quoter(i) [_, _, v]: interpolated(v)
 
@@ -61,4 +61,4 @@ macro(.~(x: StringLiteral)):
   i = interpolated(x value)
   if(i interpolated?)
     then: `(~i to-sym)
-    else: Literal new(node line, x value to-sym)
+    else: Literal bootstrap(node line, x value to-sym)

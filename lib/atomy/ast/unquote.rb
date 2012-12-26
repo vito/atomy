@@ -24,12 +24,20 @@ module Atomy
         # e.g. xs = ['1, '2, 3], ``[~~*xs] => `[~*['1, '2, '3]]
         elsif @expression.splice? && d == 2
           @expression.get(g)
+          g.send :new, 0
+
+          g.dup
           g.push_int @line
+          g.send :line=, 1
+          g.pop
+
+          g.dup
           g.push_cpath_top
           g.find_const :Atomy
           mod.compile(g, @expression.expression)
           g.send :unquote_splice, 1
-          g.send :new, 2
+          g.send :expression=, 1
+          g.pop
 
         # unquoted too far
         elsif d && d < 1
@@ -38,9 +46,17 @@ module Atomy
         # not unquoting anything; construct
         else
           get(g)
+          g.send :new, 0
+
+          g.dup
           g.push_int @line
+          g.send :line=, 1
+          g.pop
+
+          g.dup
           @expression.construct(g, mod, unquote(d))
-          g.send :new, 2
+          g.send :expression=, 1
+          g.pop
         end
       end
 

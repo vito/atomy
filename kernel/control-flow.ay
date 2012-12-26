@@ -20,21 +20,21 @@ macro(condition ~(b: Block)):
 
 macro(~val match ~(b: Block)):
   branches = pairs from(b contents) collect [x, y]:
-    MatchBranch new(x line, x, y)
+    MatchBranch bootstrap(x line, x, y)
 
-  Match new(node line, val, branches)
+  Match bootstrap(node line, val, branches)
 
 macro(~x rescue ~(y: Block)):
   branches = pairs from(y contents) collect [p, e]:
-    RescueHandler new(p line, p, e)
+    RescueHandler bootstrap(p line, p, e)
 
-  Rescue new(node line, x caller, branches)
+  Rescue bootstrap(node line, x caller, branches)
 
 macro(~x rescue ~(y: Block) else ~(z: Block)):
   branches = pairs from(y contents) collect [p, e]:
-    RescueHandler new(p line, p, e)
+    RescueHandler bootstrap(p line, p, e)
 
-  Rescue new(node line, x caller, branches, z body)
+  Rescue bootstrap(node line, x caller, branches, z body)
 
 
 Atomy AST open:
@@ -87,14 +87,14 @@ Atomy AST open:
     done set!
 
 
-macro(~a and ~b): And new(node line, a, b)
-macro(~a && ~b): And new(node line, a, b)
+macro(~a and ~b): And bootstrap(node line, a, b)
+macro(~a && ~b): And bootstrap(node line, a, b)
 
-macro(~a or ~b): Or new(node line, a, b)
-macro(~a || ~b): Or new(node line, a, b)
+macro(~a or ~b): Or bootstrap(node line, a, b)
+macro(~a || ~b): Or bootstrap(node line, a, b)
 
-macro(not ~a): Negate new(node line, a)
-macro(!~a): Negate new(node line, a)
+macro(not ~a): Negate bootstrap(node line, a)
+macro(!~a): Negate bootstrap(node line, a)
 
 macro(~a != ~b): `!(~a == ~b)
 macro(~a !~ ~b): `!(~a =~ ~b)
@@ -106,15 +106,15 @@ macro(~x if ~y): `(when(~y): ~x)
 macro(~x unless ~y): `(unless(~y): ~x)
 
 macro(if(~x) then ~(y: Block) else ~(z: Block)):
-  IfThenElse new(node line, x, y body, z body)
+  IfThenElse bootstrap(node line, x, y body, z body)
 
 macro(otherwise): 'true
 
 macro(return(~y)):
-  Return new(node line, y)
+  Return bootstrap(node line, y)
 
 macro(~x ensuring ~(y: Block)):
-  Ensure new(node line, x caller, y body)
+  Ensure bootstrap(node line, x caller, y body)
 
 macro(when(~c) ~(b: Block)):
   `(if(~c) then ~b else: nil)
@@ -141,16 +141,16 @@ Atomy AST open:
 
 
 macro(break):
-  Break new(node line, 'nil)
+  Break bootstrap(node line, 'nil)
 
 macro(break(~x)):
-  Break new(node line, x)
+  Break bootstrap(node line, x)
 
 macro(next):
-  Next new(node line, 'nil)
+  Next bootstrap(node line, 'nil)
 
 macro(next(~x)):
-  Next new(node line, x)
+  Next bootstrap(node line, x)
 
 
 Atomy AST open:
@@ -178,7 +178,7 @@ Atomy AST open:
     g send-super(name, @arguments size, !!@splat)
 
 macro(super):
-  Super new(node line, [])
+  Super bootstrap(node line, [])
 
 splat-from(arguments) = do:
   args = arguments dup
@@ -192,19 +192,19 @@ splat-from(arguments) = do:
   [args, splat]
 
 macro(super &~blk):
-  Super new(node line, [], nil, blk)
+  Super bootstrap(node line, [], nil, blk)
 
 macro(super ~(blk: Block)):
-  Super new(node line, [], nil, blk)
+  Super bootstrap(node line, [], nil, blk)
 
 macro(super(~*pRiNcEsS)):
   [args, splat] = splat-from(pRiNcEsS)
-  Super new(node line, args, splat)
+  Super bootstrap(node line, args, splat)
 
 macro(super(~*as) ~(blk: Block)):
   [args, splat] = splat-from(as)
-  Super new(node line, args, splat, blk)
+  Super bootstrap(node line, args, splat, blk)
 
 macro(super(~*as) &~blk):
   [args, splat] = splat-from(as)
-  Super new(node line, args, splat, blk)
+  Super bootstrap(node line, args, splat, blk)

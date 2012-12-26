@@ -11,28 +11,25 @@ module Atomy
       def macro_definer
         name = @pattern.macro_name
 
-        Atomy::AST::DefineMethod.new(
-          0,
-          Atomy::AST::Send.new(
-            @body.line,
-            @body,
-            [],
-            :to_node),
-          Atomy::AST::Block.new(
-            0,
-            [Atomy::AST::Primitive.new(0, :self)],
-            []),
-          [ Atomy::AST::Compose.new(
-              0,
-              Atomy::AST::Word.new(0, :node),
-              Atomy::AST::Block.new(
-                0,
-                [Atomy::AST::QuasiQuote.new(0, @pattern)],
-                []))
+        DefineMethod.new(
+          :line => @line,
+          :body => Send.new(
+            :line => @body.line,
+            :receiver => @body,
+            :message_name => :to_node),
+          :receiver => Block.new(
+            :line => @line,
+            :contents => [Primitive.new(:line => @line, :value => :self)]),
+          :arguments => [
+            Compose.new(
+              :left => Word.new(:text => :node),
+              :right => Block.new(
+                :contents => [
+                  QuasiQuote.new(:line => @line, :expression => @pattern)
+                ]))
           ],
-          name,
-          nil,
-          true)
+          :name => name,
+          :always_match => true)
       end
 
       def bytecode(g, mod)

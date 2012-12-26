@@ -21,7 +21,11 @@ module Atomy
       end
 
       def to_send
-        Send.new(@line, Primitive.new(@line, :self), [], @text, nil, nil, true)
+        Send.new(
+          :line => @line,
+          :receiver => Primitive.new(:line => @line, :value => :self),
+          :message_name => @text,
+          :private => true)
       end
 
       def to_word

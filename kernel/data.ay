@@ -22,7 +22,7 @@ define-class(root, `((~name)(~*as): ~*cs)) = do:
       x
 
   tmps = names(attrs size) collect [t]:
-    Atomy AST Unquote new(0, t)
+    Atomy AST Unquote bootstrap(0, t)
 
   pat = name
   attrs zip(tmps) [a, t]:
@@ -31,8 +31,8 @@ define-class(root, `((~name)(~*as): ~*cs)) = do:
   cons = `((~name)(~*tmps))
 
   pat-def =
-    `(pattern(~(Atomy AST QuasiQuote new(0, cons))):
-        pattern(~(Atomy AST QuasiQuote new(0, pat))))
+    `(pattern(~(Atomy AST QuasiQuote bootstrap(0, cons))):
+        pattern(~(Atomy AST QuasiQuote bootstrap(0, pat))))
 
   parent = root or 'Object
 

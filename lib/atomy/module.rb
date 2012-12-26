@@ -102,7 +102,7 @@ module Atomy
     end
 
     def define_macro(pattern, body, file = @file)
-      eval(Atomy::AST::DefineMacro.new(pattern.line, pattern, body))
+      eval(Atomy::AST::DefineMacro.new(:line => pattern.line, :pattern => pattern, :body => body))
     end
 
     def execute_macro(node)
@@ -220,7 +220,7 @@ module Atomy
       as = []
       num.times do
         salt = Atomy::Macro::Environment.salt!
-        as << Atomy::AST::Word.new(0, :"#{name}:sym:#{salt}")
+        as << Atomy::AST::Word.new(:line => 0, :text => :"#{name}:sym:#{salt}")
       end
 
       if block
