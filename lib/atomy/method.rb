@@ -235,7 +235,7 @@ module Atomy
       cm
     end
 
-  private
+    private
 
     # insert method `new` into the list of branches
     #

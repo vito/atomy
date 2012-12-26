@@ -81,7 +81,6 @@ module Atomy
 
   def self.current_module
     scope = Rubinius::ConstantScope.of_sender
-    mod = nil
     while scope
       if scope.module.is_a?(Atomy::Module)
         return scope.module
