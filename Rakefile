@@ -24,7 +24,7 @@ task :reinstall => [:uninstall, :install]
 
 desc "Push a new Atomy version."
 task :release => :build do
-  sh "gem push atomy-#{Atomy::VERSION}"
+  sh "gem push atomy-#{Atomy::VERSION}.gem"
 end
 
 desc "Regenrate parser."
