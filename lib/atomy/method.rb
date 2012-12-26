@@ -54,11 +54,11 @@ module Atomy
         total += @receiver <=> other.receiver
       end
 
-      @required.zip(other.required) do |x, y|
+      paired(@required, other.required) do |x, y|
         total += x <=> y unless y.nil?
       end
 
-      @optional.zip(other.optional) do |x, y|
+      paired(@optional, other.optional) do |x, y|
         total += x <=> y unless y.nil?
       end
 
@@ -79,11 +79,11 @@ module Atomy
 
       return false unless @receiver =~ other.receiver
 
-      @required.zip(other.required) do |x, y|
+      paired(@required, other.required) do |x, y|
         return false unless x =~ y
       end
 
-      @optional.zip(other.optional) do |x, y|
+      paired(@optional, other.optional) do |x, y|
         return false unless x =~ y
       end
 
@@ -96,6 +96,18 @@ module Atomy
       end
 
       true
+    end
+
+    private
+
+    def paired(a, b)
+      size = a.size
+
+      i = 0
+      until i == size
+        yield a[i], b[i]
+        i += 1
+      end
     end
   end
 
