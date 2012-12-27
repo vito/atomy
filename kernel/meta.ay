@@ -1,6 +1,7 @@
 use("core")
 use("define")
 use("node")
+use("init")
 
 macro(when-compiling ~(b: Block)):
   eval(b body)
@@ -23,6 +24,4 @@ Atomy AST open:
     new compile(g, body)
 
 macro(let-macro(~*ms) ~(b: Block)):
-  LetMacro new [l]:
-    l body = b body
-    l macros = ms
+  init(LetMacro, body -> b body, macros -> ms)

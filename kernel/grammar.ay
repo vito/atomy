@@ -4,6 +4,7 @@ use("control-flow")
 use("dynamic")
 use("particles")
 use("node")
+use("init")
 
 require("kpeg")
 require("kpeg/compiled_parser")
@@ -221,13 +222,14 @@ macro(parser(~name): ~*grammar):
 
     acts =
       ^actions collect [action, as]:
-        args = as collect [a]: Atomy AST Word bootstrap(0, a)
+        args = as collect [a]: init(Word, text: a)
         `([~*args] ~action)
 
     def =
-      Atomy AST ParserDefiner new [n]:
-        n line = node line
-        n source = //KPeg CodeGenerator new(const-name(name), g) output
+      init(ParserDefiner):
+        line: node line
+        source:
+          //KPeg CodeGenerator new(const-name(name), g) output
 
     `(do:
         ~name = //KPeg CompiledParser class:

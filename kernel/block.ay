@@ -5,6 +5,8 @@ use("meta")
 use("interpolation")
 use("node")
 use("patterns")
+use("init")
+
 
 Atomy Patterns open:
   NamedRedirectedInstance = NamedInstance class:
@@ -113,16 +115,16 @@ macro(with-variables-of(~x) ~(b: Block)):
       c through-quotes([n]: n match: `@~_ -> true) [n]:
         n match:
           `@@~(name ? to-word) ->
-            RedirectedClassVariable new [x]:
-              x line = n line
-              x target = val
-              x name = name to-word text
+            init(RedirectedClassVariable):
+              line: n line
+              target: val
+              name: name to-word text
 
           `@~(name ? to-word) ->
-            RedirectedInstanceVariable new [x]:
-              x line = n line
-              x target = val
-              x name = name to-word text
+            init(RedirectedInstanceVariable):
+              line: n line
+              target: val
+              name: name to-word text
 
           _ -> n
 

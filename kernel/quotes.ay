@@ -1,11 +1,12 @@
 use("core")
 use("define")
 use("control-flow")
+use("init")
 
 macro(macro-quoter(~n) [~*as]: ~*body):
   names [str, args]:
-    strpat = Unquote new [u]: u expression = `(~str: StringLiteral)
-    argpat = Unquote new [u]: u expression = `*~args
+    strpat = init(Unquote, expression: `(~str: StringLiteral))
+    argpat = init(Unquote, expression: `*~args)
 
     raw = as[0]
     when(raw):

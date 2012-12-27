@@ -3,6 +3,7 @@ use("define")
 use("control-flow")
 use("array")
 use("node")
+use("init")
 
 pairs = require("pairs")
 
@@ -37,6 +38,4 @@ macro(#: ~*elements):
     keys << k
     values << v
 
-  HashLiteral new [n]:
-    n keys = keys
-    n values = values
+  init(HashLiteral, keys -> keys, values -> values)

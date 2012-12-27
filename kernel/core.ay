@@ -10,6 +10,9 @@ define-macro(
   '(macro(~pat) ~(body: Block))
   '(DefineMacro bootstrap(node line, pat, body body)))
 
+-- assignment/pattern-matching
+macro(~x = ~y): Assign bootstrap(node line, x, y)
+
 -- pseudo-variables
 macro(nil): Primitive bootstrap(node line, "nil" to-sym)
 macro(self): Primitive bootstrap(node line, "self" to-sym)
@@ -17,14 +20,16 @@ macro(true): Primitive bootstrap(node line, "true" to-sym)
 macro(false): Primitive bootstrap(node line, "false" to-sym)
 macro(_): Primitive bootstrap(node line, "undefined" to-sym)
 
--- assignment/pattern-matching
-macro(~x = ~y): Assign bootstrap(node line, x, y)
-
 macro(//~(c: Constant)):
-  ToplevelConstant bootstrap(node line, c name)
+  x = ToplevelConstant new
+  x name = c name
+  x
 
 macro(/~(c: Constant)):
-  ScopedConstant bootstrap(node line, 'Self, c name)
+  x = ScopedConstant new
+  x parent = 'Self
+  x name = c name
+  x
 
 macro(/~(w ? to-word)):
   x = w to-send
@@ -36,20 +41,33 @@ macro(/~send):
   x receiver = 'Self
   x
 
-macro(~x ~(c: Constant)):
-  ScopedConstant bootstrap(node line, x, c name)
+macro(~p ~(c: Constant)):
+  x = ScopedConstant new
+  x parent = p
+  x name = c name
+  x
 
 -- [x, y] { x + y }
 macro([~*args]: ~*body):
-  Block bootstrap(node line, body, args)
+  x = Block new
+  x contents = body
+  x arguments = args
+  x
 
 -- [x, y] &z { x + y }
 macro([~*args] &~blk { ~*body }):
-  Block bootstrap(node line, body, args, blk)
+  x = Block new
+  x contents = body
+  x arguments = args
+  x block = blk
+  x
 
 -- &z { x + y }
 macro(&~blk { ~*body }):
-  Block bootstrap(node line, body, [], blk)
+  x = Block new
+  x contents = body
+  x block = blk
+  x
 
 -- foo { bar }
 macro(~(w ? to-word) ~(b: Block)):
@@ -78,25 +96,37 @@ macro(~_ (~(? to-word))(~*_) ~(b: Block)):
 -- collect [x] { x + 1 }
 macro(~(meth ? to-word) [~*args]: ~*body):
   x = meth to-send
-  x block = Block bootstrap(node line, body, args)
+  b = Block new
+  b contents = body
+  b arguments = args
+  x block = b
   x
 
 -- collect(a) [x] { x + 1 }
 macro((~(? to-word))(~*_) [~*args]: ~*body):
   x = node left left to-send
-  x block = Block bootstrap(node line, body, args)
+  b = Block new
+  b contents = body
+  b arguments = args
+  x block = b
   x
 
 -- [1, 2, 3] collect [x] { x + 1 }
 macro(~_ ~(? to-word) [~*args]: ~*body):
   x = node left left to-send
-  x block = Block bootstrap(node line, body, args)
+  b = Block new
+  b contents = body
+  b arguments = args
+  x block = b
   x
 
 -- [1, 2, 3] collect(a) [x] { x + 1 }
 macro(~_ (~(? to-word))(~*_) [~*args]: ~*body):
   x = node left left to-send
-  x block = Block bootstrap(node line, body, args)
+  b = Block new
+  b contents = body
+  b arguments = args
+  x block = b
   x
 
 -- particle/symbol block-passing shorthand
@@ -170,49 +200,61 @@ macro(~r (~(c: Constant))(~*args) &~_):
     x private = false
 
 macro(_LINE): node line
-macro(_FILE): ActivePath bootstrap(node line)
+macro(_FILE): ActivePath new
 
 macro(&~x):
-  BlockPass bootstrap(node line, x)
+  BlockPass new [b]: b body = x
 
 macro(*~x):
-  Splat bootstrap(node line, x)
+  Splat new [s]: s value = x
 
 macro(@~(x: ? to-word)):
-  InstanceVariable bootstrap(node line, x to-word text)
+  InstanceVariable new [g]:
+    g identifier = x to-word text
 
 macro(@@~(x: ? to-word)):
-  ClassVariable bootstrap(node line, x to-word text)
-
-macro($0):
-  GlobalVariable bootstrap(node line, "0" to-sym)
+  ClassVariable new [g]:
+    g identifier = x to-word text
 
 macro($~(x: StringLiteral)):
-  GlobalVariable bootstrap(node line, x value)
+  GlobalVariable new [g]:
+    g identifier = x value
 
 macro($~(x: Constant)):
-  GlobalVariable bootstrap(node line, x name)
+  GlobalVariable new [g]:
+    g identifier = x name
 
 macro($~(x: ? to-word)):
-  GlobalVariable bootstrap(node line, x to-word text)
+  GlobalVariable new [g]:
+    g identifier = x to-word text
+
+macro($0):
+  GlobalVariable new [g]:
+    g identifier = "0" to-sym
 
 macro($exception):
-  GlobalVariable bootstrap(node line, "!" to-sym)
+  GlobalVariable new [g]:
+    g identifier = "!" to-sym
 
 macro($path):
-  GlobalVariable bootstrap(node line, ":" to-sym)
+  GlobalVariable new [g]:
+    g identifier = ":" to-sym
 
 macro($separator):
-  GlobalVariable bootstrap(node line, "/" to-sym)
+  GlobalVariable new [g]:
+    g identifier = "/" to-sym
 
 macro(.~(x: Constant)):
-  Literal bootstrap(node line, x name)
+  Literal new [l]:
+    l value = x name
 
 macro(.~(x: ? to-word)):
-  Literal bootstrap(node line, x to-word text)
+  Literal new [l]:
+    l value = x to-word text
 
 macro(.~(x: StringLiteral)):
-  Literal bootstrap(node line, x value to-sym)
+  Literal new [l]:
+    l value = x value to-sym
 
 macro(.[]): ."[]"
 macro(.[]=): ."[]="

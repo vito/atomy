@@ -3,6 +3,7 @@ use("define")
 use("block")
 use("control-flow")
 use("grammar")
+use("init")
 
 Atomy Format open:
   parser(Parser):
@@ -14,7 +15,7 @@ Atomy Format open:
       "\\" e=(%atomy(escape)) { e }
     ]
 
-    nested(e) := c=(text(e)+) { Chunk new [n]: n text = c join }
+    nested(e) := c=(text(e)+) { init(Chunk, text: c join) }
 
     chunk := nested("")
 
@@ -23,9 +24,9 @@ Atomy Format open:
     flag := [
       "#" { Number new }
       "0" &("." /"\d"/ | /"\d"/) { ZeroPad new }
-      "." <(/"\d+"/)> { Precision new [n]: n value = text to-i }
-      <(/"\d+"/)> { Number new [n]: n value = text to-i }
-      <(/"[\.\+\*=<>,\?]"/)> { Symbol new [n]: n character = text }
+      "." <(/"\d+"/)> { init(Precision, value: text to-i) }
+      <(/"\d+"/)> { init(Number, value: text to-i) }
+      <(/"[\.\+\*=<>,\?]"/)> { init(Symbol, character: text) }
     ]
 
     segment := [
@@ -34,15 +35,13 @@ Atomy Format open:
           n singular = s
           n plural = p
       }
-      "l" "(" c=(sub(")")) ")" { Lowercase new [n]: n content = c }
-      "c" "(" c=(sub(")")) ")" { Capitalize new [n]: n content = c }
-      "u" "(" c=(sub(")")) ")" { Uppercase new [n]: n content = c }
-      "j" cs=(("(" c=(sub(")")) ")" { c })+) { Justify new [n]: n segments = cs }
-      "{" c=(sub("}")) "}" { Iterate new [n]: n content = c }
+      "l" "(" c=(sub(")")) ")" { init(Lowercase, content: c) }
+      "c" "(" c=(sub(")")) ")" { init(Capitalize, content: c) }
+      "u" "(" c=(sub(")")) ")" { init(Uppercase, content: c) }
+      "j" cs=(("(" c=(sub(")")) ")" { c })+) { init(Justify, segments: cs) }
+      "{" c=(sub("}")) "}" { init(Iterate, content: c) }
       bs=(("[" c=(sub("]")) "]" { c })+) ("(" d=(sub(")")) ")")? {
-        Conditional new [n]:
-          n branches = Array(bs)
-          n default = d
+        init(Conditional, branches -> Array(bs), default -> d)
       }
       "_" { Skip new }
       "^" { Break new }
@@ -61,7 +60,7 @@ Atomy Format open:
     ]
 
     sub(e) := as=((flagged | nested(e))*) {
-      Formatter new [n]: n segments = Array(as)
+      init(Formatter, segments -> Array(as))
     }
 
     root := x=(sub("")) !(/"."/) { x }

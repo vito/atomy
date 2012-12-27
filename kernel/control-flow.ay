@@ -1,6 +1,7 @@
 use("core")
 use("define")
 use("node")
+use("init")
 
 pairs = require("pairs")
 
@@ -20,26 +21,21 @@ macro(condition ~(b: Block)):
 
 macro(~val match ~(b: Block)):
   branches = pairs from(b contents) collect [x, y]:
-    MatchBranch new [n]: n line = x line, n pattern = x, n branch = y
+    init(MatchBranch, line -> x line, pattern -> x, branch -> y)
 
-  Match new [n]: n target = val, n branches = branches
+  init(Match, target -> val, branches -> branches)
 
 macro(~x rescue ~(y: Block)):
   branches = pairs from(y contents) collect [p, e]:
-    RescueHandler new [n]: n line = p line, n pattern = p, n body = e
+    init(RescueHandler, line -> p line, pattern -> p, body -> e)
 
-  Rescue new [n]:
-    n body = x caller
-    n handlers = branches
+  init(Rescue, body -> x caller, handlers -> branches)
 
 macro(~x rescue ~(y: Block) else ~(z: Block)):
   branches = pairs from(y contents) collect [p, e]:
-    RescueHandler new [n]: n line = p line, n pattern = p, n body = e
+    init(RescueHandler, line -> p line, pattern -> p, body -> e)
 
-  Rescue new [n]:
-    n body = x caller
-    n handlers = branches
-    n else = z body
+  init(Rescue, body -> x caller, handlers -> branches, else -> z body)
 
 
 Atomy AST open:
@@ -92,14 +88,14 @@ Atomy AST open:
     done set!
 
 
-macro(~a and ~b): And new [n]: n a = a, n b = b
-macro(~a && ~b): And new [n]: n a = a, n b = b
+macro(~a and ~b): init(And, a -> a, b -> b)
+macro(~a && ~b): init(And, a -> a, b -> b)
 
-macro(~a or ~b): Or new [n]: n a = a, n b = b
-macro(~a || ~b): Or new [n]: n a = a, n b = b
+macro(~a or ~b): init(Or, a -> a, b -> b)
+macro(~a || ~b): init(Or, a -> a, b -> b)
 
-macro(not ~a): Negate new [n]: n expression = a
-macro(!~a): Negate new [n]: n expression = a
+macro(not ~e): init(Negate, expression -> e)
+macro(!~e): init(Negate, expression -> e)
 
 macro(~a != ~b): `!(~a == ~b)
 macro(~a !~ ~b): `!(~a =~ ~b)
@@ -111,15 +107,14 @@ macro(~x if ~y): `(when(~y): ~x)
 macro(~x unless ~y): `(unless(~y): ~x)
 
 macro(if(~x) then ~(y: Block) else ~(z: Block)):
-  IfThenElse new [n]: n condition = x, n then = y body, n else = z body
+  init(IfThenElse, condition -> x, then -> y body, else -> z body)
 
 macro(otherwise): 'true
 
-macro(return(~y)):
-  Return new [n]: n value = y
+macro(return(~y)): init(Return, value -> y)
 
 macro(~x ensuring ~(y: Block)):
-  Ensure new [n]: n body = x caller, n ensure = y body
+  init(Ensure, body -> x caller, ensure -> y body)
 
 macro(when(~c) ~(b: Block)):
   `(if(~c) then ~b else: nil)
@@ -146,16 +141,16 @@ Atomy AST open:
 
 
 macro(break):
-  Break new [n]: n value = 'nil
+  init(Break, value: 'nil)
 
 macro(break(~x)):
-  Break new [n]: n value = x
+  init(Break, value: x)
 
 macro(next):
-  Next new [n]: n value = 'nil
+  init(Next, value: 'nil)
 
 macro(next(~x)):
-  Next new [n]: n value = x
+  init(Next, value: x)
 
 
 Atomy AST open:
@@ -197,19 +192,19 @@ splat-from(arguments) = do:
   [args, splat]
 
 macro(super &~blk):
-  Super new [n]: n block = blk
+  init(Super, block: blk)
 
 macro(super ~(blk: Block)):
-  Super new [n]: n block = blk
+  init(Super, block: blk)
 
 macro(super(~*pRiNcEsS)):
   [args, splat] = splat-from(pRiNcEsS)
-  Super new [n]: n arguments = args, n splat = splat
+  init(Super, arguments -> args, splat -> splat)
 
 macro(super(~*as) ~(blk: Block)):
   [args, splat] = splat-from(as)
-  Super new [n]: n arguments = args, n splat = splat, n block = blk
+  init(Super, arguments -> args, splat -> splat, block -> blk)
 
 macro(super(~*as) &~blk):
   [args, splat] = splat-from(as)
-  Super new [n]: n arguments = args, n splat = splat, n block = blk
+  init(Super, arguments -> args, splat -> splat, block -> blk)

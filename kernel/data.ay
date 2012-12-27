@@ -1,6 +1,7 @@
 use("core")
 use("define")
 use("control-flow")
+use("init")
 
 -- patterns defined by dsl use 'with', so make sure it's exported
 export(use("patterns"))
@@ -22,7 +23,7 @@ define-class(root, `((~name)(~*as): ~*cs)) = do:
       x
 
   tmps = names(attrs size) collect [t]:
-    Atomy AST Unquote bootstrap(0, t)
+    init(Atomy AST Unquote, expression: t)
 
   pat = name
   attrs zip(tmps) [a, t]:
@@ -31,8 +32,8 @@ define-class(root, `((~name)(~*as): ~*cs)) = do:
   cons = `((~name)(~*tmps))
 
   pat-def =
-    `(pattern(~(Atomy AST QuasiQuote bootstrap(0, cons))):
-        pattern(~(Atomy AST QuasiQuote bootstrap(0, pat))))
+    `(pattern(~init(Atomy AST QuasiQuote, expression: cons)):
+        pattern(~init(Atomy AST QuasiQuote, expression: pat)))
 
   parent = root or 'Object
 

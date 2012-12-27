@@ -4,6 +4,7 @@ use("dynamic")
 use("control-flow")
 use("meta")
 use("node")
+use("init")
 
 Tags = dynamic(Hash new)
 
@@ -36,11 +37,11 @@ Atomy AST open:
 
 
 macro(labels ~(body: Block)):
-  branches = body contents collect [`(~l ~b)]:
-    LabelBranch new [n]: n line = l line, n name = l text, n body = b body
+  branches = body contents collect [`(~n ~b)]:
+    init(LabelBranch, line -> n line, name -> n text, body -> b body)
 
-  `(let-macro(go(~'~name) = GoTo new [n]: n name = name text):
-      ~(Labels new [n]: n line = node line, n branches = branches))
+  `(let-macro(go(~'~name) = init(GoTo, name -> name text)):
+      ~init(Labels, line -> node line, branches -> branches))
 
 macro(~x while ~y): `(while(~y): ~x)
 macro(while(~test) ~(body: Block)):

@@ -1,0 +1,22 @@
+use("core")
+use("define")
+
+pairs = require("pairs")
+
+macro(init(~class, ~*attrs)):
+  names [tmp]:
+    `(do:
+        ~tmp = ~class new
+        ~*(pairs from(attrs) collect [k, v]:
+            `(~tmp ~k = ~v))
+        ~tmp)
+
+macro(init(~class): ~*attrs):
+  names [tmp]:
+    `(do:
+        ~tmp = ~class new
+        ~*(pairs from(attrs) collect [k, v]:
+            `(~tmp ~k = ~v))
+        ~tmp)
+
+

@@ -3,6 +3,7 @@ use("define")
 use("cosmetics")
 use("control-flow")
 use("meta")
+use("init")
 
 
 Atomy Patterns open:
@@ -215,17 +216,17 @@ Atomy Patterns open:
 macro(pattern(~pat): ~*body):
   names [mod]:
     patdef =
-      LetMacro new [l]:
-        l line = node line
-        l body = `(do: ~*body)
-        l macros =
-          [`(pattern(~(Unquote new [u]: u expression = 'x)) =
+      init(LetMacro):
+        line: node line
+        body: `(do: ~*body)
+        macros:
+          [`(pattern(~init(Unquote, expression -> 'x)) =
               `(~'~mod make-pattern(~x)))]
 
-    DefinePattern new [d]:
-      d pattern = pat
-      d body = patdef
-      d module-name = mod
+    init(DefinePattern):
+      pattern: pat
+      body: patdef
+      module-name: mod
 
 
 -- base patterns
@@ -248,22 +249,15 @@ pattern(Constant):
   Atomy Patterns Constant new(node)
 
 pattern(`(//~(y: Constant))):
-  Atomy Patterns Constant new(
-    ToplevelConstant new [c]: c name = y name)
+  Atomy Patterns Constant new(init(ToplevelConstant, name -> y name))
 
 pattern(`(/~(y: Constant))):
   Atomy Patterns Constant new(
-    ScopedConstant new [c]:
-      c line = node line
-      c parent = 'Self
-      c name = y name)
+    init(ScopedConstant, parent -> 'Self, name -> y name))
 
 pattern(`(~x ~(y: Constant))):
   Atomy Patterns Constant new(
-    ScopedConstant new [c]:
-      c line = node line
-      c parent = x
-      c name = y name)
+    init(ScopedConstant, parent -> x, name -> y name))
 
 pattern(Quote):
   Atomy Patterns Quote new(node expression)

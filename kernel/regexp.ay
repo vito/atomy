@@ -5,6 +5,7 @@ use("patterns")
 use("control-flow")
 use("interpolation")
 use("array")
+use("init")
 
 
 Atomy AST open:
@@ -17,7 +18,7 @@ Atomy AST open:
 
 
 macro($~(x: Primitive ? @value is-a(//Integer)? and @value > 0)):
-  NthRef new [n]: n which = x value
+  init(NthRef, which: x value)
 
 macro-quoter(r) [r, fs]:
   flags = 0
