@@ -6,11 +6,6 @@ use("grammar")
 
 Atomy Format open:
   parser(Parser):
-    %%:
-      create(x, *as) := do:
-        as << []
-        x send(.new, 1, *as)
-
     %atomy := Atomy Parser
 
     text(e) := [
@@ -19,50 +14,54 @@ Atomy Format open:
       "\\" e=(%atomy(escape)) { e }
     ]
 
-    nested(e) := c=(text(e)+) { Chunk new(0, [], c join) }
+    nested(e) := c=(text(e)+) { Chunk new [n]: n text = c join }
 
     chunk := nested("")
 
     flagged := "%" fs=(flag*) s=(segment) { s flags = fs, s }
 
     flag := [
-      "#" { Number new(0, nil) }
-      "0" &("." /"\d"/ | /"\d"/) { ZeroPad new(0) }
-      "." <(/"\d+"/)> { Precision new(0, text to-i) }
-      <(/"\d+"/)> { Number new(0, text to-i) }
-      <(/"[\.\+\*=<>,\?]"/)> { Symbol new(0, text) }
+      "#" { Number new }
+      "0" &("." /"\d"/ | /"\d"/) { ZeroPad new }
+      "." <(/"\d+"/)> { Precision new [n]: n value = text to-i }
+      <(/"\d+"/)> { Number new [n]: n value = text to-i }
+      <(/"[\.\+\*=<>,\?]"/)> { Symbol new [n]: n character = text }
     ]
 
     segment := [
       "p" "(" s=(sub(")")) ")" ("(" p=(sub(")")) ")")? {
-        Pluralize new(0, s, [], p)
+        Pluralize new [n]:
+          n singular = s
+          n plural = p
       }
-      "l" "(" c=(sub(")")) ")" { create(Lowercase, c) }
-      "c" "(" c=(sub(")")) ")" { create(Capitalize, c) }
-      "u" "(" c=(sub(")")) ")" { create(Uppercase, c) }
-      "j" cs=(("(" c=(sub(")")) ")" { c })+) { create(Justify, cs) }
-      "{" c=(sub("}")) "}" { create(Iterate, c) }
+      "l" "(" c=(sub(")")) ")" { Lowercase new [n]: n content = c }
+      "c" "(" c=(sub(")")) ")" { Capitalize new [n]: n content = c }
+      "u" "(" c=(sub(")")) ")" { Uppercase new [n]: n content = c }
+      "j" cs=(("(" c=(sub(")")) ")" { c })+) { Justify new [n]: n segments = cs }
+      "{" c=(sub("}")) "}" { Iterate new [n]: n content = c }
       bs=(("[" c=(sub("]")) "]" { c })+) ("(" d=(sub(")")) ")")? {
-        Conditional new(0, Array(bs), [], d)
+        Conditional new [n]:
+          n branches = Array(bs)
+          n default = d
       }
-      "_" { create(Skip) }
-      "^" { create(Break) }
-      "%" { create(Indirection) }
-      "s" { create(String) }
-      "d" { create(Decimal) }
-      "x" { create(Hex) }
-      "o" { create(Octal) }
-      "b" { create(Binary) }
-      "r" { create(Radix) }
-      "f" { create(Float) }
-      "e" { create(Exponent) }
-      "g" { create(General) }
-      "c" { create(Character) }
-      "v" { create(Any) }
+      "_" { Skip new }
+      "^" { Break new }
+      "%" { Indirection new }
+      "s" { String new }
+      "d" { Decimal new }
+      "x" { Hex new }
+      "o" { Octal new }
+      "b" { Binary new }
+      "r" { Radix new }
+      "f" { Float new }
+      "e" { Exponent new }
+      "g" { General new }
+      "c" { Character new }
+      "v" { Any new }
     ]
 
     sub(e) := as=((flagged | nested(e))*) {
-      Formatter new(0, Array(as))
+      Formatter new [n]: n segments = Array(as)
     }
 
     root := x=(sub("")) !(/"."/) { x }

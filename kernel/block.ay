@@ -113,10 +113,16 @@ macro(with-variables-of(~x) ~(b: Block)):
       c through-quotes([n]: n match: `@~_ -> true) [n]:
         n match:
           `@@~(name ? to-word) ->
-            RedirectedClassVariable bootstrap(n line, val, name to-word text)
+            RedirectedClassVariable new [x]:
+              x line = n line
+              x target = val
+              x name = name to-word text
 
           `@~(name ? to-word) ->
-            RedirectedInstanceVariable bootstrap(n line, val, name to-word text)
+            RedirectedInstanceVariable new [x]:
+              x line = n line
+              x target = val
+              x name = name to-word text
 
           _ -> n
 

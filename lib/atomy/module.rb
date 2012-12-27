@@ -135,8 +135,10 @@ module Atomy
 
     def expand(node)
       if direct = with_context(:execute_macro, node)
+        direct.line = node.line if direct.line == 0
         expand(direct)
       elsif using = with_context(:expand_using, node)
+        using.line = node.line if using.line == 0
         expand(using)
       else
         node

@@ -36,11 +36,11 @@ Atomy AST open:
 
 
 macro(labels ~(body: Block)):
-  branches = body contents collect [`(~n ~b)]:
-    LabelBranch bootstrap(n line, b body, n text)
+  branches = body contents collect [`(~l ~b)]:
+    LabelBranch new [n]: n line = l line, n name = l text, n body = b body
 
-  `(let-macro(go(~'~name) = GoTo bootstrap(node line, name text)):
-      ~(Labels bootstrap(node line, branches)))
+  `(let-macro(go(~'~name) = GoTo new [n]: n name = name text):
+      ~(Labels new [n]: n line = node line, n branches = branches))
 
 macro(~x while ~y): `(while(~y): ~x)
 macro(while(~test) ~(body: Block)):

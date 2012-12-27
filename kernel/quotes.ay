@@ -4,8 +4,8 @@ use("control-flow")
 
 macro(macro-quoter(~n) [~*as]: ~*body):
   names [str, args]:
-    strpat = Unquote bootstrap(0, `(~str: StringLiteral))
-    argpat = Unquote bootstrap(0, `*~args)
+    strpat = Unquote new [u]: u expression = `(~str: StringLiteral)
+    argpat = Unquote new [u]: u expression = `*~args
 
     raw = as[0]
     when(raw):

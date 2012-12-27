@@ -215,13 +215,17 @@ Atomy Patterns open:
 macro(pattern(~pat): ~*body):
   names [mod]:
     patdef =
-      LetMacro bootstrap(
-        node line
-        `(do: ~*body)
-        [`(pattern(~(Unquote bootstrap(0, 'x))) =
-            `(~'~mod make-pattern(~x)))])
+      LetMacro new [l]:
+        l line = node line
+        l body = `(do: ~*body)
+        l macros =
+          [`(pattern(~(Unquote new [u]: u expression = 'x)) =
+              `(~'~mod make-pattern(~x)))]
 
-    DefinePattern bootstrap(node line, pat, patdef, mod)
+    DefinePattern new [d]:
+      d pattern = pat
+      d body = patdef
+      d module-name = mod
 
 
 -- base patterns
@@ -244,13 +248,22 @@ pattern(Constant):
   Atomy Patterns Constant new(node)
 
 pattern(`(//~(y: Constant))):
-  Atomy Patterns Constant new(ToplevelConstant bootstrap(node line, y name))
+  Atomy Patterns Constant new(
+    ToplevelConstant new [c]: c name = y name)
 
 pattern(`(/~(y: Constant))):
-  Atomy Patterns Constant new(ScopedConstant bootstrap(node line, 'Self, y name))
+  Atomy Patterns Constant new(
+    ScopedConstant new [c]:
+      c line = node line
+      c parent = 'Self
+      c name = y name)
 
 pattern(`(~x ~(y: Constant))):
-  Atomy Patterns Constant new(ScopedConstant bootstrap(node line, x, y name))
+  Atomy Patterns Constant new(
+    ScopedConstant new [c]:
+      c line = node line
+      c parent = x
+      c name = y name)
 
 pattern(Quote):
   Atomy Patterns Quote new(node expression)

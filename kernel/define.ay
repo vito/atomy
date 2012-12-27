@@ -6,25 +6,47 @@ infix("&= ||= |= += -= /= ^= %=", 10, .right)
 macro(do ~(b: Block)): b body
 
 macro(~x =! ~y):
-  Set bootstrap(node line, x, y)
+  Set new [n]:
+    n left = x
+    n right = y
 
 macro((~name)(~*args) = ~body):
-  DefineFunction bootstrap(node line, body, args, name text)
+  DefineFunction new [d]:
+    d body = body
+    d arguments = args
+    d name = name text
 
 macro((~name)(~*args) &~b = ~body):
-  DefineFunction bootstrap(node line, body, args, name text, b)
+  DefineFunction new [d]:
+    d body = body
+    d arguments = args
+    d name = name text
+    d block = b
 
 macro(~(x: `((~_)(~*_)?)) = ~body):
-  DefineFunction bootstrap(node line, body, arguments(x), message-name(x))
+  DefineFunction new [d]:
+    d body = body
+    d arguments = arguments(x)
+    d name = message-name(x)
 
 macro(~(x: `((~_)(~*_)?)) &~b = ~body):
-  DefineFunction bootstrap(node line, body, arguments(x), message-name(x), b)
+  DefineFunction new [d]:
+    d body = body
+    d arguments = arguments(x)
+    d name = message-name(x)
+    d block = b
 
 macro(~(x: `((~_)(~*_)!)) = ~body):
-  DefineFunction bootstrap(node line, body, arguments(x), message-name(x))
+  DefineFunction new [d]:
+    d body = body
+    d arguments = arguments(x)
+    d name = message-name(x)
 
 macro(~(x: `((~_)(~*_)!)) &~b = ~body):
-  DefineFunction bootstrap(node line, body, arguments(x), message-name(x), b)
+  DefineFunction new [d]:
+    d body = body
+    d arguments = arguments(x)
+    d name = message-name(x)
 
 arguments(b: Atomy AST Infix) = [b right]
 arguments(? to-word) = []
@@ -48,10 +70,10 @@ arguments(x) =
 receiver(b: Atomy AST Infix) = b left
 receiver(p: Atomy AST Prefix) = p receiver
 receiver(p: Atomy AST Postfix) = p receiver
-receiver(? to-word) = Atomy AST Primitive bootstrap(0, .self)
-receiver(Atomy AST Call) = Atomy AST Primitive bootstrap(0, .self)
-receiver(`((~_)(~*_)?)) = Atomy AST Primitive bootstrap(0, .self)
-receiver(`((~_)(~*_)!)) = Atomy AST Primitive bootstrap(0, .self)
+receiver(? to-word) = Atomy AST Primitive new [n]: n value = .self
+receiver(Atomy AST Call) = Atomy AST Primitive new [n]: n value = .self
+receiver(`((~_)(~*_)?)) = Atomy AST Primitive new [n]: n value = .self
+receiver(`((~_)(~*_)!)) = Atomy AST Primitive new [n]: n value = .self
 receiver(`(~a &~_)) = receiver(a)
 receiver(`(~a ~_)) = a
 receiver(`/~_) = 'Self
@@ -84,14 +106,12 @@ block(_) = nil
 
 
 macro(~x := ~y):
-  DefineMethod bootstrap(
-    node line,
-    y,
-    receiver(x),
-    arguments(x),
-    message-name(x),
-    block(x))
-
+  DefineMethod new [d]:
+    d body = y
+    d receiver = receiver(x)
+    d arguments = arguments(x)
+    d name = message-name(x)
+    d block = block(x)
 
 -- expose our helpers
 { self } arguments(x) := arguments(x)
@@ -134,7 +154,7 @@ macro(module: ~*body):
 
 macro(~x open: ~*body):
   `(~x module-eval:
-      ~(WithModule bootstrap(node line))
+      ~(WithModule new [n]: n line = node line)
       ~*body)
 
 macro(~x singleton: ~*body):

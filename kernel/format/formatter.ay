@@ -309,7 +309,8 @@ Atomy Format open:
   Formatter open:
     attr-accessor(.position)
 
-    initialize(@line, @segments) :=
+    initialize(opts = nil) &blk := do:
+      super(opts) &blk
       reset!
 
     bytecode(g, mod) := do:

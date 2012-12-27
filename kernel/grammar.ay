@@ -225,9 +225,9 @@ macro(parser(~name): ~*grammar):
         `([~*args] ~action)
 
     def =
-      Atomy AST ParserDefiner bootstrap(
-        node line
-        //KPeg CodeGenerator new(const-name(name), g) output)
+      Atomy AST ParserDefiner new [n]:
+        n line = node line
+        n source = //KPeg CodeGenerator new(const-name(name), g) output
 
     `(do:
         ~name = //KPeg CompiledParser class:

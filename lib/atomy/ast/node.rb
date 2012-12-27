@@ -107,7 +107,7 @@ module Atomy
       # the module this node was constructed in
       attr_reader :context
 
-      def initialize(opts = nil)
+      def initialize(opts = nil, &blk)
         @line = 0
 
         childs = self.class.children
@@ -129,11 +129,13 @@ module Atomy
           send(:"#{n}=", d)
         end
 
-        return unless opts
-
-        opts.each do |k, v|
-          send(:"#{k}=", v)
+        if opts
+          opts.each do |k, v|
+            send(:"#{k}=", v)
+          end
         end
+
+        yield self if block_given?
       end
 
       def self.included(cls)

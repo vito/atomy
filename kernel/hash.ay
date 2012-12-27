@@ -37,4 +37,6 @@ macro(#: ~*elements):
     keys << k
     values << v
 
-  HashLiteral bootstrap(node line, keys, values)
+  HashLiteral new [n]:
+    n keys = keys
+    n values = values
