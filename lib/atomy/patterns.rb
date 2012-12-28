@@ -357,6 +357,7 @@ module Atomy::Patterns
     # test if a pattern matches a value
     def ===(v)
       singleton_class.dynamic_method(:===) do |g|
+        g.push_state Rubinius::AST::ClosedScope.new(0)
         g.total_args = g.required_args = g.local_count = 1
         g.push_local(0)
         matches?(g, @context)
@@ -369,6 +370,7 @@ module Atomy::Patterns
     # get the pattern's definition target
     def definition_target
       singleton_class.dynamic_method(:definition_target) do |g|
+        g.push_state Rubinius::AST::ClosedScope.new(0)
         g.total_args = g.required_args = g.local_count = 0
         target(g, @context)
         g.ret

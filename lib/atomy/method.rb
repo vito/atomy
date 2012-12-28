@@ -326,7 +326,9 @@ module Atomy
             if a.wildcard?
               g.pop
             else
-              a.matches?(g, mod)
+              g.push_literal a
+              g.swap
+              g.send :===, 1
               g.gif argmis
             end
           end
@@ -339,14 +341,19 @@ module Atomy
             g.gif no_value
 
             g.shift_array
-            d.matches?(g, mod)
+
+            g.push_literal d
+            g.swap
+            g.send :===, 1
             g.gif argmis
 
             no_value.set!
           end
 
           if splat and s = splat.pattern
-            s.matches?(g, mod)
+            g.push_literal s
+            g.swap
+            g.send :===, 1
             g.gif skip
           else
             g.pop
