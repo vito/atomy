@@ -31,6 +31,7 @@ module Atomy
 
     def ==(b)
       equal?(b) or \
+        b.is_a?(self.class) and \
         @receiver == b.receiver and \
         @required == b.required and \
         @optional == b.optional and \
@@ -117,7 +118,6 @@ module Atomy
     def initialize(name)
       @name = name
       @branches = []
-      @sorted = false
     end
 
     def new_name
@@ -183,7 +183,9 @@ module Atomy
       g.total_args = 0
       g.required_args = 0
 
-      build_methods(g, @branches, has_args, done)
+      @branches.each do |b|
+        build_branch(g, b, has_args, done)
+      end
 
       if always_matches
         g.push_nil
@@ -249,18 +251,9 @@ module Atomy
 
     private
 
-    # insert method `new` into the list of branches
+    # insert method `new` into the list of branches, based on precision
     #
-    # if <=> isn't defined, we can't compare precision, so
-    # just unshift it
-    #
-    # if it is defined, but the branches aren't sorted, sort them
-    #
-    # if it is defined, and the branches are already sorted, insert
-    # it in the proper order
-    #
-    # during insertion, branches with equivalent patterns will
-    # be replaced
+    # branches with equivalent patterns will be replaced
     def insert(new, branches, named = false)
       branches.each_with_index do |branch, i|
         case new <=> branch
@@ -281,121 +274,119 @@ module Atomy
       branches << new
     end
 
-    # build all the method branches, assumed to be from the
-    # same namespace
-    def build_methods(g, methods, any_have_args, done)
-      methods.each do |meth|
-        mod = meth.module
-        recv = meth.receiver
-        reqs = meth.required
-        opts = meth.optional
-        splat = meth.splat
-        block = meth.block
-        body = meth.body
-        prim = meth.primitive
+    # build a method branch
+    def build_branch(g, meth, any_have_args, done)
+      mod = meth.module
+      recv = meth.receiver
+      reqs = meth.required
+      opts = meth.optional
+      splat = meth.splat
+      block = meth.block
+      body = meth.body
+      prim = meth.primitive
 
-        has_args = meth.total_args > 0
+      has_args = meth.total_args > 0
 
-        skip = g.new_label
-        argmis = g.new_label
+      skip = g.new_label
+      argmis = g.new_label
 
-        if any_have_args
-          g.push_local 0
-          g.send :size, 0
-          g.push_int reqs.size
-          if splat || meth.total_args > reqs.size
-            g.send :>=, 1
+      if any_have_args
+        g.push_local 0
+        g.send :size, 0
+        g.push_int reqs.size
+        if splat || meth.total_args > reqs.size
+          g.send :>=, 1
+        else
+          g.send :==, 1
+        end
+        g.gif skip
+      end
+
+      unless recv.always_matches_self?
+        g.push_self
+        recv.matches_self?(g, mod)
+        g.gif skip
+      end
+
+      if has_args
+        g.push_local 0
+
+        reqs.each_with_index do |a, i|
+          g.shift_array
+
+          if a.wildcard?
+            g.pop
           else
-            g.send :==, 1
-          end
-          g.gif skip
-        end
-
-        unless recv.always_matches_self?
-          g.push_self
-          recv.matches_self?(g, mod)
-          g.gif skip
-        end
-
-        if has_args
-          g.push_local 0
-
-          reqs.each_with_index do |a, i|
-            g.shift_array
-
-            if a.wildcard?
-              g.pop
-            else
-              g.push_literal a
-              g.swap
-              g.send :===, 1
-              g.gif argmis
-            end
-          end
-
-          opts.each_with_index do |d, i|
-            no_value = g.new_label
-
-            num = reqs.size + i
-            g.passed_arg num
-            g.gif no_value
-
-            g.shift_array
-
-            g.push_literal d
+            g.push_literal a
             g.swap
             g.send :===, 1
             g.gif argmis
-
-            no_value.set!
-          end
-
-          if splat and s = splat.pattern
-            g.push_literal s
-            g.swap
-            g.send :===, 1
-            g.gif skip
-          else
-            g.pop
           end
         end
 
-        if prim
-          mod.compile(g, prim)
-        elsif meth.name
-          g.push_self
-          if has_args or splat
-            g.push_local 0
-            g.push_proc
-            g.send_with_splat meth.name, 0, true
-          elsif block
-            g.push_proc
-            g.send_with_block meth.name, 0, true
-          else
-            g.send_vcall meth.name
-          end
+        opts.each_with_index do |d, i|
+          no_value = g.new_label
+
+          num = reqs.size + i
+          g.passed_arg num
+          g.gif no_value
+
+          g.shift_array
+
+          g.push_literal d
+          g.swap
+          g.send :===, 1
+          g.gif argmis
+
+          no_value.set!
+        end
+
+        if splat and s = splat.pattern
+          g.push_literal s
+          g.swap
+          g.send :===, 1
+
+          g.gif skip
         else
-          g.push_literal body
-          g.push_self
-          g.push_literal body.constant_scope
-          if has_args or splat
-            g.push_local 0
-            g.push_proc
-            g.send_with_splat :call_under, 2, true
-          elsif block
-            g.push_proc
-            g.send_with_block :call_under, 2, true
-          else
-            g.send :call_under, 2
-          end
+          g.pop
         end
-        g.goto done
-
-        argmis.set!
-        g.pop if has_args
-
-        skip.set!
       end
+
+      if prim
+        mod.compile(g, prim)
+      elsif meth.name
+        g.push_self
+        if has_args or splat
+          g.push_local 0
+          g.push_proc
+          g.send_with_splat meth.name, 0, true
+        elsif block
+          g.push_proc
+          g.send_with_block meth.name, 0, true
+        else
+          g.send_vcall meth.name
+        end
+      else
+        g.push_literal body
+        g.push_self
+        g.push_literal body.constant_scope
+        if has_args or splat
+          g.push_local 0
+          g.push_proc
+          g.send_with_splat :call_under, 2, true
+        elsif block
+          g.push_proc
+          g.send_with_block :call_under, 2, true
+        else
+          g.send :call_under, 2
+        end
+      end
+      g.goto done
+
+      argmis.set!
+      g.pop if has_args
+
+      skip.set!
     end
   end
 
