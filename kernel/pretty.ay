@@ -44,7 +44,7 @@ from(*where)? =
       a == b
 
 render-sequence([]) = []
-render-sequence([x]) = [from(.top): render(x)]
+render-sequence([x]) = [from(.top, .list): render(x)]
 render-sequence(x . xs) = [from(.list): render(x)] + render-sequence(xs)
 
 tree(xs) = align(fill-sep(comma punctuate(xs)))
@@ -186,9 +186,22 @@ Atomy AST open:
   proc-arg(left, contents) =
     if(from(.top)?)
       then:
+        single = colon <+> body(contents)
+        multi = colon <$> vbody(contents)
+
         block =
-          (colon <+> body(contents)) <||>
-            (colon <$> vbody(contents))
+          if(from(.list)?)
+            -- when in a list, prefer the single-line form
+            --
+            -- e.g.:
+            --     macro(foo: bar):
+            --       baz
+            --
+            -- here it's better to have `foo: bar` on one line
+            then: single <|> multi
+
+            -- otherwise, prefer the multiline form
+            else: single <||> multi
 
         align((left <> block) nest(2))
       else:
