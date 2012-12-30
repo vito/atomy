@@ -23,6 +23,12 @@ macro((~name)(~*args) &~b = ~body):
     d name = name text
     d block = b
 
+macro(~name &~b = ~body):
+  DefineFunction new [d]:
+    d body = body
+    d name = name text
+    d block = b
+
 macro(~(x: `((~_)(~*_)?)) = ~body):
   DefineFunction new [d]:
     d body = body
