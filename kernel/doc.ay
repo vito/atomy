@@ -28,22 +28,6 @@ data(SDoc):
   SRaw(@value, @rest-thunk)
   SLine(@space?, @indentation, @rest-thunk)
 
--- helpful for debugging
-SEmpty to-sexp := .sempty
-SText  to-sexp := [.stext, @value, @rest-thunk [] to-sexp]
-SRaw   to-sexp := [.sraw, @value, @rest-thunk [] to-sexp]
-SLine  to-sexp := [.sline, @space?, @indentation, @rest-thunk [] to-sexp]
-
-Empty   to-sexp := .empty
-Cat     to-sexp := [.cat, @x to-sexp, @y to-sexp]
-Nest    to-sexp := [.nest, @depth, @doc]
-Text    to-sexp := [.text, @value]
-Raw     to-sexp := [.raw, @value]
-Line    to-sexp := [.line, @space?]
-Union   to-sexp := [.union, x to-sexp, y to-sexp, @prefer?]
-Column  to-sexp := .column
-Nesting to-sexp := .nesting
-
 -- lazy values
 Union x := @x ||= @x-thunk call
 Union y := @y ||= @y-thunk call
