@@ -1,11 +1,8 @@
 def match(pat, val)
   Atomy::Compiler.eval(
     Atomy::AST::Set.new(
-      0,
-      Atomy::AST::Pattern.new(
-        0,
-        pat),
-      Atomy::AST::Literal.new(0, val)),
+      :left => Atomy::AST::Pattern.new(:pattern => pat),
+      :right => Atomy::AST::Literal.new(:value => val)),
     Atomy::Module.new,
     Binding.setup(
       Rubinius::VariableScope.of_sender,
@@ -105,7 +102,7 @@ module Atomy::Patterns
 
   class QuasiQuote
     def self.arbitrary
-      new(Atomy::AST::QuasiQuote.new(0, random_symbol.to_node))
+      new(Atomy::AST::QuasiQuote.new(:expression => random_symbol.to_node))
     end
   end
 

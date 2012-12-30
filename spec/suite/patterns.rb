@@ -659,7 +659,7 @@ module Atomy::Patterns
 
       it("matches by singleton class") do
         x = Object.new
-        p = SingletonClass.new(Atomy::AST::Literal.new(0, x))
+        p = SingletonClass.new(Atomy::AST::Literal.new(:value => x))
         p.in_context(Atomy::Module.new)
 
         p.must_be :===, x
@@ -669,7 +669,7 @@ module Atomy::Patterns
 
       it("targets the singleton class of its body for definition") do
         x = Object.new
-        p = SingletonClass.new(Atomy::AST::Literal.new(0, x))
+        p = SingletonClass.new(Atomy::AST::Literal.new(:value => x))
         mod = Atomy::Module.new
         p.in_context(mod)
         p.definition_target.must_equal x.singleton_class
