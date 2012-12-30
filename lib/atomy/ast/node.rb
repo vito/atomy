@@ -140,7 +140,7 @@ module Atomy
 
       def self.included(cls)
         cls.singleton_class.send(:define_method, :macro_name) do
-          @macro_name ||= :"_expand_#{name.split("::").last.to_sym}"
+          @macro_name ||= :"_expand_#{name && name.split("::").last.to_sym}"
         end
       end
 
