@@ -8,19 +8,14 @@ module Atomy
       attributes :module_name
 
       def pattern_definer
-        Atomy::AST::DefineMethod.new(
-          :line => 0,
+        DefineMethod.new(
           :body => @body,
-          :receiver => Atomy::AST::Block.new(
-            :line => 0,
-            :contents => [Atomy::AST::Primitive.new(:line => 0, :value => :self)]),
+          :receiver => Block.new(
+            :contents => [Primitive.new(:value => :self)]),
           :arguments => [
-            Atomy::AST::Compose.new(
-              :line => 0,
-              :left => Atomy::AST::Word.new(:line => 0, :text => :node),
-              :right => Atomy::AST::Block.new(
-                :line => 0,
-                :contents => [@pattern])),
+            Compose.new(
+              :left => Word.new(:text => :node),
+              :right => Block.new(:contents => [@pattern])),
             @module_name
           ],
           :name => :_pattern,
