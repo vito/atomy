@@ -609,7 +609,7 @@ end
 
 class Object
   def to_node
-    raise "cannot convert to a node: #{self.inspect}"
+    Atomy::AST::Literal.new :value => self
   end
 end
 
