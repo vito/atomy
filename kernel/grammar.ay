@@ -5,15 +5,16 @@ use("dynamic")
 use("particles")
 use("node")
 use("init")
+use("memo")
 
 require("kpeg")
 require("kpeg/compiled_parser")
 require("set")
 
 
--- lazily load this module to prevent circular dependency
-pretty() = @pretty ||= require("pretty")
-intp() = @intp ||= require("interpolation")
+-- lazily load these modules to prevent circular dependency
+memo(pretty): require("pretty")
+memo(intp): require("interpolation")
 
 
 actions = dynamic

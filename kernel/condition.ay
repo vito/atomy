@@ -5,12 +5,13 @@ use("control-flow")
 use("loop")
 use("interpolation")
 use("array")
+use("memo")
 
 use("dynamic")
 
 io = use("io")
 pairs = require("pairs")
-pretty() = @pretty ||= require("pretty")
+memo(pretty): require("pretty")
 
 data(Handler(@callback, @rest = nil)):
   BaseHandler()
