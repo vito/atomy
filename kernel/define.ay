@@ -54,6 +54,50 @@ macro(~(x: `((~_)(~*_)!)) &~b = ~body):
     d arguments = arguments(x)
     d name = message-name(x)
 
+macro((~name)(~*args) =! ~body):
+  DefineFunction new [d]:
+    d body = body
+    d arguments = args
+    d name = name text
+    d set = true
+
+macro((~name)(~*args) &~b =! ~body):
+  DefineFunction new [d]:
+    d body = body
+    d arguments = args
+    d name = name text
+    d block = b
+    d set = true
+
+macro(~(x: `((~_)(~*_)?)) =! ~body):
+  DefineFunction new [d]:
+    d body = body
+    d arguments = arguments(x)
+    d name = message-name(x)
+    d set = true
+
+macro(~(x: `((~_)(~*_)?)) &~b =! ~body):
+  DefineFunction new [d]:
+    d body = body
+    d arguments = arguments(x)
+    d name = message-name(x)
+    d block = b
+    d set = true
+
+macro(~(x: `((~_)(~*_)!)) =! ~body):
+  DefineFunction new [d]:
+    d body = body
+    d arguments = arguments(x)
+    d name = message-name(x)
+    d set = true
+
+macro(~(x: `((~_)(~*_)!)) &~b =! ~body):
+  DefineFunction new [d]:
+    d body = body
+    d arguments = arguments(x)
+    d name = message-name(x)
+    d set = true
+
 arguments(b: Atomy AST Infix) = [b right]
 arguments(? to-word) = []
 arguments(Atomy AST Prefix) = []

@@ -181,7 +181,7 @@ module Atomy
       extend SentientNode
 
       children :body, [:arguments], :block?
-      attributes :name, :always_match?
+      attributes :name, :always_match?, :set?
 
       def receiver_pattern(mod)
         Patterns::Any.new
@@ -190,7 +190,7 @@ module Atomy
       def bytecode(g, mod)
         pos(g)
 
-        var = Atomy.assign_local(g, :"#@name:function")
+        var = Atomy.assign_local(g, :"#@name:function", @set)
         g.push_rubinius
         g.find_const :BlockEnvironment
         g.send :new, 0
