@@ -27,6 +27,11 @@ colored(color, s) = do:
 
   i"\e[3#{codes index(color)}m#{s}\e[0m"
 
+submoduled &action = do:
+  ctx = Atomy Module new
+  ctx use(self)
+  ctx module-exec &action
+
 
 theorize &tests :=
   with(running-stats = Stats new):
@@ -51,13 +56,27 @@ describe(what) &body := do:
   puts(indented(f"- %s" [what]))
 
   with(nesting-level = ^nesting-level + 1):
-    body call
+    submoduled &body
 
   nil
 
+alias-method(.context, .describe)
+
+
+let(name) &body :=
+  define-method(name):
+    res = instance-exec &body
+
+    singleton:
+      define-method(name): res
+
+    res
+
+subject &body := def(.subject) &body
+
 
 it(description) &tests := do:
-  { tests call
+  { submoduled &tests
     puts(indented(colored(.green, f"✓ %s" [description])))
   } rescue {
     e:

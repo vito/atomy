@@ -1,0 +1,45 @@
+use("atomy")
+use("therie")
+
+describe(.let):
+  let(.abc): 42
+  let(.memoized): signal(.called), true
+  let(.falsy): signal(.called), nil
+
+  it("defines a value"):
+    abc should-be(42)
+
+  it("is the same value repeatedly"):
+    abc should-be(42)
+    abc should-be(42)
+
+  it("is memoized per-it"):
+    called = 0
+    { memoized } bind: .called: called += 1
+    { memoized } bind: .called: called += 1
+    called should-be(1)
+
+  it("does not leak memoization into other its"):
+    called = 0
+    { memoized } bind: .called: called += 1
+    called should-be(1)
+
+  it("memoizes things that return a falsy value"):
+    called = 0
+    { falsy } bind: .called: called += 1
+    { falsy } bind: .called: called += 1
+    called should-be(1)
+
+  describe("nested lets"):
+    let(.abc): 43
+    let(.outer-let): [.outer, abc]
+
+    it("shadows outer lets"):
+      abc should-be(43)
+
+    context("when used by outer lets"):
+      let(.abc): 44
+
+      it("uses them for the outer let's body"):
+        outer-let should-be([.outer, 44])
+
