@@ -31,12 +31,9 @@ macro(/~(c: Constant)):
   x name = c name
   x
 
-macro(/~(w ? to-word)):
-  x = w to-send
-  x receiver = 'Self
-  x
-
 macro(/~send):
+  -- expand before converting to a Send because it may be a more
+  -- complicated message structure defined by a macro
   x = expand(send) to-send
   x receiver = 'Self
   x
