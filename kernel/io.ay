@@ -12,21 +12,21 @@ puts(x) := x tap: ^OutputPort puts(x)
 print(x) := x tap: ^OutputPort print(x)
 
 with-output-to((filename: String), mode = "w") &action :=
-  let(OutputPort = File open(filename, mode)):
+  with(OutputPort = File open(filename, mode)):
     action ensuring:
       ^OutputPort close
 
 with-output-to(io) &action :=
-  let(OutputPort = io):
+  with(OutputPort = io):
     action call
 
 with-error-to((filename: String), mode = "w") &action :=
-  let(ErrorPort = File open(filename, mode)):
+  with(ErrorPort = File open(filename, mode)):
     action ensuring:
       ^ErrorPort close
 
 with-error-to(io) &action :=
-  let(ErrorPort = io):
+  with(ErrorPort = io):
     action call
 
 
@@ -60,10 +60,10 @@ read(length = nil, buffer = nil) :=
   ^InputPort read(length, buffer)
 
 with-input-from((filename: String), mode = "r") &action :=
-  let(InputPort = File open(filename, mode)):
+  with(InputPort = File open(filename, mode)):
     action ensuring:
       ^InputPort close
 
 with-input-from(io) &action :=
-  let(InputPort = io):
+  with(InputPort = io):
     action call

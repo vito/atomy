@@ -182,16 +182,22 @@ module Atomy
     end
 
 
-    def use(path)
-      x = require(path)
+    def use(x)
+      mod =
+        case x
+        when self.class
+          x
+        else
+          require(x)
+        end
 
-      ([x] + x.exported_modules).reverse_each do |m|
+      ([mod] + mod.exported_modules).reverse_each do |m|
         extend(m)
         include(m)
         using.unshift(m)
       end
 
-      x
+      mod
     end
 
     def using

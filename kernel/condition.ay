@@ -63,7 +63,7 @@ EndOfFile message := "unexpected end-of-file for " + pretty show(@port)
 macro(~body bind: ~*handlers):
   names [a]:
     callback = `([~a]: ~a match: ~*handlers)
-    `(let(Handlers = Handler new(~callback, ^Handlers)):
+    `(with(Handlers = Handler new(~callback, ^Handlers)):
         ~body rescue:
           (e: StandardError) -> /error(e))
 
@@ -81,7 +81,7 @@ macro(with-restarts(~*restarts): ~*body):
       [x, [name, _]]:
         `{ catch(~catcher(name)) ~x }
 
-  `(let(Restarts = [~*rs] + ^Restarts) ~with)
+  `(with(Restarts = [~*rs] + ^Restarts) ~with)
 
 
 restart(name, *args) := do:
@@ -94,7 +94,7 @@ restart(name, *args) := do:
 
 BaseHandler signal(_) := nil
 Handler(callback, rest) signal(c) :=
-  let(Handlers = rest):
+  with(Handlers = rest):
     callback [c]
     rest signal(c)
 

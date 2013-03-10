@@ -56,7 +56,7 @@ process-val(g, `[~*xs]) = do:
   new = Set new
   choices =
     xs collect [x]:
-      let(rule-vars = original dup):
+      with(rule-vars = original dup):
         choice = process-val(g, x)
         new merge(^rule-vars - original)
         choice
@@ -198,14 +198,14 @@ macro(grammar: ~*body): names [g]:
         `(~g set-variable(~(name text to-s), call))
 
       `((~name)(~*args) := ~val) -> do:
-        let(rule = name text,
+        with(rule = name text,
             rule-vars = //Set new(args collect .text)):
           `(~g set(~(name text to-s)
                    ~process-val(g, val)
                    ~(args collect [x]: x text to-s)))
 
       `(~name := ~val) -> do:
-        let(rule = name text,
+        with(rule = name text,
             rule-vars = //Set new):
           `(~g set(~(name text to-s), ~process-val(g, val)))
 
@@ -216,9 +216,7 @@ macro(grammar: ~*body): names [g]:
 
 
 macro(parser(~name): ~*grammar):
-  let(actions = [],
-      setups = [],
-      vars = []):
+  with(actions = [], setups = [], vars = []):
     g = eval(`(grammar: ~*grammar))
 
     acts =

@@ -26,7 +26,7 @@ ident(n) =
     else: doc text(n [0, 1] + n [1 .. -1] tr("_", "-"))
 
 from(*where) &y =
-  let(Context = where flatten):
+  with(Context = where flatten):
     y call
 
 from(*where)? =
@@ -83,11 +83,11 @@ render(x) :=
   if(x is-in ^Printing)
     then: text("...")
     else:
-      let(Printing = x . ^Printing):
+      with(Printing = x . ^Printing):
         doc(x)
 
 show(x) :=
-  let(Colored = false):
+  with(Colored = false):
     render(x) flatten render
 
 puts(x) := x tap: ^(io OutputPort) puts(show(x))

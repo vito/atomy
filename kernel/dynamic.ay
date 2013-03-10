@@ -15,7 +15,7 @@ macro(dynamic(~(root = 'nil))):
   names [local]:
     `(Dynvar new(~(local text), ~root))
 
-macro(let(~*bindings) { ~*body }):
+macro(with(~*bindings) { ~*body }):
   tmps = bindings zip(names(bindings size))
 
   save = `(~tmp = ~n get) for [`(~n = ~_), tmp] in tmps

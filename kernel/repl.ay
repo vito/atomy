@@ -81,7 +81,7 @@ repl(history = nil, module = nil, debug = false) := do:
 
   sane-history = []
 
-  { let(condition Debugger = ReplDebugger):
+  { with(condition Debugger = ReplDebugger):
       frame = 0
 
       { basic-repl(module, debug)
@@ -103,8 +103,8 @@ repl(history = nil, module = nil, debug = false) := do:
           (dbg module = module)
 
         .evaluated(r) ->
-          let(pretty Multiline = true,
-              pretty Colored = true):
+          with(pretty Multiline = true,
+               pretty Colored = true):
             puts((text(" =>") <+> pretty doc(r)) render(56))
   } ensuring:
     when(history):

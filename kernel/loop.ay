@@ -23,7 +23,7 @@ Atomy AST open:
       @branches to-a collect [t]:
         tags [t name] = g new-label
 
-    let(Tags = tags):
+    with(Tags = tags):
       lbls zip(@branches to-a) each [l, t]:
         l set!
         mod compile(g, t body)

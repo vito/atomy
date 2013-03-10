@@ -29,7 +29,7 @@ colored(color, s) = do:
 
 
 theorize &tests :=
-  let(running-stats = Stats new):
+  with(running-stats = Stats new):
     tests call
     puts("")
 
@@ -50,7 +50,7 @@ theorize &tests :=
 describe(what) &body := do:
   puts(indented(f"- %s" [what]))
 
-  let(nesting-level = ^nesting-level + 1):
+  with(nesting-level = ^nesting-level + 1):
     body call
 
   nil
