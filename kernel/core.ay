@@ -134,6 +134,10 @@ macro(~_ ~(? to-word) &~_):
   node left to-send tap [s]:
     s block = node right
 
+macro(~(? to-word) &~_):
+  node left to-send tap [s]:
+    s block = node right
+
 macro((~(? to-word))(~*_) &~_):
   node left to-send tap [x]:
     x block = node right
