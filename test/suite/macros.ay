@@ -46,104 +46,104 @@ describe("macros"):
     it("creates names via #names"):
       var-1 = 1 m-foo-1
       var-2 = 2 m-foo-1
-      var-1 should-be(var-1)
-      var-1 should: != var-2
+      expect(var-1) to be(var-1)
+      expect(var-1) to-not be(var-2)
 
     it("decorates through block patterns"):
       var-1 = 1 m-foo-2
-      var-1 should-be(var-1)
-      1 m-foo-2 should: != 2 m-foo-2
+      expect(var-1) to be(var-1)
+      expect(1 m-foo-2) to-not be(2 m-foo-2)
 
     it("decorates through definition patterns"):
       var-1 = 1 m-foo-3
-      var-1 should-be(var-1)
-      1 m-foo-3 should: != 2 m-foo-3
+      expect(var-1) to be(var-1)
+      expect(1 m-foo-3) to-not be(2 m-foo-3)
 
   -- TODO: change these to spec #node instead
   describe("line information"):
     it("is provided during macroexpansion via #line"):
-      1 m-foo-4 should-be(_LINE)
-      2 m-foo-4 should-be(_LINE)
+      expect(1 m-foo-4) to be(_LINE)
+      expect(2 m-foo-4) to be(_LINE)
 
     -- TODO: investigate proper behaviour; this isn't worth implementing atm
     -- it("retains the original line through multiple expansions"):
       -- macro(a m-foo-5): line
       -- macro(a m-foo-6): `(~a m-foo-5)
-      -- 1 m-foo-6 should-be(_LINE)
+      -- expect(1 m-foo-6) to be(_LINE)
 
   describe("macro definition"):
     it("can pattern-match node types via constants"):
-      : 1 ; m-foo-7 should-be(1)
-      x m-foo-7 should-be(2)
-      1 m-foo-7 should-be(3)
+      expect(: 1 ; m-foo-7) to be(1)
+      expect(x m-foo-7) to be(2)
+      expect(1 m-foo-7) to be(3)
 
     it("can destructurually pattern-match expressions"):
-      (2 + 1) m-foo-8 should-be([2, 1])
+      expect((2 + 1) m-foo-8) to be([2, 1])
 
     it("matches destructuring before constants"):
-      (2 + 1) m-foo-9 should-be(1)
-      (2 + 1) m-foo-10 should-be(1)
+      expect((2 + 1) m-foo-9) to be(1)
+      expect((2 + 1) m-foo-10) to be(1)
 
     it("can specify defaults for arguments"):
-      default-having() should-be(42)
-      default-having(41) should-be(41)
+      expect(default-having()) to be(42)
+      expect(default-having(41)) to be(41)
 
     it("can define macros in their expansion"):
-      1 m-foo-110 should-be(42)
-      : 2 m-foo-110 ; should-raise(NoMethodError)
+      expect(1 m-foo-110) to be(42)
+      expect { 2 m-foo-110 } to raise(NoMethodError)
 
     it("can define macros that define macros in their expansion in their expansion"):
-      1 m-foo-121 should-be(42)
-      : 2 m-foo-121 ; should-raise(NoMethodError)
+      expect(1 m-foo-121) to be(42)
+      expect { 2 m-foo-121 } to raise(NoMethodError)
 
     describe("varying argument lengths"):
       it("tries higher required argument counts first"):
-        m-foo-18(1) should-be(1)
-        m-foo-18(1, 2) should-be(2)
+        expect(m-foo-18(1)) to be(1)
+        expect(m-foo-18(1, 2)) to be(2)
 
-        m-foo-19(1) should-be(1)
-        m-foo-19(1, 2) should-be(2)
+        expect(m-foo-19(1)) to be(1)
+        expect(m-foo-19(1, 2)) to be(2)
 
   describe("let-macro"):
     it("defines a macro for only its body"):
       m-foo-20 = 0
 
       let-macro(m-foo-20 = '1):
-        m-foo-20 should-be(1)
+        expect(m-foo-20) to be(1)
 
-      m-foo-20 should-be(0)
+      expect(m-foo-20) to be(0)
 
     it("can be nested"):
       m-foo-21 = 0
 
       let-macro(m-foo-21 = '1):
         let-macro(m-foo-21 = '2):
-          m-foo-21 should-be(2)
+          expect(m-foo-21) to be(2)
 
-        m-foo-21 should-be(1)
+        expect(m-foo-21) to be(1)
 
-      m-foo-21 should-be(0)
+      expect(m-foo-21) to be(0)
 
     it("can define multiple macros"):
       m-foo-22 = 0
 
       let-macro(m-foo-22 = '1, fizzbuzz = '2):
-        (m-foo-22 + fizzbuzz) should-be(3)
+        expect((m-foo-22 + fizzbuzz)) to be(3)
 
-      m-foo-22 should-be(0)
-      { fizzbuzz } should-raise(NameError)
+      expect(m-foo-22) to be(0)
+      expect { fizzbuzz } to raise(NameError)
 
     it("lets later macros refer to earlier ones"):
       let-macro(m-foo-23 = '1,
                 m-foo-24 = '[0, m-foo-23]):
-        m-foo-23 should-be(1)
-        m-foo-24 should-be([0, 1])
+        expect(m-foo-23) to be(1)
+        expect(m-foo-24) to be([0, 1])
 
     it("overrides non-let'd macros"):
       let-macro(m-foo-25 = '2):
-        m-foo-25 should-be(2)
+        expect(m-foo-25) to be(2)
 
-      m-foo-25 should-be(1)
+      expect(m-foo-25) to be(1)
 
     it("is available for its own expansion"):
       when-compiling:
@@ -152,4 +152,4 @@ describe("macros"):
       let-macro(foo = if($expanded < 5)
                         then: $expanded += 1, 'foo
                         else: $expanded):
-        foo should-be(5)
+        expect(foo) to be(5)

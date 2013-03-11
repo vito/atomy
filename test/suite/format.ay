@@ -5,251 +5,248 @@ use("therie")
 describe("formatting"):
   describe("chunks of text"):
     it("formats as the text itself"):
-      (f"foo" []) should-be("foo")
+      expect(f"foo" []) to be("foo")
 
     it("has escapes for special format characters"):
-      (f"\%\(\)\{\}\[\]" []) should-be("%(){}[]")
+      expect(f"\%\(\)\{\}\[\]" []) to be("%(){}[]")
 
     it("handles other escapes normally"):
-      (f"\n\t\123\EOT" []) should-be("\n\t\123\EOT")
+      expect(f"\n\t\123\EOT" []) to be("\n\t\123\EOT")
 
   describe("string (%s)"):
     it("formats a string"):
-      (f"%s" [1]) should-be("1")
-      (f"%s" ["hello"]) should-be("hello")
+      expect(f"%s" [1]) to be("1")
+      expect(f"%s" ["hello"]) to be("hello")
 
   describe("decimal (%d)"):
     it("formats an integer in decimal notation"):
-      (f"%d" [10]) should-be("10")
+      expect(f"%d" [10]) to be("10")
 
     it("fails with non-integer input"):
-      { f"%d" ["hello"] } should-raise(ArgumentError)
+      expect { f"%d" ["hello"] } to raise(ArgumentError)
 
   describe("hexadecimal (%x)"):
     it("formats an integer in hexadecimal notation"):
-      (f"%x" [10]) should-be("a")
+      expect(f"%x" [10]) to be("a")
 
     it("fails with non-integer input"):
-      { f"%x" ["hello"] } should-raise(ArgumentError)
+      expect { f"%x" ["hello"] } to raise(ArgumentError)
 
   describe("octal (%o)"):
     it("formats an integer in octal notation"):
-      (f"%o" [10]) should-be("12")
+      expect(f"%o" [10]) to be("12")
 
     it("fails with non-integer input"):
-      { f"%o" ["hello"] } should-raise(ArgumentError)
+      expect { f"%o" ["hello"] } to raise(ArgumentError)
 
   describe("binary (%b)"):
     it("formats an integer in binary notation"):
-      (f"%b" [10]) should-be("1010")
+      expect(f"%b" [10]) to be("1010")
 
     it("fails with non-integer input"):
-      { f"%b" ["hello"] } should-raise(ArgumentError)
+      expect { f"%b" ["hello"] } to raise(ArgumentError)
 
   describe("radix (%r)"):
     it("formats an integer in a given base"):
-      (f"%.10r" [10]) should-be("10")
-      (f"%.16r" [10]) should-be("a")
-      (f"%.8r" [10]) should-be("12")
-      (f"%.2r" [10]) should-be("1010")
-      (f"%.36r" [35]) should-be("z")
+      expect(f"%.10r" [10]) to be("10")
+      expect(f"%.16r" [10]) to be("a")
+      expect(f"%.8r" [10]) to be("12")
+      expect(f"%.2r" [10]) to be("1010")
+      expect(f"%.36r" [35]) to be("z")
 
     it("fails with non-integer input"):
-      { f"%.10r" ["hello"] } should-raise(ArgumentError)
+      expect { f"%.10r" ["hello"] } to raise(ArgumentError)
 
   describe("floating point (%f)"):
     it("formats a double in general notation"):
-      (f"%f" [10.0]) should-be("10.000000")
-      (f"%f" [10.5]) should-be("10.500000")
-      (f"%f" [10.54321]) should-be("10.543210")
+      expect(f"%f" [10.0]) to be("10.000000")
+      expect(f"%f" [10.5]) to be("10.500000")
+      expect(f"%f" [10.54321]) to be("10.543210")
 
     it("fails with non-float input"):
-      { f"%f" ["hello"] } should-raise(ArgumentError)
+      expect { f"%f" ["hello"] } to raise(ArgumentError)
 
     it("accepts a precision flag"):
-      (f"%.2f" [10.54321]) should-be("10.54")
-      (f"%.2f" [10.545]) should-be("10.54")
+      expect(f"%.2f" [10.54321]) to be("10.54")
+      expect(f"%.2f" [10.545]) to be("10.54")
 
   describe("exponential (%e)"):
     it("formats a double in exponential notation"):
-      (f"%e" [10.0]) should-be("1.000000e+01")
-      (f"%e" [10.5]) should-be("1.050000e+01")
-      (f"%e" [10.54321]) should-be("1.054321e+01")
-      (f"%e" [10.12345678901234567890])
-        should-be("1.012346e+01")
+      expect(f"%e" [10.0]) to be("1.000000e+01")
+      expect(f"%e" [10.5]) to be("1.050000e+01")
+      expect(f"%e" [10.54321]) to be("1.054321e+01")
+      expect((f"%e" [10.12345678901234567890])) to be("1.012346e+01")
 
     it("fails with non-float input"):
-      { f"%e" ["hello"] } should-raise(ArgumentError)
+      expect { f"%e" ["hello"] } to raise(ArgumentError)
 
     it("accepts a precision flag"):
-      (f"%.2e" [10.54321]) should-be("1.05e+01")
-      (f"%.2e" [10.545]) should-be("1.05e+01")
-      (f"%.2e" [10.12345678901234567890]) should-be("1.01e+01")
+      expect(f"%.2e" [10.54321]) to be("1.05e+01")
+      expect(f"%.2e" [10.545]) to be("1.05e+01")
+      expect(f"%.2e" [10.12345678901234567890]) to be("1.01e+01")
 
   describe("general (%g)"):
     it("formats a double in general notation"):
-      (f"%g" [10.0]) should-be("10")
-      (f"%g" [10.5]) should-be("10.5")
-      (f"%g" [10.54321]) should-be("10.5432")
-      (f"%g" [10000000.12345678901234567890])
-        should-be("1e+07")
+      expect(f"%g" [10.0]) to be("10")
+      expect(f"%g" [10.5]) to be("10.5")
+      expect(f"%g" [10.54321]) to be("10.5432")
+      expect((f"%g" [10000000.12345678901234567890])) to be("1e+07")
 
     it("fails with non-float input"):
-      { f"%g" ["hello"] } should-raise(ArgumentError)
+      expect { f"%g" ["hello"] } to raise(ArgumentError)
 
     it("accepts a precision flag"):
-      (f"%.2g" [10.54321]) should-be("11")
-      (f"%.2g" [10.545]) should-be("11")
-      (f"%.2g" [10000000.12345678901234567890])
-        should-be("1e+07")
+      expect(f"%.2g" [10.54321]) to be("11")
+      expect(f"%.2g" [10.545]) to be("11")
+      expect((f"%.2g" [10000000.12345678901234567890])) to be("1e+07")
 
   describe("character (%c)"):
     it("formats a character"):
-      (f"%c" [97]) should-be("a")
-      (f"%c" ["hi"]) should-be("h")
-      (f"%c" [1.5]) should-be("1")
+      expect(f"%c" [97]) to be("a")
+      expect(f"%c" ["hi"]) to be("h")
+      expect(f"%c" [1.5]) to be("1")
 
   describe("value (%v)"):
     it("pretty-prints any value"):
-      (f"%v" [1]) should-be("1")
-      (f"%v" ["hello"]) should-be("\"hello\"")
+      expect(f"%v" [1]) to be("1")
+      expect(f"%v" ["hello"]) to be("\"hello\"")
 
   describe("pluralization (%p)"):
     it("pluralizes a word based on integer input"):
-      (f"%p(cat)" [1]) should-be("cat")
-      (f"%p(cat)" [2]) should-be("cats")
+      expect(f"%p(cat)" [1]) to be("cat")
+      expect(f"%p(cat)" [2]) to be("cats")
 
     it("accepts a second field for a specific plural form"):
-      (f"%p(person)(people)" [1]) should-be("person")
-      (f"%p(person)(people)" [2]) should-be("people")
+      expect(f"%p(person)(people)" [1]) to be("person")
+      expect(f"%p(person)(people)" [2]) to be("people")
 
     it("accepts a > flag to not consume the number input"):
-      (f"%>p(person)(people): %d" [1]) should-be("person: 1")
-      (f"%>p(person)(people): %d" [2]) should-be("people: 2")
+      expect(f"%>p(person)(people): %d" [1]) to be("person: 1")
+      expect(f"%>p(person)(people): %d" [2]) to be("people: 2")
 
   describe("lowercase (%l)"):
     it("converts its contents to lowercase"):
-      (f"%l(%s)" ["HElLo!"]) should-be("hello!")
+      expect(f"%l(%s)" ["HElLo!"]) to be("hello!")
 
   describe("capitalize (%c)"):
     it("title-cases its contents"):
-      (f"%c(%s)" ["HElLo, mOm!"]) should-be("Hello, Mom!")
+      expect(f"%c(%s)" ["HElLo, mOm!"]) to be("Hello, Mom!")
 
     it("accepts a number flag to title-case a certain amount of words"):
-      (f"%1c(%s)" ["HElLo, mOm!"]) should-be("Hello, mOm!")
+      expect(f"%1c(%s)" ["HElLo, mOm!"]) to be("Hello, mOm!")
 
   describe("uppercase (%u)"):
     it("converts its contents to uppercase"):
-      (f"%u(%s)" ["hElLo!"]) should-be("HELLO!")
+      expect(f"%u(%s)" ["hElLo!"]) to be("HELLO!")
 
   describe("skip (%_)"):
     it("skips an input value"):
-      (f"%_%d" [1, 2]) should-be("2")
+      expect(f"%_%d" [1, 2]) to be("2")
 
     it("accepts a number flag for skipping a certain amount of inputs"):
-      (f"%2_%d" [1, 2, 3]) should-be("3")
+      expect(f"%2_%d" [1, 2, 3]) to be("3")
 
     it("accepts a < flag for skipping backards"):
-      (f"%_%<_%d" [1, 2]) should-be("1")
-      (f"%2_%2<_%d" [1, 2, 3]) should-be("1")
+      expect(f"%_%<_%d" [1, 2]) to be("1")
+      expect(f"%2_%2<_%d" [1, 2, 3]) to be("1")
 
   describe("indirection (%%)"):
     it("uses a given format string, followed by a list of inputs"):
-      (f"%%" [f"%d", [1]]) should-be("1")
+      expect(f"%%" [f"%d", [1]]) to be("1")
 
     it("only consumes its own inputs"):
-      (f"%%%d" [f"%d", [1], 2]) should-be("12")
+      expect(f"%%%d" [f"%d", [1], 2]) to be("12")
 
     it("only skips its own inputs"):
-      (f"%%%d" [f"%_", [1], 2]) should-be("2")
+      expect(f"%%%d" [f"%_", [1], 2]) to be("2")
 
   describe("iteration (%{...})"):
     it("executes a format over a list of inputs"):
-      (f"%{%d, }" [[1, 2, 3]]) should-be("1, 2, 3, ")
+      expect(f"%{%d, }" [[1, 2, 3]]) to be("1, 2, 3, ")
 
     it("accepts a * flag for acting on the rest of the inputs"):
-      (f"%*{%d, }" [1, 2, 3]) should-be("1, 2, 3, ")
+      expect(f"%*{%d, }" [1, 2, 3]) to be("1, 2, 3, ")
 
     describe("number flag"):
       it("limits the number of iterations"):
-        (f"%2{%d, }" [[1, 2, 3]]) should-be("1, 2, ")
+        expect(f"%2{%d, }" [[1, 2, 3]]) to be("1, 2, ")
 
       it("does not cause %^ to break"):
-        (f"%2{%d%^, }" [[1, 2, 3]]) should-be("1, 2, ")
+        expect(f"%2{%d%^, }" [[1, 2, 3]]) to be("1, 2, ")
 
       it("does not iterate with a limit of 0"):
-        (f"%0{%d, }" [[1, 2, 3]]) should-be("")
+        expect(f"%0{%d, }" [[1, 2, 3]]) to be("")
 
     describe("+ flag"):
       it("causes iteration to always run at least once"):
-        (f"%+{hi}" [[]]) should-be("hi")
-        (f"%+{%#[hello]}" [[]]) should-be("hello")
+        expect(f"%+{hi}" [[]]) to be("hi")
+        expect(f"%+{%#[hello]}" [[]]) to be("hello")
 
       it("overridden by a limit of 0"):
-        (f"%0+{%d, }" [[1, 2, 3]]) should-be("")
+        expect(f"%0+{%d, }" [[1, 2, 3]]) to be("")
 
     it("accepts a . flag for taking lists of inputs"):
-      (f"%.{%d: %s\n}" [[[1, "one"], [2, "two"], [3, "three"]]])
-        should-be("1: one\n2: two\n3: three\n")
+      expect((f"%.{%d: %s\n}" [[[1, "one"], [2, "two"], [3, "three"]]]))
+        to be("1: one\n2: two\n3: three\n")
 
   describe("break (%^)"):
     it("stops an iteration when there are no more inputs"):
-      (f"%{%d%^, }" [[1, 2, 3]]) should-be("1, 2, 3")
+      expect(f"%{%d%^, }" [[1, 2, 3]]) to be("1, 2, 3")
 
     it("stops a sublist iteration only based on the sublist"):
-      (f"%.{%d%^, }" [[[1], [2, $x], [3]]]) should-be("12, 3")
+      expect(f"%.{%d%^, }" [[[1], [2, $x], [3]]]) to be("12, 3")
 
   describe("conditional formatting (%[...]+(...)?)"):
     it("formats the branch at an offset given by the input"):
-      (f"%[0][1][2]" [0]) should-be("0")
-      (f"%[0][1][2]" [1]) should-be("1")
+      expect(f"%[0][1][2]" [0]) to be("0")
+      expect(f"%[0][1][2]" [1]) to be("1")
 
     it("has an optional default branch"):
-      (f"%[0][1](2+)" [0]) should-be("0")
-      (f"%[0][1](2+)" [1]) should-be("1")
-      (f"%[0][1](2+)" [2]) should-be("2+")
-      (f"%[0][1](2+)" [3]) should-be("2+")
+      expect(f"%[0][1](2+)" [0]) to be("0")
+      expect(f"%[0][1](2+)" [1]) to be("1")
+      expect(f"%[0][1](2+)" [2]) to be("2+")
+      expect(f"%[0][1](2+)" [3]) to be("2+")
 
     describe("number flag"):
       it("determines which branch gets formatted"):
-        (f"%0[0][1][2]" []) should-be("0")
-        (f"%1[0][1][2]" []) should-be("1")
+        expect(f"%0[0][1][2]" []) to be("0")
+        expect(f"%1[0][1][2]" []) to be("1")
 
       it("flows into the default branch"):
-        (f"%3[0][1][2](3+)" []) should-be("3+")
+        expect(f"%3[0][1][2](3+)" []) to be("3+")
 
       describe("using #"):
         it("determines which branch gets formatted"):
-          (f"%#[0][1][2]" []) should-be("0")
-          (f"%#[0][1][2]" [1]) should-be("1")
-          (f"%#[0][1][2]" [1, 2]) should-be("2")
+          expect(f"%#[0][1][2]" []) to be("0")
+          expect(f"%#[0][1][2]" [1]) to be("1")
+          expect(f"%#[0][1][2]" [1, 2]) to be("2")
 
         it("flows into the default branch"):
-          (f"%#[0][1][2](3+)" []) should-be("0")
-          (f"%#[0][1][2](3+)" [1, 2, 3, 4]) should-be("3+")
+          expect(f"%#[0][1][2](3+)" []) to be("0")
+          expect(f"%#[0][1][2](3+)" [1, 2, 3, 4]) to be("3+")
 
     describe("? flag"):
       describe("one branch"):
         it("consumes a boolean, formatting if it's true"):
-          (f"%?[yes]" [true]) should-be("yes")
-          (f"%?[yes]" [false]) should-be("")
+          expect(f"%?[yes]" [true]) to be("yes")
+          expect(f"%?[yes]" [false]) to be("")
 
       describe("two or more branches"):
         it("consumes a boolean, formatting the first branch if true, and the second if false"):
-          (f"%?[yes][no]" [true]) should-be("yes")
-          (f"%?[yes][no]" [false]) should-be("no")
-          (f"%?[yes][no][maybe so]" [true]) should-be("yes")
-          (f"%?[yes][no][maybe so]" [false]) should-be("no")
+          expect(f"%?[yes][no]" [true]) to be("yes")
+          expect(f"%?[yes][no]" [false]) to be("no")
+          expect(f"%?[yes][no][maybe so]" [true]) to be("yes")
+          expect(f"%?[yes][no][maybe so]" [false]) to be("no")
 
   describe("justification (%j(...)+)"):
     it("justifies one segment to the right side"):
-      (f"%20j(one)" []) should-be("                 one")
-      (f"%20j(one)" []) length should-be(20)
+      expect(f"%20j(one)" []) to be("                 one")
+      expect((f"%20j(one)" []) length) to be(20)
 
     it("justifies two segments to left and right sides"):
-      (f"%20j(one)(two)" []) should-be("one              two")
-      (f"%20j(one)(two)" []) length should-be(20)
+      expect(f"%20j(one)(two)" []) to be("one              two")
+      expect((f"%20j(one)(two)" []) length) to be(20)
 
     it("attempts to space more than two segments evenly"):
-      (f"%20j(one)(two)(three)" []) should-be("one    two     three")
-      (f"%20j(one)(two)(three)" []) length should-be(20)
+      expect(f"%20j(one)(two)(three)" []) to be("one    two     three")
+      expect((f"%20j(one)(two)(three)" []) length) to be(20)

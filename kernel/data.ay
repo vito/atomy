@@ -1,3 +1,11 @@
+-- TODO: make this work:
+--
+-- module:
+--   data(A(@x))
+--   A(x) foo := x
+--
+-- right now pattern definitions can only be at the toplevel
+
 use("core")
 use("define")
 use("control-flow")

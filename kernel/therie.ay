@@ -1,7 +1,6 @@
 use("atomy")
 
 io = require("io")
-condition = require("condition")
 
 nesting-level = dynamic(0)
 running-stats = dynamic
@@ -102,36 +101,91 @@ it(description) &tests := do:
   nil
 
 
-macro(~x should ~(check: Block)):
-  `(unless(~x onto ~check):
-      raise(f"assertion failed for %v" ['~x]))
+data(Actuality(@value = nil, @action = nil))
+
+expect(value) := Actuality new(value)
+expect &action := Actuality new(nil, action)
+
+Actuality to := ExpectTo new(self)
+Actuality to-not := ExpectTo new(self, true)
 
 
-x should-be(y) :=
-  unless(x == y):
-    raise(f"expected %v, got %v" [y, x])
+data(ExpectTo(@actual, @negated? = false))
+
+ExpectTo(actual, negated) match(matcher) := do:
+  matched = matcher matches?(actual)
+
+  condition:
+    negated and matched ->
+      /raise(matcher negative-failure-message(actual))
+
+    negated and not matched ->
+      true
+
+    not matched ->
+      /raise(matcher failure-message(actual))
+    
+    negated -> true
 
 
-x should-raise(y) :=
-  x rescue {
-    e ->
-      unless(e kind-of(y)?):
-        raise(f"expected exception %s, got: %s" [y, e class])
-  } else:
-      raise("#should-raise - no exception raised")
+data(Matcher)
+
+Matcher matches(actual)? := /error(.not-implemented)
+Matcher failure-message(actual) := /error(.not-implemented)
+Matcher negative-failure-message(actual) := /error(.not-implemented)
+
+Matcher data: EqualityMatcher(@value)
+ExpectTo be(value) := match(EqualityMatcher new(value))
+EqualityMatcher(value) matches(actual)? := actual value == value
+EqualityMatcher(value) failure-message(actual) :=
+  i"expected #{actual value} to be #{value}"
+EqualityMatcher(value) negative-failure-message(actual) :=
+  i"expected #{actual value} to not be #{value}, but it was"
 
 
-x should-error(y) :=
-  { with-restarts(errored -> nil):
-      x call
-      raise("#should-error - no error signaled")
+Matcher data: RaiseMatcher(@exception, @message = nil)
+ExpectTo raise(exception, message = nil) :=
+  match(RaiseMatcher new(exception, message))
+RaiseMatcher matches(actual)? :=
+  actual action rescue {
+    e:
+      @raised = e
+      @raised is-a(@exception)?
+  } else: false
+RaiseMatcher failure-message(actual) :=
+  if(@raised)
+    then: i"expected #{@exception}, got #{@raised class}: #{@raised}"
+    else: i"expected #{@exception} but nothing was raised"
+RaiseMatcher negative-failure-message(actual) :=
+  i"expected #{@exception} to not be raised, but it was"
+
+
+Matcher data: ErrorMatcher(@error)
+ExpectTo error(error) := match(ErrorMatcher new(error))
+ErrorMatcher matches(actual)? :=
+  { with-restarts(errored(matched?) -> matched?):
+      actual action call
+      false
   } bind {
     (e: ExceptionError) ->
       raise(e exception)
 
     (e: Error):
-      when(e kind-of(y)?):
-        condition restart(.errored)
-
-      raise(f"expected error %s, got: %s" [y, e message])
+      @errored = e
+      /restart(.errored, e kind-of(@error)?)
   }
+ErrorMatcher failure-message(actual) :=
+  if(@errored)
+    then: i"expected #{@error}, got #{@errored class}: #{@errored}"
+    else: i"expected #{@error} but nothing was signalled"
+ErrorMatcher negative-failure-message(actual) :=
+  i"expected #{@error} to not be signalled, but it was"
+
+
+Matcher data: KindMatcher(@class)
+ExpectTo be-a(class) := match(KindMatcher new(class))
+KindMatcher matches(actual)? := actual value is-a?(@class)
+KindMatcher failure-message(actual) :=
+  i"expected #{actual value} (#{actual value class}) to be a #{@class}"
+KindMatcher negative-failure-message(actual) :=
+  i"expected #{actual value} (#{actual value class}) to not be a #{@class}, but it was"

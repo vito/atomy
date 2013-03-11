@@ -6,80 +6,81 @@ describe("blocks"):
   describe(.call):
     it("evaluates with the block's context available"):
       a = 1
-      { a + 1 } call should-be(2)
+      expect({ a + 1 } call) to be(2)
 
     it("introduces a new locals environment"):
       a = 1
-      { a = 2, a } call should-be(2)
-      a should-be(1)
+      expect({ a = 2, a } call) to be(2)
+      expect(a) to be(1)
 
     it("does not leak argument bindings into the block's context"):
       [a] { a + 1 } call(1)
-      { a } should-raise(NameError)
+      expect { a } to raise(NameError)
 
     it("is lexically scoped"):
       a = 1
       foo(b, a) := b call
-      foo({ a }, 2) should-be(1)
+      expect(foo({ a }, 2)) to be(1)
 
   describe("arguments"):
     it("errors if too few given"):
-      { 1 } call should-be(1)
-      [a] { a } call(2) should-be(2)
-      [a, b] { a + b } call(1, 2) should-be(3)
+      expect({ 1 } call) to be(1)
+      expect([a] { a } call(2)) to be(2)
+      expect([a, b] { a + b } call(1, 2)) to be(3)
 
-      { [a] { a } call } should-raise(ArgumentError)
-      { [a, b] { a } call(1) } should-raise(ArgumentError)
+      expect { [a] { a } call } to raise(ArgumentError)
+      expect { [a, b] { a } call(1) } to raise(ArgumentError)
 
     it("errors if too many given"):
-      { { 1 } call(2) should-be(1) } should-raise(ArgumentError)
-      { { 1 } call(2, 3) should-be(1) } should-raise(ArgumentError)
+      expect { { 1 } call(2) } to raise(ArgumentError)
+      expect { { 1 } call(2, 3) } to raise(ArgumentError)
 
     it("ignores extras if used as a proc-arg"):
       caller &x := x call(1)
-      caller: 42; should-be(42)
-      caller [x]: x + 2; should-be(3)
+      expect(caller: 42) to be(42)
+      expect(caller [x]: x + 2) to be(3)
 
     describe("block"):
       it("binds a block argument"):
-        &x { x call } call { 1 } should-be(1)
+        expect(&x { x call } call { 1 }) to be(1)
 
       it("binds as nil if no block given"):
-        &x { x } call should-be(nil)
+        expect(&x { x } call) to be(nil)
 
       it("works with arguments before it"):
-        [a] &x { x call(a) } call(2) [a] { a + 1 } should-be(3)
+        expect([a] &x { x call(a) } call(2) [a] { a + 1 }) to be(3)
 
       it("fails with arguments after it"):
-        { [&x, a] { x call(a) } call(2) [a] { a + 1 }
-        } should-raise(ArgumentError)
+        expect {
+          [&x, a] { x call(a) } call(2) [a] { a + 1 }
+        } to raise(ArgumentError)
 
     describe("splat"):
       it("consumes the rest of the arguments"):
         foo = [*xs]: xs
-        foo call should-be([])
-        foo call(1) should-be([1])
-        foo call(1, 2) should-be([1, 2])
+        expect(foo call) to be([])
+        expect(foo call(1)) to be([1])
+        expect(foo call(1, 2)) to be([1, 2])
 
       it("starts after required args"):
         foo = [a, *bs]: [a, bs]
-        { foo call } should-raise(ArgumentError)
-        foo call(1) should-be([1, []])
-        foo call(1, 2) should-be([1, [2]])
-        foo call(1, 2, 3) should-be([1, [2, 3]])
+        expect { foo call } to raise(ArgumentError)
+        expect(foo call(1)) to be([1, []])
+        expect(foo call(1, 2)) to be([1, [2]])
+        expect(foo call(1, 2, 3)) to be([1, [2, 3]])
 
       it("appears before a block arg"):
         foo = [a, *bs] &c: [a, bs, c]
         x = {}
-        { foo call } should-raise(ArgumentError)
+        expect { foo call } to raise(ArgumentError)
         res = foo call(1) &x
-        res at(0) should-be(1)
-        res at(1) should-be([])
-        res at(2) should: kind-of(Proc)?
+        expect(res at(0)) to be(1)
+        expect(res at(1)) to be([])
+        expect(res at(2)) to be-a(Proc)
 
         res = foo call(1, 2, 3) &x
-        res at(0) should-be(1)
-        res at(1) should-be([2, 3])
-        res at(2) should: kind-of(Proc)?
+        expect(res at(0)) to be(1)
+        expect(res at(1)) to be([2, 3])
+        expect(res at(2)) to be-a(Proc)
 
     -- TODO: default, post-args
