@@ -1,0 +1,2 @@
+script: bundle exec rspec
+rvm: rbx-2.0.0-dev
