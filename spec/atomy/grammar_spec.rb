@@ -212,4 +212,88 @@ describe Atomy::Grammar do
       end
     end
   end
+
+  describe Atomy::Grammar::AST::StringLiteral do
+    let(:source) { '"foo"' }
+
+    subject { result[0] }
+
+    before do
+      expect(result.size).to eq(1)
+      expect(result[0]).to be_a(Atomy::Grammar::AST::StringLiteral)
+    end
+
+    its(:value) { should == "foo" }
+    its(:raw) { should == "foo" }
+
+    context "with an escaped double quote" do
+      let(:source) { '"foo \"bar\""' }
+      its(:value) { should == 'foo "bar"' }
+      its(:raw) { should == 'foo "bar"' }
+    end
+
+    ESCAPES = {
+      "n" => "\n", "s" => " ", "r" => "\r", "t" => "\t", "v" => "\v",
+      "f" => "\f", "b" => "\b", "a" => "\a", "e" => "\e", "\\" => "\\",
+      "BS" => "\b", "HT" => "\t", "LF" => "\n", "VT" => "\v", "FF" => "\f",
+      "CR" => "\r", "SO" => "\016", "SI" => "\017", "EM" => "\031",
+      "FS" => "\034", "GS" => "\035", "RS" => "\036", "US" => "\037",
+      "SP" => " ", "NUL" => "\000", "SOH" => "\001", "STX" => "\002",
+      "ETX" => "\003", "EOT" => "\004", "ENQ" => "\005", "ACK" => "\006",
+      "BEL" => "\a", "DLE" => "\020", "DC1" => "\021", "DC2" => "\022",
+      "DC3" => "\023", "DC4" => "\024", "NAK" => "\025", "SYN" => "\026",
+      "ETB" => "\027", "CAN" => "\030", "SUB" => "\032", "ESC" => "\e",
+      "DEL" => "\177"
+    }
+
+    ESCAPES.each do |esc, val|
+      context "with a \\#{esc}" do
+        let(:source) { "\"foo\\#{esc}bar\"" }
+        its(:value) { should == "foo#{val}bar" }
+        its(:raw) { should == "foo\\#{esc}bar" }
+      end
+    end
+
+    describe "decimal escapes" do
+      let(:source) { '"foo \123"' }
+      its(:value) { should == "foo {" }
+      its(:raw) { should == 'foo \123' }
+    end
+
+    describe "hexadecimal escapes" do
+      let(:source) { '"foo \xabcdefg"' }
+      its(:value) { should == "foo \u{ABCDE}fg" }
+      its(:raw) { should == 'foo \xabcdefg' }
+
+      context "with a capital X" do
+        let(:source) { '"foo \Xabcdefg"' }
+        its(:value) { should == "foo \u{ABCDE}fg" }
+        its(:raw) { should == 'foo \Xabcdefg' }
+      end
+    end
+
+    describe "octal escapes" do
+      let(:source) { '"foo \o12345678"' }
+      its(:value) { should == "foo \xf9\x88\xb4\x95\xa78" }
+      its(:raw) { should == 'foo \o12345678' }
+
+      context "with a capital O" do
+        let(:source) { '"foo \O12345678"' }
+        its(:value) { should == "foo \xf9\x88\xb4\x95\xa78" }
+        its(:raw) { should == 'foo \O12345678' }
+      end
+    end
+
+    describe "unicode escapes" do
+      let(:source) { '"foo \u12AB"' }
+      its(:value) { should == "foo \u{12AB}" }
+      its(:raw) { should == 'foo \u12AB' }
+
+      context "with a capital U" do
+        let(:source) { '"foo \U12AB"' }
+        its(:value) { should == "foo \u{12AB}" }
+        its(:raw) { should == 'foo \U12AB' }
+      end
+    end
+  end
 end
