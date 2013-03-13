@@ -1,4 +1,0 @@
-use("core")
-
-macro(~a .. ~b): `(Range new(~a, ~b))
-macro(~a ... ~b): `(Range new(~a, ~b, true))

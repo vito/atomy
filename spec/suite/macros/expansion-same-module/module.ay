@@ -1,3 +1,0 @@
-use("core")
-macro(foo): 'bar
-macro(bar): '42

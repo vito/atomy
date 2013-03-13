@@ -1,9 +1,0 @@
--- math
-infix("**", 130, "right")
-infix("% * /", 110)
-infix("+ -", 100)
-
--- bitwise and shifting
-infix("<< >>", 90)
-infix("^ |", 70)
-infix("&", 80)
