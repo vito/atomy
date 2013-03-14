@@ -28,13 +28,30 @@ describe Atomy::Grammar do
     end
   end
 
+  describe "language pragma" do
+    let(:source) { "#language foo" }
+
+    it "switches the language being parsed" do
+      foolang = mock
+      foolang.should_receive(:external_invoke).with(anything, :_root)
+
+      grammar.should_receive(:set_lang).with(:foo) do
+        grammar.instance_exec do
+          @_grammar_lang = foolang
+        end
+      end
+
+      result
+    end
+  end
+
   describe "parsing particular nodes" do
     before do
+      expect(result.first).to be_a(node)
       expect(result.size).to eq(1)
-      expect(result[0]).to be_a(node)
     end
 
-    subject { result[0] }
+    subject { result.first }
 
     describe "numbers" do
       let(:node) { Number }
@@ -335,8 +352,8 @@ describe Atomy::Grammar do
         let(:source) { "#{open} x #{close}" }
 
         it "has it under ##{attribute}" do
+          expect(subject.send(attribute).first).to be_a(Word)
           expect(subject.send(attribute).size).to eq(1)
-          expect(subject.send(attribute)[0]).to be_a(Word)
         end
       end
 
@@ -475,6 +492,162 @@ describe Atomy::Grammar do
 
         context "with arguments given" do
           it_contains_nodes("(foo)(", ")", :arguments)
+        end
+      end
+    end
+
+    describe "composes" do
+      let(:node) { Compose }
+
+      let(:source) { "1 a" }
+      its(:left) { should be_a(Number) }
+      its(:right) { should be_a(Word) }
+
+      context "with grouping" do
+        let(:source) { "(1) (a)" }
+        its(:left) { should be_a(Number) }
+        its(:right) { should be_a(Word) }
+      end
+
+      context "without spacing" do
+        let(:source) { "foo: 123" }
+        its(:left) { should be_a(Word) }
+        its(:right) { should be_a(Block) }
+
+        context "and something that looks like an infix operation" do
+          let(:source) { "1/2" }
+          its(:left) { should be_a(Postfix) }
+          its(:right) { should be_a(Number) }
+        end
+      end
+
+      describe "line continuation" do
+        let(:source) { "1\n a" }
+        its(:left) { should be_a(Number) }
+        its(:right) { should be_a(Word) }
+
+        context "with a long chain and a small continuation" do
+          let(:source) { "1 a b c d\n 1.2" }
+          its(:left) { should be_a(Compose) }
+          its(:right) { should be_a(Literal) }
+        end
+
+        context "with a small chain and a long continuation" do
+          let(:source) { "1 a\n b c d 1.2" }
+          its(:left) { should be_a(Compose) }
+          its(:right) { should be_a(Literal) }
+        end
+
+        context "with a continuation spanning three lines" do
+          let(:source) { "1 a\n b c\n d 1.2" }
+          its(:left) { should be_a(Compose) }
+          its(:right) { should be_a(Literal) }
+        end
+      end
+
+      describe "chaining" do
+        let(:source) { "1 a b" }
+        its(:left) { should be_a(Compose) }
+        its(:right) { should be_a(Word) }
+      end
+    end
+
+    describe "infixes" do
+      let(:node) { Infix }
+
+      let(:source) { "1 + a" }
+      its(:left) { should be_a(Number) }
+      its(:right) { should be_a(Word) }
+      its(:operator) { should == :+ }
+
+      context "with an implicit left side" do
+        let(:source) { "+ 2" }
+        its(:left) { should be_nil }
+        its(:right) { should be_a(Number) }
+        its(:operator) { should == :+ }
+      end
+
+      context "with an arbitrarily long operator" do
+        let(:source) { '1 !@#$%^&*-=+\|/.<>? a' }
+        its(:left) { should be_a(Number) }
+        its(:right) { should be_a(Word) }
+        its(:operator) { should == :"!@\#$%^&*-=+\\|/.<>?" }
+      end
+
+      context "with a grouped expression on the left" do
+        let(:source) { "(2 * 2) + a" }
+        its(:left) { should be_a(Infix) }
+        its(:right) { should be_a(Word) }
+        its(:operator) { should == :+ }
+      end
+
+      context "with a grouped expression on the left" do
+        let(:source) { "a + (2 * 2)" }
+        its(:left) { should be_a(Word) }
+        its(:right) { should be_a(Infix) }
+        its(:operator) { should == :+ }
+      end
+
+      context "with a compose on the left" do
+        let(:source) { "1 a + a" }
+        its(:left) { should be_a(Compose) }
+        its(:right) { should be_a(Word) }
+        its(:operator) { should == :+ }
+      end
+
+      context "with a compose on the right" do
+        let(:source) { "1 + 1 a" }
+        its(:left) { should be_a(Number) }
+        its(:right) { should be_a(Compose) }
+        its(:operator) { should == :+ }
+      end
+
+      context "with a prefix on the right" do
+        let(:source) { "1 + !a" }
+        its(:left) { should be_a(Number) }
+        its(:right) { should be_a(Prefix) }
+        its(:operator) { should == :+ }
+      end
+
+      context "with a prefix on the left" do
+        let(:source) { "!a + 1" }
+        its(:left) { should be_a(Prefix) }
+        its(:right) { should be_a(Number) }
+        its(:operator) { should == :+ }
+      end
+
+      context "with a postfix on the right" do
+        let(:source) { "1 + a!" }
+        its(:left) { should be_a(Number) }
+        its(:right) { should be_a(Postfix) }
+        its(:operator) { should == :+ }
+      end
+
+      context "with a postfix on the left" do
+        let(:source) { "a! + 1" }
+        its(:left) { should be_a(Postfix) }
+        its(:right) { should be_a(Number) }
+        its(:operator) { should == :+ }
+      end
+
+      describe "line continuation" do
+        let(:source) { "1\n + a" }
+        its(:left) { should be_a(Number) }
+        its(:right) { should be_a(Word) }
+        its(:operator) { should == :+ }
+
+        context "when continuing after the operator" do
+          let(:source) { "1 +\n a" }
+          its(:left) { should be_a(Number) }
+          its(:right) { should be_a(Word) }
+          its(:operator) { should == :+ }
+        end
+
+        context "with an implicit left side" do
+          let(:source) { "+\n 2" }
+          its(:left) { should be_nil }
+          its(:right) { should be_a(Number) }
+          its(:operator) { should == :+ }
         end
       end
     end
