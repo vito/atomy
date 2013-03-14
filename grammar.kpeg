@@ -62,31 +62,30 @@
  one_expression = wsp expression:e wsp !. { e }
 
 
-             sp = (" " | "\t" | comment)*
-            wsp = (" " | "\t" | "\n" | comment)*
-         sig_sp = (" " | "\t" | comment)+
-        sig_wsp = (" " | "\t" | "\n" | comment)+
-
         cont(p) = scont(p)
                 | !"(" # allows 'foo: bar', but ensures '(x)(y)' is an Apply
        scont(p) = ("\n" sp)+ &{ continue?(p) }
                 | sig_sp cont(p)?
 
-
-      op_letter = < /[$+<=>^|~!@#%&*\-\\.\/\?]/u > { text.to_sym }
-
-       operator = < op_letter+ > { text.to_sym }
-
-     identifier = < /[a-z_][a-zA-Z\d\-_]*/u > { text.tr("-", "_").to_sym }
-
-        grouped = "(" wsp expression:x wsp ")" { x }
-
+             sp = (" " | "\t" | comment)*
+            wsp = (" " | "\t" | "\n" | comment)*
+         sig_sp = (" " | "\t" | comment)+
+        sig_wsp = (" " | "\t" | "\n" | comment)+
 
         comment = /--.*?$/ | multi_comment
   multi_comment = "{-" in_multi
        in_multi = /[^\-\{\}]*/ "-}"
                 | /[^\-\{\}]*/ "{-" in_multi /[^\-\{\}]*/ "-}"
                 | /[^\-\{\}]*/ /[-{}]/ in_multi
+
+
+      op_letter = < /[$+<=>^|~!@#%&*\-\\.\/\?]/u > { text.to_sym }
+       operator = < op_letter+ > { text.to_sym }
+
+     identifier = < /[a-z_][a-zA-Z\d\-_]*/u > { text.tr("-", "_").to_sym }
+
+
+       language = "#language" wsp identifier:n ~set_lang(n) %lang.root
 
 
          level0 = number
@@ -110,8 +109,7 @@
                 | infix
                 | level3
 
-
-       language = "#language" wsp identifier:n ~set_lang(n) %lang.root
+        grouped = "(" wsp expression:x wsp ")" { x }
 
 
          number = < /[\+\-]?0[oO][0-7]+/ > ~number(text.to_i(8))
@@ -120,41 +118,23 @@
                 | < /[\+\-]?\d+\.\d+/ > ~literal(text.to_f)
                 | < /[\+\-]?\d+/ > ~number(text.to_i)
 
+       constant = < /[A-Z][a-zA-Z0-9_]*/ > ~constant(text.to_sym)
+
+           word = identifier:n ~word(n)
 
           quote = "'" level2:e ~quote(e)
     quasi_quote = "`" level2:e ~quasiquote(e)
         unquote = "~" level2:e ~unquote(e)
 
-
-       constant = < /[A-Z][a-zA-Z0-9_]*/ > ~constant(text.to_sym)
-
-
-           word = identifier:n ~word(n)
-
-
          prefix = op_letter:o level2:e ~prefix(e, o)
-
 
         postfix = postfix:e op_letter:o ~postfix(e, o)
                 | level1:e op_letter:o ~postfix(e, o)
 
-
           block = ":" wsp expressions?:es (wsp ";")?  ~block(Array(es))
                 | "{" wsp expressions?:es wsp "}" ~block(Array(es))
 
-
            list = "[" wsp expressions?:es wsp "]" ~list(Array(es))
-
-
-        compose = @composes(current_position)
-    composes(p) = compose:l cont(p) level2:r ~compose(l, r)
-                | level2:l cont(p) level2:r ~compose(l, r)
-
-
-          infix = @infixes(current_position)
-     infixes(p) = level3:l scont(p) operator:o scont(p) level3:r ~infix(l, r, o)
-                | operator:o scont(p) level3:r ~infix(nil, r, o)
-
 
           apply = apply:a args:as ~application(a, as)
                 | name:n args:as ~application(n, as)
@@ -163,6 +143,13 @@
                 | level0
            args = "(" wsp expressions?:as wsp ")" { Array(as) }
 
+        compose = @composes(current_position)
+    composes(p) = compose:l cont(p) level2:r ~compose(l, r)
+                | level2:l cont(p) level2:r ~compose(l, r)
+
+          infix = @infixes(current_position)
+     infixes(p) = level3:l scont(p) operator:o scont(p) level3:r ~infix(l, r, o)
+                | operator:o scont(p) level3:r ~infix(nil, r, o)
 
          string = "\"" < (("\\" escape) | str_seq)*:c > "\""
                     ~strliteral(c.join, text.gsub("\\\"", "\""))

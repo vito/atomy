@@ -824,49 +824,6 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # grouped = "(" wsp expression:x wsp ")" { x }
-  def _grouped
-
-    _save = self.pos
-    while true # sequence
-      _tmp = match_string("(")
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_expression)
-      x = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = match_string(")")
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  x ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_grouped unless _tmp
-    return _tmp
-  end
-
   # comment = (/--.*?$/ | multi_comment)
   def _comment
 
@@ -986,6 +943,44 @@ class Atomy::Grammar < KPeg::CompiledParser
     end # end choice
 
     set_failed_rule :_in_multi unless _tmp
+    return _tmp
+  end
+
+  # language = "#language" wsp identifier:n {set_lang(n)} %lang.root
+  def _language
+
+    _save = self.pos
+    while true # sequence
+      _tmp = match_string("#language")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_identifier)
+      n = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin; set_lang(n); end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = @_grammar_lang.external_invoke(self, :_root)
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_language unless _tmp
     return _tmp
   end
 
@@ -1109,12 +1104,12 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # language = "#language" wsp identifier:n {set_lang(n)} %lang.root
-  def _language
+  # grouped = "(" wsp expression:x wsp ")" { x }
+  def _grouped
 
     _save = self.pos
     while true # sequence
-      _tmp = match_string("#language")
+      _tmp = match_string("(")
       unless _tmp
         self.pos = _save
         break
@@ -1124,26 +1119,31 @@ class Atomy::Grammar < KPeg::CompiledParser
         self.pos = _save
         break
       end
-      _tmp = apply(:_identifier)
-      n = @result
+      _tmp = apply(:_expression)
+      x = @result
       unless _tmp
         self.pos = _save
         break
       end
-      @result = begin; set_lang(n); end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string(")")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  x ; end
       _tmp = true
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = @_grammar_lang.external_invoke(self, :_root)
       unless _tmp
         self.pos = _save
       end
       break
     end # end sequence
 
-    set_failed_rule :_language unless _tmp
+    set_failed_rule :_grouped unless _tmp
     return _tmp
   end
 
@@ -1269,6 +1269,55 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
+  # constant = < /[A-Z][a-zA-Z0-9_]*/ > {constant(text.to_sym)}
+  def _constant
+
+    _save = self.pos
+    while true # sequence
+      _text_start = self.pos
+      _tmp = scan(/\A(?-mix:[A-Z][a-zA-Z0-9_]*)/)
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin; constant(text.to_sym); end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_constant unless _tmp
+    return _tmp
+  end
+
+  # word = identifier:n {word(n)}
+  def _word
+
+    _save = self.pos
+    while true # sequence
+      _tmp = apply(:_identifier)
+      n = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin; word(n); end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_word unless _tmp
+    return _tmp
+  end
+
   # quote = "'" level2:e {quote(e)}
   def _quote
 
@@ -1350,55 +1399,6 @@ class Atomy::Grammar < KPeg::CompiledParser
     end # end sequence
 
     set_failed_rule :_unquote unless _tmp
-    return _tmp
-  end
-
-  # constant = < /[A-Z][a-zA-Z0-9_]*/ > {constant(text.to_sym)}
-  def _constant
-
-    _save = self.pos
-    while true # sequence
-      _text_start = self.pos
-      _tmp = scan(/\A(?-mix:[A-Z][a-zA-Z0-9_]*)/)
-      if _tmp
-        text = get_text(_text_start)
-      end
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin; constant(text.to_sym); end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_constant unless _tmp
-    return _tmp
-  end
-
-  # word = identifier:n {word(n)}
-  def _word
-
-    _save = self.pos
-    while true # sequence
-      _tmp = apply(:_identifier)
-      n = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin; word(n); end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_word unless _tmp
     return _tmp
   end
 
@@ -1658,6 +1658,160 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
+  # apply = (apply:a args:as {application(a, as)} | name:n args:as {application(n, as)})
+  def _apply
+
+    _save = self.pos
+    while true # choice
+
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_apply)
+        a = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_args)
+        as = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin; application(a, as); end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save2 = self.pos
+      while true # sequence
+        _tmp = apply(:_name)
+        n = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        _tmp = apply(:_args)
+        as = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
+        @result = begin; application(n, as); end
+        _tmp = true
+        unless _tmp
+          self.pos = _save2
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+      break
+    end # end choice
+
+    set_failed_rule :_apply unless _tmp
+    return _tmp
+  end
+
+  # name = (name:n op_letter:o {postfix(n, o)} | grouped | level0)
+  def _name
+
+    _save = self.pos
+    while true # choice
+
+      _save1 = self.pos
+      while true # sequence
+        _tmp = apply(:_name)
+        n = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _tmp = apply(:_op_letter)
+        o = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        @result = begin; postfix(n, o); end
+        _tmp = true
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_grouped)
+      break if _tmp
+      self.pos = _save
+      _tmp = apply(:_level0)
+      break if _tmp
+      self.pos = _save
+      break
+    end # end choice
+
+    set_failed_rule :_name unless _tmp
+    return _tmp
+  end
+
+  # args = "(" wsp expressions?:as wsp ")" { Array(as) }
+  def _args
+
+    _save = self.pos
+    while true # sequence
+      _tmp = match_string("(")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _save1 = self.pos
+      _tmp = apply(:_expressions)
+      @result = nil unless _tmp
+      unless _tmp
+        _tmp = true
+        self.pos = _save1
+      end
+      as = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = apply(:_wsp)
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      _tmp = match_string(")")
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  Array(as) ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_args unless _tmp
+    return _tmp
+  end
+
   # compose = @composes(current_position)
   def _compose
     _tmp = _composes(current_position)
@@ -1824,160 +1978,6 @@ class Atomy::Grammar < KPeg::CompiledParser
     end # end choice
 
     set_failed_rule :_infixes unless _tmp
-    return _tmp
-  end
-
-  # apply = (apply:a args:as {application(a, as)} | name:n args:as {application(n, as)})
-  def _apply
-
-    _save = self.pos
-    while true # choice
-
-      _save1 = self.pos
-      while true # sequence
-        _tmp = apply(:_apply)
-        a = @result
-        unless _tmp
-          self.pos = _save1
-          break
-        end
-        _tmp = apply(:_args)
-        as = @result
-        unless _tmp
-          self.pos = _save1
-          break
-        end
-        @result = begin; application(a, as); end
-        _tmp = true
-        unless _tmp
-          self.pos = _save1
-        end
-        break
-      end # end sequence
-
-      break if _tmp
-      self.pos = _save
-
-      _save2 = self.pos
-      while true # sequence
-        _tmp = apply(:_name)
-        n = @result
-        unless _tmp
-          self.pos = _save2
-          break
-        end
-        _tmp = apply(:_args)
-        as = @result
-        unless _tmp
-          self.pos = _save2
-          break
-        end
-        @result = begin; application(n, as); end
-        _tmp = true
-        unless _tmp
-          self.pos = _save2
-        end
-        break
-      end # end sequence
-
-      break if _tmp
-      self.pos = _save
-      break
-    end # end choice
-
-    set_failed_rule :_apply unless _tmp
-    return _tmp
-  end
-
-  # name = (name:n op_letter:o {postfix(n, o)} | grouped | level0)
-  def _name
-
-    _save = self.pos
-    while true # choice
-
-      _save1 = self.pos
-      while true # sequence
-        _tmp = apply(:_name)
-        n = @result
-        unless _tmp
-          self.pos = _save1
-          break
-        end
-        _tmp = apply(:_op_letter)
-        o = @result
-        unless _tmp
-          self.pos = _save1
-          break
-        end
-        @result = begin; postfix(n, o); end
-        _tmp = true
-        unless _tmp
-          self.pos = _save1
-        end
-        break
-      end # end sequence
-
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_grouped)
-      break if _tmp
-      self.pos = _save
-      _tmp = apply(:_level0)
-      break if _tmp
-      self.pos = _save
-      break
-    end # end choice
-
-    set_failed_rule :_name unless _tmp
-    return _tmp
-  end
-
-  # args = "(" wsp expressions?:as wsp ")" { Array(as) }
-  def _args
-
-    _save = self.pos
-    while true # sequence
-      _tmp = match_string("(")
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _save1 = self.pos
-      _tmp = apply(:_expressions)
-      @result = nil unless _tmp
-      unless _tmp
-        _tmp = true
-        self.pos = _save1
-      end
-      as = @result
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = apply(:_wsp)
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      _tmp = match_string(")")
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  Array(as) ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_args unless _tmp
     return _tmp
   end
 
@@ -3069,33 +3069,33 @@ class Atomy::Grammar < KPeg::CompiledParser
   Rules[:_op_letter] = rule_info("op_letter", "< /[$+<=>^|~!@\#%&*\\-\\\\.\\/\\?]/ > { text.to_sym }")
   Rules[:_operator] = rule_info("operator", "< op_letter+ > { text.to_sym }")
   Rules[:_identifier] = rule_info("identifier", "< /[a-z_][a-zA-Z\\d\\-_]*/ > { text.tr(\"-\", \"_\").to_sym }")
-  Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
   Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")
   Rules[:_multi_comment] = rule_info("multi_comment", "\"{-\" in_multi")
   Rules[:_in_multi] = rule_info("in_multi", "(/[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ \"{-\" in_multi /[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ /[-{}]/ in_multi)")
+  Rules[:_language] = rule_info("language", "\"\#language\" wsp identifier:n {set_lang(n)} %lang.root")
   Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | unquote | string | constant | word | block | list | prefix)")
   Rules[:_level1] = rule_info("level1", "(apply | grouped | level0)")
   Rules[:_level2] = rule_info("level2", "(postfix | level1)")
   Rules[:_level3] = rule_info("level3", "(compose | level2)")
   Rules[:_level4] = rule_info("level4", "(language | infix | level3)")
-  Rules[:_language] = rule_info("language", "\"\#language\" wsp identifier:n {set_lang(n)} %lang.root")
+  Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
   Rules[:_number] = rule_info("number", "(< /[\\+\\-]?0[oO][0-7]+/ > {number(text.to_i(8))} | < /[\\+\\-]?0[xX][\\da-fA-F]+/ > {number(text.to_i(16))} | < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > {literal(text.to_f)} | < /[\\+\\-]?\\d+\\.\\d+/ > {literal(text.to_f)} | < /[\\+\\-]?\\d+/ > {number(text.to_i)})")
+  Rules[:_constant] = rule_info("constant", "< /[A-Z][a-zA-Z0-9_]*/ > {constant(text.to_sym)}")
+  Rules[:_word] = rule_info("word", "identifier:n {word(n)}")
   Rules[:_quote] = rule_info("quote", "\"'\" level2:e {quote(e)}")
   Rules[:_quasi_quote] = rule_info("quasi_quote", "\"`\" level2:e {quasiquote(e)}")
   Rules[:_unquote] = rule_info("unquote", "\"~\" level2:e {unquote(e)}")
-  Rules[:_constant] = rule_info("constant", "< /[A-Z][a-zA-Z0-9_]*/ > {constant(text.to_sym)}")
-  Rules[:_word] = rule_info("word", "identifier:n {word(n)}")
   Rules[:_prefix] = rule_info("prefix", "op_letter:o level2:e {prefix(e, o)}")
   Rules[:_postfix] = rule_info("postfix", "(postfix:e op_letter:o {postfix(e, o)} | level1:e op_letter:o {postfix(e, o)})")
   Rules[:_block] = rule_info("block", "(\":\" wsp expressions?:es (wsp \";\")? {block(Array(es))} | \"{\" wsp expressions?:es wsp \"}\" {block(Array(es))})")
   Rules[:_list] = rule_info("list", "\"[\" wsp expressions?:es wsp \"]\" {list(Array(es))}")
+  Rules[:_apply] = rule_info("apply", "(apply:a args:as {application(a, as)} | name:n args:as {application(n, as)})")
+  Rules[:_name] = rule_info("name", "(name:n op_letter:o {postfix(n, o)} | grouped | level0)")
+  Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_compose] = rule_info("compose", "@composes(current_position)")
   Rules[:_composes] = rule_info("composes", "(compose:l cont(p) level2:r {compose(l, r)} | level2:l cont(p) level2:r {compose(l, r)})")
   Rules[:_infix] = rule_info("infix", "@infixes(current_position)")
   Rules[:_infixes] = rule_info("infixes", "(level3:l scont(p) operator:o scont(p) level3:r {infix(l, r, o)} | operator:o scont(p) level3:r {infix(nil, r, o)})")
-  Rules[:_apply] = rule_info("apply", "(apply:a args:as {application(a, as)} | name:n args:as {application(n, as)})")
-  Rules[:_name] = rule_info("name", "(name:n op_letter:o {postfix(n, o)} | grouped | level0)")
-  Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_string] = rule_info("string", "\"\\\"\" < (\"\\\\\" escape | str_seq)*:c > \"\\\"\" {strliteral(c.join, text.gsub(\"\\\\\\\"\", \"\\\"\"))}")
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
   Rules[:_escape] = rule_info("escape", "(number_escapes | escapes)")
