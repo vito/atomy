@@ -1,7 +1,7 @@
 %% name = Atomy::Grammar
 
 %% number = ast Number(value)
-%% float = ast Float(value)
+%% literal = ast Literal(value)
 %% quote = ast Quote(node)
 %% quasiquote = ast QuasiQuote(node)
 %% unquote = ast Unquote(node)
@@ -116,8 +116,8 @@
 
          number = < /[\+\-]?0[oO][0-7]+/ > ~number(text.to_i(8))
                 | < /[\+\-]?0[xX][\da-fA-F]+/ > ~number(text.to_i(16))
-                | < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > ~float(text.to_f)
-                | < /[\+\-]?\d+\.\d+/ > ~float(text.to_f)
+                | < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > ~literal(text.to_f)
+                | < /[\+\-]?\d+\.\d+/ > ~literal(text.to_f)
                 | < /[\+\-]?\d+/ > ~number(text.to_i)
 
 

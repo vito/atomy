@@ -66,12 +66,6 @@ class Atomy::Grammar < KPeg::CompiledParser
       end
       attr_reader :text
     end
-    class Float < Node
-      def initialize(value)
-        @value = value
-      end
-      attr_reader :value
-    end
     class Infix < Node
       def initialize(left, right, operator)
         @left = left
@@ -87,6 +81,12 @@ class Atomy::Grammar < KPeg::CompiledParser
         @nodes = nodes
       end
       attr_reader :nodes
+    end
+    class Literal < Node
+      def initialize(value)
+        @value = value
+      end
+      attr_reader :value
     end
     class Number < Node
       def initialize(value)
@@ -155,14 +155,14 @@ class Atomy::Grammar < KPeg::CompiledParser
   def constant(text)
     AST::Constant.new(text)
   end
-  def float(value)
-    AST::Float.new(value)
-  end
   def infix(left, right, operator)
     AST::Infix.new(left, right, operator)
   end
   def list(nodes)
     AST::List.new(nodes)
+  end
+  def literal(value)
+    AST::Literal.new(value)
   end
   def number(value)
     AST::Number.new(value)
@@ -1147,7 +1147,7 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # number = (< /[\+\-]?0[oO][0-7]+/ > {number(text.to_i(8))} | < /[\+\-]?0[xX][\da-fA-F]+/ > {number(text.to_i(16))} | < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > {float(text.to_f)} | < /[\+\-]?\d+\.\d+/ > {float(text.to_f)} | < /[\+\-]?\d+/ > {number(text.to_i)})
+  # number = (< /[\+\-]?0[oO][0-7]+/ > {number(text.to_i(8))} | < /[\+\-]?0[xX][\da-fA-F]+/ > {number(text.to_i(16))} | < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > {literal(text.to_f)} | < /[\+\-]?\d+\.\d+/ > {literal(text.to_f)} | < /[\+\-]?\d+/ > {number(text.to_i)})
   def _number
 
     _save = self.pos
@@ -1208,7 +1208,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save3
           break
         end
-        @result = begin; float(text.to_f); end
+        @result = begin; literal(text.to_f); end
         _tmp = true
         unless _tmp
           self.pos = _save3
@@ -1230,7 +1230,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save4
           break
         end
-        @result = begin; float(text.to_f); end
+        @result = begin; literal(text.to_f); end
         _tmp = true
         unless _tmp
           self.pos = _save4
@@ -3079,7 +3079,7 @@ class Atomy::Grammar < KPeg::CompiledParser
   Rules[:_level3] = rule_info("level3", "(compose | level2)")
   Rules[:_level4] = rule_info("level4", "(language | infix | level3)")
   Rules[:_language] = rule_info("language", "\"\#language\" wsp identifier:n {set_lang(n)} %lang.root")
-  Rules[:_number] = rule_info("number", "(< /[\\+\\-]?0[oO][0-7]+/ > {number(text.to_i(8))} | < /[\\+\\-]?0[xX][\\da-fA-F]+/ > {number(text.to_i(16))} | < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > {float(text.to_f)} | < /[\\+\\-]?\\d+\\.\\d+/ > {float(text.to_f)} | < /[\\+\\-]?\\d+/ > {number(text.to_i)})")
+  Rules[:_number] = rule_info("number", "(< /[\\+\\-]?0[oO][0-7]+/ > {number(text.to_i(8))} | < /[\\+\\-]?0[xX][\\da-fA-F]+/ > {number(text.to_i(16))} | < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > {literal(text.to_f)} | < /[\\+\\-]?\\d+\\.\\d+/ > {literal(text.to_f)} | < /[\\+\\-]?\\d+/ > {number(text.to_i)})")
   Rules[:_quote] = rule_info("quote", "\"'\" level2:e {quote(e)}")
   Rules[:_quasi_quote] = rule_info("quasi_quote", "\"`\" level2:e {quasiquote(e)}")
   Rules[:_unquote] = rule_info("unquote", "\"~\" level2:e {unquote(e)}")
