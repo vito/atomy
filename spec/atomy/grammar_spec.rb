@@ -45,6 +45,46 @@ describe Atomy::Grammar do
     end
   end
 
+  describe "comments" do
+    subject { result.first }
+
+    before do
+      expect(result.size).to eq(1)
+    end
+
+    describe "single-line" do
+      let(:source) { "-- foo\n1" }
+
+      it { should be_a(Number) }
+    end
+
+    describe "block" do
+      let(:source) { "{- foo -}\n1" }
+
+      it { should be_a(Number) }
+
+      context "when spanning multiple lines" do
+        let(:source) { "{- \nfoo\nbar\nbaz -}\n1" }
+        it { should be_a(Number) }
+      end
+
+      context "when not spaced from its contents" do
+        let(:source) { "{-foo-}\n1" }
+        it { should be_a(Number) }
+      end
+
+      context "when nested" do
+        let(:source) { "{- foo {- bar -} baz -}\n1" }
+        it { should be_a(Number) }
+      end
+
+      context "when in the middle of a node" do
+        let(:source) { "fizz {- foo {- bar -} baz -} buzz" }
+        it { should be_a(Compose) }
+      end
+    end
+  end
+
   describe "parsing particular nodes" do
     before do
       expect(result.first).to be_a(node)
