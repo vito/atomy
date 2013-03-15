@@ -1,8 +1,6 @@
 source "https://rubygems.org"
 
-group "development" do
-  gem "kpeg"
-end
+gemspec
 
 group "test" do
   gem "rspec"
