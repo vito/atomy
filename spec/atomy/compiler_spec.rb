@@ -92,7 +92,58 @@ describe Atomy::Compiler do
       end
     end
 
-    # TODO: I want to spec this using locals access or something.
-    it "constructs the block with the given binding"
+    describe "binding access" do
+      class IvarCode
+        def initialize(name)
+          @name = name
+        end
+
+        def bytecode(gen, mod)
+          gen.push_ivar(:"@#{@name}")
+        end
+      end
+
+      let(:compile_module) do
+        Atomy::Module.new do
+          def expand(node)
+            if node.is_a?(Atomy::Grammar::AST::Prefix) && \
+              if node.operator == :"@" && node.node.is_a?(Atomy::Grammar::AST::Word)
+                return IvarCode.new(node.node.text)
+              end
+            end
+
+            node
+          end
+        end
+      end
+
+      it "constructs the block with the given binding" do
+        @bind = :outer_ivar
+
+        class Foo
+          def make_binding
+            @bind = :bound_ivar
+            binding
+          end
+
+          def mutate!
+            @bind = :mutated_ivar
+          end
+        end
+
+        foo = Foo.new
+        bnd = foo.make_binding
+
+        node = ast("@bind")
+        code = described_class.compile(node, compile_module)
+        block = described_class.construct_block(code, bnd)
+
+        expect(block.call).to eq(:bound_ivar)
+
+        foo.mutate!
+
+        expect(block.call).to eq(:mutated_ivar)
+      end
+    end
   end
 end
