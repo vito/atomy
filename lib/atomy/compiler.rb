@@ -18,20 +18,13 @@ module Atomy
 
     def construct_block(code, binding)
       code = code.dup
-
-      code.add_metadata(:for_eval, true)
-
       code.scope = binding.constant_scope
       code.name = binding.variables.method.name
-
       code.scope.script =
         Rubinius::CompiledCode::Script.new(code, code.file.to_s, true)
 
       block = Rubinius::BlockEnvironment.new
       block.under_context(binding.variables, code)
-      block.proc_environment = binding.proc_environment
-      block.from_eval!
-
       block
     end
   end

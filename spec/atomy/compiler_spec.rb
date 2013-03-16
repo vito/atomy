@@ -59,23 +59,6 @@ describe Atomy::Compiler do
       expect(block.scope).to eq(binding.variables)
     end
 
-    it "sets the block's proc_environment to the binding's" do
-      bnd = binding.dup
-      bnd.proc_environment = mock
-      block = described_class.construct_block(code, bnd)
-      expect(block.proc_environment).to eq(bnd.proc_environment)
-    end
-
-    it "sets for_eval on the block's CompiledCode" do
-      block = described_class.construct_block(code, binding)
-      expect(block.compiled_code.for_eval?).to be_true
-    end
-
-    it "sets from_eval? on the block" do
-      block = described_class.construct_block(code, binding)
-      expect(block.from_eval?).to be_true
-    end
-
     it "sets the code's scope to the binding's constant scope" do
       block = described_class.construct_block(code, binding)
       expect(block.compiled_code.scope).to eq(binding.constant_scope)
