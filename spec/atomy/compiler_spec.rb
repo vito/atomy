@@ -15,8 +15,6 @@ describe Atomy::Compiler do
 
   let(:compile_module) do
     Atomy::Module.new do
-      extend self
-
       def expand(_)
         SomeCode.new
       end
@@ -98,8 +96,6 @@ describe Atomy::Compiler do
 
       let(:compile_module) do
         Atomy::Module.new do
-          extend self
-
           def expand(_)
             FileCode.new
           end

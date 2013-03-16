@@ -11,8 +11,7 @@ describe Atomy::Send do
 
   let(:compile_module) do
     Atomy::Module.new do
-      include Atomy::Bootstrap
-      extend self
+      use Atomy::Bootstrap
     end
   end
 

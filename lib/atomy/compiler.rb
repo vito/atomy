@@ -1,6 +1,6 @@
 module Atomy
   module Compiler
-    extend self
+    module_function
 
     def compile(node, mod, file = nil, line = 0)
       gen = Rubinius::Generator.new

@@ -5,8 +5,7 @@ require "atomy/bootstrap"
 describe Atomy::Bootstrap do
   subject do
     Atomy::Module.new do
-      include Atomy::Bootstrap
-      extend Atomy::Bootstrap
+      use Atomy::Bootstrap
     end
   end
 

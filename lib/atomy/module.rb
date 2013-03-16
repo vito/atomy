@@ -2,8 +2,9 @@ require "atomy/compiler"
 
 module Atomy
   class Module < ::Module
-    def initialize(&blk)
-      module_eval(&blk) if blk
+    def initialize
+      extend self
+      super
     end
 
     def compile(gen, node)
@@ -19,9 +20,15 @@ module Atomy
           self)
 
       code = Atomy::Compiler.compile(node, self)
-      block = Atomy::Compiler.construct_block(code, binding)
 
+      block = Atomy::Compiler.construct_block(code, binding)
       block.call
+    end
+
+    def use(mod)
+      extend mod
+      include mod
+      mod
     end
   end
 end

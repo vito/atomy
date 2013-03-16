@@ -54,8 +54,6 @@ describe Atomy::Module do
 
   subject do
     described_class.new do
-      extend self
-
       def expand(node)
         case node
         when Atomy::Grammar::AST::Word
@@ -73,6 +71,57 @@ describe Atomy::Module do
         end
 
         node
+      end
+    end
+  end
+
+  describe "#initialize" do
+    it "makes methods available on the module itself" do
+      mod = Atomy::Module.new { def foo; 1; end }
+      expect(mod.foo).to eq(1)
+    end
+  end
+
+  describe "#use" do
+    it "extends the module with the functionality of another" do
+      mod = Atomy::Module.new { def foo; 1; end }
+
+      mod2 = Atomy::Module.new do
+        use mod
+
+        def bar
+          foo + 1
+        end
+      end
+
+      expect(mod2.bar).to eq(2)
+    end
+
+    describe "deeper #use" do
+      it "transfers the usage through to other modules" do
+        mod = Atomy::Module.new do
+          def foo
+            1
+          end
+        end
+
+        mod2 = Atomy::Module.new do
+          use mod
+
+          def bar
+            foo + 1
+          end
+        end
+
+        mod3 = Atomy::Module.new do
+          use mod2
+
+          def baz
+            bar + 1
+          end
+        end
+
+        expect(mod3.baz).to eq(3)
       end
     end
   end

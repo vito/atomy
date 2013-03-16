@@ -1,9 +1,10 @@
 require "atomy/grammar"
+require "atomy/module"
 require "atomy/code/send"
 require "atomy/code/string_literal"
 
 module Atomy
-  module Bootstrap
+  Bootstrap = Atomy::Module.new do
     def expand(node)
       case node
       when Atomy::Grammar::AST::Apply
