@@ -106,7 +106,7 @@ describe Atomy::Compiler do
       let(:compile_module) do
         Atomy::Module.new do
           def expand(node)
-            if node.is_a?(Atomy::Grammar::AST::Prefix) && \
+            if node.is_a?(Atomy::Grammar::AST::Prefix)
               if node.operator == :"@" && node.node.is_a?(Atomy::Grammar::AST::Word)
                 return IvarCode.new(node.node.text)
               end
