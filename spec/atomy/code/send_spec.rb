@@ -43,8 +43,8 @@ describe Atomy::Code::Send do
 
   context "with no receiver" do
     it_compiles_as do |gen|
-      gen.allow_private
       gen.push_self
+      gen.allow_private
       gen.send :foo, 0
     end
 
@@ -52,12 +52,12 @@ describe Atomy::Code::Send do
       let(:arguments) { [ast('"foo"'), ast('"bar"')] }
 
       it_compiles_as do |gen|
-        gen.allow_private
         gen.push_self
         gen.push_literal "foo"
         gen.string_dup
         gen.push_literal "bar"
         gen.string_dup
+        gen.allow_private
         gen.send :foo, 2
       end
     end

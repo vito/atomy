@@ -11,13 +11,14 @@ module Atomy
         if @receiver
           mod.compile(gen, @receiver)
         else
-          gen.allow_private
           gen.push_self
         end
 
         @arguments.each do |arg|
           mod.compile(gen, arg)
         end
+
+        gen.allow_private unless @receiver
 
         gen.send(@name, @arguments.size)
       end
