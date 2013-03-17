@@ -82,6 +82,19 @@ describe Atomy::Module do
     end
   end
 
+  describe "#file" do
+    it "can be set" do
+      mod = Atomy::Module.new { def foo; 1; end }
+      mod.file = :"foo/bar"
+    end
+
+    it "can be read" do
+      mod = Atomy::Module.new { def foo; 1; end }
+      mod.file = :"foo/bar"
+      expect(mod.file).to eq(:"foo/bar")
+    end
+  end
+
   describe "#use" do
     it "extends the module with the functionality of another" do
       mod = Atomy::Module.new { def foo; 1; end }

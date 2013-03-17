@@ -27,8 +27,9 @@ describe Atomy::Compiler do
         be_a(Rubinius::CompiledCode))
     end
 
-    it "has the given file on the CompiledCode" do
-      code = described_class.compile(node, compile_module, "some/file")
+    it "has the file set to the module's file" do
+      compile_module.file = :"some/file"
+      code = described_class.compile(node, compile_module)
       expect(code.file).to eq(:"some/file")
     end
   end
