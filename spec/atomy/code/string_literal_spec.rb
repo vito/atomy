@@ -2,7 +2,7 @@ require "spec_helper"
 
 require "atomy/code/string_literal"
 
-describe Atomy::StringLiteral do
+describe Atomy::Code::StringLiteral do
   let(:compile_module) { nil }
 
   subject { described_class.new("foo") }

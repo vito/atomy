@@ -4,7 +4,7 @@ require "atomy/bootstrap"
 require "atomy/module"
 require "atomy/code/send"
 
-describe Atomy::Send do
+describe Atomy::Code::Send do
   let(:receiver) { nil }
   let(:name) { :foo }
   let(:arguments) { [] }

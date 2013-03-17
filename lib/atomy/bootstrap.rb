@@ -9,10 +9,10 @@ module Atomy
       case node
       when Atomy::Grammar::AST::Apply
         if node.node.is_a?(Atomy::Grammar::AST::Word)
-          return Send.new(nil, node.node.text, node.arguments)
+          return Code::Send.new(nil, node.node.text, node.arguments)
         end
       when Atomy::Grammar::AST::StringLiteral
-        return StringLiteral.new(node.value)
+        return Code::StringLiteral.new(node.value)
       end
 
       node

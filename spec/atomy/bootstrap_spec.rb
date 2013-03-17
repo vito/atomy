@@ -16,7 +16,7 @@ describe Atomy::Bootstrap do
 
         it "expands them into Sends" do
           expanded = subject.expand(node)
-          expect(expanded).to be_a(Atomy::Send)
+          expect(expanded).to be_a(Atomy::Code::Send)
         end
       end
 
@@ -35,7 +35,7 @@ describe Atomy::Bootstrap do
 
       it "expands it into StringLiteral code" do
         expanded = subject.expand(node)
-        expect(expanded).to be_a(Atomy::StringLiteral)
+        expect(expanded).to be_a(Atomy::Code::StringLiteral)
       end
     end
   end
