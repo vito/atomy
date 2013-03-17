@@ -3,6 +3,18 @@ require 'kpeg/compiled_parser'
 class Atomy::Grammar < KPeg::CompiledParser
 
 
+  module AST
+    class Node
+      attr_accessor :line
+    end
+  end
+
+  def make(what, line, *args)
+    node = send(what, *args)
+    node.line ||= line
+    node
+  end
+
   def current_position(target = pos)
     cur_offset = 0
     cur_line = 0
@@ -484,6 +496,126 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
+  # line = {current_line}
+  def _line
+    @result = begin; current_line; end
+    _tmp = true
+    set_failed_rule :_line unless _tmp
+    return _tmp
+  end
+
+  # cont = (scont(p) | !"(")
+  def _cont(p)
+
+    _save = self.pos
+    while true # choice
+      _tmp = apply_with_args(:_scont, p)
+      break if _tmp
+      self.pos = _save
+      _save1 = self.pos
+      _tmp = match_string("(")
+      _tmp = _tmp ? nil : true
+      self.pos = _save1
+      break if _tmp
+      self.pos = _save
+      break
+    end # end choice
+
+    set_failed_rule :_cont unless _tmp
+    return _tmp
+  end
+
+  # scont = (("\n" sp)+ &{ continue?(p) } | sig_sp cont(p)?)
+  def _scont(p)
+
+    _save = self.pos
+    while true # choice
+
+      _save1 = self.pos
+      while true # sequence
+        _save2 = self.pos
+
+        _save3 = self.pos
+        while true # sequence
+          _tmp = match_string("\n")
+          unless _tmp
+            self.pos = _save3
+            break
+          end
+          _tmp = apply(:_sp)
+          unless _tmp
+            self.pos = _save3
+          end
+          break
+        end # end sequence
+
+        if _tmp
+          while true
+
+            _save4 = self.pos
+            while true # sequence
+              _tmp = match_string("\n")
+              unless _tmp
+                self.pos = _save4
+                break
+              end
+              _tmp = apply(:_sp)
+              unless _tmp
+                self.pos = _save4
+              end
+              break
+            end # end sequence
+
+            break unless _tmp
+          end
+          _tmp = true
+        else
+          self.pos = _save2
+        end
+        unless _tmp
+          self.pos = _save1
+          break
+        end
+        _save5 = self.pos
+        _tmp = begin;  continue?(p) ; end
+        self.pos = _save5
+        unless _tmp
+          self.pos = _save1
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+
+      _save6 = self.pos
+      while true # sequence
+        _tmp = apply(:_sig_sp)
+        unless _tmp
+          self.pos = _save6
+          break
+        end
+        _save7 = self.pos
+        _tmp = apply_with_args(:_cont, p)
+        unless _tmp
+          _tmp = true
+          self.pos = _save7
+        end
+        unless _tmp
+          self.pos = _save6
+        end
+        break
+      end # end sequence
+
+      break if _tmp
+      self.pos = _save
+      break
+    end # end choice
+
+    set_failed_rule :_scont unless _tmp
+    return _tmp
+  end
+
   # sp = (" " | "\t" | comment)*
   def _sp
     while true
@@ -633,206 +765,6 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # cont = (scont(p) | !"(")
-  def _cont(p)
-
-    _save = self.pos
-    while true # choice
-      _tmp = apply_with_args(:_scont, p)
-      break if _tmp
-      self.pos = _save
-      _save1 = self.pos
-      _tmp = match_string("(")
-      _tmp = _tmp ? nil : true
-      self.pos = _save1
-      break if _tmp
-      self.pos = _save
-      break
-    end # end choice
-
-    set_failed_rule :_cont unless _tmp
-    return _tmp
-  end
-
-  # scont = (("\n" sp)+ &{ continue?(p) } | sig_sp cont(p)?)
-  def _scont(p)
-
-    _save = self.pos
-    while true # choice
-
-      _save1 = self.pos
-      while true # sequence
-        _save2 = self.pos
-
-        _save3 = self.pos
-        while true # sequence
-          _tmp = match_string("\n")
-          unless _tmp
-            self.pos = _save3
-            break
-          end
-          _tmp = apply(:_sp)
-          unless _tmp
-            self.pos = _save3
-          end
-          break
-        end # end sequence
-
-        if _tmp
-          while true
-
-            _save4 = self.pos
-            while true # sequence
-              _tmp = match_string("\n")
-              unless _tmp
-                self.pos = _save4
-                break
-              end
-              _tmp = apply(:_sp)
-              unless _tmp
-                self.pos = _save4
-              end
-              break
-            end # end sequence
-
-            break unless _tmp
-          end
-          _tmp = true
-        else
-          self.pos = _save2
-        end
-        unless _tmp
-          self.pos = _save1
-          break
-        end
-        _save5 = self.pos
-        _tmp = begin;  continue?(p) ; end
-        self.pos = _save5
-        unless _tmp
-          self.pos = _save1
-        end
-        break
-      end # end sequence
-
-      break if _tmp
-      self.pos = _save
-
-      _save6 = self.pos
-      while true # sequence
-        _tmp = apply(:_sig_sp)
-        unless _tmp
-          self.pos = _save6
-          break
-        end
-        _save7 = self.pos
-        _tmp = apply_with_args(:_cont, p)
-        unless _tmp
-          _tmp = true
-          self.pos = _save7
-        end
-        unless _tmp
-          self.pos = _save6
-        end
-        break
-      end # end sequence
-
-      break if _tmp
-      self.pos = _save
-      break
-    end # end choice
-
-    set_failed_rule :_scont unless _tmp
-    return _tmp
-  end
-
-  # op_letter = < /[$+<=>^|~!@#%&*\-\\.\/\?]/ > { text.to_sym }
-  def _op_letter
-
-    _save = self.pos
-    while true # sequence
-      _text_start = self.pos
-      _tmp = scan(/\A(?-mix:[$+<=>^|~!@#%&*\-\\.\/\?])/)
-      if _tmp
-        text = get_text(_text_start)
-      end
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  text.to_sym ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_op_letter unless _tmp
-    return _tmp
-  end
-
-  # operator = < op_letter+ > { text.to_sym }
-  def _operator
-
-    _save = self.pos
-    while true # sequence
-      _text_start = self.pos
-      _save1 = self.pos
-      _tmp = apply(:_op_letter)
-      if _tmp
-        while true
-          _tmp = apply(:_op_letter)
-          break unless _tmp
-        end
-        _tmp = true
-      else
-        self.pos = _save1
-      end
-      if _tmp
-        text = get_text(_text_start)
-      end
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  text.to_sym ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_operator unless _tmp
-    return _tmp
-  end
-
-  # identifier = < /[a-z_][a-zA-Z\d\-_]*/ > { text.tr("-", "_").to_sym }
-  def _identifier
-
-    _save = self.pos
-    while true # sequence
-      _text_start = self.pos
-      _tmp = scan(/\A(?-mix:[a-z_][a-zA-Z\d\-_]*)/)
-      if _tmp
-        text = get_text(_text_start)
-      end
-      unless _tmp
-        self.pos = _save
-        break
-      end
-      @result = begin;  text.tr("-", "_").to_sym ; end
-      _tmp = true
-      unless _tmp
-        self.pos = _save
-      end
-      break
-    end # end sequence
-
-    set_failed_rule :_identifier unless _tmp
-    return _tmp
-  end
-
   # comment = (/--.*?$/ | multi_comment)
   def _comment
 
@@ -952,6 +884,94 @@ class Atomy::Grammar < KPeg::CompiledParser
     end # end choice
 
     set_failed_rule :_in_multi unless _tmp
+    return _tmp
+  end
+
+  # op_letter = < /[$+<=>^|~!@#%&*\-\\.\/\?]/ > { text.to_sym }
+  def _op_letter
+
+    _save = self.pos
+    while true # sequence
+      _text_start = self.pos
+      _tmp = scan(/\A(?-mix:[$+<=>^|~!@#%&*\-\\.\/\?])/)
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text.to_sym ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_op_letter unless _tmp
+    return _tmp
+  end
+
+  # operator = < op_letter+ > { text.to_sym }
+  def _operator
+
+    _save = self.pos
+    while true # sequence
+      _text_start = self.pos
+      _save1 = self.pos
+      _tmp = apply(:_op_letter)
+      if _tmp
+        while true
+          _tmp = apply(:_op_letter)
+          break unless _tmp
+        end
+        _tmp = true
+      else
+        self.pos = _save1
+      end
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text.to_sym ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_operator unless _tmp
+    return _tmp
+  end
+
+  # identifier = < /[a-z_][a-zA-Z\d\-_]*/ > { text.tr("-", "_").to_sym }
+  def _identifier
+
+    _save = self.pos
+    while true # sequence
+      _text_start = self.pos
+      _tmp = scan(/\A(?-mix:[a-z_][a-zA-Z\d\-_]*)/)
+      if _tmp
+        text = get_text(_text_start)
+      end
+      unless _tmp
+        self.pos = _save
+        break
+      end
+      @result = begin;  text.tr("-", "_").to_sym ; end
+      _tmp = true
+      unless _tmp
+        self.pos = _save
+      end
+      break
+    end # end sequence
+
+    set_failed_rule :_identifier unless _tmp
     return _tmp
   end
 
@@ -1156,7 +1176,7 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # number = (< /[\+\-]?0[oO][0-7]+/ > {number(text.to_i(8))} | < /[\+\-]?0[xX][\da-fA-F]+/ > {number(text.to_i(16))} | < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > {literal(text.to_f)} | < /[\+\-]?\d+\.\d+/ > {literal(text.to_f)} | < /[\+\-]?\d+/ > {number(text.to_i)})
+  # number = (line:l < /[\+\-]?0[oO][0-7]+/ > {make(:number, l, text.to_i(8))} | line:l < /[\+\-]?0[xX][\da-fA-F]+/ > {make(:number, l, text.to_i(16))} | line:l < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > {make(:literal, l, text.to_f)} | line:l < /[\+\-]?\d+\.\d+/ > {make(:literal, l, text.to_f)} | line:l < /[\+\-]?\d+/ > {make(:number, l, text.to_i)})
   def _number
 
     _save = self.pos
@@ -1164,6 +1184,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save1 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
         _text_start = self.pos
         _tmp = scan(/\A(?-mix:[\+\-]?0[oO][0-7]+)/)
         if _tmp
@@ -1173,7 +1199,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save1
           break
         end
-        @result = begin; number(text.to_i(8)); end
+        @result = begin; make(:number, l, text.to_i(8)); end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -1186,6 +1212,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save2 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
         _text_start = self.pos
         _tmp = scan(/\A(?-mix:[\+\-]?0[xX][\da-fA-F]+)/)
         if _tmp
@@ -1195,7 +1227,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save2
           break
         end
-        @result = begin; number(text.to_i(16)); end
+        @result = begin; make(:number, l, text.to_i(16)); end
         _tmp = true
         unless _tmp
           self.pos = _save2
@@ -1208,6 +1240,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save3 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save3
+          break
+        end
         _text_start = self.pos
         _tmp = scan(/\A(?-mix:[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+)/)
         if _tmp
@@ -1217,7 +1255,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save3
           break
         end
-        @result = begin; literal(text.to_f); end
+        @result = begin; make(:literal, l, text.to_f); end
         _tmp = true
         unless _tmp
           self.pos = _save3
@@ -1230,6 +1268,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save4 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save4
+          break
+        end
         _text_start = self.pos
         _tmp = scan(/\A(?-mix:[\+\-]?\d+\.\d+)/)
         if _tmp
@@ -1239,7 +1283,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save4
           break
         end
-        @result = begin; literal(text.to_f); end
+        @result = begin; make(:literal, l, text.to_f); end
         _tmp = true
         unless _tmp
           self.pos = _save4
@@ -1252,6 +1296,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save5 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save5
+          break
+        end
         _text_start = self.pos
         _tmp = scan(/\A(?-mix:[\+\-]?\d+)/)
         if _tmp
@@ -1261,7 +1311,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save5
           break
         end
-        @result = begin; number(text.to_i); end
+        @result = begin; make(:number, l, text.to_i); end
         _tmp = true
         unless _tmp
           self.pos = _save5
@@ -1278,11 +1328,17 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # constant = < /[A-Z][a-zA-Z0-9_]*/ > {constant(text.to_sym)}
+  # constant = line:l < /[A-Z][a-zA-Z0-9_]*/ > {make(:constant, l, text.to_sym)}
   def _constant
 
     _save = self.pos
     while true # sequence
+      _tmp = apply(:_line)
+      l = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
       _text_start = self.pos
       _tmp = scan(/\A(?-mix:[A-Z][a-zA-Z0-9_]*)/)
       if _tmp
@@ -1292,7 +1348,7 @@ class Atomy::Grammar < KPeg::CompiledParser
         self.pos = _save
         break
       end
-      @result = begin; constant(text.to_sym); end
+      @result = begin; make(:constant, l, text.to_sym); end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1304,18 +1360,24 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # word = identifier:n {word(n)}
+  # word = line:l identifier:n {make(:word, l, n)}
   def _word
 
     _save = self.pos
     while true # sequence
+      _tmp = apply(:_line)
+      l = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
       _tmp = apply(:_identifier)
       n = @result
       unless _tmp
         self.pos = _save
         break
       end
-      @result = begin; word(n); end
+      @result = begin; make(:word, l, n); end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1327,11 +1389,17 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # quote = "'" level2:e {quote(e)}
+  # quote = line:l "'" level2:e {make(:make, l, :quote, l, e)}
   def _quote
 
     _save = self.pos
     while true # sequence
+      _tmp = apply(:_line)
+      l = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
       _tmp = match_string("'")
       unless _tmp
         self.pos = _save
@@ -1343,7 +1411,7 @@ class Atomy::Grammar < KPeg::CompiledParser
         self.pos = _save
         break
       end
-      @result = begin; quote(e); end
+      @result = begin; make(:make, l, :quote, l, e); end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1355,11 +1423,17 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # quasi_quote = "`" level2:e {quasiquote(e)}
+  # quasi_quote = line:l "`" level2:e {make(:quasiquote, l, e)}
   def _quasi_quote
 
     _save = self.pos
     while true # sequence
+      _tmp = apply(:_line)
+      l = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
       _tmp = match_string("`")
       unless _tmp
         self.pos = _save
@@ -1371,7 +1445,7 @@ class Atomy::Grammar < KPeg::CompiledParser
         self.pos = _save
         break
       end
-      @result = begin; quasiquote(e); end
+      @result = begin; make(:quasiquote, l, e); end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1383,11 +1457,17 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # unquote = "~" level2:e {unquote(e)}
+  # unquote = line:l "~" level2:e {make(:unquote, l, e)}
   def _unquote
 
     _save = self.pos
     while true # sequence
+      _tmp = apply(:_line)
+      l = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
       _tmp = match_string("~")
       unless _tmp
         self.pos = _save
@@ -1399,7 +1479,7 @@ class Atomy::Grammar < KPeg::CompiledParser
         self.pos = _save
         break
       end
-      @result = begin; unquote(e); end
+      @result = begin; make(:unquote, l, e); end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1411,11 +1491,17 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # prefix = op_letter:o level2:e {prefix(e, o)}
+  # prefix = line:l op_letter:o level2:e {make(:prefix, l, e, o)}
   def _prefix
 
     _save = self.pos
     while true # sequence
+      _tmp = apply(:_line)
+      l = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
       _tmp = apply(:_op_letter)
       o = @result
       unless _tmp
@@ -1428,7 +1514,7 @@ class Atomy::Grammar < KPeg::CompiledParser
         self.pos = _save
         break
       end
-      @result = begin; prefix(e, o); end
+      @result = begin; make(:prefix, l, e, o); end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1440,7 +1526,7 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # postfix = (postfix:e op_letter:o {postfix(e, o)} | level1:e op_letter:o {postfix(e, o)})
+  # postfix = (line:l postfix:e op_letter:o {make(:postfix, l, e, o)} | line:l level1:e op_letter:o {make(:postfix, l, e, o)})
   def _postfix
 
     _save = self.pos
@@ -1448,6 +1534,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save1 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
         _tmp = apply(:_postfix)
         e = @result
         unless _tmp
@@ -1460,7 +1552,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save1
           break
         end
-        @result = begin; postfix(e, o); end
+        @result = begin; make(:postfix, l, e, o); end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -1473,6 +1565,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save2 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
         _tmp = apply(:_level1)
         e = @result
         unless _tmp
@@ -1485,7 +1583,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save2
           break
         end
-        @result = begin; postfix(e, o); end
+        @result = begin; make(:postfix, l, e, o); end
         _tmp = true
         unless _tmp
           self.pos = _save2
@@ -1502,7 +1600,7 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # block = (":" wsp expressions?:es (wsp ";")? {block(Array(es))} | "{" wsp expressions?:es wsp "}" {block(Array(es))})
+  # block = (line:l ":" wsp expressions?:es (wsp ";")? {make(:block, l, Array(es))} | line:l "{" wsp expressions?:es wsp "}" {make(:block, l, Array(es))})
   def _block
 
     _save = self.pos
@@ -1510,6 +1608,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save1 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
         _tmp = match_string(":")
         unless _tmp
           self.pos = _save1
@@ -1556,7 +1660,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save1
           break
         end
-        @result = begin; block(Array(es)); end
+        @result = begin; make(:block, l, Array(es)); end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -1569,6 +1673,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save5 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save5
+          break
+        end
         _tmp = match_string("{")
         unless _tmp
           self.pos = _save5
@@ -1601,7 +1711,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save5
           break
         end
-        @result = begin; block(Array(es)); end
+        @result = begin; make(:block, l, Array(es)); end
         _tmp = true
         unless _tmp
           self.pos = _save5
@@ -1618,11 +1728,17 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # list = "[" wsp expressions?:es wsp "]" {list(Array(es))}
+  # list = line:l "[" wsp expressions?:es wsp "]" {make(:list, l, Array(es))}
   def _list
 
     _save = self.pos
     while true # sequence
+      _tmp = apply(:_line)
+      l = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
       _tmp = match_string("[")
       unless _tmp
         self.pos = _save
@@ -1655,7 +1771,7 @@ class Atomy::Grammar < KPeg::CompiledParser
         self.pos = _save
         break
       end
-      @result = begin; list(Array(es)); end
+      @result = begin; make(:list, l, Array(es)); end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -1667,7 +1783,7 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # apply = (apply:a args:as {application(a, as)} | name:n args:as {application(n, as)})
+  # apply = (line:l apply:a args:as {make(:application, l, a, as)} | line:l name:n args:as {make(:application, l, n, as)})
   def _apply
 
     _save = self.pos
@@ -1675,6 +1791,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save1 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
         _tmp = apply(:_apply)
         a = @result
         unless _tmp
@@ -1687,7 +1809,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save1
           break
         end
-        @result = begin; application(a, as); end
+        @result = begin; make(:application, l, a, as); end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -1700,6 +1822,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save2 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
         _tmp = apply(:_name)
         n = @result
         unless _tmp
@@ -1712,7 +1840,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save2
           break
         end
-        @result = begin; application(n, as); end
+        @result = begin; make(:application, l, n, as); end
         _tmp = true
         unless _tmp
           self.pos = _save2
@@ -1729,7 +1857,7 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # name = (name:n op_letter:o {postfix(n, o)} | grouped | level0)
+  # name = (line:l name:n op_letter:o {make(:postfix, l, n, o)} | grouped | level0)
   def _name
 
     _save = self.pos
@@ -1737,6 +1865,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save1 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        l = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
         _tmp = apply(:_name)
         n = @result
         unless _tmp
@@ -1749,7 +1883,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save1
           break
         end
-        @result = begin; postfix(n, o); end
+        @result = begin; make(:postfix, l, n, o); end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -1828,7 +1962,7 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # composes = (compose:l cont(p) level2:r {compose(l, r)} | level2:l cont(p) level2:r {compose(l, r)})
+  # composes = (line:line compose:l cont(p) level2:r {make(:compose, line, l, r)} | line:line level2:l cont(p) level2:r {make(:compose, line, l, r)})
   def _composes(p)
 
     _save = self.pos
@@ -1836,6 +1970,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save1 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
         _tmp = apply(:_compose)
         l = @result
         unless _tmp
@@ -1853,7 +1993,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save1
           break
         end
-        @result = begin; compose(l, r); end
+        @result = begin; make(:compose, line, l, r); end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -1866,6 +2006,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save2 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
         _tmp = apply(:_level2)
         l = @result
         unless _tmp
@@ -1883,7 +2029,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save2
           break
         end
-        @result = begin; compose(l, r); end
+        @result = begin; make(:compose, line, l, r); end
         _tmp = true
         unless _tmp
           self.pos = _save2
@@ -1907,7 +2053,7 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # infixes = (level3:l scont(p) operator:o scont(p) level3:r {infix(l, r, o)} | operator:o scont(p) level3:r {infix(nil, r, o)})
+  # infixes = (line:line level3:l scont(p) operator:o scont(p) level3:r {make(:infix, line, l, r, o)} | line:line operator:o scont(p) level3:r {make(:infix, line, nil, r, o)})
   def _infixes(p)
 
     _save = self.pos
@@ -1915,6 +2061,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save1 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save1
+          break
+        end
         _tmp = apply(:_level3)
         l = @result
         unless _tmp
@@ -1943,7 +2095,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save1
           break
         end
-        @result = begin; infix(l, r, o); end
+        @result = begin; make(:infix, line, l, r, o); end
         _tmp = true
         unless _tmp
           self.pos = _save1
@@ -1956,6 +2108,12 @@ class Atomy::Grammar < KPeg::CompiledParser
 
       _save2 = self.pos
       while true # sequence
+        _tmp = apply(:_line)
+        line = @result
+        unless _tmp
+          self.pos = _save2
+          break
+        end
         _tmp = apply(:_operator)
         o = @result
         unless _tmp
@@ -1973,7 +2131,7 @@ class Atomy::Grammar < KPeg::CompiledParser
           self.pos = _save2
           break
         end
-        @result = begin; infix(nil, r, o); end
+        @result = begin; make(:infix, line, nil, r, o); end
         _tmp = true
         unless _tmp
           self.pos = _save2
@@ -1990,11 +2148,17 @@ class Atomy::Grammar < KPeg::CompiledParser
     return _tmp
   end
 
-  # string = "\"" < ("\\" escape | str_seq)*:c > "\"" {strliteral(c.join, text.gsub("\\\"", "\""))}
+  # string = line:l "\"" < ("\\" escape | str_seq)*:c > "\"" {make(:strliteral, l, c.join, text.gsub("\\\"", "\""))}
   def _string
 
     _save = self.pos
     while true # sequence
+      _tmp = apply(:_line)
+      l = @result
+      unless _tmp
+        self.pos = _save
+        break
+      end
       _tmp = match_string("\"")
       unless _tmp
         self.pos = _save
@@ -2047,7 +2211,7 @@ class Atomy::Grammar < KPeg::CompiledParser
         self.pos = _save
         break
       end
-      @result = begin; strliteral(c.join, text.gsub("\\\"", "\"")); end
+      @result = begin; make(:strliteral, l, c.join, text.gsub("\\\"", "\"")); end
       _tmp = true
       unless _tmp
         self.pos = _save
@@ -3063,24 +3227,25 @@ class Atomy::Grammar < KPeg::CompiledParser
   end
 
   Rules = {}
-  Rules[:_root] = rule_info("root", "shebang? wsp expressions?:es wsp !. { Array(es) }")
+  Rules[:_root] = rule_info("root", "shebang? wsp expressions?:es wsp !. { sequence(Array(es)) }")
   Rules[:_shebang] = rule_info("shebang", "\"\#!\" /.*?$/")
   Rules[:_expressions] = rule_info("expressions", "{current_column}:c expression:x (delim(c) expression)*:xs {                     [x] + Array(xs)                   }")
   Rules[:_delim] = rule_info("delim", "(wsp \",\" wsp | (sp \"\\n\" sp)+ &{ current_column >= c })")
   Rules[:_expression] = rule_info("expression", "level4")
   Rules[:_one_expression] = rule_info("one_expression", "wsp expression:e wsp !. { e }")
+  Rules[:_line] = rule_info("line", "{current_line}")
+  Rules[:_cont] = rule_info("cont", "(scont(p) | !\"(\")")
+  Rules[:_scont] = rule_info("scont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp cont(p)?)")
   Rules[:_sp] = rule_info("sp", "(\" \" | \"\\t\" | comment)*")
   Rules[:_wsp] = rule_info("wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)*")
   Rules[:_sig_sp] = rule_info("sig_sp", "(\" \" | \"\\t\" | comment)+")
   Rules[:_sig_wsp] = rule_info("sig_wsp", "(\" \" | \"\\t\" | \"\\n\" | comment)+")
-  Rules[:_cont] = rule_info("cont", "(scont(p) | !\"(\")")
-  Rules[:_scont] = rule_info("scont", "((\"\\n\" sp)+ &{ continue?(p) } | sig_sp cont(p)?)")
-  Rules[:_op_letter] = rule_info("op_letter", "< /[$+<=>^|~!@\#%&*\\-\\\\.\\/\\?]/ > { text.to_sym }")
-  Rules[:_operator] = rule_info("operator", "< op_letter+ > { text.to_sym }")
-  Rules[:_identifier] = rule_info("identifier", "< /[a-z_][a-zA-Z\\d\\-_]*/ > { text.tr(\"-\", \"_\").to_sym }")
   Rules[:_comment] = rule_info("comment", "(/--.*?$/ | multi_comment)")
   Rules[:_multi_comment] = rule_info("multi_comment", "\"{-\" in_multi")
   Rules[:_in_multi] = rule_info("in_multi", "(/[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ \"{-\" in_multi /[^\\-\\{\\}]*/ \"-}\" | /[^\\-\\{\\}]*/ /[-{}]/ in_multi)")
+  Rules[:_op_letter] = rule_info("op_letter", "< /[$+<=>^|~!@\#%&*\\-\\\\.\\/\\?]/ > { text.to_sym }")
+  Rules[:_operator] = rule_info("operator", "< op_letter+ > { text.to_sym }")
+  Rules[:_identifier] = rule_info("identifier", "< /[a-z_][a-zA-Z\\d\\-_]*/ > { text.tr(\"-\", \"_\").to_sym }")
   Rules[:_language] = rule_info("language", "\"\#language\" wsp identifier:n {set_lang(n)} %lang.root")
   Rules[:_level0] = rule_info("level0", "(number | quote | quasi_quote | unquote | string | constant | word | block | list | prefix)")
   Rules[:_level1] = rule_info("level1", "(apply | grouped | level0)")
@@ -3088,24 +3253,24 @@ class Atomy::Grammar < KPeg::CompiledParser
   Rules[:_level3] = rule_info("level3", "(compose | level2)")
   Rules[:_level4] = rule_info("level4", "(language | infix | level3)")
   Rules[:_grouped] = rule_info("grouped", "\"(\" wsp expression:x wsp \")\" { x }")
-  Rules[:_number] = rule_info("number", "(< /[\\+\\-]?0[oO][0-7]+/ > {number(text.to_i(8))} | < /[\\+\\-]?0[xX][\\da-fA-F]+/ > {number(text.to_i(16))} | < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > {literal(text.to_f)} | < /[\\+\\-]?\\d+\\.\\d+/ > {literal(text.to_f)} | < /[\\+\\-]?\\d+/ > {number(text.to_i)})")
-  Rules[:_constant] = rule_info("constant", "< /[A-Z][a-zA-Z0-9_]*/ > {constant(text.to_sym)}")
-  Rules[:_word] = rule_info("word", "identifier:n {word(n)}")
-  Rules[:_quote] = rule_info("quote", "\"'\" level2:e {quote(e)}")
-  Rules[:_quasi_quote] = rule_info("quasi_quote", "\"`\" level2:e {quasiquote(e)}")
-  Rules[:_unquote] = rule_info("unquote", "\"~\" level2:e {unquote(e)}")
-  Rules[:_prefix] = rule_info("prefix", "op_letter:o level2:e {prefix(e, o)}")
-  Rules[:_postfix] = rule_info("postfix", "(postfix:e op_letter:o {postfix(e, o)} | level1:e op_letter:o {postfix(e, o)})")
-  Rules[:_block] = rule_info("block", "(\":\" wsp expressions?:es (wsp \";\")? {block(Array(es))} | \"{\" wsp expressions?:es wsp \"}\" {block(Array(es))})")
-  Rules[:_list] = rule_info("list", "\"[\" wsp expressions?:es wsp \"]\" {list(Array(es))}")
-  Rules[:_apply] = rule_info("apply", "(apply:a args:as {application(a, as)} | name:n args:as {application(n, as)})")
-  Rules[:_name] = rule_info("name", "(name:n op_letter:o {postfix(n, o)} | grouped | level0)")
+  Rules[:_number] = rule_info("number", "(line:l < /[\\+\\-]?0[oO][0-7]+/ > {make(:number, l, text.to_i(8))} | line:l < /[\\+\\-]?0[xX][\\da-fA-F]+/ > {make(:number, l, text.to_i(16))} | line:l < /[\\+\\-]?\\d+(\\.\\d+)?[eE][\\+\\-]?\\d+/ > {make(:literal, l, text.to_f)} | line:l < /[\\+\\-]?\\d+\\.\\d+/ > {make(:literal, l, text.to_f)} | line:l < /[\\+\\-]?\\d+/ > {make(:number, l, text.to_i)})")
+  Rules[:_constant] = rule_info("constant", "line:l < /[A-Z][a-zA-Z0-9_]*/ > {make(:constant, l, text.to_sym)}")
+  Rules[:_word] = rule_info("word", "line:l identifier:n {make(:word, l, n)}")
+  Rules[:_quote] = rule_info("quote", "line:l \"'\" level2:e {make(:make, l, :quote, l, e)}")
+  Rules[:_quasi_quote] = rule_info("quasi_quote", "line:l \"`\" level2:e {make(:quasiquote, l, e)}")
+  Rules[:_unquote] = rule_info("unquote", "line:l \"~\" level2:e {make(:unquote, l, e)}")
+  Rules[:_prefix] = rule_info("prefix", "line:l op_letter:o level2:e {make(:prefix, l, e, o)}")
+  Rules[:_postfix] = rule_info("postfix", "(line:l postfix:e op_letter:o {make(:postfix, l, e, o)} | line:l level1:e op_letter:o {make(:postfix, l, e, o)})")
+  Rules[:_block] = rule_info("block", "(line:l \":\" wsp expressions?:es (wsp \";\")? {make(:block, l, Array(es))} | line:l \"{\" wsp expressions?:es wsp \"}\" {make(:block, l, Array(es))})")
+  Rules[:_list] = rule_info("list", "line:l \"[\" wsp expressions?:es wsp \"]\" {make(:list, l, Array(es))}")
+  Rules[:_apply] = rule_info("apply", "(line:l apply:a args:as {make(:application, l, a, as)} | line:l name:n args:as {make(:application, l, n, as)})")
+  Rules[:_name] = rule_info("name", "(line:l name:n op_letter:o {make(:postfix, l, n, o)} | grouped | level0)")
   Rules[:_args] = rule_info("args", "\"(\" wsp expressions?:as wsp \")\" { Array(as) }")
   Rules[:_compose] = rule_info("compose", "@composes(current_position)")
-  Rules[:_composes] = rule_info("composes", "(compose:l cont(p) level2:r {compose(l, r)} | level2:l cont(p) level2:r {compose(l, r)})")
+  Rules[:_composes] = rule_info("composes", "(line:line compose:l cont(p) level2:r {make(:compose, line, l, r)} | line:line level2:l cont(p) level2:r {make(:compose, line, l, r)})")
   Rules[:_infix] = rule_info("infix", "@infixes(current_position)")
-  Rules[:_infixes] = rule_info("infixes", "(level3:l scont(p) operator:o scont(p) level3:r {infix(l, r, o)} | operator:o scont(p) level3:r {infix(nil, r, o)})")
-  Rules[:_string] = rule_info("string", "\"\\\"\" < (\"\\\\\" escape | str_seq)*:c > \"\\\"\" {strliteral(c.join, text.gsub(\"\\\\\\\"\", \"\\\"\"))}")
+  Rules[:_infixes] = rule_info("infixes", "(line:line level3:l scont(p) operator:o scont(p) level3:r {make(:infix, line, l, r, o)} | line:line operator:o scont(p) level3:r {make(:infix, line, nil, r, o)})")
+  Rules[:_string] = rule_info("string", "line:l \"\\\"\" < (\"\\\\\" escape | str_seq)*:c > \"\\\"\" {make(:strliteral, l, c.join, text.gsub(\"\\\\\\\"\", \"\\\"\"))}")
   Rules[:_str_seq] = rule_info("str_seq", "< /[^\\\\\"]+/ > { text }")
   Rules[:_escape] = rule_info("escape", "(number_escapes | escapes)")
   Rules[:_escapes] = rule_info("escapes", "(\"n\" { \"\\n\" } | \"s\" { \" \" } | \"r\" { \"\\r\" } | \"t\" { \"\\t\" } | \"v\" { \"\\v\" } | \"f\" { \"\\f\" } | \"b\" { \"\\b\" } | \"a\" { \"\\a\" } | \"e\" { \"\\e\" } | \"\\\\\" { \"\\\\\" } | \"\\\"\" { \"\\\"\" } | \"BS\" { \"\\b\" } | \"HT\" { \"\\t\" } | \"LF\" { \"\\n\" } | \"VT\" { \"\\v\" } | \"FF\" { \"\\f\" } | \"CR\" { \"\\r\" } | \"SOH\" { \"\\001\" } | \"SI\" { \"\\017\" } | \"EM\" { \"\\031\" } | \"FS\" { \"\\034\" } | \"GS\" { \"\\035\" } | \"RS\" { \"\\036\" } | \"US\" { \"\\037\" } | \"SP\" { \" \" } | \"NUL\" { \"\\000\" } | \"SO\" { \"\\016\" } | \"STX\" { \"\\002\" } | \"ETX\" { \"\\003\" } | \"EOT\" { \"\\004\" } | \"ENQ\" { \"\\005\" } | \"ACK\" { \"\\006\" } | \"BEL\" { \"\\a\" } | \"DLE\" { \"\\020\" } | \"DC1\" { \"\\021\" } | \"DC2\" { \"\\022\" } | \"DC3\" { \"\\023\" } | \"DC4\" { \"\\024\" } | \"NAK\" { \"\\025\" } | \"SYN\" { \"\\026\" } | \"ETB\" { \"\\027\" } | \"CAN\" { \"\\030\" } | \"SUB\" { \"\\032\" } | \"ESC\" { \"\\e\" } | \"DEL\" { \"\\177\" } | < . > { \"\\\\\" + text })")

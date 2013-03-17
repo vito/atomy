@@ -85,6 +85,46 @@ describe Atomy::Grammar do
     end
   end
 
+  describe "node location tracking" do
+    ALL_NODES = {}
+    Atomy::Grammar::AST.constants.each do |name|
+      next if [:Node, :Sequence].include?(name)
+
+      node = Atomy::Grammar::AST.const_get(name)
+      ALL_NODES[node] = nil
+    end
+
+    SAMPLES = ALL_NODES.merge(
+      Number => "1",
+      Literal => "1.0",
+      Quote => "'1",
+      QuasiQuote => "`1",
+      Unquote => "~1",
+      Constant => "A",
+      Word => "a",
+      Prefix => "!a",
+      Postfix => "a!",
+      Infix => "a + b",
+      Block => "{}",
+      List => "[]",
+      Compose => "a b",
+      Apply => "a()",
+      StringLiteral => '"foo"'
+    )
+
+    SAMPLES.each do |node, sample|
+      describe node do
+        it "has line information" do
+          raise "No sample for #{node}" unless sample
+
+          lines = rand(5)
+          node = ast("\n" * lines + sample)
+          expect(node.line).to eq(lines + 1)
+        end
+      end
+    end
+  end
+
   describe "parsing particular nodes" do
     before do
       expect(result.first).to be_a(node)

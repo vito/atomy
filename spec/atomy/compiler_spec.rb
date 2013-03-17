@@ -26,15 +26,10 @@ describe Atomy::Compiler do
       expect(described_class.compile(node, compile_module)).to(
         be_a(Rubinius::CompiledCode))
     end
-    
+
     it "has the given file on the CompiledCode" do
       code = described_class.compile(node, compile_module, "some/file")
       expect(code.file).to eq(:"some/file")
-    end
-    
-    it "has the given line on the CompiledCode" do
-      code = described_class.compile(node, compile_module, nil, 3)
-      expect(code.first_line).to eq(3)
     end
   end
 

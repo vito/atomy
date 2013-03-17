@@ -167,6 +167,9 @@ describe Atomy::Module do
 
     it "expands the node and compiles the expansion" do
       # TODO: less stubby
+
+      generator.should_receive(:set_line)
+
       subject.should_receive(:expand).with(apply) do
         expansion
       end

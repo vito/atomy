@@ -18,6 +18,18 @@
 %% strliteral = ast StringLiteral(value, raw)
 
 %%{
+  module AST
+    class Node
+      attr_accessor :line
+    end
+  end
+
+  def make(what, line, *args)
+    node = send(what, *args)
+    node.line ||= line
+    node
+  end
+
   def current_position(target = pos)
     cur_offset = 0
     cur_line = 0
@@ -62,6 +74,7 @@
      expression = level4
  one_expression = wsp expression:e wsp !. { e }
 
+           line = ~current_line
 
         cont(p) = scont(p)
                 | !"(" # allows 'foo: bar', but ensures '(x)(y)' is an Apply
@@ -113,47 +126,60 @@
         grouped = "(" wsp expression:x wsp ")" { x }
 
 
-         number = < /[\+\-]?0[oO][0-7]+/ > ~number(text.to_i(8))
-                | < /[\+\-]?0[xX][\da-fA-F]+/ > ~number(text.to_i(16))
-                | < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ > ~literal(text.to_f)
-                | < /[\+\-]?\d+\.\d+/ > ~literal(text.to_f)
-                | < /[\+\-]?\d+/ > ~number(text.to_i)
+         number = line:l < /[\+\-]?0[oO][0-7]+/ >
+                    ~make(:number, l, text.to_i(8))
+                | line:l < /[\+\-]?0[xX][\da-fA-F]+/ >
+                    ~make(:number, l, text.to_i(16))
+                | line:l < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ >
+                    ~make(:literal, l, text.to_f)
+                | line:l < /[\+\-]?\d+\.\d+/ >
+                    ~make(:literal, l, text.to_f)
+                | line:l < /[\+\-]?\d+/ >
+                    ~make(:number, l, text.to_i)
 
-       constant = < /[A-Z][a-zA-Z0-9_]*/ > ~constant(text.to_sym)
+       constant = line:l < /[A-Z][a-zA-Z0-9_]*/ >
+                    ~make(:constant, l, text.to_sym)
 
-           word = identifier:n ~word(n)
+           word = line:l identifier:n ~make(:word, l, n)
 
-          quote = "'" level2:e ~quote(e)
-    quasi_quote = "`" level2:e ~quasiquote(e)
-        unquote = "~" level2:e ~unquote(e)
+          quote = line:l "'" level2:e ~make(:make, l, :quote, l, e)
+    quasi_quote = line:l "`" level2:e ~make(:quasiquote, l, e)
+        unquote = line:l "~" level2:e ~make(:unquote, l, e)
 
-         prefix = op_letter:o level2:e ~prefix(e, o)
+         prefix = line:l op_letter:o level2:e ~make(:prefix, l, e, o)
 
-        postfix = postfix:e op_letter:o ~postfix(e, o)
-                | level1:e op_letter:o ~postfix(e, o)
+        postfix = line:l postfix:e op_letter:o ~make(:postfix, l, e, o)
+                | line:l level1:e op_letter:o ~make(:postfix, l, e, o)
 
-          block = ":" wsp expressions?:es (wsp ";")?  ~block(Array(es))
-                | "{" wsp expressions?:es wsp "}" ~block(Array(es))
+          block = line:l ":" wsp expressions?:es (wsp ";")?
+                    ~make(:block, l, Array(es))
+                | line:l "{" wsp expressions?:es wsp "}"
+                    ~make(:block, l, Array(es))
 
-           list = "[" wsp expressions?:es wsp "]" ~list(Array(es))
+           list = line:l "[" wsp expressions?:es wsp "]"
+                    ~make(:list, l, Array(es))
 
-          apply = apply:a args:as ~application(a, as)
-                | name:n args:as ~application(n, as)
-           name = name:n op_letter:o ~postfix(n, o)
+          apply = line:l apply:a args:as ~make(:application, l, a, as)
+                | line:l name:n args:as ~make(:application, l, n, as)
+           name = line:l name:n op_letter:o ~make(:postfix, l, n, o)
                 | grouped
                 | level0
            args = "(" wsp expressions?:as wsp ")" { Array(as) }
 
         compose = @composes(current_position)
-    composes(p) = compose:l cont(p) level2:r ~compose(l, r)
-                | level2:l cont(p) level2:r ~compose(l, r)
+    composes(p) = line:line compose:l cont(p) level2:r
+                    ~make(:compose, line, l, r)
+                | line:line level2:l cont(p) level2:r
+                    ~make(:compose, line, l, r)
 
           infix = @infixes(current_position)
-     infixes(p) = level3:l scont(p) operator:o scont(p) level3:r ~infix(l, r, o)
-                | operator:o scont(p) level3:r ~infix(nil, r, o)
+     infixes(p) = line:line level3:l scont(p) operator:o scont(p) level3:r
+                    ~make(:infix, line, l, r, o)
+                | line:line operator:o scont(p) level3:r
+                    ~make(:infix, line, nil, r, o)
 
-         string = "\"" < (("\\" escape) | str_seq)*:c > "\""
-                    ~strliteral(c.join, text.gsub("\\\"", "\""))
+         string = line:l "\"" < (("\\" escape) | str_seq)*:c > "\""
+                    ~make(:strliteral, l, c.join, text.gsub("\\\"", "\""))
         str_seq = < /[^\\"]+/ > { text }
          escape = number_escapes | escapes
         escapes = "n" { "\n" }     | "s" { " " }      | "r" { "\r" }

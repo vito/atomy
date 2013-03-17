@@ -2,10 +2,10 @@ module Atomy
   module Compiler
     module_function
 
-    def compile(node, mod, file = nil, line = 0)
+    def compile(node, mod, file = nil)
       gen = Rubinius::Generator.new
       gen.file = file && file.to_sym
-      gen.set_line(line)
+      gen.set_line(0)
 
       mod.compile(gen, node)
       gen.ret

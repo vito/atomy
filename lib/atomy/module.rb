@@ -8,6 +8,7 @@ module Atomy
     end
 
     def compile(gen, node)
+      gen.set_line(node.line) if node.line
       expand(node).bytecode(gen, self)
     end
 
