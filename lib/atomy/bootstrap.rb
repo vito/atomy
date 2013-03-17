@@ -13,6 +13,8 @@ module Atomy
         end
       when Atomy::Grammar::AST::StringLiteral
         return Code::StringLiteral.new(node.value)
+      when Atomy::Grammar::AST::Sequence
+        return Code::Sequence.new(node.nodes)
       end
 
       node

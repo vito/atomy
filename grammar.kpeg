@@ -1,5 +1,6 @@
 %% name = Atomy::Grammar
 
+%% sequence = ast Sequence(nodes)
 %% number = ast Number(value)
 %% literal = ast Literal(value)
 %% quote = ast Quote(node)
@@ -48,7 +49,7 @@
   end
 }
 
-           root = shebang? wsp expressions?:es wsp !. { Array(es) }
+           root = shebang? wsp expressions?:es wsp !. { sequence(Array(es)) }
         shebang = "#!" /.*?$/
 
 

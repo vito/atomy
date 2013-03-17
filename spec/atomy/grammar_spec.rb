@@ -9,7 +9,7 @@ describe Atomy::Grammar do
 
   let(:result) do
     grammar.raise_error unless grammar.parse
-    grammar.result
+    grammar.result.nodes
   end
 
   subject(:grammar) { Atomy::Grammar.new(source) }

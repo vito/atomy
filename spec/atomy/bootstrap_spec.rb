@@ -10,7 +10,7 @@ describe Atomy::Bootstrap do
   end
 
   describe "#expand" do
-    context "with Apply nodes" do
+    context "with an Apply node" do
       context "with word names" do
         let(:node) { ast("foo(1)") }
 
@@ -36,6 +36,15 @@ describe Atomy::Bootstrap do
       it "expands it into StringLiteral code" do
         expanded = subject.expand(node)
         expect(expanded).to be_a(Atomy::Code::StringLiteral)
+      end
+    end
+
+    context "with a Sequence node" do
+      let(:node) { Atomy::Grammar::AST::Sequence.new([ast("foo")]) }
+
+      it "expands it into Sequence code" do
+        expanded = subject.expand(node)
+        expect(expanded).to be_a(Atomy::Code::Sequence)
       end
     end
   end

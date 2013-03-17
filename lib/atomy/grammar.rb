@@ -122,6 +122,12 @@ class Atomy::Grammar < KPeg::CompiledParser
       end
       attr_reader :node
     end
+    class Sequence < Node
+      def initialize(nodes)
+        @nodes = nodes
+      end
+      attr_reader :nodes
+    end
     class StringLiteral < Node
       def initialize(value, raw)
         @value = value
@@ -179,6 +185,9 @@ class Atomy::Grammar < KPeg::CompiledParser
   def quote(node)
     AST::Quote.new(node)
   end
+  def sequence(nodes)
+    AST::Sequence.new(nodes)
+  end
   def strliteral(value, raw)
     AST::StringLiteral.new(value, raw)
   end
@@ -189,7 +198,7 @@ class Atomy::Grammar < KPeg::CompiledParser
     AST::Word.new(text)
   end
 
-  # root = shebang? wsp expressions?:es wsp !. { Array(es) }
+  # root = shebang? wsp expressions?:es wsp !. { sequence(Array(es)) }
   def _root
 
     _save = self.pos
@@ -234,7 +243,7 @@ class Atomy::Grammar < KPeg::CompiledParser
         self.pos = _save
         break
       end
-      @result = begin;  Array(es) ; end
+      @result = begin;  sequence(Array(es)) ; end
       _tmp = true
       unless _tmp
         self.pos = _save
