@@ -1,6 +1,12 @@
 require "atomy"
 require "atomy/grammar"
 
+SPEC_ROOT = File.dirname(__FILE__)
+
+def fixture(path)
+  "#{SPEC_ROOT}/fixtures/#{path}"
+end
+
 def it_compiles_as(mod = nil, &blk)
   it "compiles correctly" do
     mygen = Atomy::TestGenerator.new
