@@ -47,5 +47,16 @@ describe Atomy::Bootstrap do
         expect(expanded).to be_a(Atomy::Code::Sequence)
       end
     end
+
+    context "with a Word node" do
+      context "when the text is 'self'" do
+        let(:node) { ast("self") }
+
+        it "expands it into Self code" do
+          expanded = subject.expand(node)
+          expect(expanded).to be_a(Atomy::Code::Self)
+        end
+      end
+    end
   end
 end
