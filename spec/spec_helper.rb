@@ -1,5 +1,13 @@
+require "rspec"
+
 require "atomy"
 require "atomy/grammar"
+
+RSpec.configure do |c|
+  unless ENV["TRAVIS_BUILD_ID"]
+    c.filter_run_excluding :slow => true
+  end
+end
 
 SPEC_ROOT = File.dirname(__FILE__)
 
