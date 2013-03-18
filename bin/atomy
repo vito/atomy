@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+# vim: set ft=ruby
+
+require "atomy"
+require "atomy/codeloader"
+
+file, *_ = ARGV
+
+Atomy::CodeLoader.run_script(File.expand_path(file))
