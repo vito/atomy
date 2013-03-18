@@ -1,6 +1,7 @@
 require "atomy/grammar"
 require "atomy/module"
 require "atomy/code/send"
+require "atomy/code/sequence"
 require "atomy/code/string_literal"
 
 module Atomy
