@@ -3,6 +3,32 @@ require "rspec"
 require "atomy"
 require "atomy/grammar"
 
+ALL_NODES = {}
+Atomy::Grammar::AST.constants.each do |name|
+  next if [:Node, :Sequence].include?(name)
+
+  node = Atomy::Grammar::AST.const_get(name)
+  ALL_NODES[node] = nil
+end
+
+NODE_SAMPLES =
+  ALL_NODES.merge(
+    Atomy::Grammar::AST::Number => "1",
+    Atomy::Grammar::AST::Literal => "1.0",
+    Atomy::Grammar::AST::Quote => "'1",
+    Atomy::Grammar::AST::QuasiQuote => "`1",
+    Atomy::Grammar::AST::Unquote => "~1",
+    Atomy::Grammar::AST::Constant => "A",
+    Atomy::Grammar::AST::Word => "a",
+    Atomy::Grammar::AST::Prefix => "!a",
+    Atomy::Grammar::AST::Postfix => "a!",
+    Atomy::Grammar::AST::Infix => "a + b",
+    Atomy::Grammar::AST::Block => "{}",
+    Atomy::Grammar::AST::List => "[]",
+    Atomy::Grammar::AST::Compose => "a b",
+    Atomy::Grammar::AST::Apply => "a()",
+    Atomy::Grammar::AST::StringLiteral => '"foo"')
+
 RSpec.configure do |c|
   unless ENV["TRAVIS_BUILD_ID"]
     c.filter_run_excluding :slow => true

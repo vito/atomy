@@ -86,7 +86,9 @@ describe Atomy::CodeLoader do
     end
 
     it "returns the result of the execution" do
-      res, _ = Atomy::CodeLoader.run_script(fixture("codeloader/run_script/basic.ay"))
+      res, _ = Atomy::CodeLoader.run_script(
+        fixture("codeloader/run_script/basic.ay"))
+
       expect(res).to eq("foo")
     end
 
@@ -98,7 +100,9 @@ describe Atomy::CodeLoader do
     end
 
     it "runs the script with its module as self" do
-      res, mod = Atomy::CodeLoader.run_script(fixture("codeloader/run_script/self.ay"))
+      res, mod = Atomy::CodeLoader.run_script(
+        fixture("codeloader/run_script/self.ay"))
+
       expect(res).to eq(mod)
     end
   end
@@ -149,7 +153,8 @@ describe Atomy::CodeLoader do
 
         thd =
           Thread.new do
-            Atomy::CodeLoader.require(fixture("codeloader/require/slow-global"))
+            Atomy::CodeLoader.require(
+              fixture("codeloader/require/slow-global"))
           end
 
         Atomy::CodeLoader.require(fixture("codeloader/require/slow-global"))
@@ -165,10 +170,12 @@ describe Atomy::CodeLoader do
 
           thd =
             Thread.new do
-              mod = Atomy::CodeLoader.require(fixture("codeloader/require/slow-global"))
+              mod = Atomy::CodeLoader.require(
+                fixture("codeloader/require/slow-global"))
             end
 
-          mod2 = Atomy::CodeLoader.require(fixture("codeloader/require/slow-global"))
+          mod2 = Atomy::CodeLoader.require(
+            fixture("codeloader/require/slow-global"))
 
           thd.join
 
@@ -182,11 +189,13 @@ describe Atomy::CodeLoader do
 
           thd =
             Thread.new do
-              Atomy::CodeLoader.require(fixture("codeloader/require/slow-global-fail"))
+              Atomy::CodeLoader.require(
+                fixture("codeloader/require/slow-global-fail"))
             end
 
           expect {
-            Atomy::CodeLoader.require(fixture("codeloader/require/slow-global-fail"))
+            Atomy::CodeLoader.require(
+              fixture("codeloader/require/slow-global-fail"))
           }.to raise_error
 
           expect { thd.join }.to raise_error
