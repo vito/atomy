@@ -3,6 +3,42 @@ require "spec_helper"
 require "atomy/module"
 
 describe Atomy::Module do
+  let(:module_with_expansions) do
+    described_class.new do
+      def expand(node)
+        case node
+        when Atomy::Grammar::AST::Word
+          if node.text == :self
+            return SelfCode.new
+          end
+        when Atomy::Grammar::AST::Apply
+          if node.node.is_a?(Atomy::Grammar::AST::Word)
+            return SendCode.new(nil, node.node.text, node.arguments)
+          end
+        when Atomy::Grammar::AST::Prefix
+          if node.node.is_a?(Atomy::Grammar::AST::Word)
+            return LiteralCode.new(node.node.text)
+          end
+        end
+
+        node
+      end
+    end
+  end
+
+  let(:module_with_patterns) do
+    described_class.new do
+      def pattern(node)
+        case node
+        when Atomy::Grammar::AST::Word
+          return SomePattern.new
+        end
+
+        super
+      end
+    end
+  end
+
   class SelfCode
     def bytecode(gen, mod)
       gen.push_self
@@ -52,27 +88,7 @@ describe Atomy::Module do
     end
   end
 
-  subject do
-    described_class.new do
-      def expand(node)
-        case node
-        when Atomy::Grammar::AST::Word
-          if node.text == :self
-            return SelfCode.new
-          end
-        when Atomy::Grammar::AST::Apply
-          if node.node.is_a?(Atomy::Grammar::AST::Word)
-            return SendCode.new(nil, node.node.text, node.arguments)
-          end
-        when Atomy::Grammar::AST::Prefix
-          if node.node.is_a?(Atomy::Grammar::AST::Word)
-            return LiteralCode.new(node.node.text)
-          end
-        end
-
-        node
-      end
-    end
+  class SomePattern
   end
 
   describe "#initialize" do
@@ -140,6 +156,8 @@ describe Atomy::Module do
   end
 
   describe "#expand" do
+    subject { module_with_expansions }
+
     context "when an expansion rule matched" do
       it "returns the expanded node" do
         expect(subject.expand(ast("self"))).to be_a(SelfCode)
@@ -155,6 +173,8 @@ describe Atomy::Module do
   end
 
   describe "#evaluate" do
+    subject { module_with_expansions }
+
     it "compiles the given expression using the module" do
       expect(subject.evaluate(ast(".foo"))).to eq(:foo)
     end
@@ -190,6 +210,26 @@ describe Atomy::Module do
       expansion.should_receive(:bytecode).with(generator, subject)
 
       subject.compile(generator, apply)
+    end
+  end
+
+  describe "#pattern" do
+    subject { module_with_patterns }
+
+    context "when an expansion rule matched" do
+      it "returns the expanded pattern" do
+        expect(subject.pattern(ast("foo"))).to be_a(SomePattern)
+      end
+    end
+
+    context "when NO expansion rule matched" do
+      it "raises an UnknownPattern error" do
+        node = ast("foo()")
+
+        expect {
+          subject.pattern(node)
+        }.to raise_error(Atomy::UnknownPattern)
+      end
     end
   end
 end

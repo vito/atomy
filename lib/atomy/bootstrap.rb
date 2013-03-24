@@ -1,10 +1,14 @@
 require "atomy/grammar"
 require "atomy/module"
+require "atomy/code/assign"
 require "atomy/code/integer"
 require "atomy/code/self"
 require "atomy/code/send"
 require "atomy/code/sequence"
 require "atomy/code/string_literal"
+require "atomy/code/variable"
+require "atomy/pattern/equality"
+require "atomy/pattern/wildcard"
 
 module Atomy
   Bootstrap = Atomy::Module.new do
@@ -22,12 +26,30 @@ module Atomy
         case node.text
         when :self
           return Code::Self.new
+        else
+          return Code::Variable.new(node.text)
         end
       when Atomy::Grammar::AST::Number
         return Code::Integer.new(node.value)
+      when Atomy::Grammar::AST::Infix
+        if node.operator == :"="
+          return Code::Assign.new(node.left, node.right)
+        end
       end
 
-      node
+      super
+    end
+
+    def pattern(node)
+      case node
+      when Atomy::Grammar::AST::Word
+        return Pattern::Wildcard.new(
+          node.text == :_ ? nil : node.text)
+      when Atomy::Grammar::AST::Number
+        return Pattern::Equality.new(node.value)
+      end
+
+      super
     end
   end
 end

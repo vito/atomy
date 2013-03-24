@@ -1,4 +1,5 @@
 require "atomy/compiler"
+require "atomy/errors"
 
 module Atomy
   class Module < ::Module
@@ -33,6 +34,14 @@ module Atomy
       extend mod
       include mod
       mod
+    end
+
+    def expand(node)
+      raise UnknownCode.new(node)
+    end
+
+    def pattern(node)
+      raise UnknownPattern.new(node)
     end
   end
 end
