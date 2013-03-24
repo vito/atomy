@@ -1,5 +1,6 @@
 require "atomy/grammar"
 require "atomy/module"
+require "atomy/code/integer"
 require "atomy/code/self"
 require "atomy/code/send"
 require "atomy/code/sequence"
@@ -22,6 +23,8 @@ module Atomy
         when :self
           return Code::Self.new
         end
+      when Atomy::Grammar::AST::Number
+        return Code::Integer.new(node.value)
       end
 
       node

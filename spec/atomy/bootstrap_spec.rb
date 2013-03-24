@@ -58,5 +58,14 @@ describe Atomy::Bootstrap do
         end
       end
     end
+
+    context "with a Number node" do
+      let(:node) { ast("1") }
+
+      it "expands into Integer code" do
+        expanded = subject.expand(node)
+        expect(expanded).to be_a(Atomy::Code::Integer)
+      end
+    end
   end
 end
