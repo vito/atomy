@@ -1,5 +1,6 @@
 require "spec_helper"
 
+require "atomy/locals"
 require "atomy/compiler"
 require "atomy/module"
 
@@ -7,7 +8,7 @@ require "atomy/module"
 describe Atomy::Compiler do
   class SomeCode
     def bytecode(gen, mod)
-      gen.push_int 42
+      gen.push_int(42)
     end
   end
 
@@ -31,6 +32,50 @@ describe Atomy::Compiler do
       compile_module.file = :"some/file"
       code = described_class.compile(node, compile_module)
       expect(code.file).to eq(:"some/file")
+    end
+
+    it "pushes a locals state" do
+      state_code = Class.new do
+        attr_accessor :line
+
+        define_method(:bytecode) do |gen, mod|
+          unless gen.state && gen.state.scope
+            raise "no local state!"
+          end
+
+          gen.push_nil
+        end
+      end
+
+      state_module = Atomy::Module.new do
+        define_method(:expand) do |_|
+          state_code.new
+        end
+      end
+
+      described_class.compile(node, state_module)
+    end
+
+    it "sets #local_count and #local_names properly" do
+      state_code = Class.new do
+        attr_accessor :line
+
+        define_method(:bytecode) do |gen, mod|
+          gen.push_nil
+          gen.state.scope.new_local(:a).reference.set_bytecode(gen)
+        end
+      end
+
+      state_module = Atomy::Module.new do
+        define_method(:expand) do |_|
+          state_code.new
+        end
+      end
+
+      res = described_class.compile(node, state_module)
+
+      expect(res.local_count).to eq(1)
+      expect(res.local_names).to eq([:a].to_tuple)
     end
   end
 

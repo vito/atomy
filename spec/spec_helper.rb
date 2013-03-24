@@ -2,6 +2,8 @@ require "rspec"
 
 require "atomy"
 require "atomy/grammar"
+require "atomy/module"
+require "atomy/locals"
 
 ALL_NODES = {}
 Atomy::Grammar::AST.constants.each do |name|
@@ -41,13 +43,19 @@ def fixture(path)
   "#{SPEC_ROOT}/fixtures/#{path}"
 end
 
-def it_compiles_as(mod = nil, &blk)
+# default for it_compiles_as (can be overridden via let)
+def compile_module
+  Atomy::Module.new
+end
+
+def it_compiles_as(method = :bytecode, &blk)
   it "compiles correctly" do
     mygen = Atomy::TestGenerator.new
+    mygen.push_state(Atomy::LocalState.new)
 
-    blk.call(mygen)
+    instance_exec(mygen, &blk)
 
-    expect(subject).to compile_as(mygen, compile_module)
+    expect(subject).to compile_as(mygen, compile_module, method)
   end
 end
 
@@ -64,15 +72,17 @@ end
 #   "a = 1".should compile_as(<some bytecode>)
 #
 class CompileAsMatcher
-  def initialize(expected, mod)
+  def initialize(expected, mod, method)
     @expected = expected
     @module = mod
+    @method = method
   end
 
   def matches?(actual)
     gen = Atomy::TestGenerator.new
+    gen.push_state(@expected.state.scope)
 
-    actual.bytecode(gen, @module)
+    actual.send(@method, gen, @module)
 
     @actual = gen
     @actual == @expected
@@ -92,8 +102,8 @@ class CompileAsMatcher
 end
 
 class Object
-  def compile_as(bytecode, mod = nil)
-    CompileAsMatcher.new bytecode, mod
+  def compile_as(bytecode, mod = nil, method = :bytecode)
+    CompileAsMatcher.new bytecode, mod, method
   end
 end
 
@@ -221,6 +231,7 @@ module Atomy
     def pop_state
       @state.pop
     end
+
     def run(node)
       node.bytecode(self)
     end

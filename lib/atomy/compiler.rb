@@ -1,3 +1,5 @@
+require "atomy/locals"
+
 module Atomy
   module Compiler
     module_function
@@ -7,10 +9,16 @@ module Atomy
       gen.file = mod.file
       gen.set_line(0)
 
+      gen.push_state(LocalState.new)
+
       mod.compile(gen, node)
       gen.ret
 
       gen.close
+
+      gen.local_count = gen.state.scope.local_count
+      gen.local_names = gen.state.scope.local_names
+
       gen.encode
 
       gen.package(Rubinius::CompiledCode)
