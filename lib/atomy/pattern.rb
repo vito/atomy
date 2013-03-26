@@ -60,7 +60,7 @@ module Atomy
       false
     end
 
-    def matches?(gen)
+    def matches?(gen, mod)
       raise NotImplementedError
     end
 
