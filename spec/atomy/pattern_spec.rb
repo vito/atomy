@@ -65,6 +65,40 @@ describe Atomy::Pattern do
     end
   end
 
+  describe "#===" do
+    let(:equality) do
+      Class.new(described_class) do
+        def initialize(value)
+          @value = value
+        end
+
+        def matches?(gen, mod)
+          gen.push_literal(@value)
+          gen.send(:==, 1)
+        end
+
+        def deconstruct(gen, mod)
+          assign = assignment_local(gen, @name)
+          assign.set_bytecode(gen)
+        end
+      end
+    end
+
+    let(:pattern) { equality.new(1) }
+
+    context "when a pattern #matches? the value" do
+      it "returns true" do
+        expect(pattern === 1).to eq(true)
+      end
+    end
+
+    context "when the pattern does not match the value" do
+      it "returns false" do
+        expect(pattern === 2).to eq(false)
+      end
+    end
+  end
+
   describe "#assignment_local" do
     context "when a local is found" do
       context "and its depth is zero" do

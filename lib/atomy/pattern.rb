@@ -4,6 +4,21 @@ module Atomy
   class Pattern
     attr_accessor :from_node
 
+    def ===(v)
+      singleton_class.dynamic_method(:===) do |gen|
+        gen.push_state Rubinius::AST::ClosedScope.new(0)
+        gen.total_args = gen.required_args = gen.local_count = 1
+        gen.push_local(0)
+
+        # TODO: ensure patterns have a context for this
+        matches?(gen, @context)
+
+        gen.ret
+      end
+
+      __send__ :===, v
+    end
+
     def match(gen, mod)
       return if wildcard? && !binds?
 
