@@ -35,6 +35,8 @@ module Atomy
       when Atomy::Grammar::AST::Infix
         if node.operator == :"="
           return Code::Assign.new(node.left, node.right)
+        else
+          return Code::Send.new(node.left, node.operator, [node.right])
         end
       when Atomy::Grammar::AST::Quote
         return Code::Quote.new(node.node)

@@ -67,6 +67,13 @@ describe Atomy::Bootstrap do
     end
 
     context "with an Infix node" do
+      let(:node) { ast("a + 1") }
+
+      it "expands it into Send code" do
+        expanded = subject.expand(node)
+        expect(expanded).to be_a(Atomy::Code::Send)
+      end
+
       context "when the operator is '='" do
         let(:node) { ast("a = 1") }
 
