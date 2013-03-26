@@ -2,7 +2,7 @@ require "atomy/node/constructable"
 
 module Atomy
   class Pattern
-    attr_accessor :node
+    attr_accessor :from_node
 
     def match(gen, mod)
       return if wildcard? && !binds?
@@ -28,7 +28,7 @@ module Atomy
         gen.find_const(:Atomy)
         gen.find_const(:PatternMismatch)
         gen.swap
-        @node.construct(gen)
+        @from_node.construct(gen)
         gen.swap
         gen.send(:new, 2)
         gen.raise_exc

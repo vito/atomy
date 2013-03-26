@@ -8,7 +8,7 @@ module Atomy
 
       def bytecode(gen, mod)
         pat = mod.pattern(@pattern)
-        pat.node = @pattern
+        pat.from_node = @pattern
         mod.compile(gen, @value)
         pat.match(gen, mod)
       end
