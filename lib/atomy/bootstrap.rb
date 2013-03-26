@@ -2,6 +2,7 @@ require "atomy/grammar"
 require "atomy/module"
 require "atomy/code/assign"
 require "atomy/code/integer"
+require "atomy/code/quote"
 require "atomy/code/self"
 require "atomy/code/send"
 require "atomy/code/sequence"
@@ -35,6 +36,8 @@ module Atomy
         if node.operator == :"="
           return Code::Assign.new(node.left, node.right)
         end
+      when Atomy::Grammar::AST::Quote
+        return Code::Quote.new(node.node)
       end
 
       super
