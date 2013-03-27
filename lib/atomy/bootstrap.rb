@@ -9,6 +9,7 @@ require "atomy/code/sequence"
 require "atomy/code/string_literal"
 require "atomy/code/variable"
 require "atomy/pattern/equality"
+require "atomy/pattern/quasi_quote"
 require "atomy/pattern/wildcard"
 
 module Atomy
@@ -52,6 +53,8 @@ module Atomy
           node.text == :_ ? nil : node.text)
       when Atomy::Grammar::AST::Number
         return Pattern::Equality.new(node.value)
+      when Atomy::Grammar::AST::QuasiQuote
+        return Pattern::QuasiQuote.make(self, node.node)
       end
 
       super
