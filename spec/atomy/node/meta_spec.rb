@@ -60,7 +60,7 @@ describe Atomy::Grammar::AST::Node do
       ast("[a]") => [],
       ast("a b") => [],
       ast("a(b)") => [],
-      ast('"foo"') => [[:value, "foo"], [:raw, "foo"]]
+      ast('"foo"') => [[:value, "foo"]]
     }
 
     expectations.each do |node, expected|
@@ -122,7 +122,7 @@ describe Atomy::Grammar::AST::Node do
       ast("[a]") => [],
       ast("a b") => [],
       ast("a(b)") => [],
-      ast('"foo"') => [:value, :raw]
+      ast('"foo"') => [:value]
     }
 
     expectations.each do |node, expected|

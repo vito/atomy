@@ -201,7 +201,6 @@ module Atomy::Grammar::AST
   class StringLiteral
     def each_attribute
       yield :value, @value
-      yield :raw, @raw
     end
   end
 end

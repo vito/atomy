@@ -15,7 +15,7 @@
 %% list = ast List(nodes)
 %% compose = ast Compose(left, right)
 %% application = ast Apply(node, arguments)
-%% strliteral = ast StringLiteral(value, raw)
+%% strliteral = ast StringLiteral(value)
 
 %%{
   module AST
@@ -137,6 +137,9 @@
                 | line:l < /[\+\-]?\d+/ >
                     ~make(:number, l, text.to_i)
 
+         string = line:line "\"" < ("\\" . | /[^\\"]/)*:c > "\""
+                    ~make(:strliteral, line, text.gsub("\\\"", "\""))
+
        constant = line:l < /[A-Z][a-zA-Z0-9_]*/ >
                     ~make(:constant, l, text.to_sym)
 
@@ -177,28 +180,3 @@
                     ~make(:infix, line, l, r, o)
                 | line:line operator:o scont(p) level3:r
                     ~make(:infix, line, nil, r, o)
-
-         string = line:l "\"" < (("\\" escape) | str_seq)*:c > "\""
-                    ~make(:strliteral, l, c.join, text.gsub("\\\"", "\""))
-        str_seq = < /[^\\"]+/ > { text }
-         escape = number_escapes | escapes
-        escapes = "n" { "\n" }     | "s" { " " }      | "r" { "\r" }
-                | "t" { "\t" }     | "v" { "\v" }     | "f" { "\f" }
-                | "b" { "\b" }     | "a" { "\a" }     | "e" { "\e" }
-                | "\\" { "\\" }    | "\"" { "\"" }    | "BS" { "\b" }
-                | "HT" { "\t" }    | "LF" { "\n" }    | "VT" { "\v" }
-                | "FF" { "\f" }    | "CR" { "\r" }    | "SOH" { "\001" }
-                | "SI" { "\017" }  | "EM" { "\031" }  | "FS" { "\034" }
-                | "GS" { "\035" }  | "RS" { "\036" }  | "US" { "\037" }
-                | "SP" { " " }     | "NUL" { "\000" } | "SO" { "\016" }
-                | "STX" { "\002" } | "ETX" { "\003" } | "EOT" { "\004" }
-                | "ENQ" { "\005" } | "ACK" { "\006" } | "BEL" { "\a" }
-                | "DLE" { "\020" } | "DC1" { "\021" } | "DC2" { "\022" }
-                | "DC3" { "\023" } | "DC4" { "\024" } | "NAK" { "\025" }
-                | "SYN" { "\026" } | "ETB" { "\027" } | "CAN" { "\030" }
-                | "SUB" { "\032" } | "ESC" { "\e" }   | "DEL" { "\177" }
-                | < . > { "\\" + text }
- number_escapes = /[xX]/ < /[0-9a-fA-F]{1,5}/ > { [text.to_i(16)].pack("U") }
-                | < /\d{1,6}/ >                 { [text.to_i].pack("U") }
-                | /[oO]/ < /[0-7]{1,7}/ >       { [text.to_i(16)].pack("U") }
-                | /[uU]/ < /[0-9a-fA-F]{4}/ >   { [text.to_i(16)].pack("U") }

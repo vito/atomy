@@ -157,8 +157,7 @@ module Atomy::Grammar::AST
     def construct(gen)
       push_node(gen, :StringLiteral)
       gen.push_literal(@value)
-      gen.push_literal(@raw)
-      gen.send(:new, 2)
+      gen.send(:new, 1)
     end
   end
 end
