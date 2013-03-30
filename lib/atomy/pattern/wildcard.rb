@@ -25,5 +25,9 @@ class Atomy::Pattern
     def binds?
       !!@name
     end
+
+    def precludes?(other)
+      true
+    end
   end
 end

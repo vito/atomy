@@ -112,4 +112,123 @@ describe Atomy::Pattern::QuasiQuote do
       end
     end
   end
+
+  describe "#precludes?" do
+    context "when the other pattern is an Equality matching a Node" do
+      let(:other) { Atomy::Pattern::Equality.new(ast("foo")) }
+
+      context "and it has unquotes" do
+        let(:other) { Atomy::Pattern::Equality.new(ast("1 + ~abc")) }
+        subject { described_class.make(mod, ast("1 + ~abc")) }
+
+        context "and I have an unquote" do
+          it "returns true" do
+            expect(subject.precludes?(other)).to eq(true)
+          end
+
+          context "and it does NOT preclude the unquote" do
+            subject { described_class.make(mod, ast("1 + ~'abc")) }
+
+            it "returns false" do
+              expect(subject.precludes?(other)).to eq(false)
+            end
+          end
+        end
+      end
+
+      context "and I have unquote patterns" do
+        context "and the patterns preclude the respective node" do
+          subject { described_class.make(mod, ast("~abc")) }
+
+          it "returns true" do
+            expect(subject.precludes?(other)).to eq(true)
+          end
+        end
+          
+        context "and the patterns do NOT preclude the respective node" do
+          subject { described_class.make(mod, ast("~'bar")) }
+
+          it "returns false" do
+            expect(subject.precludes?(other)).to eq(false)
+          end
+        end
+      end
+
+      context "and I have no unquotes" do
+        context "and the nodes are equal" do
+          subject { described_class.make(mod, ast("~abc")) }
+
+          it "returns true" do
+            expect(subject.precludes?(other)).to eq(true)
+          end
+        end
+      end
+    end
+
+    context "when the other pattern is a QuasiQuote" do
+      context "and it has unquote patterns" do
+        let(:other) { described_class.make(mod, ast("~'a + 2")) }
+
+        context "and my pattern precludes the respective node or pattern" do
+          subject { described_class.make(mod, ast("~a + 2")) }
+
+          it "returns true" do
+            expect(subject.precludes?(other)).to eq(true)
+          end
+
+          context "but the rest of the expression differs" do
+            subject { described_class.make(mod, ast("~a * 2")) }
+
+            it "returns false" do
+              expect(subject.precludes?(other)).to eq(false)
+            end
+          end
+        end
+          
+        context "and the patterns do NOT preclude the respective node or pattern" do
+          subject { described_class.make(mod, ast("~'b + 2")) }
+
+          it "returns false" do
+            expect(subject.precludes?(other)).to eq(false)
+          end
+        end
+      end
+
+      context "and it has no unquotes" do
+        let(:other) { described_class.make(mod, ast("foo")) }
+
+        context "and I have unquotes" do
+          subject { described_class.make(mod, ast("~abc")) }
+
+          it "returns true" do
+            expect(subject.precludes?(other)).to eq(true)
+          end
+        end
+
+        context "and I have no unquotes" do
+          subject { described_class.make(mod, ast("foo")) }
+
+          context "and the nodes are equal" do
+            it "returns true" do
+              expect(subject.precludes?(other)).to eq(true)
+            end
+          end
+
+          context "and the nodes are not equal" do
+            subject { described_class.make(mod, ast("bar")) }
+
+            it "returns false" do
+              expect(subject.precludes?(other)).to eq(false)
+            end
+          end
+        end
+      end
+    end
+
+    context "when the other pattern is something else" do
+      it "returns false" do
+        expect(subject.precludes?(Object.new)).to eq(false)
+      end
+    end
+  end
 end

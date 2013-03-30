@@ -29,5 +29,9 @@ class Atomy::Pattern
 
       gen.send(:==, 1)
     end
+
+    def precludes?(other)
+      other.is_a?(self.class) && @value == other.value
+    end
   end
 end

@@ -1,6 +1,7 @@
 require "atomy/pattern"
 
 require "atomy/node/meta"
+require "atomy/pattern/equality"
 
 
 class Atomy::Pattern
@@ -34,23 +35,61 @@ class Atomy::Pattern
       Deconstructor.new(gen, mod).go(@node)
     end
 
+    def precludes?(other)
+      if other.is_a?(self.class)
+        PrecludeChecker.new.go(@node, other.node)
+      elsif other.is_a?(Equality) && other.value.is_a?(Atomy::Grammar::AST::Node)
+        PrecludeChecker.new(false).go(@node, other.value)
+      else
+        false
+      end
+    end
+
     private
 
-    class Walker
-      def initialize(gen, mod)
+    class PrecludeChecker
+      def initialize(quasi = true)
+        @quasi = quasi
         @depth = 1
-        @gen = gen
-        @module = mod
       end
 
-      def go(x, mismatch = nil)
-        if mismatch
-          old, @mismatch = @mismatch, mismatch
-        end
+      def go(a, b)
+        a_quotes = a.is_a?(Atomy::Grammar::AST::Unquote)
+        b_quotes = b.is_a?(Atomy::Grammar::AST::Unquote)
 
-        x.accept(self)
+        @depth -= 1 if a_quotes
+
+        if @quasi && a_quotes && b_quotes && @depth == 0
+          a.node.precludes?(b.node)
+        elsif @quasi && b_quotes && @depth == 0
+          false
+        elsif a_quotes && @depth == 0
+          a.node.precludes?(Equality.new(b))
+        elsif b.is_a?(a.class)
+          a.each_attribute do |attr, val|
+            return false unless val == b.send(attr)
+          end
+
+          a.each_child do |attr, val|
+            return false unless go(val, b.send(attr))
+          end
+
+          true
+        else
+          false
+        end
       ensure
-        @mismatch = old if mismatch
+        @depth += 1 if a_quotes
+      end
+    end
+
+    class Walker
+      def initialize
+        @depth = 1
+      end
+
+      def go(x)
+        x.accept(self)
       end
 
       def visit_quasiquote(qq)
@@ -94,8 +133,8 @@ class Atomy::Pattern
 
     class Constructor < Walker
       def initialize(mod)
+        super()
         @module = mod
-        @depth = 1
       end
 
       def go(x)
@@ -115,8 +154,20 @@ class Atomy::Pattern
 
     class Matcher < Walker
       def initialize(gen, mod, mis)
-        super(gen, mod)
+        super()
+        @gen = gen
+        @module = mod
         @mismatch = mis
+      end
+
+      def go(x, mismatch = nil)
+        if mismatch
+          old, @mismatch = @mismatch, mismatch
+        end
+
+        super(x)
+      ensure
+        @mismatch = old if mismatch
       end
 
       def match_kind(x, mismatch)
@@ -206,6 +257,12 @@ class Atomy::Pattern
     end
 
     class Deconstructor < Walker
+      def initialize(gen, mod)
+        super()
+        @gen = gen
+        @module = mod
+      end
+
       def unquote(x)
         @depth -= 1
 
