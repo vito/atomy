@@ -53,6 +53,8 @@ module Atomy
           node.text == :_ ? nil : node.text)
       when Atomy::Grammar::AST::Number
         return Pattern::Equality.new(node.value)
+      when Atomy::Grammar::AST::Quote
+        return Pattern::Equality.new(node.node)
       when Atomy::Grammar::AST::QuasiQuote
         return Pattern::QuasiQuote.make(self, node.node)
       end

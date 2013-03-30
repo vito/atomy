@@ -21,6 +21,8 @@ class Atomy::Pattern
       when String
         gen.push_literal(@value)
         gen.string_dup
+      when Atomy::Grammar::AST::Node
+        @value.construct(gen)
       else
         raise "don't know how to match #{value} for equality"
       end

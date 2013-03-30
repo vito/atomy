@@ -119,5 +119,14 @@ describe Atomy::Bootstrap do
         expect(pattern).to be_a(Atomy::Pattern::Equality)
       end
     end
+
+    context "with a Quote node" do
+      let(:node) { ast("'a") }
+
+      it "expands into an Equality pattern" do
+        pattern = subject.pattern(node)
+        expect(pattern).to be_a(Atomy::Pattern::Equality)
+      end
+    end
   end
 end

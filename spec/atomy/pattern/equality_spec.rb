@@ -61,6 +61,36 @@ describe Atomy::Pattern::Equality do
       end
     end
 
+    context "with a node" do
+      subject { described_class.new(ast("1 + a")) }
+
+      it_compiles_as(:matches?) do |gen|
+        ast("1 + a").construct(gen)
+        gen.send(:==, 1)
+      end
+
+      context "with unquotes" do
+        subject { described_class.new(ast("~abc")) }
+
+        it_compiles_as(:matches?) do |gen|
+          gen.push_cpath_top
+          gen.find_const(:Atomy)
+          gen.find_const(:Grammar)
+          gen.find_const(:AST)
+          gen.find_const(:Unquote)
+          gen.push_cpath_top
+          gen.find_const(:Atomy)
+          gen.find_const(:Grammar)
+          gen.find_const(:AST)
+          gen.find_const(:Word)
+          gen.push_literal(:abc)
+          gen.send(:new, 1)
+          gen.send(:new, 1)
+          gen.send(:==, 1)
+        end
+      end
+    end
+
     context "with anything else" do
       subject { described_class.new(Object.new) }
 
