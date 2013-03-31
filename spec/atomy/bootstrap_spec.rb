@@ -128,5 +128,16 @@ describe Atomy::Bootstrap do
         expect(pattern).to be_a(Atomy::Pattern::Equality)
       end
     end
+
+    context "with a Prefix node" do
+      context "when the operator is *" do
+        let(:node) { ast("*a") }
+
+        it "expands into a Splat pattern" do
+          pattern = subject.pattern(node)
+          expect(pattern).to be_a(Atomy::Pattern::Splat)
+        end
+      end
+    end
   end
 end

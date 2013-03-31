@@ -86,12 +86,116 @@ describe Atomy::Pattern::QuasiQuote do
         it { should === ast('[a, 1, "foo"]') }
         it { should_not === ast("[a, 1, 3.0, 4]") }
       end
+
+      context "with splats" do
+        context "when there is only a splat" do
+          subject { described_class.make(mod, ast("[~*a]")) }
+
+          it { should === ast("[]") }
+          it { should === ast("[1]") }
+          it { should === ast("[1, 2]") }
+        end
+
+        context "when there are other entries and then a splat" do
+          subject { described_class.make(mod, ast("[1, ~*a]")) }
+
+          it { should === ast("[1]") }
+          it { should === ast("[1, 2]") }
+          it { should_not === ast("[2]") }
+          it { should_not === ast("[2, 1]") }
+        end
+
+        context "when they're not at depth 0" do
+          subject { described_class.make(mod, ast("`[1, ~*a]")) }
+
+          it { should === ast("`[1, ~*a]") }
+          it { should_not === ast("`[1]") }
+          it { should_not === ast("`[1, 2]") }
+          it { should_not === ast("`[2]") }
+          it { should_not === ast("`[2, 1]") }
+        end
+      end
     end
   end
 
   describe "#deconstruct" do
     context "when there are no bindings" do
       it_compiles_as(:deconstruct) {}
+    end
+
+    context "when there is a binding" do
+      subject { described_class.make(mod, ast("1 + ~a")) }
+
+      it_compiles_as(:deconstruct) do |gen|
+        gen.dup
+        gen.send(:right, 0)
+        gen.set_local(0)
+        gen.pop
+      end
+    end
+
+    context "when there are two bindings" do
+      subject { described_class.make(mod, ast("~a + ~b")) }
+
+      it_compiles_as(:deconstruct) do |gen|
+        gen.dup
+        gen.send(:left, 0)
+        gen.set_local(0)
+        gen.pop
+        gen.dup
+        gen.send(:right, 0)
+        gen.set_local(1)
+        gen.pop
+      end
+    end
+
+    context "when there is one binding repeated" do
+      subject { described_class.make(mod, ast("~a + ~a")) }
+
+      it_compiles_as(:deconstruct) do |gen|
+        gen.dup
+        gen.send(:left, 0)
+        gen.set_local(0)
+        gen.pop
+        gen.dup
+        gen.send(:right, 0)
+        gen.set_local(0)
+        gen.pop
+      end
+    end
+
+    context "with splats" do
+      context "when there is only a splat" do
+        subject { described_class.make(mod, ast("[~*a]")) }
+
+        it_compiles_as(:deconstruct) do |gen|
+          gen.dup
+          gen.send(:nodes, 0)
+          gen.set_local(0)
+          gen.pop
+        end
+      end
+
+      context "when there are other entries and then a splat" do
+        subject { described_class.make(mod, ast("[1, 2, ~*a]")) }
+
+        it_compiles_as(:deconstruct) do |gen|
+          gen.dup
+          gen.send(:nodes, 0)
+          gen.shift_array
+          gen.pop
+          gen.shift_array
+          gen.pop
+          gen.set_local(0)
+          gen.pop
+        end
+      end
+
+      context "when they're not at depth 0" do
+        subject { described_class.make(mod, ast("`[1, ~*a]")) }
+
+        it_compiles_as(:deconstruct) {}
+      end
     end
   end
 
@@ -103,7 +207,11 @@ describe Atomy::Pattern::QuasiQuote do
 
   describe "#binds?" do
     context "when any unquoted patterns bind" do
-      it "returns true"
+      subject { described_class.make(mod, ast("[1, ~a]")) }
+
+      it "returns true" do
+        expect(subject.binds?).to eq(true)
+      end
     end
 
     context "when no unquoted patterns bind" do

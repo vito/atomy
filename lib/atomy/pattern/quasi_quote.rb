@@ -45,6 +45,10 @@ class Atomy::Pattern
       end
     end
 
+    def binds?
+      Binds.new.go(@node)
+    end
+
     private
 
     class PrecludeChecker
@@ -95,22 +99,20 @@ class Atomy::Pattern
       def visit_quasiquote(qq)
         @depth += 1
         visit(qq)
+      ensure
         @depth -= 1
       end
 
       def visit_unquote(x)
         @depth -= 1
 
-        res =
-          if @depth == 0
-            unquote(x)
-          else
-            visit(x)
-          end
-
+        if @depth == 0
+          unquote(x)
+        else
+          visit(x)
+        end
+      ensure
         @depth += 1
-
-        res
       end
 
       def unquote(_)
@@ -203,10 +205,16 @@ class Atomy::Pattern
         @gen.dup
         @gen.send c, 0
 
+        if pats.last.is_a?(Atomy::Grammar::AST::Unquote) && \
+            pats.last.node.is_a?(Atomy::Pattern::Splat)
+          splat = pats[-1]
+          pats = pats[0..-2]
+        end
+
         @gen.dup
         @gen.send :size, 0
         @gen.push_int(pats.size)
-        @gen.send(:==, 1)
+        @gen.send(splat ? :>= : :==, 1)
         @gen.gif popmis2
 
         pats.each do |pat|
@@ -214,7 +222,11 @@ class Atomy::Pattern
           go(pat, popmis2)
         end
 
-        @gen.pop
+        if splat
+          go(splat, popmis)
+        else
+          @gen.pop
+        end
       end
 
       # effect on the stack: pop
@@ -264,15 +276,7 @@ class Atomy::Pattern
       end
 
       def unquote(x)
-        @depth -= 1
-
-        if @depth == 0
-          x.node.deconstruct(@gen, @module)
-        else
-          visit(x)
-        end
-
-        @depth += 1
+        x.node.deconstruct(@gen, @module)
       end
 
       def visit(x)
@@ -286,6 +290,8 @@ class Atomy::Pattern
       end
 
       def visit_one(c, pat)
+        return unless binds?(pat)
+
         @gen.dup
         @gen.send(c, 0)
         go(pat)
@@ -294,19 +300,48 @@ class Atomy::Pattern
 
       def visit_many(c, pats)
         return if pats.empty?
+        return if pats.none? { |p| binds?(p) }
 
         @gen.dup
         @gen.send(c, 0)
 
+        if pats.last.is_a?(Atomy::Grammar::AST::Unquote) && \
+            pats.last.node.is_a?(Atomy::Pattern::Splat)
+          splat = pats[-1]
+          pats = pats[0..-2]
+        end
+
         pats.each do |pat|
           @gen.shift_array
           go(pat)
+          @gen.pop
         end
 
-        # pop empty array
-        @gen.pop
+        go(splat) if splat
 
         @gen.pop
+      end
+
+      def binds?(node)
+        Binds.new(@depth).go(node)
+      end
+    end
+
+    class Binds < Walker
+      def initialize(depth = 1)
+        @depth = depth
+      end
+
+      def unquote(u)
+        u.node.binds?
+      end
+
+      def visit(x)
+        x.through do |v|
+          return true if go(v)
+        end
+
+        false
       end
     end
   end
