@@ -16,11 +16,11 @@ class Atomy::Pattern
       @node = node
     end
 
-    def matches?(gen, mod)
+    def matches?(gen)
       mismatch = gen.new_label
       done = gen.new_label
 
-      Matcher.new(gen, mod, mismatch).go(@node)
+      Matcher.new(gen, mismatch).go(@node)
 
       gen.push_true
       gen.goto done
@@ -31,8 +31,8 @@ class Atomy::Pattern
       done.set!
     end
 
-    def deconstruct(gen, mod, locals = {})
-      Deconstructor.new(gen, mod).go(@node)
+    def deconstruct(gen)
+      Deconstructor.new(gen).go(@node)
     end
 
     def precludes?(other)
@@ -155,10 +155,9 @@ class Atomy::Pattern
     end
 
     class Matcher < Walker
-      def initialize(gen, mod, mis)
+      def initialize(gen, mis)
         super()
         @gen = gen
-        @module = mod
         @mismatch = mis
       end
 
@@ -263,20 +262,19 @@ class Atomy::Pattern
       end
 
       def unquote(x)
-        x.node.matches?(@gen, @module)
+        x.node.matches?(@gen)
         @gen.gif @mismatch
       end
     end
 
     class Deconstructor < Walker
-      def initialize(gen, mod)
+      def initialize(gen)
         super()
         @gen = gen
-        @module = mod
       end
 
       def unquote(x)
-        x.node.deconstruct(@gen, @module)
+        x.node.deconstruct(@gen)
       end
 
       def visit(x)

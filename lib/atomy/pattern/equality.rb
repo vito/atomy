@@ -8,7 +8,7 @@ class Atomy::Pattern
       @value = value
     end
 
-    def matches?(gen, mod)
+    def matches?(gen)
       case @value
       when Fixnum
         gen.push_int(@value)

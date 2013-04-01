@@ -10,8 +10,7 @@ module Atomy
         gen.total_args = gen.required_args = gen.local_count = 1
         gen.push_local(0)
 
-        # TODO: ensure patterns have a context for this
-        matches?(gen, @context)
+        matches?(gen)
 
         gen.ret
       end
@@ -19,7 +18,7 @@ module Atomy
       __send__ :===, v
     end
 
-    def match(gen, mod)
+    def match(gen)
       return if wildcard? && !binds?
 
       unless wildcard?
@@ -28,11 +27,11 @@ module Atomy
         done = gen.new_label
         mismatch = gen.new_label
 
-        matches?(gen, mod)
+        matches?(gen)
         gen.gif(mismatch)
       end
 
-      deconstruct(gen, mod)
+      deconstruct(gen)
 
       unless wildcard?
         gen.goto(done)
@@ -60,11 +59,11 @@ module Atomy
       false
     end
 
-    def matches?(gen, mod)
+    def matches?(gen)
       raise NotImplementedError
     end
 
-    def deconstruct(gen, mod)
+    def deconstruct(gen)
     end
 
     def assignment_local(gen, name, set = false)

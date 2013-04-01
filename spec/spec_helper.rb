@@ -82,7 +82,13 @@ class CompileAsMatcher
     gen = Atomy::TestGenerator.new
     gen.push_state(@expected.state.scope)
 
-    actual.send(@method, gen, @module)
+    meth = actual.method(@method)
+
+    if meth.arity == 1
+      actual.send(@method, gen)
+    else
+      actual.send(@method, gen, @module)
+    end
 
     @actual = gen
     @actual == @expected

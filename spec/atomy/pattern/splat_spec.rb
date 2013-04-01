@@ -20,7 +20,7 @@ describe Atomy::Pattern::Splat do
 
   describe "#matches?" do
     class SomePattern
-      def matches?(gen, mod)
+      def matches?(gen)
         gen.push_literal(:some_pattern)
         gen.send(:==, 1)
       end
@@ -40,7 +40,7 @@ describe Atomy::Pattern::Splat do
     subject { described_class.new(wildcard) }
 
     it_compiles_as(:deconstruct) do |gen|
-      wildcard.deconstruct(gen, Atomy::Module.new)
+      wildcard.deconstruct(gen)
     end
   end
 

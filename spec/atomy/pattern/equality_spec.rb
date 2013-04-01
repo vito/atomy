@@ -97,7 +97,7 @@ describe Atomy::Pattern::Equality do
       # TODO: better error
       it "raises an error" do
         expect {
-          subject.matches?(nil, nil)
+          subject.matches?(nil)
         }.to raise_error
       end
     end

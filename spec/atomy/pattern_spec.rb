@@ -19,7 +19,7 @@ describe Atomy::Pattern do
 
         def bytecode(gen, mod)
           gen.push_literal("some-value")
-          @pattern.match(gen, mod)
+          @pattern.match(gen)
         end
       end.new(pattern)
     end
@@ -38,7 +38,7 @@ describe Atomy::Pattern do
           !!@name
         end
 
-        def deconstruct(gen, mod)
+        def deconstruct(gen)
           assign = assignment_local(gen, @name)
           assign.set_bytecode(gen)
         end
@@ -72,12 +72,12 @@ describe Atomy::Pattern do
           @value = value
         end
 
-        def matches?(gen, mod)
+        def matches?(gen)
           gen.push_literal(@value)
           gen.send(:==, 1)
         end
 
-        def deconstruct(gen, mod)
+        def deconstruct(gen)
           assign = assignment_local(gen, @name)
           assign.set_bytecode(gen)
         end

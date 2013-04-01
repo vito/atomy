@@ -10,7 +10,7 @@ module Atomy
         pat = mod.pattern(@pattern)
         pat.from_node = @pattern
         mod.compile(gen, @value)
-        pat.match(gen, mod)
+        pat.match(gen)
       end
     end
   end

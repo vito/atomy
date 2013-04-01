@@ -8,12 +8,12 @@ class Atomy::Pattern
       @name = name
     end
 
-    def matches?(gen, mod)
+    def matches?(gen)
       gen.pop
       gen.push_true
     end
 
-    def deconstruct(gen, mod)
+    def deconstruct(gen)
       return unless @name
       assignment_local(gen, @name).set_bytecode(gen)
     end
