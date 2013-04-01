@@ -37,4 +37,18 @@ module Atomy
       "pattern `#{pattern}' did not match value `#{value.inspect}'"
     end
   end
+
+  class MessageMismatch < RuntimeError
+    attr_reader :name, :receiver, :arguments
+
+    def initialize(name, receiver, arguments = [])
+      @name = name
+      @receiver = receiver
+      @arguments = arguments
+    end
+
+    def to_s
+      "message `#{@name}(#{@arguments.collect(&:inspect).join(", ")})' was not understood by #{@receiver.inspect} (#{@receiver.class})"
+    end
+  end
 end

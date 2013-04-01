@@ -1,6 +1,10 @@
 require "spec_helper"
 
+require "atomy/bootstrap"
 require "atomy/module"
+require "atomy/pattern/message"
+require "atomy/pattern/equality"
+require "atomy/pattern/wildcard"
 
 describe Atomy::Module do
   let(:module_with_expansions) do
@@ -65,16 +69,6 @@ describe Atomy::Module do
       end
 
       gen.send(@message, @arguments.size)
-    end
-  end
-
-  class IntegerCode
-    def initialize(value)
-      @value = value
-    end
-
-    def bytecode(gen, mod)
-      gen.push_int(@value)
     end
   end
 

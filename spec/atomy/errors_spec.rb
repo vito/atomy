@@ -62,3 +62,35 @@ describe Atomy::PatternMismatch do
     end
   end
 end
+
+describe Atomy::MessageMismatch do
+  let(:receiver) { Object.new }
+  let(:arguments) { [Object.new] }
+  let(:name) { :foo }
+
+  subject { described_class.new(name, receiver, arguments) }
+
+  describe "#receiver" do
+    it "returns the receiver of the message" do
+      expect(subject.receiver).to eq(receiver)
+    end
+  end
+
+  describe "#arguments" do
+    it "returns the arguments of the message" do
+      expect(subject.arguments).to eq(arguments)
+    end
+  end
+
+  describe "#name" do
+    it "returns the name of the message" do
+      expect(subject.name).to eq(name)
+    end
+  end
+
+  describe "#to_s" do
+    it "says the pattern did not match" do
+      expect(subject.to_s).to include("was not understood by")
+    end
+  end
+end

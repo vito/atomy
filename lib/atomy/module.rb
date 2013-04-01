@@ -1,6 +1,8 @@
 require "atomy/compiler"
 require "atomy/errors"
 
+require "atomy/method"
+
 module Atomy
   class Module < ::Module
     # [Symbol] Absolute path to the file the module was loaded from.

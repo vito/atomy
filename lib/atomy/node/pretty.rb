@@ -1,3 +1,5 @@
+require "atomy/grammar"
+
 module Atomy::Grammar::AST
   class Sequence
     def to_s
