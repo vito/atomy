@@ -1,9 +1,11 @@
-source "http://rubygems.org"
+source "https://rubygems.org"
+
 gemspec
 
+group "test" do
+  gem "rspec"
+end
+
 group "development" do
-  gem "benchmark_suite"
-  gem "kpeg"
-  gem "broomhlda", :git => "git://github.com/vito/broomhlda.git"
-  gem "anatomy", :git => "git://github.com/vito/anatomy.git"
+  gem "pry"
 end

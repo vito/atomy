@@ -1,5 +1,0 @@
-use("macros/context/module")
-
-export
-
-foo
