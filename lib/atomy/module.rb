@@ -45,5 +45,18 @@ module Atomy
     def pattern(node)
       raise UnknownPattern.new(node)
     end
+
+    private
+
+    # atomy module semantics are defined via 'extend self', but we have to
+    # make sure that later extends are added *after* self
+    #
+    # this ensures that modules a module use don't take priority over the
+    # module's own methods
+    def extend(mod)
+      return super if mod == self
+
+      mod.include_into(singleton_class.direct_superclass)
+    end
   end
 end

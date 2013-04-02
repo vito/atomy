@@ -147,6 +147,27 @@ describe Atomy::Module do
         expect(mod3.baz).to eq(3)
       end
     end
+
+    context "when the used module defines a method that the user defines" do
+      it "is not prioritized over the user's" do
+        mod = Atomy::Module.new do
+          def foo
+            1
+          end
+        end
+
+        user = Atomy::Module.new do
+          use(mod)
+
+          def foo
+            2
+          end
+        end
+
+        expect(mod.foo).to eq(1)
+        expect(user.foo).to eq(2)
+      end
+    end
   end
 
   describe "#expand" do
