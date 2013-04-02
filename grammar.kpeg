@@ -1,0 +1,182 @@
+%% name = Atomy::Grammar
+
+%% sequence = ast Sequence(nodes)
+%% number = ast Number(value)
+%% literal = ast Literal(value)
+%% quote = ast Quote(node)
+%% quasiquote = ast QuasiQuote(node)
+%% unquote = ast Unquote(node)
+%% constant = ast Constant(text)
+%% word = ast Word(text)
+%% prefix = ast Prefix(node, operator)
+%% postfix = ast Postfix(node, operator)
+%% infix = ast Infix(left, right, operator)
+%% block = ast Block(nodes)
+%% list = ast List(nodes)
+%% compose = ast Compose(left, right)
+%% application = ast Apply(node, arguments)
+%% strliteral = ast StringLiteral(value)
+
+%%{
+  module AST
+    class Node
+      attr_accessor :line
+    end
+  end
+
+  def make(what, line, *args)
+    node = send(what, *args)
+    node.line ||= line
+    node
+  end
+
+  def current_position(target = pos)
+    cur_offset = 0
+    cur_line = 0
+
+    line_lengths.each do |len|
+      cur_line += 1
+      return [cur_line, target - cur_offset] if cur_offset + len > target
+      cur_offset += len
+    end
+
+    [cur_line, cur_offset]
+  end
+
+  def line_lengths
+    @line_lengths ||= lines.collect { |l| l.size }
+  end
+
+  def current_line(x = pos)
+    current_position(x)[0]
+  end
+
+  def current_column(x = pos)
+    current_position(x)[1]
+  end
+
+  def continue?(x)
+    y = current_position
+    y[0] >= x[0] && y[1] > x[1]
+  end
+}
+
+           root = shebang? wsp expressions?:es wsp !. { sequence(Array(es)) }
+        shebang = "#!" /.*?$/
+
+
+    expressions = ~current_column:c expression:x (delim(c) expression)*:xs {
+                    [x] + Array(xs)
+                  }
+       delim(c) = (wsp "," wsp) | (sp "\n" sp)+ &{ current_column >= c }
+
+
+     expression = level4
+ one_expression = wsp expression:e wsp !. { e }
+
+           line = ~current_line
+
+        cont(p) = scont(p)
+                | !"(" # allows 'foo: bar', but ensures '(x)(y)' is an Apply
+       scont(p) = ("\n" sp)+ &{ continue?(p) }
+                | sig_sp cont(p)?
+
+             sp = (" " | "\t" | comment)*
+            wsp = (" " | "\t" | "\n" | comment)*
+         sig_sp = (" " | "\t" | comment)+
+        sig_wsp = (" " | "\t" | "\n" | comment)+
+
+        comment = /--.*?$/ | multi_comment
+  multi_comment = "{-" in_multi
+       in_multi = /[^\-\{\}]*/ "-}"
+                | /[^\-\{\}]*/ "{-" in_multi /[^\-\{\}]*/ "-}"
+                | /[^\-\{\}]*/ /[-{}]/ in_multi
+
+
+      op_letter = < /[$+<=>^|~!@#%&*\-\\.\/\?]/u > { text.to_sym }
+       operator = < op_letter+ > { text.to_sym }
+
+     identifier = < /[a-z_][a-zA-Z\d\-_]*/u > { text.tr("-", "_").to_sym }
+
+
+       language = "#language" wsp identifier:n ~set_lang(n) %lang.root
+
+
+         level0 = number
+                | quote
+                | quasi_quote
+                | unquote
+                | string
+                | constant
+                | word
+                | block
+                | list
+                | prefix
+         level1 = apply
+                | grouped
+                | level0
+         level2 = postfix
+                | level1
+         level3 = compose
+                | level2
+         level4 = language
+                | infix
+                | level3
+
+        grouped = "(" wsp expression:x wsp ")" { x }
+
+
+         number = line:l < /[\+\-]?0[oO][0-7]+/ >
+                    ~make(:number, l, text.to_i(8))
+                | line:l < /[\+\-]?0[xX][\da-fA-F]+/ >
+                    ~make(:number, l, text.to_i(16))
+                | line:l < /[\+\-]?\d+(\.\d+)?[eE][\+\-]?\d+/ >
+                    ~make(:literal, l, text.to_f)
+                | line:l < /[\+\-]?\d+\.\d+/ >
+                    ~make(:literal, l, text.to_f)
+                | line:l < /[\+\-]?\d+/ >
+                    ~make(:number, l, text.to_i)
+
+         string = line:line "\"" < ("\\" . | /[^\\"]/)*:c > "\""
+                    ~make(:strliteral, line, text.gsub("\\\"", "\""))
+
+       constant = line:l < /[A-Z][a-zA-Z0-9_]*/ >
+                    ~make(:constant, l, text.to_sym)
+
+           word = line:l identifier:n ~make(:word, l, n)
+
+          quote = line:l "'" level2:e ~make(:make, l, :quote, l, e)
+    quasi_quote = line:l "`" level2:e ~make(:quasiquote, l, e)
+        unquote = line:l "~" level2:e ~make(:unquote, l, e)
+
+         prefix = line:l op_letter:o level2:e ~make(:prefix, l, e, o)
+
+        postfix = line:l postfix:e op_letter:o ~make(:postfix, l, e, o)
+                | line:l level1:e op_letter:o ~make(:postfix, l, e, o)
+
+          block = line:l ":" wsp expressions?:es (wsp ";")?
+                    ~make(:block, l, Array(es))
+                | line:l "{" wsp expressions?:es wsp "}"
+                    ~make(:block, l, Array(es))
+
+           list = line:l "[" wsp expressions?:es wsp "]"
+                    ~make(:list, l, Array(es))
+
+          apply = line:l apply:a args:as ~make(:application, l, a, as)
+                | line:l name:n args:as ~make(:application, l, n, as)
+           name = line:l name:n op_letter:o ~make(:postfix, l, n, o)
+                | grouped
+                | level0
+           args = "(" wsp expressions?:as wsp ")" { Array(as) }
+
+        compose = @composes(current_position)
+    composes(p) = line:line compose:l cont(p) level2:r
+                    ~make(:compose, line, l, r)
+                | line:line level2:l cont(p) level2:r
+                    ~make(:compose, line, l, r)
+
+          infix = @infixes(current_position)
+     infixes(p) = line:line level3:l scont(p) operator:o scont(p) level3:r
+                    ~make(:infix, line, l, r, o)
+                | line:line operator:o scont(p) level3:r
+                    ~make(:infix, line, nil, r, o)

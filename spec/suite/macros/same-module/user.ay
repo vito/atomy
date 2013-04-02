@@ -1,6 +1,0 @@
-use("define")
-use("macros/same-module/module")
-
-export
-
-res := foo

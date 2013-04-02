@@ -1,9 +1,0 @@
-Atomy::AST constants each [n]:
-  c = Atomy::AST const-get(n)
-  when(macros = c instance-variable-get(Atomy methods-var("_expand"))
-    i"#{c} (#{macros size})" println
-    macros each [mac]:
-      [[recv, foo], body] = mac to-list
-      recv quoted write
-
-    "" println

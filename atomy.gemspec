@@ -12,13 +12,11 @@ Gem::Specification.new do |s|
   s.homepage = "http://atomy-lang.org"
   s.summary = "the Atomy programming language"
   s.description = s.summary
-  s.has_rdoc = false
 
-  s.add_dependency "kpeg", "~> 0.10.0"
+  # TODO: make a development dependency
+  s.add_runtime_dependency "kpeg", "~> 0.10.0"
 
   s.add_development_dependency "rake"
-
-  ignores = File.readlines(".gitignore").grep(/\S+/).map(&:chomp)
 
   s.files = %w{LICENSE Gemfile} + Dir["{lib,kernel,bin}/**/*"]
 
