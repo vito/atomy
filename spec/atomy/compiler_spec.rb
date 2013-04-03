@@ -79,6 +79,84 @@ describe Atomy::Compiler do
     end
   end
 
+  describe ".package" do
+    it "returns a CompiledCode" do
+      packaged = described_class.package(:foo) do |gen|
+        gen.push_nil
+      end
+
+      expect(packaged).to(be_a(Rubinius::CompiledCode))
+    end
+
+    it "has the file set to the given file" do
+      packaged = described_class.package(:"some/file") do |gen|
+        gen.push_nil
+      end
+
+      expect(packaged.file).to eq(:"some/file")
+    end
+
+    it "pushes a locals state" do
+      described_class.package(:"some/file") do |gen|
+        expect(gen.state).to be
+        expect(gen.state.scope).to be
+
+        gen.push_nil
+      end
+    end
+
+    it "sets #local_count and #local_names properly" do
+      code = described_class.package(:"some/file") do |gen|
+        expect(gen.state).to be
+        expect(gen.state.scope).to be
+
+        gen.push_nil
+        gen.state.scope.new_local(:a).reference.set_bytecode(gen)
+      end
+
+      expect(code.local_count).to eq(1)
+      expect(code.local_names).to eq([:a].to_tuple)
+    end
+  end
+
+  describe ".generate" do
+    it "returns a Generator" do
+      generator = described_class.generate(:foo) do |gen|
+        gen.push_nil
+      end
+
+      expect(generator).to(be_a(Rubinius::Generator))
+    end
+
+    it "has the file set to the module's file" do
+      gen = described_class.generate(:"some/file") do |gen|
+        gen.push_nil
+      end
+
+      expect(gen.file).to eq(:"some/file")
+    end
+
+    it "pushes a locals state" do
+      described_class.generate(:"some/file") do |gen|
+        expect(gen.state).to be
+        expect(gen.state.scope).to be
+
+        gen.push_nil
+      end
+    end
+
+    it "sets #local_count and #local_names properly" do
+      gen =
+        described_class.generate(:"some/file") do |gen|
+          gen.push_nil
+          gen.state.scope.new_local(:a).reference.set_bytecode(gen)
+        end
+
+      expect(gen.local_count).to eq(1)
+      expect(gen.local_names).to eq([:a])
+    end
+  end
+
   describe ".construct_block" do
     let(:code) do
       described_class.compile(node, compile_module)
