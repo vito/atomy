@@ -131,6 +131,15 @@ class Atomy::Pattern
           @gen.push_literal(x)
         end
       end
+
+      def unsplat(pats)
+        if pats.last.is_a?(Atomy::Grammar::AST::Unquote) && \
+            pats.last.node.is_a?(Atomy::Pattern::Splat)
+          [pats[0..-2], pats[-1]]
+        else
+          [pats, nil]
+        end
+      end
     end
 
     class Constructor < Walker
@@ -204,11 +213,7 @@ class Atomy::Pattern
         @gen.dup
         @gen.send c, 0
 
-        if pats.last.is_a?(Atomy::Grammar::AST::Unquote) && \
-            pats.last.node.is_a?(Atomy::Pattern::Splat)
-          splat = pats[-1]
-          pats = pats[0..-2]
-        end
+        pats, splat = unsplat(pats)
 
         @gen.dup
         @gen.send :size, 0
@@ -303,11 +308,7 @@ class Atomy::Pattern
         @gen.dup
         @gen.send(c, 0)
 
-        if pats.last.is_a?(Atomy::Grammar::AST::Unquote) && \
-            pats.last.node.is_a?(Atomy::Pattern::Splat)
-          splat = pats[-1]
-          pats = pats[0..-2]
-        end
+        pats, splat = unsplat(pats)
 
         pats.each do |pat|
           @gen.shift_array
