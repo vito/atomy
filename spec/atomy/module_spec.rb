@@ -247,4 +247,65 @@ describe Atomy::Module do
       end
     end
   end
+
+  describe "#compile_context" do
+    subject(:mod) { Atomy::Module.new }
+
+    it "is a binding" do
+      expect(subject.compile_context).to be_a(Binding)
+    end
+
+    it "returns the same context for every call" do
+      a = subject.compile_context
+      b = subject.compile_context
+      expect(a).to be(b)
+    end
+
+    describe "constant scope" do
+      subject { mod.compile_context.constant_scope }
+
+      it "has the module as the its module" do
+        expect(subject.module).to be(mod)
+      end
+
+      it "has Object as the its parent module" do
+        expect(subject.parent.module).to be(Object)
+      end
+
+      context "when the module has a file" do
+        let(:mod) { Atomy::Module.new.tap { |m| m.file = :foo } }
+
+        it "has a script on its ConstantScope" do
+          expect(subject.script).to be_a(Rubinius::CompiledCode::Script)
+        end
+
+        describe "script" do
+          subject { mod.compile_context.constant_scope.script }
+
+          its(:file_path) { should == "foo" }
+          its(:data_path) { should == File.expand_path("foo") }
+          its(:main?) { should == true }
+        end
+      end
+    end
+
+    describe "compiled code" do
+      subject { mod.compile_context.compiled_code }
+
+      its(:name) { should == :__script__ }
+      its(:metadata) { should be_nil }
+      its(:scope) { should == mod.compile_context.constant_scope }
+    end
+
+    describe "variable scope" do
+      subject { mod.compile_context.variables }
+
+      its(:method) { should == mod.compile_context.compiled_code }
+      its(:module) { should == mod }
+      its(:parent) { should be_nil }
+      its(:self)   { should == mod }
+      its(:block)  { should be_nil }
+      its(:locals) { should == [].to_tuple }
+    end
+  end
 end
