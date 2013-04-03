@@ -75,7 +75,7 @@ module Atomy
       end
     end
 
-    def require(path, debug = false)
+    def require(path)
       file = find_source(path)
 
       raise LoadError, "no such file to load -- #{path}" unless file
