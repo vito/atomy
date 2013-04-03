@@ -140,4 +140,31 @@ describe Atomy::Bootstrap do
       end
     end
   end
+
+  describe "#define_method" do
+    it "returns the CompiledCode of the method" do
+      code = subject.define_method(ast("foo"), ast("42"))
+      expect(code).to be_a(Rubinius::CompiledCode)
+      expect(code.name).to eq(:foo)
+    end
+
+    context "without a receiver" do
+      it "defines on the current scope's for_method_definition" do
+        subject.define_method(ast("foo"), ast("42"))
+        expect(foo).to eq(42)
+      end
+
+      it "has the caller's variable scope visible" do
+        a = 1
+        subject.define_method(ast("foo"), ast("eval(\"a\")"))
+        expect(foo).to eq(1)
+      end
+
+      it "has the caller's constant scope" do
+        A = 1
+        subject.define_method(ast("foo"), ast("eval(\"A\")"))
+        expect(foo).to eq(1)
+      end
+    end
+  end
 end
