@@ -1,4 +1,4 @@
-script: bundle exec rspec
+script: rake && bundle exec rspec
 rvm: rbx-19mode
 notifications:
   irc: "irc.freenode.net#atomy"
