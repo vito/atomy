@@ -17,55 +17,11 @@ require "atomy/pattern/wildcard"
 module Atomy
   Bootstrap = Atomy::Module.new do
     def expand(node)
-      case node
-      when Atomy::Grammar::AST::Apply
-        if node.node.is_a?(Atomy::Grammar::AST::Word)
-          return Code::Send.new(nil, node.node.text, node.arguments)
-        end
-      when Atomy::Grammar::AST::StringLiteral
-        return Code::StringLiteral.new(node.value)
-      when Atomy::Grammar::AST::Sequence
-        return Code::Sequence.new(node.nodes)
-      when Atomy::Grammar::AST::Word
-        case node.text
-        when :self
-          return Code::Self.new
-        else
-          return Code::Variable.new(node.text)
-        end
-      when Atomy::Grammar::AST::Number
-        return Code::Integer.new(node.value)
-      when Atomy::Grammar::AST::Infix
-        if node.operator == :"="
-          return Code::Assign.new(node.left, node.right)
-        else
-          return Code::Send.new(node.left, node.operator, [node.right])
-        end
-      when Atomy::Grammar::AST::Quote
-        return Code::Quote.new(node.node)
-      end
-
-      super
+      node.accept(NodeExpander.new(self)) || super
     end
 
     def pattern(node)
-      case node
-      when Atomy::Grammar::AST::Word
-        return Pattern::Wildcard.new(
-          node.text == :_ ? nil : node.text)
-      when Atomy::Grammar::AST::Number
-        return Pattern::Equality.new(node.value)
-      when Atomy::Grammar::AST::Quote
-        return Pattern::Equality.new(node.node)
-      when Atomy::Grammar::AST::QuasiQuote
-        return Pattern::QuasiQuote.make(self, node.node)
-      when Atomy::Grammar::AST::Prefix
-        if node.operator == :*
-          return Pattern::Splat.new(pattern(node.node))
-        end
-      end
-
-      super
+      node.accept(PatternExpander.new(self)) || super
     end
 
     def define_method(name, body, receiver = nil, *arguments)
@@ -86,6 +42,100 @@ module Atomy
 
       block = Atomy::Compiler.construct_block(code, bnd)
       block.call
+    end
+
+    private
+
+    class NodeExpander
+      def initialize(mod)
+        @module = mod
+      end
+
+      def visit(_)
+        nil
+      end
+
+      def visit_apply(node)
+        if node.node.is_a?(Atomy::Grammar::AST::Word)
+          Code::Send.new(nil, node.node.text, node.arguments)
+        end
+      end
+
+      def visit_stringliteral(node)
+        Code::StringLiteral.new(node.value)
+      end
+
+      def visit_sequence(node)
+        Code::Sequence.new(node.nodes)
+      end
+
+      def visit_word(node)
+        case node.text
+        when :self
+          Code::Self.new
+        else
+          Code::Variable.new(node.text)
+        end
+      end
+
+      def visit_number(node)
+        Code::Integer.new(node.value)
+      end
+
+      def visit_infix(node)
+        if node.operator == :"="
+          Code::Assign.new(node.left, node.right)
+        else
+          Code::Send.new(node.left, node.operator, [node.right])
+        end
+      end
+
+      def visit_quote(node)
+        Code::Quote.new(node.node)
+      end
+
+      def visit_quasiquote(node)
+        Pattern::QuasiQuote.make(@module, node.node)
+      end
+
+      def visit_prefix(node)
+        if node.operator == :*
+          Pattern::Splat.new(@module.pattern(node.node))
+        end
+      end
+    end
+
+    class PatternExpander
+      def initialize(mod)
+        @module = mod
+      end
+
+      def visit(_)
+        nil
+      end
+
+      def visit_word(node)
+        Pattern::Wildcard.new(
+          node.text == :_ ? nil : node.text)
+      end
+
+      def visit_number(node)
+        Pattern::Equality.new(node.value)
+      end
+
+      def visit_quote(node)
+        Pattern::Equality.new(node.node)
+      end
+
+      def visit_quasiquote(node)
+        Pattern::QuasiQuote.make(@module, node.node)
+      end
+
+      def visit_prefix(node)
+        if node.operator == :*
+          Pattern::Splat.new(@module.pattern(node.node))
+        end
+      end
     end
   end
 end
