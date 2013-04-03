@@ -75,7 +75,7 @@ module Atomy
       end
     end
 
-    def require(path, debug = false)
+    def require(path)
       file = find_source(path)
 
       raise LoadError, "no such file to load -- #{path}" unless file
@@ -145,13 +145,12 @@ module Atomy
 
       node = Atomy::Parser.parse_file(file)
 
-      code = Atomy::Compiler.compile(node, mod)
+      res = nil
+      node.nodes.each do |n|
+        res = mod.evaluate(n, mod.compile_context)
+      end
 
-      code.scope = Rubinius::ConstantScope.new(mod, code.scope)
-
-      Rubinius.attach_method(:__script__, code, code.scope, mod)
-
-      [mod.__script__, mod]
+      [res, mod]
     end
 
     def find_source(path, search_in = $LOAD_PATH)

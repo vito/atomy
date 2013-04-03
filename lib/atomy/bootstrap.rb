@@ -1,6 +1,7 @@
 require "atomy/grammar"
 require "atomy/module"
 require "atomy/code/assign"
+require "atomy/code/define_method"
 require "atomy/code/integer"
 require "atomy/code/quote"
 require "atomy/code/self"
@@ -65,6 +66,26 @@ module Atomy
       end
 
       super
+    end
+
+    def define_method(name, body, receiver = nil, *arguments)
+      code = Atomy::Compiler.package(@file) do |gen|
+        Atomy::Code::DefineMethod.new(
+          name.text,
+          body,
+          receiver,
+          arguments).bytecode(gen, self)
+      end
+
+      bnd =
+        Binding.setup(
+          Rubinius::VariableScope.of_sender,
+          Rubinius::CompiledCode.of_sender,
+          Rubinius::ConstantScope.of_sender,
+          self)
+
+      block = Atomy::Compiler.construct_block(code, bnd)
+      block.call
     end
   end
 end

@@ -8,4 +8,5 @@ end
 
 group "development" do
   gem "pry"
+  gem "benchmark_suite"
 end

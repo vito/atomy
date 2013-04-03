@@ -18,8 +18,8 @@ module Atomy
       expand(node).bytecode(gen, self)
     end
 
-    def evaluate(node)
-      binding =
+    def evaluate(node, binding = nil)
+      binding ||=
         Binding.setup(
           Rubinius::VariableScope.of_sender,
           Rubinius::CompiledCode.of_sender,
@@ -44,6 +44,34 @@ module Atomy
 
     def pattern(node)
       raise UnknownPattern.new(node)
+    end
+
+    def compile_context
+      return @compile_context if @compile_context
+
+      scope = Rubinius::ConstantScope.new(
+        self,
+        Rubinius::ConstantScope.new(Object))
+
+      meth = proc {}.block.compiled_code
+      meth.metadata = nil
+      meth.name = :__script__
+      meth.scope = scope
+
+      variables =
+        Rubinius::VariableScope.synthesize(
+          meth, self, nil, self, nil, Rubinius::Tuple.new(0))
+
+      if @file
+        script = meth.create_script
+        script.file_path = @file.to_s
+        script.data_path = File.expand_path(@file.to_s)
+        script.make_main!
+
+        scope.script = script
+      end
+
+      @compile_context = Binding.setup(variables, meth, scope)
     end
 
     private

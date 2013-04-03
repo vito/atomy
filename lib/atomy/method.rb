@@ -58,38 +58,25 @@ module Atomy
     end
 
     def build
-      gen = make_generator
+      Atomy::Compiler.package(:__wrapper__) do |gen|
+        gen.name = @name
 
-      done = gen.new_label
+        gen.splat_index = 0
+        gen.state.scope.new_local(:__arguments__)
 
-      build_branches(gen, done)
+        done = gen.new_label
 
-      try_super(gen, done) unless @name == :initialize
+        build_branches(gen, done)
 
-      raise_mismatch(gen)
+        try_super(gen, done) unless @name == :initialize
 
-      done.set!
-      gen.ret
+        raise_mismatch(gen)
 
-      package(gen)
+        done.set!
+      end
     end
 
     private
-
-    def make_generator
-      gen = Rubinius::Generator.new
-      gen.name = @name
-      gen.file = :__wrapper__
-      gen.set_line(0)
-
-      gen.push_state(Atomy::LocalState.new)
-
-      gen.splat_index = 0
-      gen.total_args = 0
-      gen.required_args = 0
-
-      gen
-    end
 
     def build_branches(gen, done)
       @branches.each do |b|
@@ -136,17 +123,6 @@ module Atomy
       gen.push_local(0)
       gen.send(:new, 3)
       gen.raise_exc
-    end
-
-    def package(gen)
-      gen.close
-
-      gen.local_count = 1
-      gen.local_names = [:__arguments__] # TODO: make real?
-
-      gen.encode
-
-      gen.package(Rubinius::CompiledCode)
     end
   end
 end

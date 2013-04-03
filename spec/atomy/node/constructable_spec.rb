@@ -5,22 +5,14 @@ require "atomy/node/equality"
 
 def it_can_construct_itself
   it "can construct itself" do
-    gen = Rubinius::Generator.new
-    gen.file = __FILE__.to_sym
-    gen.set_line(__LINE__)
+    code =
+      Atomy::Compiler.package(__FILE__.to_sym, __LINE__) do |gen|
+        node.construct(gen)
+      end
 
-    node.construct(gen)
-    gen.ret
-
-    gen.close
-    gen.encode
-
-    code = gen.package(Rubinius::CompiledCode)
     code.scope = binding.constant_scope
 
-    block = Rubinius::BlockEnvironment.new
-    block.under_context(binding.variables, code)
-
+    block = Atomy::Compiler.construct_block(code, binding)
     constructed = block.call
 
     expect(constructed).to eq(node)

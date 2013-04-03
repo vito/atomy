@@ -5,13 +5,24 @@ module Atomy
     module_function
 
     def compile(node, mod)
+      package(mod.file) do |gen|
+        mod.compile(gen, node)
+      end
+    end
+
+    def package(file, line = 0, &blk)
+      generate(file, line, &blk).package(Rubinius::CompiledCode)
+    end
+
+    def generate(file, line = 0)
       gen = Rubinius::Generator.new
-      gen.file = mod.file
+      gen.file = file
       gen.set_line(0)
 
       gen.push_state(LocalState.new)
 
-      mod.compile(gen, node)
+      yield gen
+
       gen.ret
 
       gen.close
@@ -21,7 +32,7 @@ module Atomy
 
       gen.encode
 
-      gen.package(Rubinius::CompiledCode)
+      gen
     end
 
     def construct_block(code, binding)
