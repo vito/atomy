@@ -12,19 +12,7 @@ module Atomy
       end
 
       def bytecode(gen, mod)
-        blk = Atomy::Compiler.generate(mod.file) do |blk|
-          blk.name = @name
-          blk.state.scope.parent = gen.state.scope
-          blk.splat_index = 0
-          blk.total_args = 0
-          blk.required_args = 0
-
-          blk.push_local(0)
-          blk.state.scope.new_local(:__arguments__)
-          message_pattern(mod).deconstruct(blk)
-
-          mod.compile(blk, @body)
-        end
+        blk = build_branch(gen, mod)
 
         gen.push_cpath_top
         gen.find_const(:Atomy)
@@ -56,6 +44,22 @@ module Atomy
       end
 
       private
+
+      def build_branch(gen, mod)
+        Atomy::Compiler.generate(mod.file) do |blk|
+          blk.name = @name
+          blk.state.scope.parent = gen.state.scope
+          blk.splat_index = 0
+          blk.total_args = 0
+          blk.required_args = 0
+
+          blk.push_local(0)
+          blk.state.scope.new_local(:__arguments__)
+          message_pattern(mod).deconstruct(blk)
+
+          mod.compile(blk, @body)
+        end
+      end
 
       def push_pattern(gen, pat)
         gen.push_self
