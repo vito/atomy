@@ -66,6 +66,24 @@ describe Atomy::Bootstrap do
       end
     end
 
+    context "with a Quote node" do
+      let(:node) { ast("'1") }
+
+      it "expands into Quote code" do
+        expanded = subject.expand(node)
+        expect(expanded).to be_a(Atomy::Code::Quote)
+      end
+    end
+
+    context "with a QuasiQuote node" do
+      let(:node) { ast("`1") }
+
+      it "expands into QuasiQuote code" do
+        expanded = subject.expand(node)
+        expect(expanded).to be_a(Atomy::Code::QuasiQuote)
+      end
+    end
+
     context "with an Infix node" do
       let(:node) { ast("a + 1") }
 

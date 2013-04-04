@@ -3,12 +3,14 @@ require "atomy/module"
 require "atomy/code/assign"
 require "atomy/code/define_method"
 require "atomy/code/integer"
+require "atomy/code/quasi_quote"
 require "atomy/code/quote"
 require "atomy/code/self"
 require "atomy/code/send"
 require "atomy/code/sequence"
 require "atomy/code/string_literal"
 require "atomy/code/variable"
+require "atomy/node/meta"
 require "atomy/pattern/equality"
 require "atomy/pattern/quasi_quote"
 require "atomy/pattern/splat"
@@ -95,13 +97,7 @@ module Atomy
       end
 
       def visit_quasiquote(node)
-        Pattern::QuasiQuote.make(@module, node.node)
-      end
-
-      def visit_prefix(node)
-        if node.operator == :*
-          Pattern::Splat.new(@module.pattern(node.node))
-        end
+        Code::QuasiQuote.new(node.node)
       end
     end
 
