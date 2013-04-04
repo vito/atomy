@@ -1,6 +1,7 @@
 require "spec_helper"
 
 require "atomy/bootstrap"
+require "atomy/codeloader"
 require "atomy/module"
 require "atomy/pattern/message"
 require "atomy/pattern/equality"
@@ -334,6 +335,13 @@ describe Atomy::Module do
       its(:self)   { should == mod }
       its(:block)  { should be_nil }
       its(:locals) { should == [].to_tuple }
+    end
+  end
+
+  describe "#require" do
+    it "invokes CodeLoader.require" do
+      Atomy::CodeLoader.should_receive(:require).with("foo/bar/baz")
+      subject.require("foo/bar/baz")
     end
   end
 end

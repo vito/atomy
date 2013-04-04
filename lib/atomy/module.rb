@@ -38,6 +38,10 @@ module Atomy
       block.call
     end
 
+    def require(path)
+      Atomy::CodeLoader.require(path)
+    end
+
     def use(mod)
       extend mod
       include mod
