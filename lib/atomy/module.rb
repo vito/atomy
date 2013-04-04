@@ -15,7 +15,13 @@ module Atomy
 
     def compile(gen, node)
       gen.set_line(node.line) if node.line
-      expand(node).bytecode(gen, self)
+
+      expanded = node
+      while expanded.is_a?(Atomy::Grammar::AST::Node)
+        expanded = expand(expanded)
+      end
+
+      expanded.bytecode(gen, self)
     end
 
     def evaluate(node, binding = nil)

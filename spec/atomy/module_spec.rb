@@ -226,6 +226,34 @@ describe Atomy::Module do
 
       subject.compile(generator, apply)
     end
+
+    context "when an expansion is another node" do
+      subject do
+        described_class.new do
+          def expand(node)
+            case node
+            when Atomy::Grammar::AST::Word
+              if node.text == :self
+                return ast(".foo")
+              end
+            when Atomy::Grammar::AST::Prefix
+              if node.node.is_a?(Atomy::Grammar::AST::Word)
+                return LiteralCode.new(node.node.text)
+              end
+            end
+
+            super
+          end
+        end
+      end
+
+      it "expands the expanded node" do
+        generator.should_receive(:set_line)
+        generator.should_receive(:push_literal).with(:foo)
+
+        subject.compile(generator, ast("self"))
+      end
+    end
   end
 
   describe "#pattern" do
