@@ -39,6 +39,21 @@ end
 
 SPEC_ROOT = File.dirname(__FILE__)
 
+Rubinius::Generator.class_eval do
+  def debug(str)
+    dup
+    push_cpath_top
+    find_const(:Kernel)
+    swap
+    push_literal("#{str}: ")
+    swap
+    send(:inspect, 0)
+    send(:+, 1)
+    send(:puts, 1)
+    pop
+  end
+end
+
 def fixture(path)
   "#{SPEC_ROOT}/fixtures/#{path}"
 end
