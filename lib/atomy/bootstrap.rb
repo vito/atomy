@@ -11,6 +11,7 @@ require "atomy/code/sequence"
 require "atomy/code/string_literal"
 require "atomy/code/variable"
 require "atomy/node/meta"
+require "atomy/pattern/and"
 require "atomy/pattern/equality"
 require "atomy/pattern/quasi_quote"
 require "atomy/pattern/splat"
@@ -130,6 +131,14 @@ module Atomy
       def visit_prefix(node)
         if node.operator == :*
           Pattern::Splat.new(@module.pattern(node.node))
+        end
+      end
+
+      def visit_infix(node)
+        if node.operator == :&
+          Pattern::And.new(
+            @module.pattern(node.left),
+            @module.pattern(node.right))
         end
       end
     end

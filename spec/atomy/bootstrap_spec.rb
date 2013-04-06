@@ -157,6 +157,17 @@ describe Atomy::Bootstrap do
         end
       end
     end
+
+    context "with an Infix node" do
+      context "when the operator is '&'" do
+        let(:node) { ast("a & 1") }
+
+        it "expands it into an And pattern" do
+          pattern = subject.pattern(node)
+          expect(pattern).to be_a(Atomy::Pattern::And)
+        end
+      end
+    end
   end
 
   describe "#define_method" do
