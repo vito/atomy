@@ -66,6 +66,15 @@ describe Atomy::Bootstrap do
       end
     end
 
+    context "with a Constant node" do
+      let(:node) { ast("Abc") }
+
+      it "expands it into Constant code" do
+        expanded = subject.expand(node)
+        expect(expanded).to be_a(Atomy::Code::Constant)
+      end
+    end
+
     context "with a Number node" do
       let(:node) { ast("1") }
 

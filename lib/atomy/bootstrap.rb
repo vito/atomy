@@ -88,6 +88,10 @@ module Atomy
         end
       end
 
+      def visit_constant(node)
+        Code::Constant.new(node.text)
+      end
+
       def visit_number(node)
         Code::Integer.new(node.value)
       end
