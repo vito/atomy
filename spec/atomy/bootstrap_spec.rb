@@ -39,6 +39,15 @@ describe Atomy::Bootstrap do
       end
     end
 
+    context "with a List node" do
+      let(:node) { Atomy::Grammar::AST::List.new([ast("foo")]) }
+
+      it "expands it into List code" do
+        expanded = subject.expand(node)
+        expect(expanded).to be_a(Atomy::Code::List)
+      end
+    end
+
     context "with a Word node" do
       let(:node) { ast("abc") }
 

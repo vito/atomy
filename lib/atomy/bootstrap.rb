@@ -4,6 +4,7 @@ require "atomy/code/assign"
 require "atomy/code/constant"
 require "atomy/code/define_method"
 require "atomy/code/integer"
+require "atomy/code/list"
 require "atomy/code/quasi_quote"
 require "atomy/code/quote"
 require "atomy/code/self"
@@ -72,6 +73,10 @@ module Atomy
 
       def visit_sequence(node)
         Code::Sequence.new(node.nodes)
+      end
+
+      def visit_list(node)
+        Code::List.new(node.nodes)
       end
 
       def visit_word(node)
