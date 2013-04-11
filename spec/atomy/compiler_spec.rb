@@ -35,13 +35,14 @@ describe Atomy::Compiler do
     end
 
     it "pushes a locals state" do
+      spec = self
+
       state_code = Class.new do
         attr_accessor :line
 
         define_method(:bytecode) do |gen, mod|
-          unless gen.state && gen.state.scope
-            raise "no local state!"
-          end
+          spec.expect(gen.state).to spec.be
+          spec.expect(gen.state.scope).to spec.be
 
           gen.push_nil
         end
@@ -54,6 +55,29 @@ describe Atomy::Compiler do
       end
 
       described_class.compile(node, state_module)
+    end
+
+    it "pushes the given locals state" do
+      state = Class.new(Atomy::LocalState).new
+
+      spec = self
+      state_code = Class.new do
+        attr_accessor :line
+
+        define_method(:bytecode) do |gen, mod|
+          spec.expect(gen.state.scope).to spec.eq(state)
+
+          gen.push_nil
+        end
+      end
+
+      state_module = Atomy::Module.new do
+        define_method(:expand) do |_|
+          state_code.new
+        end
+      end
+
+      described_class.compile(node, state_module, state)
     end
 
     it "sets #local_count and #local_names properly" do
@@ -105,6 +129,16 @@ describe Atomy::Compiler do
       end
     end
 
+    it "pushes the given locals state" do
+      state = Class.new(Atomy::LocalState).new
+
+      described_class.package(:"some/file", 0, state) do |gen|
+        expect(gen.state.scope).to eq(state)
+
+        gen.push_nil
+      end
+    end
+
     it "sets #local_count and #local_names properly" do
       code = described_class.package(:"some/file") do |gen|
         expect(gen.state).to be
@@ -140,6 +174,16 @@ describe Atomy::Compiler do
       described_class.generate(:"some/file") do |gen|
         expect(gen.state).to be
         expect(gen.state.scope).to be
+
+        gen.push_nil
+      end
+    end
+
+    it "pushes the given locals state" do
+      state = Class.new(Atomy::LocalState).new
+
+      described_class.generate(:"some/file", 0, state) do |gen|
+        expect(gen.state.scope).to eq(state)
 
         gen.push_nil
       end

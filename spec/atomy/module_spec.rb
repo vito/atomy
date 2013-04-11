@@ -207,6 +207,15 @@ describe Atomy::Module do
     it "executes with the 'self' of the caller" do
       expect(subject.evaluate(ast("self"))).to eq(self)
     end
+
+    describe "locals" do
+      subject { Atomy::Bootstrap }
+
+      it "makes locals accessible through evaluations" do
+        subject.evaluate(ast("a = 1"))
+        expect(subject.evaluate(ast("a"))).to eq(1)
+      end
+    end
   end
 
   describe "#compile" do

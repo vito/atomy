@@ -1,4 +1,5 @@
 require "atomy/compiler"
+require "atomy/locals"
 require "atomy/errors"
 
 require "atomy/method"
@@ -32,7 +33,12 @@ module Atomy
           Rubinius::ConstantScope.of_sender,
           self)
 
-      code = Atomy::Compiler.compile(node, self)
+      code = Atomy::Compiler.compile(
+        node,
+        self,
+        Atomy::EvalLocalState.new(binding.variables))
+
+      code.add_metadata :for_eval, true
 
       block = Atomy::Compiler.construct_block(code, binding)
       block.call

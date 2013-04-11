@@ -7,11 +7,7 @@ module Atomy
 
       def bytecode(gen, mod)
         if local = gen.state.scope.search_local(@name)
-          if local.depth > 0
-            gen.push_local_depth(local.slot, local.depth)
-          else
-            gen.push_local(local.slot)
-          end
+          local.get_bytecode(gen)
         else
           gen.push_self
           gen.allow_private
