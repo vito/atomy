@@ -147,6 +147,15 @@ describe Atomy::Bootstrap do
       end
     end
 
+    context "with a Constant node" do
+      let(:node) { ast("Abc") }
+
+      it "expands it into a KindOf pattern" do
+        expanded = subject.pattern(node)
+        expect(expanded).to be_a(Atomy::Pattern::KindOf)
+      end
+    end
+
     context "with a Number node" do
       let(:node) { ast("1") }
 

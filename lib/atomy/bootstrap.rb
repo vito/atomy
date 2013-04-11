@@ -152,6 +152,10 @@ module Atomy
             @module.pattern(node.right))
         end
       end
+
+      def visit_constant(node)
+        Pattern::KindOf.new(@module.expand(node))
+      end
     end
   end
 end
