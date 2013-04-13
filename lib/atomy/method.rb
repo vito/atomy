@@ -1,3 +1,4 @@
+require "atomy/compiler"
 require "atomy/locals"
 
 module Atomy
@@ -5,13 +6,18 @@ module Atomy
     class Branch
       @@branch = 0
 
-      attr_reader :method, :pattern, :body, :name
+      attr_reader :method, :pattern, :matcher, :body, :name
 
-      def initialize(method, pattern, body)
+      def initialize(method, pattern, matcher, body)
         @method = method
         @pattern = pattern
-        @body = body.block
+        @body = body
+        @matcher = matcher
         @name = :"#@method-#{tick}"
+      end
+
+      def matcher_name
+        :"#@name-matcher"
       end
 
       private
@@ -28,12 +34,14 @@ module Atomy
       @branches = []
     end
 
-    def add_branch(pattern, body)
-      branch = Branch.new(@name, pattern, body)
+    def add_branch(pattern, matcher, body)
+      branch = Branch.new(@name, pattern, matcher, body)
 
       index = nil
       replace = false
 
+      # TODO: ensure it's inserted after *all* the patterns it precludes, not
+      # just the first
       @branches.each.with_index do |b, i|
         if b.pattern.precludes?(pattern)
           index = i
@@ -82,8 +90,10 @@ module Atomy
       @branches.each do |b|
         skip = gen.new_label
 
+        gen.push_self
         gen.push_local(0)
-        b.pattern.matches?(gen)
+        gen.push_proc
+        gen.send_with_splat(b.matcher_name, 0, true)
         gen.gif(skip)
 
         gen.push_self

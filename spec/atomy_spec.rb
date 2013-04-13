@@ -1,7 +1,9 @@
 require "atomy"
 
+require "atomy/code/constant"
 require "atomy/module"
 require "atomy/pattern/equality"
+require "atomy/pattern/kind_of"
 require "atomy/pattern/message"
 require "atomy/pattern/wildcard"
 
@@ -22,7 +24,9 @@ describe Atomy do
     let(:target) { Atomy::Module.new }
 
     it "defines the method branch on the target" do
-      described_class.define_branch(target, :foo, wildcard) { 2 }
+      described_class.define_branch(target, :foo, wildcard) do
+        2
+      end
 
       expect(target.foo).to eq(2)
     end
@@ -52,6 +56,29 @@ describe Atomy do
 
         expect(target.foo(0)).to eq(:zero)
         expect(target.foo(1)).to eq(:one)
+      end
+
+      it "has the definition's binding available for pattern-matching" do
+        pattern = message(
+          wildcard,
+          [Atomy::Pattern::KindOf.new(Atomy::Code::Constant.new(:ABC))])
+
+        body = nil
+        module X
+          class ABC; end
+
+          def self.body
+            proc { |_| :ok }
+          end
+        end
+
+        described_class.define_branch(target, :foo, pattern, &X.body)
+
+        expect(target.foo(X::ABC.new)).to eq(:ok)
+
+        expect {
+          target.foo(Object.new)
+        }.to raise_error(Atomy::MessageMismatch)
       end
 
       context "when a wildcard method is defined after a specific one" do
@@ -116,7 +143,9 @@ describe Atomy do
           it "fails with MessageMismatch" do
             pattern = message(wildcard, [equality(0)])
 
-            described_class.define_branch(target, :foo, pattern) { |_| }
+            described_class.define_branch(target, :foo, pattern) do |_|
+              nil
+            end
 
             expect { target.foo(1) }.to raise_error(Atomy::MessageMismatch)
           end

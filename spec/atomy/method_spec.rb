@@ -4,6 +4,7 @@ require "atomy/method"
 require "atomy/module"
 require "atomy/pattern"
 require "atomy/pattern/equality"
+require "atomy/pattern/message"
 require "atomy/pattern/wildcard"
 
 describe Atomy::Method do
@@ -21,36 +22,40 @@ describe Atomy::Method do
     Atomy::Pattern::Message.new(receiver, arguments)
   end
 
+  def block(&blk)
+    blk.block
+  end
+
   describe "#add_branch" do
     it "creates a branch and inserts it" do
       expect {
-        subject.add_branch(Atomy::Pattern.new, proc {})
+        subject.add_branch(Atomy::Pattern.new, block {}, block {})
       }.to change { subject.branches.size }.from(0).to(1)
     end
 
     it "inserts branches with unique names" do
-      subject.add_branch(equality(0), proc {})
-      subject.add_branch(equality(1), proc {})
+      subject.add_branch(equality(0), block {}, block {})
+      subject.add_branch(equality(1), block {}, block {})
       expect(subject.branches.collect(&:name).uniq.size).to eq(2)
     end
 
     it "appends the branch to the end if none preclude it" do
-      subject.add_branch(equality(0), proc { :new })
-      subject.add_branch(wildcard, proc { :old })
+      subject.add_branch(equality(0), block {}, block { :new })
+      subject.add_branch(wildcard, block {}, block { :old })
       expect(subject.branches.collect(&:name).uniq.size).to eq(2)
       expect(subject.branches.first.body.call).to eq(:new)
     end
 
     it "inserts the branch before any branches that preclude it" do
-      subject.add_branch(wildcard, proc { :old })
-      subject.add_branch(equality(0), proc { :new })
+      subject.add_branch(wildcard, block {}, block { :old })
+      subject.add_branch(equality(0), block {}, block { :new })
       expect(subject.branches.collect(&:name).uniq.size).to eq(2)
       expect(subject.branches.first.body.call).to eq(:new)
     end
 
     it "replaces a branch with the new one if they preclude each other" do
-      subject.add_branch(equality(0), proc { :old })
-      subject.add_branch(equality(0), proc { :new })
+      subject.add_branch(equality(0), block {}, block { :old })
+      subject.add_branch(equality(0), block {}, block { :new })
       expect(subject.branches.collect(&:name).uniq.size).to eq(1)
       expect(subject.branches.first.body.call).to eq(:new)
     end
@@ -71,7 +76,7 @@ describe Atomy::Method do
 
     describe "invoking the method" do
       let(:target) { Atomy::Module.new }
-      let(:branch) { subject.add_branch(wildcard, proc { :ok }) }
+      let(:branch) { subject.add_branch(wildcard, block { true }, block { :ok }) }
       let(:method_name) { :foo }
 
       subject { described_class.new(method_name) }
@@ -84,6 +89,13 @@ describe Atomy::Method do
           target,
           :private)
 
+        # prep the matcher branch
+        Rubinius.add_method(
+          branch.matcher_name,
+          Rubinius::BlockEnvironment::AsMethod.new(branch.matcher),
+          target,
+          :private)
+
         Rubinius.add_method(method_name, subject.build, target, :public)
       end
 
@@ -93,7 +105,10 @@ describe Atomy::Method do
 
       context "when no patterns match" do
         let(:branch) do
-          subject.add_branch(message(wildcard, [equality(0)]), proc { |x| :ok })
+          subject.add_branch(
+            message(wildcard, [equality(0)]),
+            block { |v| v == 0 },
+            block { |x| :ok })
         end
 
         context "and the method exists on the superclass" do
