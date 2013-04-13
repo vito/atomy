@@ -30,10 +30,7 @@ module Atomy
           args = 0
           x.each_child do |_, c|
             if c.is_a?(Array)
-              c.each do |e|
-                go(e)
-              end
-              @gen.make_array(c.size)
+              construct_many(c)
             else
               go(c)
             end
@@ -65,6 +62,26 @@ module Atomy
           end
         ensure
           @depth += 1
+        end
+
+        def construct_many(c)
+          size = 0
+          c.each do |e|
+            if @depth == 1 && e.is_a?(Atomy::Grammar::AST::Unquote) && \
+                e.node.is_a?(Atomy::Grammar::AST::Prefix) && \
+                e.node.operator == :*
+              splat = true
+              @gen.make_array(size)
+              @module.compile(@gen, e.node.node)
+              @gen.send(:+, 1)
+              return
+            else
+              size += 1
+              go(e)
+            end
+          end
+
+          @gen.make_array(size)
         end
 
         def push_literal(x)

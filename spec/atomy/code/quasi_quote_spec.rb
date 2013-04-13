@@ -36,4 +36,12 @@ describe Atomy::Code::QuasiQuote do
       expect(eval!).to eq(ast("`(1 + ~'42)"))
     end
   end
+
+  context "with a splat" do
+    let(:quoted) { ast("{ ~*['1, '2, '3] }") }
+
+    it "inlines the nodes into the node" do
+      expect(eval!).to eq(ast("{ 1, 2, 3 }"))
+    end
+  end
 end
