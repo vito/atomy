@@ -75,7 +75,18 @@ class Atomy::Pattern
           end
 
           a.each_child do |attr, val|
-            return false unless go(val, b.send(attr))
+            theirval = b.send(attr)
+
+            # TODO: splat precludes the rest of an array?
+            if val.is_a?(Array)
+              return false unless val.size == theirval.size
+
+              val.each.with_index do |v, i|
+                return false unless go(v, theirval[i])
+              end
+            else
+              return false unless go(val, b.send(attr))
+            end
           end
 
           true

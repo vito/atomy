@@ -252,7 +252,7 @@ describe Atomy::Pattern::QuasiQuote do
             expect(subject.precludes?(other)).to eq(true)
           end
         end
-          
+
         context "and the patterns do NOT preclude the respective node" do
           subject { described_class.make(mod, ast("~'bar")) }
 
@@ -292,12 +292,32 @@ describe Atomy::Pattern::QuasiQuote do
             end
           end
         end
-          
+
         context "and the patterns do NOT preclude the respective node or pattern" do
           subject { described_class.make(mod, ast("~'b + 2")) }
 
           it "returns false" do
             expect(subject.precludes?(other)).to eq(false)
+          end
+        end
+
+        context "in a many-child" do
+          let(:other) { described_class.make(mod, ast("[0, ~'a, 2]")) }
+
+          context "and my pattern precludes the respective node or pattern" do
+            subject { described_class.make(mod, ast("[0, ~a, 2]")) }
+
+            it "returns true" do
+              expect(subject.precludes?(other)).to eq(true)
+            end
+          end
+
+          context "and my pattern does NOT preclude the respective node or pattern" do
+            subject { described_class.make(mod, ast("[0, ~'b, 2]")) }
+
+            it "returns false" do
+              expect(subject.precludes?(other)).to eq(false)
+            end
           end
         end
       end
