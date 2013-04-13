@@ -30,21 +30,21 @@ module Atomy
       node.accept(PatternExpander.new(self)) || super
     end
 
-    def define_method(name, body, receiver = nil, *arguments)
-      code = Atomy::Compiler.package(@file) do |gen|
-        Atomy::Code::DefineMethod.new(
-          name.text,
-          body,
-          receiver,
-          arguments).bytecode(gen, self)
-      end
-
+    def define_macro(pattern, body)
       bnd =
         Binding.setup(
           Rubinius::VariableScope.of_sender,
           Rubinius::CompiledCode.of_sender,
-          Rubinius::ConstantScope.of_sender,
+          BootstrapHelper.with_grammar(Rubinius::ConstantScope.of_sender),
           self)
+
+      code = Atomy::Compiler.package(@file) do |gen|
+        Atomy::Code::DefineMethod.new(
+          :expand,
+          body,
+          nil,
+          [pattern]).bytecode(gen, self)
+      end
 
       block = Atomy::Compiler.construct_block(code, bnd)
       block.call
@@ -156,6 +156,31 @@ module Atomy
       def visit_constant(node)
         Pattern::KindOf.new(@module.expand(node))
       end
+    end
+  end
+
+  # helpers that shouldn't be exposed through using Bootstrap
+  module BootstrapHelper
+    extend self
+
+    def with_grammar(scope)
+      cs =
+        if scope.module == Object
+          Rubinius::ConstantScope.new(
+            Atomy::Grammar::AST,
+            scope)
+        else
+          Rubinius::ConstantScope.new(
+            scope.module,
+            Rubinius::ConstantScope.new(
+              Atomy::Grammar::AST, scope.parent))
+        end
+
+      cs.current_module = scope.current_module
+      cs.disabled_for_methods = scope.disabled_for_methods
+      cs.flip_flops = scope.flip_flops
+
+      cs
     end
   end
 end

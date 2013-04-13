@@ -34,4 +34,3 @@ NODE_SAMPLES.each do |klass, sample|
     it_can_pretty_print_itself
   end
 end
-

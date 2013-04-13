@@ -1,6 +1,7 @@
 require "spec_helper"
 
 require "atomy/bootstrap"
+require "atomy/node/equality"
 
 describe Atomy::Bootstrap do
   subject do
@@ -197,30 +198,47 @@ describe Atomy::Bootstrap do
     end
   end
 
-  describe "#define_method" do
+  describe "#define_macro" do
     it "returns the CompiledCode of the method" do
-      code = subject.define_method(ast("foo"), ast("42"))
+      code = subject.module_eval { define_macro(ast("'foo"), ast("42")) }
       expect(code).to be_a(Rubinius::CompiledCode)
-      expect(code.name).to eq(:foo)
+      expect(code.name).to eq(:expand)
     end
 
-    context "without a receiver" do
-      it "defines on the current scope's for_method_definition" do
-        subject.define_method(ast("foo"), ast("42"))
-        expect(foo).to eq(42)
+    it "defines #expand on the current scope's for_method_definition" do
+      subject.module_exec do
+        define_macro(ast("'foo"), ast("'42"))
       end
 
-      it "has the caller's variable scope visible" do
-        a = 1
-        subject.define_method(ast("foo"), ast("eval(\"a\")"))
-        expect(foo).to eq(1)
+      expect(subject.expand(ast("foo"))).to eq(ast("42"))
+    end
+
+    it "has the caller's variable scope visible" do
+      a = 1
+
+      subject.module_exec do
+        define_macro(ast("'foo"), ast("eval(\"a\")"))
       end
 
-      it "has the caller's constant scope" do
-        A = 1
-        subject.define_method(ast("foo"), ast("eval(\"A\")"))
-        expect(foo).to eq(1)
+      expect(subject.expand(ast("foo"))).to eq(1)
+    end
+
+    it "has the caller's constant scope" do
+      A = 1
+
+      subject.module_exec do
+        define_macro(ast("'foo"), ast("eval(\"A\")"))
       end
+
+      expect(subject.expand(ast("foo"))).to eq(1)
+    end
+
+    it "adds Atomy::Grammar::AST to its constant scope" do
+      subject.module_exec do
+        define_macro(ast("Word"), ast("Word"))
+      end
+
+      expect(subject.expand(ast("foo"))).to eq(Atomy::Grammar::AST::Word)
     end
   end
 end

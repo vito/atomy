@@ -2,8 +2,6 @@ require "spec_helper"
 
 require "atomy/grammar"
 
-include Atomy::Grammar::AST
-
 describe Atomy::Grammar do
   let(:source) { "" }
 
@@ -55,32 +53,32 @@ describe Atomy::Grammar do
     describe "single-line" do
       let(:source) { "-- foo\n1" }
 
-      it { should be_a(Number) }
+      it { should be_a(Atomy::Grammar::AST::Number) }
     end
 
     describe "block" do
       let(:source) { "{- foo -}\n1" }
 
-      it { should be_a(Number) }
+      it { should be_a(Atomy::Grammar::AST::Number) }
 
       context "when spanning multiple lines" do
         let(:source) { "{- \nfoo\nbar\nbaz -}\n1" }
-        it { should be_a(Number) }
+        it { should be_a(Atomy::Grammar::AST::Number) }
       end
 
       context "when not spaced from its contents" do
         let(:source) { "{-foo-}\n1" }
-        it { should be_a(Number) }
+        it { should be_a(Atomy::Grammar::AST::Number) }
       end
 
       context "when nested" do
         let(:source) { "{- foo {- bar -} baz -}\n1" }
-        it { should be_a(Number) }
+        it { should be_a(Atomy::Grammar::AST::Number) }
       end
 
       context "when in the middle of a node" do
         let(:source) { "fizz {- foo {- bar -} baz -} buzz" }
-        it { should be_a(Compose) }
+        it { should be_a(Atomy::Grammar::AST::Compose) }
       end
     end
   end
@@ -108,7 +106,7 @@ describe Atomy::Grammar do
     subject { result.first }
 
     describe "numbers" do
-      let(:node) { Number }
+      let(:node) { Atomy::Grammar::AST::Number }
 
       let(:source) { "123" }
       its(:value) { should == 123 }
@@ -165,7 +163,7 @@ describe Atomy::Grammar do
     end
 
     describe "floating point literals" do
-      let(:node) { Literal}
+      let(:node) { Atomy::Grammar::AST::Literal }
 
       let(:source) { "12.345" }
       its(:value) { should == 12.345 }
@@ -282,7 +280,7 @@ describe Atomy::Grammar do
     end
 
     describe "strings" do
-      let(:node) { StringLiteral }
+      let(:node) { Atomy::Grammar::AST::StringLiteral }
 
       let(:source) { '"foo"' }
       its(:value) { should == "foo" }
@@ -294,7 +292,7 @@ describe Atomy::Grammar do
     end
 
     describe "constants" do
-      let(:node) { Constant }
+      let(:node) { Atomy::Grammar::AST::Constant }
 
       let(:source) { "Foo" }
       its(:text) { should == :Foo }
@@ -311,7 +309,7 @@ describe Atomy::Grammar do
     end
 
     describe "words" do
-      let(:node) { Word }
+      let(:node) { Atomy::Grammar::AST::Word }
 
       let(:source) { "foo" }
       its(:text) { should == :foo }
@@ -340,7 +338,8 @@ describe Atomy::Grammar do
         let(:source) { "#{open} x #{close}" }
 
         it "has it under ##{attribute}" do
-          expect(subject.send(attribute).first).to be_a(Word)
+          expect(subject.send(attribute).first).to be_a(
+            Atomy::Grammar::AST::Word)
           expect(subject.send(attribute).size).to eq(1)
         end
       end
@@ -351,10 +350,12 @@ describe Atomy::Grammar do
         it "has them both under ##{attribute}" do
           expect(subject.send(attribute).size).to eq(2)
 
-          expect(subject.send(attribute)[0]).to be_a(Word)
+          expect(subject.send(attribute)[0]).to be_a(
+            Atomy::Grammar::AST::Word)
           expect(subject.send(attribute)[0].text).to eq(:x)
 
-          expect(subject.send(attribute)[1]).to be_a(Word)
+          expect(subject.send(attribute)[1]).to be_a(
+            Atomy::Grammar::AST::Word)
           expect(subject.send(attribute)[1].text).to eq(:y)
         end
       end
@@ -365,17 +366,19 @@ describe Atomy::Grammar do
         it "has them both under ##{attribute}" do
           expect(subject.send(attribute).size).to eq(2)
 
-          expect(subject.send(attribute)[0]).to be_a(Word)
+          expect(subject.send(attribute)[0]).to be_a(
+            Atomy::Grammar::AST::Word)
           expect(subject.send(attribute)[0].text).to eq(:x)
 
-          expect(subject.send(attribute)[1]).to be_a(Word)
+          expect(subject.send(attribute)[1]).to be_a(
+            Atomy::Grammar::AST::Word)
           expect(subject.send(attribute)[1].text).to eq(:y)
         end
       end
     end
 
     describe "blocks" do
-      let(:node) { Block }
+      let(:node) { Atomy::Grammar::AST::Block }
 
       it_contains_nodes("{", "}")
 
@@ -389,34 +392,34 @@ describe Atomy::Grammar do
     end
 
     describe "lists" do
-      let(:node) { List }
+      let(:node) { Atomy::Grammar::AST::List }
 
       it_contains_nodes("[", "]")
     end
 
     describe "prefixes" do
-      let(:node) { Prefix }
+      let(:node) { Atomy::Grammar::AST::Prefix }
 
       let(:source) { "!foo" }
       its(:operator) { should == :"!" }
-      its(:node) { should be_a(Word) }
+      its(:node) { should be_a(Atomy::Grammar::AST::Word) }
 
       context "when chaining prefixes" do
         let(:source) { "?!foo" }
         its(:operator) { should == :"?" }
-        its(:node) { should be_a(Prefix) }
+        its(:node) { should be_a(Atomy::Grammar::AST::Prefix) }
       end
 
       context "with a postfix node" do
         let(:source) { "!foo?" }
         its(:operator) { should == :"!" }
-        its(:node) { should be_a(Postfix) }
+        its(:node) { should be_a(Atomy::Grammar::AST::Postfix) }
       end
     end
 
     def self.it_prefixes_with(op)
       let(:source) { "#{op}foo" }
-      its(:node) { should be_a(Word) }
+      its(:node) { should be_a(Atomy::Grammar::AST::Word) }
 
       context "when chaining" do
         let(:source) { "#{op}#{op}foo" }
@@ -425,47 +428,47 @@ describe Atomy::Grammar do
 
       context "with a postfix node" do
         let(:source) { "#{op}foo?" }
-        its(:node) { should be_a(Postfix) }
+        its(:node) { should be_a(Atomy::Grammar::AST::Postfix) }
       end
     end
 
     describe "quotes" do
-      let(:node) { Quote }
+      let(:node) { Atomy::Grammar::AST::Quote }
 
       it_prefixes_with "'"
     end
 
     describe "quasiquotes" do
-      let(:node) { QuasiQuote }
+      let(:node) { Atomy::Grammar::AST::QuasiQuote }
 
       it_prefixes_with "`"
     end
 
     describe "unquotes" do
-      let(:node) { Unquote }
+      let(:node) { Atomy::Grammar::AST::Unquote }
 
       it_prefixes_with "~"
     end
 
     describe "postfixes" do
-      let(:node) { Postfix }
+      let(:node) { Atomy::Grammar::AST::Postfix }
 
       let(:source) { "foo!" }
       its(:operator) { should == :"!" }
-      its(:node) { should be_a(Word) }
+      its(:node) { should be_a(Atomy::Grammar::AST::Word) }
 
       context "when chaining postfixes" do
         let(:source) { "foo!?" }
         its(:operator) { should == :"?" }
-        its(:node) { should be_a(Postfix) }
+        its(:node) { should be_a(Atomy::Grammar::AST::Postfix) }
       end
     end
 
     describe "applies" do
-      let(:node) { Apply }
+      let(:node) { Atomy::Grammar::AST::Apply }
 
       let(:source) { "foo()" }
-      its(:node) { should be_a(Word) }
+      its(:node) { should be_a(Atomy::Grammar::AST::Word) }
       its(:arguments) { should be_empty }
 
       context "with arguments given" do
@@ -475,7 +478,7 @@ describe Atomy::Grammar do
       context "with a grouped name" do
         let(:source) { "(foo)()" }
 
-        its(:node) { should be_a(Word) }
+        its(:node) { should be_a(Atomy::Grammar::AST::Word) }
         its(:arguments) { should be_empty }
 
         context "with arguments given" do
@@ -485,156 +488,156 @@ describe Atomy::Grammar do
     end
 
     describe "composes" do
-      let(:node) { Compose }
+      let(:node) { Atomy::Grammar::AST::Compose }
 
       let(:source) { "1 a" }
-      its(:left) { should be_a(Number) }
-      its(:right) { should be_a(Word) }
+      its(:left) { should be_a(Atomy::Grammar::AST::Number) }
+      its(:right) { should be_a(Atomy::Grammar::AST::Word) }
 
       context "with grouping" do
         let(:source) { "(1) (a)" }
-        its(:left) { should be_a(Number) }
-        its(:right) { should be_a(Word) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Number) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Word) }
       end
 
       context "without spacing" do
         let(:source) { "foo: 123" }
-        its(:left) { should be_a(Word) }
-        its(:right) { should be_a(Block) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Word) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Block) }
 
         context "and something that looks like an infix operation" do
           let(:source) { "1/2" }
-          its(:left) { should be_a(Postfix) }
-          its(:right) { should be_a(Number) }
+          its(:left) { should be_a(Atomy::Grammar::AST::Postfix) }
+          its(:right) { should be_a(Atomy::Grammar::AST::Number) }
         end
       end
 
       describe "line continuation" do
         let(:source) { "1\n a" }
-        its(:left) { should be_a(Number) }
-        its(:right) { should be_a(Word) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Number) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Word) }
 
         context "with a long chain and a small continuation" do
           let(:source) { "1 a b c d\n 1.2" }
-          its(:left) { should be_a(Compose) }
-          its(:right) { should be_a(Literal) }
+          its(:left) { should be_a(Atomy::Grammar::AST::Compose) }
+          its(:right) { should be_a(Atomy::Grammar::AST::Literal) }
         end
 
         context "with a small chain and a long continuation" do
           let(:source) { "1 a\n b c d 1.2" }
-          its(:left) { should be_a(Compose) }
-          its(:right) { should be_a(Literal) }
+          its(:left) { should be_a(Atomy::Grammar::AST::Compose) }
+          its(:right) { should be_a(Atomy::Grammar::AST::Literal) }
         end
 
         context "with a continuation spanning three lines" do
           let(:source) { "1 a\n b c\n d 1.2" }
-          its(:left) { should be_a(Compose) }
-          its(:right) { should be_a(Literal) }
+          its(:left) { should be_a(Atomy::Grammar::AST::Compose) }
+          its(:right) { should be_a(Atomy::Grammar::AST::Literal) }
         end
       end
 
       describe "chaining" do
         let(:source) { "1 a b" }
-        its(:left) { should be_a(Compose) }
-        its(:right) { should be_a(Word) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Compose) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Word) }
       end
     end
 
     describe "infixes" do
-      let(:node) { Infix }
+      let(:node) { Atomy::Grammar::AST::Infix }
 
       let(:source) { "1 + a" }
-      its(:left) { should be_a(Number) }
-      its(:right) { should be_a(Word) }
+      its(:left) { should be_a(Atomy::Grammar::AST::Number) }
+      its(:right) { should be_a(Atomy::Grammar::AST::Word) }
       its(:operator) { should == :+ }
 
       context "with an implicit left side" do
         let(:source) { "+ 2" }
         its(:left) { should be_nil }
-        its(:right) { should be_a(Number) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Number) }
         its(:operator) { should == :+ }
       end
 
       context "with an arbitrarily long operator" do
         let(:source) { '1 !@#$%^&*-=+\|/.<>? a' }
-        its(:left) { should be_a(Number) }
-        its(:right) { should be_a(Word) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Number) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Word) }
         its(:operator) { should == :"!@\#$%^&*-=+\\|/.<>?" }
       end
 
       context "with a grouped expression on the left" do
         let(:source) { "(2 * 2) + a" }
-        its(:left) { should be_a(Infix) }
-        its(:right) { should be_a(Word) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Infix) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Word) }
         its(:operator) { should == :+ }
       end
 
       context "with a grouped expression on the left" do
         let(:source) { "a + (2 * 2)" }
-        its(:left) { should be_a(Word) }
-        its(:right) { should be_a(Infix) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Word) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Infix) }
         its(:operator) { should == :+ }
       end
 
       context "with a compose on the left" do
         let(:source) { "1 a + a" }
-        its(:left) { should be_a(Compose) }
-        its(:right) { should be_a(Word) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Compose) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Word) }
         its(:operator) { should == :+ }
       end
 
       context "with a compose on the right" do
         let(:source) { "1 + 1 a" }
-        its(:left) { should be_a(Number) }
-        its(:right) { should be_a(Compose) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Number) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Compose) }
         its(:operator) { should == :+ }
       end
 
       context "with a prefix on the right" do
         let(:source) { "1 + !a" }
-        its(:left) { should be_a(Number) }
-        its(:right) { should be_a(Prefix) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Number) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Prefix) }
         its(:operator) { should == :+ }
       end
 
       context "with a prefix on the left" do
         let(:source) { "!a + 1" }
-        its(:left) { should be_a(Prefix) }
-        its(:right) { should be_a(Number) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Prefix) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Number) }
         its(:operator) { should == :+ }
       end
 
       context "with a postfix on the right" do
         let(:source) { "1 + a!" }
-        its(:left) { should be_a(Number) }
-        its(:right) { should be_a(Postfix) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Number) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Postfix) }
         its(:operator) { should == :+ }
       end
 
       context "with a postfix on the left" do
         let(:source) { "a! + 1" }
-        its(:left) { should be_a(Postfix) }
-        its(:right) { should be_a(Number) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Postfix) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Number) }
         its(:operator) { should == :+ }
       end
 
       describe "line continuation" do
         let(:source) { "1\n + a" }
-        its(:left) { should be_a(Number) }
-        its(:right) { should be_a(Word) }
+        its(:left) { should be_a(Atomy::Grammar::AST::Number) }
+        its(:right) { should be_a(Atomy::Grammar::AST::Word) }
         its(:operator) { should == :+ }
 
         context "when continuing after the operator" do
           let(:source) { "1 +\n a" }
-          its(:left) { should be_a(Number) }
-          its(:right) { should be_a(Word) }
+          its(:left) { should be_a(Atomy::Grammar::AST::Number) }
+          its(:right) { should be_a(Atomy::Grammar::AST::Word) }
           its(:operator) { should == :+ }
         end
 
         context "with an implicit left side" do
           let(:source) { "+\n 2" }
           its(:left) { should be_nil }
-          its(:right) { should be_a(Number) }
+          its(:right) { should be_a(Atomy::Grammar::AST::Number) }
           its(:operator) { should == :+ }
         end
       end
