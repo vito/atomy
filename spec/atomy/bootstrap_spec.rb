@@ -241,4 +241,18 @@ describe Atomy::Bootstrap do
       expect(subject.expand(ast("foo"))).to eq(Atomy::Grammar::AST::Word)
     end
   end
+
+  describe "#quasiquote" do
+    it "constructs a QuasiQuote node" do
+      expect(subject.quasiquote(ast("foo"))).to eq(ast("`foo"))
+    end
+  end
+
+  describe "#sequence" do
+    it "constructs a Sequence node" do
+      seq = subject.sequence([ast("foo"), ast("bar")])
+      expect(seq).to be_a(Atomy::Grammar::AST::Sequence)
+      expect(seq.nodes).to eq([ast("foo"), ast("bar")])
+    end
+  end
 end

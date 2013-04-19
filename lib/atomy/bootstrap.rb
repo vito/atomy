@@ -50,6 +50,14 @@ module Atomy
       block.call
     end
 
+    def quasiquote(node)
+      Atomy::Grammar::AST::QuasiQuote.new(node)
+    end
+
+    def sequence(nodes)
+      Atomy::Grammar::AST::Sequence.new(nodes)
+    end
+
     private
 
     class NodeExpander
