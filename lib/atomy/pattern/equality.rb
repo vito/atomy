@@ -33,5 +33,13 @@ class Atomy::Pattern
     def precludes?(other)
       other.is_a?(self.class) && @value == other.value
     end
+
+    def target(gen)
+      gen.push_cpath_top
+
+      @value.class.name.split("::").each do |n|
+        gen.find_const(n.to_sym)
+      end
+    end
   end
 end

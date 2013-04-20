@@ -30,6 +30,21 @@ describe Atomy::Code::DefineMethod do
     blk.call
   end
 
+  context "with a receiver" do
+    let(:receiver) { ast("42") }
+
+    it "defines on the receiver pattern's target" do
+      expect {
+        define!
+      }.to change { 42.class.instance_methods.include?(:foo) }.to(true)
+    end
+
+    it "pattern-matches on the receiver" do
+      expect(42.foo).to eq(0)
+      expect { 43.foo }.to raise_error(Atomy::MessageMismatch)
+    end
+  end
+
   context "without a receiver" do
     it "defines the method on the ConstantScope's for_method_definition" do
       mod = Atomy::Module.new

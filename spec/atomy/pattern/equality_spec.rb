@@ -119,6 +119,64 @@ describe Atomy::Pattern::Equality do
     end
   end
 
+  describe "#target" do
+    context "with a fixnum" do
+      subject { described_class.new(42) }
+
+      it_compiles_as(:target) do |gen|
+        gen.push_cpath_top
+        gen.find_const(:Fixnum)
+      end
+    end
+
+    context "with 'true'" do
+      subject { described_class.new(true) }
+
+      it_compiles_as(:target) do |gen|
+        gen.push_cpath_top
+        gen.find_const(:TrueClass)
+      end
+    end
+
+    context "with 'false'" do
+      subject { described_class.new(false) }
+
+      it_compiles_as(:target) do |gen|
+        gen.push_cpath_top
+        gen.find_const(:FalseClass)
+      end
+    end
+
+    context "with 'nil'" do
+      subject { described_class.new(nil) }
+
+      it_compiles_as(:target) do |gen|
+        gen.push_cpath_top
+        gen.find_const(:NilClass)
+      end
+    end
+
+    context "with a string" do
+      subject { described_class.new("foobar") }
+
+      it_compiles_as(:target) do |gen|
+        gen.push_cpath_top
+        gen.find_const(:String)
+      end
+    end
+
+    context "with a node" do
+      subject { described_class.new(ast("1 + a")) }
+
+      it_compiles_as(:target) do |gen|
+        gen.push_cpath_top
+        gen.find_const(:Atomy)
+        gen.find_const(:Grammar)
+        gen.find_const(:AST)
+        gen.find_const(:Infix)
+      end
+    end
+  end
 
   describe "#precludes?" do
     context "when the other pattern is an Equality" do

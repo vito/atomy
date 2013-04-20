@@ -18,5 +18,9 @@ class Atomy::Pattern
     def precludes?(other)
       !other.is_a?(Wildcard)
     end
+
+    def target(gen)
+      @code.bytecode(gen, nil)
+    end
   end
 end

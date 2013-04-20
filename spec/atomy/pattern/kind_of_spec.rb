@@ -38,6 +38,12 @@ describe Atomy::Pattern::KindOf do
     end
   end
 
+  describe "#target" do
+    it_compiles_as(:target) do |gen|
+      gen.push_const(:Fixnum)
+    end
+  end
+
   describe "#precludes?" do
     context "when the other pattern is a Wildcard" do
       let(:other) { Atomy::Pattern::Wildcard.new }

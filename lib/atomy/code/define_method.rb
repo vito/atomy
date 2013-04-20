@@ -16,8 +16,7 @@ module Atomy
 
         gen.push_cpath_top
         gen.find_const(:Atomy)
-        gen.push_scope
-        gen.send(:for_method_definition, 0)
+        push_target(gen, mod)
         gen.push_literal(@name)
 
         gen.push_cpath_top
@@ -58,6 +57,15 @@ module Atomy
           message_pattern(mod).deconstruct(blk)
 
           mod.compile(blk, @body)
+        end
+      end
+
+      def push_target(gen, mod)
+        if @receiver
+          message_pattern(mod).receiver.target(gen)
+        else
+          gen.push_scope
+          gen.send(:for_method_definition, 0)
         end
       end
 
