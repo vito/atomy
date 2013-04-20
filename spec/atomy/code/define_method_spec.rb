@@ -18,7 +18,7 @@ describe Atomy::Code::DefineMethod do
 
   let(:eval_binding) { compile_module.compile_context }
 
-  subject { described_class.new(name, body, receiver, arguments) }
+  subject { described_class.new(name, body, arguments, receiver) }
 
   def define!
     code = Atomy::Compiler.package(__FILE__.to_sym, __LINE__) do |gen|

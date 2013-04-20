@@ -39,11 +39,8 @@ module Atomy
           self)
 
       code = Atomy::Compiler.package(@file) do |gen|
-        Atomy::Code::DefineMethod.new(
-          :expand,
-          body,
-          nil,
-          [pattern]).bytecode(gen, self)
+        Atomy::Code::DefineMethod.new(:expand, body, [pattern]).
+          bytecode(gen, self)
       end
 
       block = Atomy::Compiler.construct_block(code, bnd)

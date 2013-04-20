@@ -4,7 +4,7 @@ require "atomy/pattern/message"
 module Atomy
   module Code
     class DefineMethod
-      def initialize(name, body, receiver = nil, arguments = [])
+      def initialize(name, body, arguments = [], receiver = nil)
         @name = name
         @body = body
         @receiver = receiver
