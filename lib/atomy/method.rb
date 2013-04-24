@@ -20,6 +20,10 @@ module Atomy
         :"#@name-matcher"
       end
 
+      def total_args
+        @pattern.arguments.size
+      end
+
       private
 
       def tick
@@ -69,8 +73,13 @@ module Atomy
       Atomy::Compiler.package(:__wrapper__) do |gen|
         gen.name = @name
 
-        gen.splat_index = 0
-        gen.state.scope.new_local(:__arguments__)
+        total, req = argument_count
+        gen.total_args = total
+        gen.required_args = req
+
+        total.times do |i|
+          gen.state.scope.new_local(:"arg:#{i}")
+        end
 
         done = gen.new_label
 
@@ -86,20 +95,39 @@ module Atomy
 
     private
 
+    def argument_count
+      total = 0
+      req = nil
+
+      @branches.each do |b|
+        args = b.total_args
+        total = args if args > total
+        req = args if !req || args < req
+      end
+
+      [total, req]
+    end
+
     def build_branches(gen, done)
       @branches.each do |b|
         skip = gen.new_label
 
         gen.push_self
-        gen.push_local(0)
+        b.total_args.times do |i|
+          gen.push_local(i)
+        end
         gen.push_proc
-        gen.send_with_splat(b.matcher_name, 0, true)
+        gen.send_with_block(b.matcher_name, b.total_args, true)
+
         gen.gif(skip)
 
         gen.push_self
-        gen.push_local(0)
+        b.total_args.times do |i|
+          gen.push_local(i)
+        end
         gen.push_proc
-        gen.send_with_splat(b.name, 0, true)
+        gen.send_with_block(b.name, b.total_args, true)
+
         gen.goto(done)
 
         skip.set!
@@ -109,7 +137,7 @@ module Atomy
     def try_super(gen, done)
       no_super = gen.new_label
 
-      gen.invoke_primitive :vm_check_super_callable, 0
+      gen.invoke_primitive(:vm_check_super_callable, 0)
       gen.gif(no_super)
 
       gen.push_proc
@@ -130,8 +158,7 @@ module Atomy
       gen.find_const(:MessageMismatch)
       gen.push_literal(@name)
       gen.push_self
-      gen.push_local(0)
-      gen.send(:new, 3)
+      gen.send(:new, 2)
       gen.raise_exc
     end
   end

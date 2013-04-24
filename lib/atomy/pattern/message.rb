@@ -9,6 +9,8 @@ class Atomy::Pattern
       @arguments = arguments
     end
 
+    # note: this does not pop anything from the stack, which is pretty
+    # inconsistent.
     def matches?(gen)
       done = gen.new_label
       mismatch = gen.new_label
@@ -19,29 +21,25 @@ class Atomy::Pattern
         gen.gif(mismatch)
       end
 
-      gen.dup
-      gen.send(:size, 0)
-      gen.push_int(@arguments.size)
-      gen.send(:==, 1)
+      gen.passed_arg(@arguments.size - 1)
       gen.gif(mismatch)
 
-      @arguments.each do |arg|
-        gen.shift_array
+      # don't match extra args
+      gen.passed_arg(@arguments.size)
+      gen.git(mismatch)
 
-        if arg.wildcard?
-          gen.pop
-        else
-          arg.matches?(gen)
-          gen.gif(mismatch)
-        end
+      @arguments.each.with_index do |arg, i|
+        next if arg.wildcard?
+
+        gen.push_local(i)
+        arg.matches?(gen)
+        gen.gif(mismatch)
       end
 
-      gen.pop
       gen.push_true
       gen.goto done
 
       mismatch.set!
-      gen.pop # pop args
       gen.push_false
 
       done.set!
@@ -56,15 +54,11 @@ class Atomy::Pattern
 
       return unless @arguments.any?(&:binds?)
 
-      gen.dup
-
-      @arguments.each do |arg|
-        gen.shift_array
+      @arguments.each.with_index do |arg, i|
+        gen.push_local(i)
         arg.deconstruct(gen)
-        gen.pop
       end
 
-      gen.pop
     end
 
     def precludes?(other)

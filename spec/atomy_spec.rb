@@ -17,14 +17,14 @@ describe Atomy do
       Atomy::Pattern::Equality.new(value)
     end
 
-    def message(receiver, arguments = [])
+    def message(receiver = wildcard, arguments = [])
       Atomy::Pattern::Message.new(receiver, arguments)
     end
 
     let(:target) { Atomy::Module.new }
 
     it "defines the method branch on the target" do
-      described_class.define_branch(target, :foo, wildcard) do
+      described_class.define_branch(target, :foo, message) do
         2
       end
 

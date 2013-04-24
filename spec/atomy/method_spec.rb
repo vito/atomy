@@ -18,7 +18,7 @@ describe Atomy::Method do
     Atomy::Pattern::Equality.new(val)
   end
 
-  def message(receiver, arguments = [])
+  def message(receiver = wildcard, arguments = [])
     Atomy::Pattern::Message.new(receiver, arguments)
   end
 
@@ -76,7 +76,7 @@ describe Atomy::Method do
 
     describe "invoking the method" do
       let(:target) { Atomy::Module.new }
-      let(:branch) { subject.add_branch(wildcard, block { true }, block { :ok }) }
+      let(:branch) { subject.add_branch(message, block { true }, block { :ok }) }
       let(:method_name) { :foo }
 
       subject { described_class.new(method_name) }

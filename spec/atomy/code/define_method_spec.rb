@@ -40,6 +40,7 @@ describe Atomy::Code::DefineMethod do
     end
 
     it "pattern-matches on the receiver" do
+      define!
       expect(42.foo).to eq(0)
       expect { 43.foo }.to raise_error(Atomy::MessageMismatch)
     end

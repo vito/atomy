@@ -48,12 +48,12 @@ module Atomy
         Atomy::Compiler.generate(mod.file) do |blk|
           blk.name = @name
           blk.state.scope.parent = gen.state.scope
-          blk.splat_index = 0
-          blk.total_args = 0
-          blk.required_args = 0
+          blk.required_args = blk.total_args = @arguments.size
 
-          blk.push_local(0)
-          blk.state.scope.new_local(:__arguments__)
+          @arguments.each.with_index do |a, i|
+            blk.state.scope.new_local(:"arg:#{i}")
+          end
+
           message_pattern(mod).deconstruct(blk)
 
           mod.compile(blk, @body)

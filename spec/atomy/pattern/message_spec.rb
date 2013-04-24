@@ -19,27 +19,66 @@ describe Atomy::Pattern::Message do
   subject { described_class.new(wildcard) }
 
   describe "#matches?" do
-    context "with no arguments" do
-      it { should === [] }
-      it { should_not === [1] }
+    def match_args?(*args)
+      code = Atomy::Compiler.package(__FILE__.to_sym) do |gen|
+        gen.total_args = gen.required_args = subject.arguments.size
+
+        subject.arguments.size.times do |i|
+          gen.state.scope.new_local(:"arg:#{i}")
+        end
+
+        subject.matches?(gen)
+        gen.ret
+      end
+
+      Atomy::Compiler.construct_block(code, binding).call(*args)
     end
 
-    context "with non-wildcard patterns" do
+    context "with no arguments" do
+      it "matches no arguments" do
+        expect(match_args?).to be_true
+      end
+
+      it "does not match extra arguments" do
+        expect(match_args?(1)).to be_false
+      end
+    end
+
+    context "with non-wildcard argument patterns" do
       subject { described_class.new(wildcard, [equality(1)]) }
 
-      it { should_not === [] }
-      it { should     === [1] }
-      it { should_not === [2] }
-      it { should_not === [1, 2] }
+      it "does not match too few arguments" do
+        expect(match_args?).to be_false
+      end
+
+      it "does not match too many arguments" do
+        expect(match_args?(1, 2)).to be_false
+      end
+
+      it "matches if the argument matches" do
+        expect(match_args?(1)).to be_true
+      end
+
+      it "does not match if the argument does not match" do
+        expect(match_args?(2)).to be_false
+      end
     end
 
-    context "with wildcard arguments" do
+    context "with wildcard argument patterns" do
       subject { described_class.new(wildcard, [wildcard]) }
 
-      it { should_not === [] }
-      it { should     === [1] }
-      it { should     === [2] }
-      it { should_not === [1, 2] }
+      it "does not match too few arguments" do
+        expect(match_args?).to be_false
+      end
+
+      it "does not match too many arguments" do
+        expect(match_args?(1, 2)).to be_false
+      end
+
+      it "matches any argument" do
+        expect(match_args?(1)).to be_true
+        expect(match_args?("foo")).to be_true
+      end
     end
   end
 
@@ -62,11 +101,10 @@ describe Atomy::Pattern::Message do
       subject { described_class.new(wildcard, [wildcard(:a)]) }
 
       it_compiles_as(:deconstruct) do |gen|
-        gen.dup
-        gen.shift_array
-        gen.set_local(0)
-        gen.pop
-        gen.pop
+        arg = gen.state.scope.new_local(:"arg:0").reference
+        pat = gen.state.scope.new_local(:a).reference
+        gen.push_local(arg.slot)
+        gen.set_local(pat.slot)
       end
     end
 
@@ -74,14 +112,17 @@ describe Atomy::Pattern::Message do
       subject { described_class.new(wildcard, [wildcard(:a), wildcard(:b)]) }
 
       it_compiles_as(:deconstruct) do |gen|
-        gen.dup
-        gen.shift_array
-        gen.set_local(0)
-        gen.pop
-        gen.shift_array
-        gen.set_local(1)
-        gen.pop
-        gen.pop
+        arg1 = gen.state.scope.new_local(:"arg:0").reference
+        arg2 = gen.state.scope.new_local(:"arg:1").reference
+
+        pat1 = gen.state.scope.new_local(:a).reference
+        pat2 = gen.state.scope.new_local(:b).reference
+
+        gen.push_local(arg1.slot)
+        gen.set_local(pat1.slot)
+
+        gen.push_local(arg2.slot)
+        gen.set_local(pat2.slot)
       end
     end
 
@@ -89,14 +130,16 @@ describe Atomy::Pattern::Message do
       subject { described_class.new(wildcard, [wildcard(:a), wildcard(:a)]) }
 
       it_compiles_as(:deconstruct) do |gen|
-        gen.dup
-        gen.shift_array
-        gen.set_local(0)
-        gen.pop
-        gen.shift_array
-        gen.set_local(0)
-        gen.pop
-        gen.pop
+        arg1 = gen.state.scope.new_local(:"arg:0").reference
+        arg2 = gen.state.scope.new_local(:"arg:1").reference
+
+        pat = gen.state.scope.new_local(:a).reference
+
+        gen.push_local(arg1.slot)
+        gen.set_local(pat.slot)
+
+        gen.push_local(arg2.slot)
+        gen.set_local(pat.slot)
       end
     end
   end

@@ -37,12 +37,12 @@ module Atomy
   def build_matcher(name, pattern, body)
     code = Atomy::Compiler.package(body.block.compiled_code.file) do |blk|
       blk.name = :"##{name}-matcher"
-      blk.splat_index = 0
-      blk.total_args = 0
-      blk.required_args = 0
+      blk.required_args = blk.total_args = pattern.arguments.size
 
-      blk.push_local(0)
-      blk.state.scope.new_local(:__arguments__)
+      pattern.arguments.each.with_index do |a, i|
+        blk.state.scope.new_local(:"arg:#{i}")
+      end
+
       pattern.matches?(blk)
     end
 
