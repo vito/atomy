@@ -81,7 +81,7 @@ describe Atomy::Method do
 
       subject { described_class.new(method_name) }
 
-      before do
+      def define!
         # prep the branch
         Rubinius.add_method(
           branch.name,
@@ -100,6 +100,7 @@ describe Atomy::Method do
       end
 
       it "can be invoked when attached to a target" do
+        define!
         expect(target.foo).to eq(:ok)
       end
 
@@ -108,12 +109,32 @@ describe Atomy::Method do
           subject.add_branch(message, block { true }, block { |&blk| blk })
         end
 
+        before { define! }
+
         it "is not passed to the branch" do
+          define!
           expect(target.foo {}).to be_nil
         end
       end
 
+      context "when there is a base case" do
+        let(:branch) do
+          subject.add_branch(message(wildcard, [equality(0)]), block { true }, block { |&blk| blk })
+        end
+
+        before do
+          subject.should_receive(:has_base_case?).and_return(true)
+        end
+
+        it "does not raise MessageMismatch" do
+          define!
+          expect(target.foo(1)).to be_nil
+        end
+      end
+
       context "when no patterns match" do
+        before { define! }
+
         let(:branch) do
           subject.add_branch(
             message(wildcard, [equality(0)]),

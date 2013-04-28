@@ -85,9 +85,12 @@ module Atomy
 
         build_branches(gen, done)
 
-        try_super(gen, done) unless @name == :initialize
+        unless has_base_case?
+          try_super(gen, done) unless @name == :initialize
+          raise_mismatch(gen)
+        end
 
-        raise_mismatch(gen)
+        gen.push_nil
 
         done.set!
       end
@@ -106,6 +109,31 @@ module Atomy
       end
 
       [total, req]
+    end
+
+    def has_base_case?
+      @branches.any? do |b|
+        # receiver must always match
+        (!b.pattern.receiver || b.pattern.receiver.always_matches_self?) &&
+          # must take no arguments (otherwise calling with invalid arg
+          # count would match, as branches can take different arg sizes)
+          (uniform_argument_count? && b.total_args == 0) # &&
+
+          # and either have no splat or a wildcard splat
+          #(!b.splat || b.splat.wildcard?)
+      end
+    end
+
+    def total_args
+      @branches.collect(&:total_args).max
+    end
+
+    def required_args
+      @branches.collect(&:total_args).min
+    end
+
+    def uniform_argument_count?
+      total_args == required_args
     end
 
     def build_branches(gen, done)
