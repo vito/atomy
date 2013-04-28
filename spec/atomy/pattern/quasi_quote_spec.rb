@@ -221,6 +221,20 @@ describe Atomy::Pattern::QuasiQuote do
     end
   end
 
+  describe "#inlineable?" do
+    context "when all unquoted patterns are inlineable" do
+      subject { described_class.make(mod, ast("[1, ~abc]")) }
+
+      it { should be_inlineable }
+    end
+
+    context "when any unquoted patterns uninlineable" do
+      subject { described_class.make(mod, ast("[1, ~ABC]")) }
+
+      it { should_not be_inlineable }
+    end
+  end
+
   describe "#precludes?" do
     context "when the other pattern is an Equality matching a Node" do
       let(:other) { Atomy::Pattern::Equality.new(ast("foo")) }

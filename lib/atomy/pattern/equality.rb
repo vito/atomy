@@ -41,5 +41,9 @@ class Atomy::Pattern
         gen.find_const(n.to_sym)
       end
     end
+
+    def inlineable?
+      true
+    end
   end
 end

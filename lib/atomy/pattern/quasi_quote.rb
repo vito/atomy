@@ -49,6 +49,10 @@ class Atomy::Pattern
       Binds.new.go(@node)
     end
 
+    def inlineable?
+      Inlineable.new.go(@node)
+    end
+
     private
 
     class PrecludeChecker
@@ -352,6 +356,24 @@ class Atomy::Pattern
         end
 
         false
+      end
+    end
+
+    class Inlineable < Walker
+      def initialize(depth = 1)
+        @depth = depth
+      end
+
+      def unquote(u)
+        u.node.inlineable?
+      end
+
+      def visit(x)
+        x.through do |v|
+          return false unless go(v)
+        end
+
+        true
       end
     end
   end

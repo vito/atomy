@@ -32,6 +32,14 @@ describe Atomy::Pattern::KindOf do
     end
   end
 
+  describe "#always_matches_self?" do
+    it { should be_always_matches_self }
+  end
+
+  describe "#inlineable?" do
+    it { should_not be_inlineable }
+  end
+
   describe "#binds?" do
     it "returns false" do
       expect(subject.binds?).to be_false

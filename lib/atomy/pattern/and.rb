@@ -44,5 +44,9 @@ class Atomy::Pattern
     def binds?
       @a.binds? || @b.binds?
     end
+
+    def inlineable?
+      @a.inlineable? && @b.inlineable?
+    end
   end
 end

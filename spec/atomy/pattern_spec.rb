@@ -99,6 +99,17 @@ describe Atomy::Pattern do
     end
   end
 
+  describe "#always_matches_self?" do
+    it "aliases to #wildcard? by default" do
+      pattern.should_receive(:wildcard?).and_return(42)
+      expect(subject.always_matches_self?).to eq(42)
+    end
+  end
+
+  describe "#inlineable?" do
+    it { should_not be_inlineable }
+  end
+
   describe "#assignment_local" do
     context "when a local is found" do
       context "and its depth is zero" do

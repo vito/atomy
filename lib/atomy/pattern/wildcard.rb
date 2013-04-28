@@ -22,6 +22,10 @@ class Atomy::Pattern
       true
     end
 
+    def inlineable?
+      true
+    end
+
     def binds?
       !!@name
     end

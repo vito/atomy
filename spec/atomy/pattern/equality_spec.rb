@@ -205,4 +205,8 @@ describe Atomy::Pattern::Equality do
       end
     end
   end
+
+  describe "#inlineable?" do
+    it { should be_inlineable }
+  end
 end

@@ -34,6 +34,43 @@ describe Atomy::Pattern::Message do
       Atomy::Compiler.construct_block(code, binding).call(*args)
     end
 
+    context "with a receiver that always matches self" do
+      let(:receiver) { Atomy::Pattern.new }
+
+      subject { described_class.new(receiver) }
+
+      it "skips matching the receiver" do
+        receiver.should_receive(:always_matches_self?).and_return(true)
+        receiver.should_not_receive(:matches?)
+        expect(match_args?).to be_true
+      end
+
+      context "with non-wildcard argument patterns" do
+        subject { described_class.new(receiver, [equality(1)]) }
+
+        before do
+          receiver.should_receive(:always_matches_self?).and_return(true)
+          receiver.should_not_receive(:matches?)
+        end
+
+        it "does not match too few arguments" do
+          expect(match_args?).to be_false
+        end
+
+        it "does not match too many arguments" do
+          expect(match_args?(1, 2)).to be_false
+        end
+
+        it "matches if the argument matches" do
+          expect(match_args?(1)).to be_true
+        end
+
+        it "does not match if the argument does not match" do
+          expect(match_args?(2)).to be_false
+        end
+      end
+    end
+
     context "with no arguments" do
       it "matches no arguments" do
         expect(match_args?).to be_true
@@ -78,6 +115,106 @@ describe Atomy::Pattern::Message do
       it "matches any argument" do
         expect(match_args?(1)).to be_true
         expect(match_args?("foo")).to be_true
+      end
+    end
+  end
+
+  describe "#inlineable?" do
+    let(:uninlineable) { Atomy::Pattern.new }
+    let(:receiver) { wildcard }
+    let(:arguments) { [] }
+
+    subject { described_class.new(receiver, arguments) }
+
+    context "when there is no receiver pattern" do
+      let(:receiver) { nil }
+
+      context "and there are arguments" do
+        context "and all arguments are inlineable" do
+          let(:arguments) { [wildcard] }
+
+          it { should be_inlineable }
+        end
+
+        context "and some of the arguments aren't inlineable" do
+          let(:arguments) { [wildcard, uninlineable] }
+
+          it { should_not be_inlineable }
+        end
+
+        context "and none of the arguments are inlineable" do
+          let(:arguments) { [uninlineable] }
+
+          it { should_not be_inlineable }
+        end
+      end
+
+      context "and there are no arguments" do
+        it { should be_inlineable }
+      end
+    end
+
+    context "when the receiver is inlineable" do
+      context "and there are arguments" do
+        context "and all arguments are inlineable" do
+          let(:arguments) { [wildcard] }
+
+          it { should be_inlineable }
+        end
+
+        context "and some of the arguments aren't inlineable" do
+          let(:arguments) { [wildcard, uninlineable] }
+
+          it { should_not be_inlineable }
+        end
+
+        context "and none of the arguments are inlineable" do
+          let(:arguments) { [uninlineable] }
+
+          it { should_not be_inlineable }
+        end
+      end
+
+      context "and there are no arguments" do
+        it { should be_inlineable }
+      end
+    end
+
+    context "when the receiver is NOT inlineable" do
+      let(:receiver) { uninlineable }
+
+      context "but it always matches self" do
+        before do
+          receiver.should_receive(:always_matches_self?).and_return(true)
+        end
+
+        context "and there are arguments" do
+          context "and all arguments are inlineable" do
+            let(:arguments) { [wildcard] }
+
+            it { should be_inlineable }
+          end
+
+          context "and some of the arguments aren't inlineable" do
+            let(:arguments) { [wildcard, uninlineable] }
+
+            it { should_not be_inlineable }
+          end
+
+          context "and none of the arguments are inlineable" do
+            let(:arguments) { [uninlineable] }
+
+            it { should_not be_inlineable }
+          end
+        end
+
+        context "and there are no arguments" do
+          it { should be_inlineable }
+        end
+      end
+
+      context "and it doesn't always match self" do
+        it { should_not be_inlineable }
       end
     end
   end

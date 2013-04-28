@@ -140,11 +140,15 @@ module Atomy
       @branches.each do |b|
         skip = gen.new_label
 
-        gen.push_self
-        b.total_args.times do |i|
-          gen.push_local(i)
+        if b.pattern.inlineable?
+          b.pattern.matches?(gen)
+        else
+          gen.push_self
+          b.total_args.times do |i|
+            gen.push_local(i)
+          end
+          gen.send(b.matcher_name, b.total_args, true)
         end
-        gen.send(b.matcher_name, b.total_args, true)
 
         gen.gif(skip)
 

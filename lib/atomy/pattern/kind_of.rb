@@ -22,5 +22,13 @@ class Atomy::Pattern
     def target(gen)
       @code.bytecode(gen, nil)
     end
+
+    def always_matches_self?
+      true
+    end
+
+    def inlineable?
+      false
+    end
   end
 end

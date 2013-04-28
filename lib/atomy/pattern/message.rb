@@ -15,7 +15,7 @@ class Atomy::Pattern
       done = gen.new_label
       mismatch = gen.new_label
 
-      if @receiver && !@receiver.wildcard?
+      if @receiver && !@receiver.always_matches_self?
         gen.push_self
         @receiver.matches?(gen)
         gen.gif(mismatch)
@@ -58,7 +58,11 @@ class Atomy::Pattern
         gen.push_local(i)
         arg.deconstruct(gen)
       end
+    end
 
+    def inlineable?
+      (!@receiver || @receiver.always_matches_self? || @receiver.inlineable?) && \
+        @arguments.all?(&:inlineable?)
     end
 
     def precludes?(other)

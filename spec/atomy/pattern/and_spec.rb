@@ -118,6 +118,28 @@ describe Atomy::Pattern::And do
     end
   end
 
+  describe "#inlineable?" do
+    let(:uninlineable) { Atomy::Pattern.new }
+
+    context "when 'a' is inlineable" do
+      context "and 'b' is inlineable" do
+        it { should be_inlineable }
+      end
+
+      context "and 'b' is NOT inlineable" do
+        let(:b) { uninlineable }
+
+        it { should_not be_inlineable }
+      end
+    end
+
+    context "when 'a' is NOT inlineable" do
+      let(:a) { uninlineable }
+
+      it { should_not be_inlineable }
+    end
+  end
+
   describe "#binds?" do
     context "when 'a' binds" do
       let(:a) { wildcard(:a) }

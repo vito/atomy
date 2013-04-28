@@ -39,6 +39,10 @@ describe Atomy::Pattern::Wildcard do
     end
   end
 
+  describe "#inlineable?" do
+    it { should be_inlineable }
+  end
+
   describe "#binds?" do
     context "when there are no bindings" do
       it "returns false" do

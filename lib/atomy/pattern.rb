@@ -59,6 +59,14 @@ module Atomy
       false
     end
 
+    def always_matches_self?
+      wildcard?
+    end
+
+    def inlineable?
+      false
+    end
+
     def matches?(gen)
       raise NotImplementedError
     end
