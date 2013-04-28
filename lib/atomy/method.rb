@@ -116,8 +116,7 @@ module Atomy
         b.total_args.times do |i|
           gen.push_local(i)
         end
-        gen.push_proc
-        gen.send_with_block(b.matcher_name, b.total_args, true)
+        gen.send(b.matcher_name, b.total_args, true)
 
         gen.gif(skip)
 
@@ -125,8 +124,7 @@ module Atomy
         b.total_args.times do |i|
           gen.push_local(i)
         end
-        gen.push_proc
-        gen.send_with_block(b.name, b.total_args, true)
+        gen.send(b.name, b.total_args, true)
 
         gen.goto(done)
 

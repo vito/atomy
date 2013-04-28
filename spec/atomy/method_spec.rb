@@ -103,6 +103,16 @@ describe Atomy::Method do
         expect(target.foo).to eq(:ok)
       end
 
+      context "when a block is given" do
+        let(:branch) do
+          subject.add_branch(message, block { true }, block { |&blk| blk })
+        end
+
+        it "is not passed to the branch" do
+          expect(target.foo {}).to be_nil
+        end
+      end
+
       context "when no patterns match" do
         let(:branch) do
           subject.add_branch(
