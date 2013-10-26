@@ -1,4 +1,4 @@
-script: rake && bundle exec rspec
+script: make && bundle exec rspec
 rvm: rbx-2.1.1
 notifications:
   irc: "irc.freenode.net#atomy"
