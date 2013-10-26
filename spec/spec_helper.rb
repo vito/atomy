@@ -39,7 +39,7 @@ end
 
 SPEC_ROOT = File.dirname(__FILE__)
 
-Rubinius::Generator.class_eval do
+Rubinius::ToolSet.current::TS::Generator.class_eval do
   def debug(str)
     dup
     push_cpath_top
@@ -246,7 +246,7 @@ module Atomy
 
     # TODO: put TestGenerator under Rubinius
     def push_state(scope)
-      @state << Rubinius::AST::State.new(scope)
+      @state << Rubinius::ToolSet.current::TS::AST::State.new(scope)
     end
 
     def pop_state

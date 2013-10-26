@@ -30,7 +30,7 @@ describe Atomy::Grammar do
     let(:source) { "#language foo" }
 
     it "switches the language being parsed" do
-      foolang = mock
+      foolang = double
       foolang.should_receive(:external_invoke).with(anything, :_root)
 
       grammar.should_receive(:set_lang).with(:foo) do

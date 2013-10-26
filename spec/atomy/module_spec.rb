@@ -220,8 +220,8 @@ describe Atomy::Module do
 
   describe "#compile" do
     let(:apply) { ast("foo(1)") }
-    let(:generator) { mock }
-    let(:expansion) { mock }
+    let(:generator) { double :generator }
+    let(:expansion) { double :expansion }
 
     it "expands the node and compiles the expansion" do
       # TODO: less stubby
