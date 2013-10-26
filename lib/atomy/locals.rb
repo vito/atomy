@@ -1,6 +1,6 @@
 module Atomy
   class LocalState
-    include Rubinius::Compiler::LocalVariables
+    include Rubinius::ToolSet.current::TS::Compiler::LocalVariables
 
     attr_accessor :parent
 
@@ -14,7 +14,7 @@ module Atomy
     end
 
     def new_local(name)
-      variable = Rubinius::Compiler::LocalVariable.new(allocate_slot)
+      variable = Rubinius::ToolSet.current::TS::Compiler::LocalVariable.new(allocate_slot)
       variables[name] = variable
     end
   end
@@ -40,7 +40,7 @@ module Atomy
     end
 
     def new_local(name)
-      variable = Rubinius::Compiler::EvalLocalVariable.new(name)
+      variable = Rubinius::ToolSet.current::TS::Compiler::EvalLocalVariable.new(name)
       variables[name] = variable
     end
 
@@ -52,9 +52,9 @@ module Atomy
 
       while scope
         if !scope.method.for_eval? && (slot = scope.method.local_slot(name))
-          return Rubinius::Compiler::NestedLocalVariable.new(depth, slot)
+          return Rubinius::ToolSet.current::TS::Compiler::NestedLocalVariable.new(depth, slot)
         elsif scope.eval_local_defined?(name, false)
-          return Rubinius::Compiler::EvalLocalVariable.new(name)
+          return Rubinius::ToolSet.current::TS::Compiler::EvalLocalVariable.new(name)
         end
 
         depth += 1
