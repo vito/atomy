@@ -1,0 +1,382 @@
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td { margin: 0; padding: 0; }
+table { border-collapse: collapse; border-spacing: 0; }
+fieldset,img { border: 0; }
+address,caption,cite,code,dfn,th,var { font-style: normal; font-weight: normal; }
+li { list-style: none; }
+caption,th { text-align: left; }
+h1,h2,h3,h4,h5,h6 { font-size: 100%; font-weight: normal; }
+abbr,acronym { border: 0; font-variant: normal; }
+input,textarea,select { font-family: inherit; font-size: inherit; font-weight: inherit; }
+a { text-decoration: none; color: inherit; }
+
+html {
+	font-size: 62.5%;
+	height: 100%;
+	background-color: #fff;
+	color: #000;
+}
+
+body {
+    font: normal 1.5em/1.46em 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, Georgia, serif;
+    height: 100%;
+}
+
+pre, code {
+    font-size: 1.1em;
+}
+
+a:link {
+    text-decoration: underline;
+    color: blue;
+}
+a:visited {
+    color: purple;
+}
+
+ol, ul {
+    margin-left: 2em;
+}
+ol li {
+    list-style: decimal;
+}
+ul li {
+    list-style: disc;
+}
+
+strong { font-weight: bold }
+em { font-style: italic }
+
+h1 {
+    line-height: 1.4em;
+    font-size: 2em;
+    margin-bottom: .5em;
+}
+h2 {
+    font-size: 1.75em;
+    margin-bottom: 1.0625em;
+}
+h3 {
+    font-size: 1.4em;
+    padding-bottom: .25em;
+    border-bottom: 1px dotted #bbb;
+    margin-bottom: .75em;
+}
+
+p {
+    margin: 1em 0;
+}
+
+.toc {
+    margin-bottom: 2em;
+}
+.toc p {
+    padding: 0;
+}
+
+dd {
+    margin: 0 0 1em 2em;
+}
+
+#main {
+    width: 43em;
+    margin-left: 14em;
+}
+
+#content {
+    padding: 2em 2em 2em 1em;
+}
+
+#sidebar {
+    color: #777;
+    padding: 2em;
+    width: 10em;
+    height: 100%;
+    overflow: auto;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+}
+.search {
+    width: 15em;
+    position: fixed;
+    top: 2em;
+    right: 2em;
+    opacity: .5;
+}
+div.search:hover {
+    opacity: 1;
+}
+.search #search {
+    width: 15em;
+    padding: .4em .5em .3em;
+    border: .25em solid #eee;
+}
+.search .search_results {
+    margin: 0;
+    border: .25em solid #eee;
+    border-top: 0;
+    display: none;
+    background: #fff;
+}
+.search .search_results li {
+    list-style: none;
+    padding: .25em .5em;
+}
+.search .search_results .parent {
+    font-size: .9em;
+    font-style: italic;
+    color: #555;
+}
+.search .search_results .parent a {
+    color: #222;
+}
+.search .search_results .tag {
+    font-style: italic;
+    color: #555;
+}
+#sidebar h4 {
+    font-style: italic;
+}
+#sidebar .toc {
+    margin-left: 1em;
+    font-size: 0.9em;
+}
+#sidebar .toc .toggle {
+    margin-left: .5em;
+    font-size: 10px;
+    cursor: pointer;
+    color: #777;
+}
+#sidebar .toc ol {
+    margin: 0 0 0 1em;
+}
+
+.section .section {
+    margin: 1em 0;
+    padding: 1em 0;
+    border-bottom: .1em dotted #000;
+}
+.section .section .section {
+    margin: 0;
+    border: none;
+}
+
+.definition {
+    margin: 2em 0;
+    padding: 2em 0 0;
+    border-top: .1em dotted #ddd;
+}
+.definition .thumb pre {
+    background: #f5f5f5;
+    padding: .6em .75em;
+    margin-bottom: 1em;
+}
+.definition.macro .thumb pre {
+    /* same as unquote background */
+    background: #fff0f0;
+}
+
+.verbatim, .interaction, .highlight {
+    margin: 0 1em 1em;
+}
+
+.interaction pre {
+    overflow-x: auto;
+}
+
+pre a:link,
+pre a:visited,
+code a:link,
+code a:visited {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: .1em solid #ddd;
+}
+pre a:hover,
+code a:hover {
+    border-bottom-color: #333;
+}
+
+blockquote {
+    margin-left: 2em;
+}
+
+table p {
+    margin: .5em 0;
+}
+table th, table td {
+    padding: 0 .5em;
+}
+
+.margin_note {
+    width: 13em;
+    float: right;
+    margin-top: -1.5em;
+    margin-right: -15em;
+    padding: .5em;
+    color: #777;
+}
+
+.centered {
+    text-align: center;
+}
+.smaller {
+    font-size: 82%;
+}
+.larger {
+    font-size: 122%;
+}
+
+.interaction .error:before {
+    content: "error: ";
+}
+.interaction .error {
+    font-style: italic;
+    color: red;
+}
+.interaction .caret {
+    font-weight: bold;
+    color: #999;
+}
+
+.error_output {
+    display: block;
+    font-style: italic;
+    background: #fee;
+    color: #a33;
+}
+
+.annotated #content {
+    position: static;
+    padding: 0;
+}
+.annotated #sidebar {
+    z-index: 1;
+    background: rgba(255, 255, 255, .5);
+}
+.annotated_source {
+    width: 100%;
+}
+.annotated_source thead h1 {
+    line-height: 1em;
+    margin: 1.2em 0 .39em 0;
+    font-weight: bold;
+}
+.annotated_source .prose {
+    background: #fff;
+    width: 30em;
+    max-width: 30em;
+    min-width: 30em;
+    padding: 1em 2em 0 3.5em;
+    overflow-x: auto;
+    vertical-align: top;
+    text-align: left;
+}
+.annotated_source .prose code,
+.annotated_source .prose pre {
+    background: #f8f8ff;
+    border: .1em solid #dedede;
+    padding: 0 0.2em;
+    overflow-x: auto;
+}
+.annotated_source .code {
+    background: #f5f5ff;
+    border-left: .1em solid #e5e5e5;
+    padding: 1.1em 2em 0em 1.5em;
+    vertical-align: top;
+}
+
+.slides {
+    overflow: hidden;
+    background: #f0f0f0;
+}
+.slides #content {
+    padding: 0;
+    position: relative;
+    background: #f0f0f0;
+    height: 100%;
+    width: auto;
+    overflow: hidden;
+}
+.slides #content > h1 {
+    display: none;
+}
+.slides #content > p {
+    display: none;
+}
+.slides #sidebar {
+    display: none;
+}
+.slide {
+    width: 824px;
+    height: 568px;
+    margin: 0 auto;
+    padding: 100px;
+    border: 0;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: -384px 0 0 -512px;
+    background: #fff;
+}
+.slide h2 {
+    font-size: 5em;
+    line-height: 1em;
+    text-align: center;
+    margin: 0 0 1em;
+}
+.slide h2 .continue {
+    font-size: .5em;
+    color: #bbb;
+    position: absolute;
+    top: -3.75em;
+    right: 1em;
+}
+.slide p {
+    font-size: 2em;
+    line-height: 1.4em;
+}
+.slide .body pre,
+.slide .body code {
+    font-size: 24px;
+    line-height: 1.4em;
+}
+.slide .body > ul {
+    margin-bottom: 1em;
+}
+.slide ul li {
+    list-style: disc;
+    font-size: 30px;
+}
+.slide li p {
+    font-size: 1em;
+    padding-bottom: .5em;
+}
+.slide.title,
+.slide.title_only {
+    display: table;
+    width: 1024px;
+    height: 768px;
+    padding: 0;
+}
+.slide.title .body,
+.slide.title_only h1  {
+    display: table-cell;
+    vertical-align: middle;
+}
+.slide.title h1 {
+    text-align: center;
+    font-size: 5em;
+    margin-bottom: 0;
+}
+.slide.title p {
+    width: 512px;
+    margin: 0 auto;
+    line-height: 1.4em;
+    text-align: center;
+}
+.slide.title_only h1 {
+    text-align: center;
+    font-size: 5em;
+}

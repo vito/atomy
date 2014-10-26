@@ -1,0 +1,1 @@
+var SEARCH_TAGS = [["Atomy Slides","<span class=\"title\"><a href=\"atomy-slides.html\">Atomy Slides</a></span>","atomy-slides.html"],["atomy-slides","<span class=\"tag\"><code><a href=\"atomy-slides.html\">atomy-slides</a></code></span>","atomy-slides.html"]];

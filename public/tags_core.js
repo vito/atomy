@@ -1,0 +1,1 @@
+var SEARCH_TAGS = [["Core","<span class=\"title\"><a href=\"core.html\">Core</a></span>","core.html"],["core","<span class=\"tag\"><code><a href=\"core.html\">core</a></code></span>","core.html"]];
