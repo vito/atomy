@@ -1,9 +1,10 @@
+require "rubinius/ast"
 module Atomy
   module AST
     class Rescue < Node
       children :body, [:handlers], :else?
 
-      # via Rubinius::AST::Rescue
+      # via CodeTools::AST::Rescue
       def bytecode(g, mod)
         pos(g)
 
@@ -32,7 +33,7 @@ module Atomy
 
           this_retry.set!
           ex = g.new_label
-          g.setup_unwind ex, Rubinius::AST::RescueType
+          g.setup_unwind ex, CodeTools::AST::RescueType
 
           if current_break = g.break
             # Make a break available to use, which we'll use to

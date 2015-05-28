@@ -1,5 +1,7 @@
+require "rubinius/compiler"
+
 module Atomy
-  class Compiler < Rubinius::Compiler
+  class Compiler < CodeTools::Compiler
     attr_accessor :expander
 
     def self.compiled_name(file)
@@ -92,7 +94,7 @@ module Atomy
         be.proc_environment = binding.proc_environment
       end
 
-      be.from_eval!
+      # be.from_eval!
 
       return be
     end
@@ -129,7 +131,7 @@ module Atomy
       be = Atomy::Compiler.construct_block string_or_node, mod, binding,
                                            filename, lineno, debug
 
-      be.set_eval_binding binding
+      # be.set_eval_binding binding
 
       be.call_on_instance(binding.self)
     end

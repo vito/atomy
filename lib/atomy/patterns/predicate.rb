@@ -1,3 +1,4 @@
+require "rubinius/ast"
 module Atomy::Patterns
   class Predicate < Pattern
     children :pattern
@@ -27,7 +28,7 @@ module Atomy::Patterns
       g.gif(mismatch)
 
       blk = @test.new_generator(g, :predicate_pattern)
-      blk.push_state Rubinius::AST::ClosedScope.new(@line)
+      blk.push_state CodeTools::AST::ClosedScope.new(@line)
       mod.compile(blk, @test)
       blk.ret
       blk.close

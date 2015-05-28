@@ -1,3 +1,6 @@
+require "rubinius/compiler"
+require "rubinius/ast"
+
 class Module
   def atomy_methods
     @atomy_methods ||= {}
@@ -138,14 +141,14 @@ module Atomy
     end
 
     def build
-      g = Rubinius::Generator.new
+      g = CodeTools::Generator.new
       g.name = @name
       g.file = :__wrapper__
       g.set_line 0
 
       done = g.new_label
 
-      g.push_state Rubinius::AST::ClosedScope.new(0)
+      g.push_state CodeTools::AST::ClosedScope.new(0)
 
       g.state.push_name @name
 
@@ -370,15 +373,16 @@ module Atomy
         g.push_literal body
         g.push_self
         g.push_literal body.constant_scope
+        g.push_false
         if has_args or splat
           g.push_local 0
           g.push_proc
-          g.send_with_splat :call_under, 2, true
+          g.send_with_splat :call_under, 3, true
         elsif block
           g.push_proc
-          g.send_with_block :call_under, 2, true
+          g.send_with_block :call_under, 3, true
         else
-          g.send :call_under, 2
+          g.send :call_under, 3
         end
       end
       g.goto done

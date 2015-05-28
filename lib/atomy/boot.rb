@@ -29,6 +29,9 @@ end
 require "rubygems"
 require "set"
 
+require "rubinius/compiler"
+require "rubinius/ast"
+
 require base + "/version"
 require base + "/module"
 require base + "/macros"

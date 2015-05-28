@@ -8,7 +8,7 @@ module Atomy
     end
 
     def message
-      "method #{@method_name} did not understand " +
+      "method '#{@method_name}' did not understand " +
         "the given arguments: #{@arguments.inspect}"
     end
   end

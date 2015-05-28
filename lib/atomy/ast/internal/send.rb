@@ -1,3 +1,5 @@
+require "atomy/util"
+
 module Atomy
   module AST
     class Send < Node
@@ -26,6 +28,8 @@ module Atomy
           mod.compile(g, @receiver)
           g.swap
 
+          g.push_false # visibility_scope for call_under
+
           @arguments.each do |a|
             mod.compile(g, a)
           end
@@ -40,12 +44,12 @@ module Atomy
               g.push_nil
             end
 
-            g.send_with_splat :call_under, @arguments.size + 2
+            g.send_with_splat :call_under, @arguments.size + 3
           elsif @block
             push_block(g, mod)
-            g.send_with_block :call_under, @arguments.size + 2
+            g.send_with_block :call_under, @arguments.size + 3
           else
-            g.send :call_under, @arguments.size + 2
+            g.send :call_under, @arguments.size + 3
           end
 
           return

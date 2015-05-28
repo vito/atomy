@@ -1,4 +1,6 @@
-class Rubinius::Generator
+require "rubinius/compiler"
+
+class CodeTools::Generator
   def debug(name = "", quiet = false)
     if quiet
       push_literal(name + "\n")
@@ -22,9 +24,9 @@ module Atomy
     # search in immediate context
     scope = ctx
     while scope
-      find = scope.module.constant_table.fetch name, undefined
+      find = scope.module.constant_table.lookup(name)
 
-      return find unless find.equal?(undefined)
+      return find.constant if find
 
       scope = scope.parent
     end
@@ -34,9 +36,9 @@ module Atomy
       current = scope.module
 
       while current
-        find = current.constant_table.fetch name, undefined
+        find = current.constant_table.lookup(name)
 
-        return find unless find.equal?(undefined)
+        return find.constant if find
 
         current = current.direct_superclass
       end
@@ -44,9 +46,9 @@ module Atomy
       scope = scope.parent
     end
 
-    find = Object.constant_table.fetch name, undefined
+    find = Object.constant_table.lookup(name)
 
-    return find unless find.equal?(undefined)
+    return find.constant if find
 
     ctx.module.const_missing(name)
   end

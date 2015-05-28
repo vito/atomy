@@ -7,9 +7,10 @@ use("interpolation")
 use("array")
 use("init")
 
+require("rubinius/ast")
 
 Atomy AST open:
-  NthRef = Rubinius AST NthRef class:
+  NthRef = CodeTools AST NthRef class:
     include(NodeLike)
     extend(SentientNode)
     attributes(.which)

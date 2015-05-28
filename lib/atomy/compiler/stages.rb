@@ -1,8 +1,10 @@
+require "rubinius/compiler"
+
 module Atomy
   class Compiler
-    class Generator < Rubinius::Compiler::Stage
+    class Generator < CodeTools::Compiler::Stage
       stage :atomy_bytecode
-      next_stage Rubinius::Compiler::Encoder
+      next_stage CodeTools::Compiler::Encoder
 
       attr_accessor :variable_scope
 
@@ -17,7 +19,7 @@ module Atomy
       end
 
       def run
-        @output = Rubinius::Generator.new
+        @output = CodeTools::Generator.new
         @input.variable_scope = @variable_scope
         @input.bytecode(@output, @module)
         @output.close
@@ -29,7 +31,7 @@ module Atomy
       end
     end
 
-    class Parser < Rubinius::Compiler::Stage
+    class Parser < CodeTools::Compiler::Stage
       stage :atomy_parser
       next_stage Generator
 

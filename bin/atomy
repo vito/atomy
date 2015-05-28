@@ -1,11 +1,6 @@
 #!/usr/bin/env rbx
 # vim: ft=ruby
 
-unless Rubinius.ruby19?
-  puts("Atomy must be run in 1.9 mode.")
-  exit(1)
-end
-
 require 'readline'
 require 'optparse'
 require 'profiler'

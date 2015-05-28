@@ -1,13 +1,14 @@
+require "rubinius/ast"
 module Atomy
   module AST
-    class Block < Rubinius::AST::Iter
+    class Block < CodeTools::AST::Iter
       include NodeLike
       extend SentientNode
 
       children [:contents], [:arguments], :block?
 
-      class Arguments < Rubinius::AST::FormalArguments19
-        class Default < Rubinius::AST::Node
+      class Arguments < CodeTools::AST::Parameters
+        class Default < CodeTools::AST::Node
           def initialize(line)
             @line = line
           end
@@ -18,19 +19,20 @@ module Atomy
           end
         end
 
-        def initialize(line, required, optional, splat, post, block, patterns)
+        def initialize(line, required=nil, optional=nil, splat=nil,
+                     post=nil, kwargs=nil, kwrest=nil, block=nil, patterns=nil)
           if optional
-            defaults = Rubinius::AST::Block.new(
+            defaults = CodeTools::AST::Block.new(
               line,
               optional.collect { |n|
-                Rubinius::AST::LocalVariableAssignment.new(
+                CodeTools::AST::LocalVariableAssignment.new(
                   line,
                   n,
                   Default.new(0))
               })
           end
 
-          super(line, required, defaults, splat, post, block)
+          super(line, required, defaults, splat, post, kwargs, kwrest, block)
 
           @patterns = patterns
         end
@@ -121,7 +123,7 @@ module Atomy
         @args ||= {}
         @args[mod] =
           Arguments.new(
-            @line, required, optional, splat, post, block, patterns)
+            @line, required, optional, splat, post, nil, nil, block, patterns)
       end
 
       def create_block(g, mod)

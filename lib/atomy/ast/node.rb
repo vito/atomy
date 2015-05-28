@@ -1,3 +1,4 @@
+require "rubinius/ast"
 module Atomy
   module AST
     module SentientNode
@@ -500,7 +501,7 @@ module Atomy
       end
     end
 
-    class Node < Rubinius::AST::Node
+    class Node < CodeTools::AST::Node
       include NodeLike
 
       def self.inherited(sub)
@@ -562,7 +563,7 @@ module Atomy
       end
     end
 
-    class EvalExpression < Rubinius::AST::EvalExpression
+    class EvalExpression < CodeTools::AST::EvalExpression
       def initialize(body)
         @pre_exe = []
         super
@@ -576,7 +577,7 @@ module Atomy
       end
     end
 
-    class Script < Rubinius::AST::Container
+    class Script < CodeTools::AST::Container
       def initialize(body)
         @body = ScriptBody.new(body.line, body.nodes)
         @pre_exe = []

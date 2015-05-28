@@ -1,3 +1,5 @@
+require "rubinius/ast"
+
 module Atomy
   module AST
     class Ensure < Node
@@ -8,7 +10,7 @@ module Atomy
 
         ok = g.new_label
         ex = g.new_label
-        g.setup_unwind ex, Rubinius::AST::EnsureType
+        g.setup_unwind ex, CodeTools::AST::EnsureType
 
         g.push_exception_state
         outer_exc_state = g.new_stack_local

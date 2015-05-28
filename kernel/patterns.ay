@@ -46,7 +46,8 @@ Atomy Patterns open:
       g send(.block, 0)
       g swap
       g push-scope
-      g send(.call-under, 2)
+      g push-false
+      g send(.call-under, 3)
       g set-stack-local(@result)
 
       @sub-pattern matches(g, mod)?
@@ -95,7 +96,8 @@ Atomy Patterns open:
           g send(.block, 0)
           g swap
           g push-scope
-          g send(.call-under, 2)
+          g push-false
+          g send(.call-under, 3)
 
       @sub-pattern deconstruct(g, mod, locals)
 

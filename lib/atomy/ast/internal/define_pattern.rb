@@ -50,7 +50,8 @@ module Atomy
         g.push_self
         g.send :new, 1
         g.send :new, 2
-        g.send :call_under, 2
+        g.push_false
+        g.send :call_under, 3
       end
     end
   end

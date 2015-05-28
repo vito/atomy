@@ -1,3 +1,4 @@
+require "rubinius/ast"
 module Atomy::Patterns
   class NamedInstance < Pattern
     attributes(:identifier)
@@ -16,7 +17,7 @@ module Atomy::Patterns
     end
 
     def deconstruct(g, mod, locals = {})
-      Rubinius::AST::InstanceVariableAssignment.new(0, name, nil).bytecode(g)
+      CodeTools::AST::InstanceVariableAssignment.new(0, name, nil).bytecode(g)
       g.pop
     end
 
