@@ -370,20 +370,17 @@ module Atomy
           g.send_vcall meth.name
         end
       else
-        g.push_literal body
+        g.push_literal(Rubinius::BlockEnvironment::AsMethod.new(body))
+        g.push_literal(@name)
+        g.push_literal(body.constant_scope.module)
         g.push_self
-        g.push_literal body.constant_scope
-        g.push_false
-        if has_args or splat
-          g.push_local 0
-          g.push_proc
-          g.send_with_splat :call_under, 3, true
-        elsif block
-          g.push_proc
-          g.send_with_block :call_under, 3, true
+        if has_args
+          g.push_local(0)
         else
-          g.send :call_under, 3
+          g.make_array(0)
         end
+        g.push_proc
+        g.send(:invoke, 5)
       end
       g.goto done
 
