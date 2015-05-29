@@ -44,5 +44,5 @@ end
 
 desc "Run the higher-level tests."
 task :test do
-  sh "rbx -X19 ./bin/atomy test/main.ay"
+  sh "./bin/atomy test/main.ay"
 end
