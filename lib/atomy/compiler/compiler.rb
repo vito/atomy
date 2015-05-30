@@ -4,14 +4,6 @@ module Atomy
   class Compiler < CodeTools::Compiler
     attr_accessor :expander
 
-    def self.compiled_name(file)
-      if file.suffix? ".ay"
-        file + "c"
-      else
-        file + ".compiled.ayc"
-      end
-    end
-
     def self.compile(mod, output = nil, debug = false)
       compiler = new :atomy_file, :compiled_file
 
