@@ -11,7 +11,7 @@ end
  
 desc "Build and install Atomy."
 task :install => :build do
-  sh "gem install atomy-#{Atomy::VERSION}"
+  sh "gem install atomy-#{Atomy::VERSION}.gem"
 end
 
 desc "Uninstall Atomy."
