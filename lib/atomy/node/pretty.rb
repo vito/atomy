@@ -45,7 +45,8 @@ module Atomy::Grammar::AST
 
   class Word
     def to_s
-      @text.to_s.tr("_", "-")
+      word = @text.to_s
+      word[0] + word[1..-1].tr("_", "-")
     end
   end
 
@@ -63,7 +64,11 @@ module Atomy::Grammar::AST
 
   class Infix
     def to_s
-      "#@left #@operator #@right"
+      if @left
+        "(#@left #@operator #@right)"
+      else
+        "(#@operator #@right)"
+      end
     end
   end
 
@@ -85,7 +90,7 @@ module Atomy::Grammar::AST
 
   class Compose
     def to_s
-      "#@left #@right"
+      "(#@left #@right)"
     end
   end
 
