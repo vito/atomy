@@ -7,7 +7,7 @@ module Atomy::Grammar::AST
     end
 
     private
-    
+
     def push_node(gen, name)
       gen.push_cpath_top
       gen.find_const(:Atomy)
@@ -105,7 +105,11 @@ module Atomy::Grammar::AST
   class Infix
     def construct(gen)
       push_node(gen, :Infix)
-      @left.construct(gen)
+      if @left
+        @left.construct(gen)
+      else
+        gen.push_nil
+      end
       @right.construct(gen)
       gen.push_literal(@operator)
       gen.send(:new, 3)

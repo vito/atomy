@@ -30,3 +30,10 @@ NODE_SAMPLES.each do |klass, sample|
     it_can_construct_itself
   end
 end
+
+describe Atomy::Grammar::AST::Infix do
+  context "when the left-hand side is missing" do
+    let(:node) { ast("+ 1") }
+    it_can_construct_itself
+  end
+end
