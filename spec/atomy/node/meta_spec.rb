@@ -147,7 +147,7 @@ describe Atomy::Grammar::AST::Node do
       end
 
       it "sends the message" do
-        node.should_receive(:foo!)
+        expect(node).to receive(:foo!)
         node.accept(visitor.new)
       end
     end
@@ -162,7 +162,7 @@ describe Atomy::Grammar::AST::Node do
       end
 
       it "sends #visit" do
-        node.should_receive(:foo!)
+        expect(node).to receive(:foo!)
         node.accept(visitor.new)
       end
     end

@@ -6,7 +6,7 @@ describe Atomy::LocalState do
   describe "#new_local" do
     it "returns the new variable" do
       expect(subject.new_local(:a)).to be_a(
-        Rubinius::ToolSet.current::TS::Compiler::LocalVariable)
+        CodeTools::Compiler::LocalVariable)
     end
 
     it "increases the local count" do

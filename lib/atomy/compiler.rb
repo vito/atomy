@@ -1,4 +1,5 @@
 require "atomy/locals"
+require "rubinius/compiler"
 
 module Atomy
   module Compiler
@@ -15,7 +16,7 @@ module Atomy
     end
 
     def generate(file, line = 0, state = LocalState.new)
-      gen = Rubinius::ToolSet.current::TS::Generator.new
+      gen = CodeTools::Generator.new
       gen.file = file
       gen.set_line(0)
 

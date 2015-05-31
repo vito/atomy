@@ -40,44 +40,44 @@ describe Atomy::Pattern::Message do
       subject { described_class.new(receiver) }
 
       it "skips matching the receiver" do
-        receiver.should_receive(:always_matches_self?).and_return(true)
-        receiver.should_not_receive(:matches?)
-        expect(match_args?).to be_true
+        expect(receiver).to receive(:always_matches_self?).and_return(true)
+        expect(receiver).to_not receive(:matches?)
+        expect(match_args?).to eq(true)
       end
 
       context "with non-wildcard argument patterns" do
         subject { described_class.new(receiver, [equality(1)]) }
 
         before do
-          receiver.should_receive(:always_matches_self?).and_return(true)
-          receiver.should_not_receive(:matches?)
+          expect(receiver).to receive(:always_matches_self?).and_return(true)
+          expect(receiver).to_not receive(:matches?)
         end
 
         it "does not match too few arguments" do
-          expect(match_args?).to be_false
+          expect(match_args?).to eq(false)
         end
 
         it "does not match too many arguments" do
-          expect(match_args?(1, 2)).to be_false
+          expect(match_args?(1, 2)).to eq(false)
         end
 
         it "matches if the argument matches" do
-          expect(match_args?(1)).to be_true
+          expect(match_args?(1)).to eq(true)
         end
 
         it "does not match if the argument does not match" do
-          expect(match_args?(2)).to be_false
+          expect(match_args?(2)).to eq(false)
         end
       end
     end
 
     context "with no arguments" do
       it "matches no arguments" do
-        expect(match_args?).to be_true
+        expect(match_args?).to eq(true)
       end
 
       it "does not match extra arguments" do
-        expect(match_args?(1)).to be_false
+        expect(match_args?(1)).to eq(false)
       end
     end
 
@@ -85,19 +85,19 @@ describe Atomy::Pattern::Message do
       subject { described_class.new(wildcard, [equality(1)]) }
 
       it "does not match too few arguments" do
-        expect(match_args?).to be_false
+        expect(match_args?).to eq(false)
       end
 
       it "does not match too many arguments" do
-        expect(match_args?(1, 2)).to be_false
+        expect(match_args?(1, 2)).to eq(false)
       end
 
       it "matches if the argument matches" do
-        expect(match_args?(1)).to be_true
+        expect(match_args?(1)).to eq(true)
       end
 
       it "does not match if the argument does not match" do
-        expect(match_args?(2)).to be_false
+        expect(match_args?(2)).to eq(false)
       end
     end
 
@@ -105,16 +105,16 @@ describe Atomy::Pattern::Message do
       subject { described_class.new(wildcard, [wildcard]) }
 
       it "does not match too few arguments" do
-        expect(match_args?).to be_false
+        expect(match_args?).to eq(false)
       end
 
       it "does not match too many arguments" do
-        expect(match_args?(1, 2)).to be_false
+        expect(match_args?(1, 2)).to eq(false)
       end
 
       it "matches any argument" do
-        expect(match_args?(1)).to be_true
-        expect(match_args?("foo")).to be_true
+        expect(match_args?(1)).to eq(true)
+        expect(match_args?("foo")).to eq(true)
       end
     end
   end
@@ -185,7 +185,7 @@ describe Atomy::Pattern::Message do
 
       context "but it always matches self" do
         before do
-          receiver.should_receive(:always_matches_self?).and_return(true)
+          expect(receiver).to receive(:always_matches_self?).and_return(true)
         end
 
         context "and there are arguments" do
@@ -308,7 +308,7 @@ describe Atomy::Pattern::Message do
           expect(subject.precludes?(other)).to eq(true)
         end
       end
-      
+
       context "and the arguments do NOT preclude the other arguments" do
         let(:other) { described_class.new(wildcard, [wildcard]) }
 

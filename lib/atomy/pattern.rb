@@ -1,4 +1,5 @@
 require "atomy/node/constructable"
+require "rubinius/ast"
 
 module Atomy
   class Pattern
@@ -6,7 +7,7 @@ module Atomy
 
     def ===(v)
       singleton_class.dynamic_method(:===) do |gen|
-        gen.push_state Rubinius::ToolSet.current::TS::AST::ClosedScope.new(0)
+        gen.push_state CodeTools::AST::ClosedScope.new(0)
         gen.total_args = gen.required_args = gen.local_count = 1
         gen.push_local(0)
 

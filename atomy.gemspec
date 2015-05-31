@@ -15,8 +15,11 @@ Gem::Specification.new do |s|
 
   # TODO: make a development dependency
   s.add_runtime_dependency "kpeg", "~> 0.10.0"
+  s.add_runtime_dependency "rubinius-compiler"
+  s.add_runtime_dependency "rubinius-ast"
 
   s.add_development_dependency "rake"
+  s.add_development_dependency "rspec-its"
 
   s.files = %w{LICENSE Gemfile} + Dir["{lib,kernel,bin}/**/*"]
 

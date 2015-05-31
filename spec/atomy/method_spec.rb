@@ -113,14 +113,14 @@ describe Atomy::Method do
         end
 
         it "inlines the matching logic" do
-          branch.stub(:matcher_name => :foo_matcher)
+          allow(branch).to receive(:matcher_name).and_return(:foo_matcher)
           define!
-          target.should_not_receive(branch.matcher_name)
+          expect(target).to_not receive(branch.matcher_name)
           expect(target.foo(0)).to eq(:ok)
         end
 
         it "still performs the pattern-matching" do
-          branch.stub(:matcher_name => :foo_matcher)
+          allow(branch).to receive(:matcher_name).and_return(:foo_matcher)
           define!
           expect { target.foo(1) }.to raise_error(Atomy::MessageMismatch)
         end
@@ -148,7 +148,7 @@ describe Atomy::Method do
         end
 
         before do
-          subject.should_receive(:has_base_case?).and_return(true)
+          expect(subject).to receive(:has_base_case?).and_return(true)
         end
 
         it "does not raise MessageMismatch" do

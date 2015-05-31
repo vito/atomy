@@ -159,7 +159,7 @@ describe Atomy::Compiler do
         gen.push_nil
       end
 
-      expect(generator).to(be_a(Rubinius::ToolSet.current::TS::Generator))
+      expect(generator).to(be_a(CodeTools::Generator))
     end
 
     it "has the file set to the module's file" do

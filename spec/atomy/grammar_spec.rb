@@ -31,9 +31,9 @@ describe Atomy::Grammar do
 
     it "switches the language being parsed" do
       foolang = double
-      foolang.should_receive(:external_invoke).with(anything, :_root)
+      expect(foolang).to receive(:external_invoke).with(anything, :_root)
 
-      grammar.should_receive(:set_lang).with(:foo) do
+      expect(grammar).to receive(:set_lang).with(:foo) do
         grammar.instance_exec do
           @_grammar_lang = foolang
         end

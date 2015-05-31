@@ -226,13 +226,13 @@ describe Atomy::Module do
     it "expands the node and compiles the expansion" do
       # TODO: less stubby
 
-      generator.should_receive(:set_line)
+      expect(generator).to receive(:set_line)
 
-      subject.should_receive(:expand).with(apply) do
+      expect(subject).to receive(:expand).with(apply) do
         expansion
       end
 
-      expansion.should_receive(:bytecode).with(generator, subject)
+      expect(expansion).to receive(:bytecode).with(generator, subject)
 
       subject.compile(generator, apply)
     end
@@ -258,8 +258,8 @@ describe Atomy::Module do
       end
 
       it "expands the expanded node" do
-        generator.should_receive(:set_line)
-        generator.should_receive(:push_literal).with(:foo)
+        expect(generator).to receive(:set_line)
+        expect(generator).to receive(:push_literal).with(:foo)
 
         subject.compile(generator, ast("self"))
       end
@@ -349,7 +349,7 @@ describe Atomy::Module do
 
   describe "#require" do
     it "invokes CodeLoader.require" do
-      Atomy::CodeLoader.should_receive(:require).with("foo/bar/baz")
+      expect(Atomy::CodeLoader).to receive(:require).with("foo/bar/baz")
       subject.require("foo/bar/baz")
     end
   end

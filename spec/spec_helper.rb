@@ -5,6 +5,11 @@ require "atomy/grammar"
 require "atomy/module"
 require "atomy/locals"
 
+require "rubinius/ast"
+require "rubinius/compiler"
+
+require "rspec/its"
+
 ALL_NODES = {}
 Atomy::Grammar::AST.constants.each do |name|
   next if [:Node, :Sequence].include?(name)
@@ -39,7 +44,7 @@ end
 
 SPEC_ROOT = File.dirname(__FILE__)
 
-Rubinius::ToolSet.current::TS::Generator.class_eval do
+CodeTools::Generator.class_eval do
   def debug(str)
     dup
     push_cpath_top
@@ -246,7 +251,7 @@ module Atomy
 
     # TODO: put TestGenerator under Rubinius
     def push_state(scope)
-      @state << Rubinius::ToolSet.current::TS::AST::State.new(scope)
+      @state << CodeTools::AST::State.new(scope)
     end
 
     def pop_state

@@ -28,7 +28,7 @@ describe Atomy::Pattern::KindOf do
 
   describe "#wildcard?" do
     it "returns false" do
-      expect(subject.wildcard?).to be_false
+      expect(subject.wildcard?).to eq(false)
     end
   end
 
@@ -42,7 +42,7 @@ describe Atomy::Pattern::KindOf do
 
   describe "#binds?" do
     it "returns false" do
-      expect(subject.binds?).to be_false
+      expect(subject.binds?).to eq(false)
     end
   end
 
@@ -93,7 +93,7 @@ describe Atomy::Pattern::KindOf do
         #subject { described_class.new(String) }
 
         #it "returns false" do
-          #expect(subject.precludes?(other)).to be_false
+          #expect(subject.precludes?(other)).to eq(false)
         #end
       #end
     #end
@@ -113,14 +113,14 @@ describe Atomy::Pattern::KindOf do
         #subject { described_class.new(String) }
 
         #it "returns true" do
-          #expect(subject.precludes?(other)).to be_false
+          #expect(subject.precludes?(other)).to eq(false)
         #end
       #end
     #end
 
     #context "when the other pattern is not a KindOf or Equality" do
       #it "returns false" do
-        #expect(subject.precludes?(Object.new)).to be_false
+        #expect(subject.precludes?(Object.new)).to eq(false)
       #end
     #end
   end

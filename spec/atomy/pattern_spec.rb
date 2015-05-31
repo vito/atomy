@@ -101,7 +101,7 @@ describe Atomy::Pattern do
 
   describe "#always_matches_self?" do
     it "aliases to #wildcard? by default" do
-      pattern.should_receive(:wildcard?).and_return(42)
+      expect(pattern).to receive(:wildcard?).and_return(42)
       expect(subject.always_matches_self?).to eq(42)
     end
   end
@@ -114,7 +114,7 @@ describe Atomy::Pattern do
     context "when a local is found" do
       context "and its depth is zero" do
         let(:gen) do
-          g = Rubinius::ToolSet.current::TS::Generator.new
+          g = CodeTools::Generator.new
           g.push_state(Atomy::LocalState.new)
           @local = g.state.scope.new_local(:a)
           g
@@ -129,7 +129,7 @@ describe Atomy::Pattern do
 
       context "and its depth is greater than zero" do
         let(:gen) do
-          g = Rubinius::ToolSet.current::TS::Generator.new
+          g = CodeTools::Generator.new
 
           parent = Atomy::LocalState.new
           @local = parent.new_local(:a)
@@ -160,7 +160,7 @@ describe Atomy::Pattern do
 
     context "when a local is NOT found" do
       let(:gen) do
-        g = Rubinius::ToolSet.current::TS::Generator.new
+        g = CodeTools::Generator.new
         g.push_state(Atomy::LocalState.new)
         g
       end
