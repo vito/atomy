@@ -21,20 +21,20 @@ class Atomy::Pattern
     end
 
     def matches?(val)
-      Matcher.new.go(@node, val)
+      MatchWalker.new.go(@node, val)
     end
 
     def locals
-      Locals.new.go(@node)
+      LocalsWalker.new.go(@node)
     end
 
     def assign(scope, val)
-      Assign.new(scope).go(@node, val)
+      AssignWalker.new(scope).go(@node, val)
     end
 
     private
 
-    class Matcher
+    class MatchWalker
       def go(a, b)
         if a.is_a?(Atomy::Pattern)
           a.matches?(b)
@@ -165,7 +165,7 @@ class Atomy::Pattern
       end
     end
 
-    class Locals
+    class LocalsWalker
       def go(x)
         locals = []
 
@@ -187,7 +187,7 @@ class Atomy::Pattern
       end
     end
 
-    class Assign
+    class AssignWalker
       def initialize(scope)
         @scope = scope
       end
