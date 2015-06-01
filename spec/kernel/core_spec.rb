@@ -34,6 +34,6 @@ describe "core kernel" do
   end
 
   it "implements local variable assignment notation" do
-    expect(subject.evaluate(ast("do: a = 1, a + 2"))).to eq(3)
+    expect(subject.evaluate(seq("a = 1, a + 2"))).to eq(3)
   end
 end

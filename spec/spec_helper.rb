@@ -89,6 +89,12 @@ def ast(str)
   g.result
 end
 
+def seq(str)
+  g = Atomy::Grammar.new(str)
+  g.raise_error unless g.parse("root")
+  g.result
+end
+
 # The CompileAsMatcher wraps the logic for checking that a string of Ruby code
 # is converted to the expected bytecode. It is combined with the #compile_as
 # spec helper and enables specs of the form:
