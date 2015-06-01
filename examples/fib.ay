@@ -1,0 +1,7 @@
+use(require("core"))
+
+def(fib(0)): 0
+def(fib(1)): 1
+def(fib(n)): fib(n - 2) + fib(n - 1)
+
+p(fib(20))
