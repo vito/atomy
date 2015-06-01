@@ -239,17 +239,38 @@ describe Atomy::Bootstrap do
     end
   end
 
-  describe "#quasiquote" do
-    it "constructs a QuasiQuote node" do
-      expect(subject.quasiquote(ast("foo"))).to eq(ast("`foo"))
+  describe "#make_quasiquote" do
+    it "constructs QuasiQuote code" do
+      made = subject.make_quasiquote(ast("foo"))
+      expect(made).to be_a(Atomy::Grammar::AST::QuasiQuote)
+      expect(made.node).to eq(ast("foo"))
     end
   end
 
-  describe "#sequence" do
+  describe "#make_sequence" do
     it "constructs a Sequence node" do
-      seq = subject.sequence([ast("foo"), ast("bar")])
+      seq = subject.make_sequence([ast("foo"), ast("bar")])
       expect(seq).to be_a(Atomy::Grammar::AST::Sequence)
       expect(seq.nodes).to eq([ast("foo"), ast("bar")])
+    end
+  end
+
+  describe "#make_constant" do
+    it "constructs Constant code" do
+      made = subject.make_constant(:Foo, ast("Bar"))
+      expect(made).to be_a(Atomy::Code::Constant)
+      expect(made.name).to eq(:Foo)
+      expect(made.parent).to eq(ast("Bar"))
+    end
+  end
+
+  describe "#make_send" do
+    it "constructs a Send node" do
+      made = subject.make_send(ast("foo"), ast("bar"), [ast("baz")])
+      expect(made).to be_a(Atomy::Code::Send)
+      expect(made.receiver).to eq(ast("foo"))
+      expect(made.message).to eq(:bar)
+      expect(made.arguments).to eq([ast("baz")])
     end
   end
 end

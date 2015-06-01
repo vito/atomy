@@ -48,12 +48,20 @@ module Atomy
       block.call
     end
 
-    def quasiquote(node)
-      Atomy::Grammar::AST::QuasiQuote.new(node)
+    def make_send(recv, msg, args = [])
+      Atomy::Code::Send.new(recv, msg.text, args)
     end
 
-    def sequence(nodes)
+    def make_constant(name, parent = nil)
+      Atomy::Code::Constant.new(name, parent)
+    end
+
+    def make_sequence(nodes)
       Atomy::Grammar::AST::Sequence.new(nodes)
+    end
+
+    def make_quasiquote(node)
+      Atomy::Grammar::AST::QuasiQuote.new(node)
     end
 
     private

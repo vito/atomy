@@ -1,9 +1,11 @@
 module Atomy
   module Code
     class Send
-      def initialize(receiver, name, arguments = [])
+      attr_reader :receiver, :message, :arguments
+
+      def initialize(receiver, message, arguments = [])
         @receiver = receiver
-        @name = name
+        @message = message
         @arguments = arguments
       end
 
@@ -20,7 +22,7 @@ module Atomy
 
         gen.allow_private unless @receiver
 
-        gen.send(@name, @arguments.size)
+        gen.send(@message, @arguments.size)
       end
     end
   end

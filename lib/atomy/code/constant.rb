@@ -1,11 +1,13 @@
 module Atomy
   module Code
     class Constant
+      attr_reader :name, :parent
+
       def initialize(name, parent = nil)
         @name = name
         @parent = parent
       end
-      
+
       def bytecode(gen, mod)
         if @parent
           mod.compile(gen, @parent)

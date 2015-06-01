@@ -1,6 +1,8 @@
 module Atomy
   module Code
     class QuasiQuote
+      attr_reader :node
+
       def initialize(node)
         @node = node
       end

@@ -1,6 +1,8 @@
 module Atomy
   module Code
     class Sequence
+      attr_reader :nodes
+
       def initialize(nodes)
         @nodes = nodes
       end
