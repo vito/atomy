@@ -103,11 +103,7 @@ module Atomy
       end
 
       def visit_infix(node)
-        if node.operator == :"="
-          Code::Assign.new(node.left, node.right)
-        else
-          Code::Send.new(node.left, node.operator, [node.right])
-        end
+        Code::Send.new(node.left, node.operator, [node.right])
       end
 
       def visit_quote(node)

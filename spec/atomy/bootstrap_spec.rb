@@ -110,15 +110,6 @@ describe Atomy::Bootstrap do
         expanded = subject.expand(node)
         expect(expanded).to be_a(Atomy::Code::Send)
       end
-
-      context "when the operator is '='" do
-        let(:node) { ast("a = 1") }
-
-        it "expands it into Assign code" do
-          expanded = subject.expand(node)
-          expect(expanded).to be_a(Atomy::Code::Assign)
-        end
-      end
     end
   end
 

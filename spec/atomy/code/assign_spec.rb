@@ -6,62 +6,24 @@ require "atomy/code/assign"
 describe Atomy::Code::Assign do
   let(:compile_module) { Atomy::Module.new { use Atomy::Bootstrap } }
 
-  let(:eval_binding) { compile_module.compile_context }
+  subject { described_class.new(name, value) }
 
-  subject { described_class.new(pattern, value) }
+  let(:name) { :a }
+  let(:value) { ast("1") }
 
-  def assign!(binding = eval_binding)
-    code = Atomy::Compiler.package(__FILE__.to_sym, __LINE__) do |gen|
-      subject.bytecode(gen, compile_module)
-    end
-
-    blk = Atomy::Compiler.construct_block(code, binding)
-
-    blk.call
+  it "returns the matched value" do
+    a = nil
+    expect(compile_module.evaluate(subject)).to eq(1)
   end
 
-  context "with a wildcard matcher" do
-    context "with bindings" do
-      let(:pattern) { ast("a") }
-      let(:value) { ast("1") }
+  it "assigns the variable in the current scope" do
+    a = :unmodified
 
-      it "returns the matched value" do
-        a = nil
-        expect(assign!(binding)).to eq(1)
-      end
+    expect(compile_module.evaluate(Atomy::Code::Sequence.new([
+      subject,
+      Atomy::Code::Variable.new(name),
+    ]))).to eq(1)
 
-      it "assigns them in the given scope" do
-        a = nil
-        assign!(binding)
-        expect(a).to eq(1)
-      end
-    end
-
-    context "with no bindings" do
-      let(:pattern) { ast("_") }
-      let(:value) { ast("1") }
-
-      it "returns the matched value" do
-        a = nil
-        expect(assign!(binding)).to eq(1)
-      end
-
-      it "does not affect locals" do
-        a = nil
-        assign!(binding)
-        expect(a).to be nil
-      end
-    end
-  end
-
-  context "when the pattern does not match" do
-    let(:pattern) { ast("1") }
-    let(:value) { ast("2") }
-
-    it "raises Atomy::PatternMismatch" do
-      expect {
-        assign!
-      }.to raise_error(Atomy::PatternMismatch)
-    end
+    expect(a).to eq(:unmodified)
   end
 end
