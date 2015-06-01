@@ -107,7 +107,7 @@ describe Atomy do
       end
 
       context "when a wildcard method is defined after a specific one" do
-        it "ensures that the more specific method is not clobbered" do
+        it "does not clobber the more specific one, as it was defined first" do
           pattern_0 = message(nil, [equality(0)])
           pattern_wildcard = message(nil, [wildcard])
 
@@ -133,7 +133,7 @@ describe Atomy do
       end
 
       context "when a wildcard method is defined before a specific one" do
-        it "ensures that the more specific method is not clobbered" do
+        it "clobbers later definitions" do
           pattern_0 = message(nil, [equality(0)])
           pattern_wildcard = message(nil, [wildcard])
 
@@ -153,7 +153,7 @@ describe Atomy do
             Atomy::Bootstrap,
           )
 
-          expect(target.foo(0)).to eq(0)
+          expect(target.foo(0)).to eq(42)
           expect(target.foo(1)).to eq(42)
         end
       end
