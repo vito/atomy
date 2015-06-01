@@ -166,66 +166,6 @@ describe Atomy::Pattern::Message do
     end
   end
 
-  describe "#precludes?" do
-    let(:other) { described_class.new(wildcard) }
-
-    context "when the receiver pattern precludes the other" do
-      let(:other) { described_class.new(wildcard) }
-
-      subject { described_class.new(wildcard) }
-
-      context "and the number of arguments differ" do
-        let(:other) { described_class.new(wildcard) }
-
-        subject { described_class.new(wildcard, [wildcard]) }
-
-        it "returns false" do
-          expect(subject.precludes?(other)).to eq(false)
-        end
-      end
-
-      context "and the arguments preclude the other arguments" do
-        let(:other) { described_class.new(wildcard, [wildcard]) }
-
-        subject { described_class.new(wildcard, [wildcard]) }
-
-        it "returns true" do
-          expect(subject.precludes?(other)).to eq(true)
-        end
-      end
-
-      context "and the arguments do NOT preclude the other arguments" do
-        let(:other) { described_class.new(wildcard, [wildcard]) }
-
-        subject { described_class.new(wildcard, [equality(0)]) }
-
-        it "returns false" do
-          expect(subject.precludes?(other)).to eq(false)
-        end
-      end
-    end
-
-    context "when the receiver pattern does NOT preclude the other" do
-      let(:other) { described_class.new(wildcard) }
-
-      subject { described_class.new(equality(0)) }
-
-      it "returns false" do
-        expect(subject.precludes?(other)).to eq(false)
-      end
-
-      context "and the arguments preclude the other arguments" do
-        let(:other) { described_class.new(wildcard, [wildcard]) }
-
-        subject { described_class.new(equality(0), [wildcard]) }
-
-        it "returns false" do
-          expect(subject.precludes?(other)).to eq(false)
-        end
-      end
-    end
-  end
-
   describe "#locals" do
     context "when the receiver pattern binds" do
       subject { described_class.new(wildcard(:a)) }

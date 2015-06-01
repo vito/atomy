@@ -12,10 +12,6 @@ class Atomy::Pattern
       @value == val
     end
 
-    def precludes?(other)
-      other.is_a?(self.class) && @value == other.value
-    end
-
     def target
       @value.class
     end

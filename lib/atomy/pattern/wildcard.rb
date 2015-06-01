@@ -34,9 +34,5 @@ class Atomy::Pattern
     def locals
       [@name].compact
     end
-
-    def precludes?(other)
-      true
-    end
   end
 end

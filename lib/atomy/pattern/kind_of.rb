@@ -13,17 +13,6 @@ class Atomy::Pattern
       val.kind_of?(@klass)
     end
 
-    def precludes?(other)
-      case other
-      when KindOf
-        !!(other.klass <= @klass)
-      when Wildcard
-        false
-      else
-        true
-      end
-    end
-
     def target
       @klass
     end

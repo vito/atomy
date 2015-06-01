@@ -39,24 +39,10 @@ describe Atomy::Method do
       expect(subject.branches.collect(&:name).uniq.size).to eq(2)
     end
 
-    it "appends the branch to the end if none preclude it" do
+    it "appends the branch to the end" do
       subject.add_branch(equality(0), block {}, block { :new })
       subject.add_branch(wildcard, block {}, block { :old })
       expect(subject.branches.collect(&:name).uniq.size).to eq(2)
-      expect(subject.branches.first.body.call).to eq(:new)
-    end
-
-    it "inserts the branch before any branches that preclude it" do
-      subject.add_branch(wildcard, block {}, block { :old })
-      subject.add_branch(equality(0), block {}, block { :new })
-      expect(subject.branches.collect(&:name).uniq.size).to eq(2)
-      expect(subject.branches.first.body.call).to eq(:new)
-    end
-
-    it "replaces a branch with the new one if they preclude each other" do
-      subject.add_branch(equality(0), block {}, block { :old })
-      subject.add_branch(equality(0), block {}, block { :new })
-      expect(subject.branches.collect(&:name).uniq.size).to eq(1)
       expect(subject.branches.first.body.call).to eq(:new)
     end
   end

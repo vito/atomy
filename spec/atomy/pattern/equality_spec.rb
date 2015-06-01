@@ -105,32 +105,4 @@ describe Atomy::Pattern::Equality do
       its(:target) { should eq(Atomy::Grammar::AST::Infix) }
     end
   end
-
-  describe "#precludes?" do
-    context "when the other pattern is an Equality" do
-      let(:other) { described_class.new(1) }
-
-      context "and the values are equal" do
-        subject { described_class.new(1) }
-
-        it "returns true" do
-          expect(subject.precludes?(other)).to eq(true)
-        end
-      end
-
-      context "and the values are NOT equal" do
-        subject { described_class.new(0) }
-
-        it "returns false" do
-          expect(subject.precludes?(other)).to eq(false)
-        end
-      end
-    end
-
-    context "when the other pattern is not an Equality" do
-      it "returns false" do
-        expect(subject.precludes?(Object.new)).to eq(false)
-      end
-    end
-  end
 end

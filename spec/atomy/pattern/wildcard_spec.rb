@@ -62,10 +62,4 @@ describe Atomy::Pattern::Wildcard do
       end
     end
   end
-
-  describe "#precludes?" do
-    it "returns true" do
-      expect(subject.precludes?(double)).to eq(true)
-    end
-  end
 end

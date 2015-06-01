@@ -28,20 +28,6 @@ class Atomy::Pattern
       true
     end
 
-    def precludes?(other)
-      return false unless other.is_a?(self.class)
-
-      return false unless !@receiver || @receiver.precludes?(other.receiver)
-
-      return false unless @arguments.size == other.arguments.size
-
-      @arguments.each.with_index do |arg, i|
-        return false unless arg.precludes?(other.arguments[i])
-      end
-
-      true
-    end
-
     def locals
       locals = []
 

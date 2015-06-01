@@ -74,33 +74,5 @@ describe Atomy::Pattern::Splat do
       end
     end
   end
-
-  describe "#precludes?" do
-    context "when the other pattern is a Splat" do
-      let(:other) { described_class.new(Atomy::Pattern::Equality.new(1)) }
-
-      context "and I preclude its pattern" do
-        subject { described_class.new(Atomy::Pattern::Wildcard.new) }
-
-        it "returns true" do
-          expect(subject.precludes?(other)).to eq(true)
-        end
-      end
-
-      context "and I do NOT preclude its pattern" do
-        subject { described_class.new(Atomy::Pattern::Equality.new(0)) }
-
-        it "returns false" do
-          expect(subject.precludes?(other)).to eq(false)
-        end
-      end
-    end
-
-    context "when the other pattern is not an Equality" do
-      it "returns false" do
-        expect(subject.precludes?(Object.new)).to eq(false)
-      end
-    end
-  end
 end
 

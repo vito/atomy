@@ -19,10 +19,6 @@ class Atomy::Pattern
     def assign(scope, val)
       @pattern.assign(scope, val)
     end
-
-    def precludes?(other)
-      other.is_a?(self.class) && @pattern.precludes?(other.pattern)
-    end
   end
 end
 

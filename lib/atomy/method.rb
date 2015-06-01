@@ -40,32 +40,7 @@ module Atomy
 
     def add_branch(pattern, matcher, body)
       branch = Branch.new(@name, pattern, matcher, body)
-
-      index = nil
-      replace = false
-
-      # TODO: ensure it's inserted after *all* the patterns it precludes, not
-      # just the first
-      @branches.each.with_index do |b, i|
-        if b.pattern.precludes?(pattern)
-          index = i
-
-          if pattern.precludes?(b.pattern)
-            replace = true
-          end
-
-          break
-        end
-      end
-
-      if replace
-        @branches[index] = branch
-      elsif index
-        @branches.insert(index, branch)
-      else
-        @branches << branch
-      end
-
+      @branches << branch
       branch
     end
 

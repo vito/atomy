@@ -13,10 +13,6 @@ class Atomy::Pattern
       @a.matches?(val) && @b.matches?(val)
     end
 
-    def precludes?(other)
-      @a.precludes?(other) && @b.precludes?(other)
-    end
-
     def locals
       @a.locals + @b.locals
     end

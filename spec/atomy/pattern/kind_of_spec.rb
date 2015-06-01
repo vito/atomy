@@ -33,48 +33,4 @@ describe Atomy::Pattern::KindOf do
   describe "#target" do
     its(:target) { should eq(klass) }
   end
-
-  describe "#precludes?" do
-    context "when the other pattern is a Wildcard" do
-      let(:other) { Atomy::Pattern::Wildcard.new }
-
-      it "returns false" do
-        expect(subject.precludes?(other)).to eq(false)
-      end
-    end
-
-    context "when the other pattern is a KindOf" do
-      context "and the classes are equal" do
-        let(:other) { described_class.new(klass) }
-
-        it "returns true" do
-          expect(subject.precludes?(other)).to eq(true)
-        end
-      end
-
-      context "and my class is a superclass of the other's" do
-        let(:other) { described_class.new(Fixnum) }
-
-        it "returns true" do
-          expect(subject.precludes?(other)).to eq(true)
-        end
-      end
-
-      context "and the other class is not equal and not a subclass" do
-        let(:other) { described_class.new(Fixnum) }
-
-        subject { described_class.new(String) }
-
-        it "returns false" do
-          expect(subject.precludes?(other)).to eq(false)
-        end
-      end
-    end
-
-    context "when the other pattern is not a KindOf or a Wildcard" do
-      it "returns true" do
-        expect(subject.precludes?(Object.new)).to eq(true)
-      end
-    end
-  end
 end

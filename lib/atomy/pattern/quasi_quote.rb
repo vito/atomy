@@ -24,16 +24,6 @@ class Atomy::Pattern
       Matcher.new.go(@node, val)
     end
 
-    def precludes?(other)
-      if other.is_a?(self.class)
-        PrecludeChecker.new.go(@node, other.node)
-      elsif other.is_a?(Equality) && other.value.is_a?(Atomy::Grammar::AST::Node)
-        PrecludeChecker.new(false).go(@node, other.value)
-      else
-        false
-      end
-    end
-
     def locals
       Locals.new.go(@node)
     end
@@ -43,48 +33,6 @@ class Atomy::Pattern
     end
 
     private
-
-    class PrecludeChecker
-      def initialize(quasi = true)
-        @quasi = quasi
-      end
-
-      def go(a, b)
-        a_quotes = a.is_a?(Atomy::Grammar::AST::Unquote)
-        b_quotes = b.is_a?(Atomy::Grammar::AST::Unquote)
-
-        if a.is_a?(Atomy::Pattern) && b.is_a?(Atomy::Pattern)
-          a.precludes?(b)
-        elsif b.is_a?(Atomy::Pattern)
-          false
-        elsif a.is_a?(Atomy::Pattern)
-          a.precludes?(Equality.new(b))
-        elsif b.is_a?(a.class)
-          a.each_attribute do |attr, val|
-            return false unless val == b.send(attr)
-          end
-
-          a.each_child do |attr, val|
-            theirval = b.send(attr)
-
-            # TODO: splat precludes the rest of an array?
-            if val.is_a?(Array)
-              return false unless val.size == theirval.size
-
-              val.each.with_index do |v, i|
-                return false unless go(v, theirval[i])
-              end
-            else
-              return false unless go(val, b.send(attr))
-            end
-          end
-
-          true
-        else
-          false
-        end
-      end
-    end
 
     class Matcher
       def go(a, b)

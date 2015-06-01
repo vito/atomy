@@ -140,48 +140,4 @@ describe Atomy::Pattern::And do
       end
     end
   end
-
-  describe "#precludes?" do
-    let(:other) { equality(0) }
-
-    context "when 'a' precludes" do
-      let(:a) { wildcard }
-
-      context "and 'b' precludes" do
-        let(:b) { wildcard }
-
-        it "returns true" do
-          expect(subject.precludes?(other)).to eq(true)
-        end
-      end
-
-      context "and 'b' does NOT preclude" do
-        let(:b) { equality(1) }
-
-        it "returns false" do
-          expect(subject.precludes?(other)).to eq(false)
-        end
-      end
-    end
-
-    context "when 'a' does NOT preclude" do
-      let(:a) { equality(1) }
-
-      context "and 'b' precludes" do
-        let(:b) { wildcard }
-
-        it "returns false" do
-          expect(subject.precludes?(other)).to eq(false)
-        end
-      end
-
-      context "and 'b' does NOT preclude" do
-        let(:b) { equality(2) }
-
-        it "returns false" do
-          expect(subject.precludes?(other)).to eq(false)
-        end
-      end
-    end
-  end
 end
