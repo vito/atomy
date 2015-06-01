@@ -1,0 +1,26 @@
+-- sequences
+define-macro('`(do: ~*nodes), 'make-sequence(nodes))
+
+-- a macro for defining macros!
+define-macro(
+  '`(macro(~pat): ~*body)
+  '`(define-macro('~make-quasiquote(pat), '(do: ~*body))))
+
+-- a few macros so we can actually, you know, send messages
+macro(~recv ~(msg & Word)):
+  make-send(recv, msg)
+
+macro(~recv (~(msg & Word))(~*args)):
+  make-send(recv, msg, args)
+
+-- constant scoping
+macro(~parent ~(name & Constant)):
+  make-constant(name text, parent)
+
+-- method definition
+macro(def((~(msg & Word))(~*args)): ~*body):
+  Atomy Code DefineMethod new(msg text, `(do: ~*body), args)
+
+-- assignment
+macro(~(name & Word) = ~y):
+  Atomy Code Assign new(name text, y)

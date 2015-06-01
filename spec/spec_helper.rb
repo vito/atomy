@@ -63,6 +63,10 @@ def fixture(path)
   "#{SPEC_ROOT}/fixtures/#{path}"
 end
 
+def require_kernel(path)
+  require(File.expand_path("../../kernel/"+path, __FILE__))
+end
+
 # default for it_compiles_as (can be overridden via let)
 def compile_module
   Atomy::Module.new
