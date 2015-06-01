@@ -3,32 +3,29 @@ require "atomy/pattern/wildcard"
 
 class Atomy::Pattern
   class KindOf < self
-    attr_reader :code
+    attr_reader :klass
 
-    def initialize(code)
-      @code = code
+    def initialize(klass)
+      @klass = klass
     end
 
-    def matches?(gen)
-      @code.bytecode(gen, nil)
-      gen.swap
-      gen.kind_of
+    def matches?(val)
+      val.kind_of?(@klass)
     end
 
     def precludes?(other)
-      !other.is_a?(Wildcard)
+      case other
+      when KindOf
+        !!(other.klass <= @klass)
+      when Wildcard
+        false
+      else
+        true
+      end
     end
 
-    def target(gen)
-      @code.bytecode(gen, nil)
-    end
-
-    def always_matches_self?
-      true
-    end
-
-    def inlineable?
-      false
+    def target
+      @klass
     end
   end
 end

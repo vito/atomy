@@ -104,28 +104,6 @@ describe Atomy::Method do
         expect(target.foo).to eq(:ok)
       end
 
-      context "when the pattern is inlineable" do
-        let(:branch) do
-          subject.add_branch(
-            message(wildcard, [equality(0)]),
-            block { |_| true },
-            block { |_| :ok })
-        end
-
-        it "inlines the matching logic" do
-          allow(branch).to receive(:matcher_name).and_return(:foo_matcher)
-          define!
-          expect(target).to_not receive(branch.matcher_name)
-          expect(target.foo(0)).to eq(:ok)
-        end
-
-        it "still performs the pattern-matching" do
-          allow(branch).to receive(:matcher_name).and_return(:foo_matcher)
-          define!
-          expect { target.foo(1) }.to raise_error(Atomy::MessageMismatch)
-        end
-      end
-
       context "when a block is given" do
         let(:branch) do
           subject.add_branch(message, block { true }, block { |&blk| blk })
@@ -136,24 +114,6 @@ describe Atomy::Method do
         it "is not passed to the branch" do
           define!
           expect(target.foo {}).to be_nil
-        end
-      end
-
-      context "when there is a base case" do
-        let(:branch) do
-          subject.add_branch(
-            message(wildcard, [equality(0)]),
-            block { true },
-            block { |&blk| blk })
-        end
-
-        before do
-          expect(subject).to receive(:has_base_case?).and_return(true)
-        end
-
-        it "does not raise MessageMismatch" do
-          define!
-          expect(target.foo(1)).to be_nil
         end
       end
 

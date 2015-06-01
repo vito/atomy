@@ -11,6 +11,7 @@ require "atomy/code/self"
 require "atomy/code/send"
 require "atomy/code/sequence"
 require "atomy/code/string_literal"
+require "atomy/code/symbol"
 require "atomy/code/variable"
 require "atomy/node/meta"
 require "atomy/pattern/and"
@@ -128,38 +129,90 @@ module Atomy
       end
 
       def visit_word(node)
-        Pattern::Wildcard.new(
-          node.text == :_ ? nil : node.text)
+        args = []
+
+        if node.text != :_
+          args << Code::Symbol.new(node.text)
+        end
+
+        Code::Send.new(
+          Code::Constant.new(
+            :Wildcard,
+            Code::Constant.new(
+              :Pattern,
+              Code::Constant.new(:Atomy))),
+          :new,
+          args)
       end
 
       def visit_number(node)
-        Pattern::Equality.new(node.value)
+        Code::Send.new(
+          Code::Constant.new(
+            :Equality,
+            Code::Constant.new(
+              :Pattern,
+              Code::Constant.new(:Atomy))),
+          :new,
+          [node])
       end
 
       def visit_quote(node)
-        Pattern::Equality.new(node.node)
+        Code::Send.new(
+          Code::Constant.new(
+            :Equality,
+            Code::Constant.new(
+              :Pattern,
+              Code::Constant.new(:Atomy))),
+          :new,
+          [node])
       end
 
       def visit_quasiquote(node)
-        Pattern::QuasiQuote.make(@module, node.node)
+        Code::Send.new(
+          Code::Constant.new(
+            :QuasiQuote,
+            Code::Constant.new(
+              :Pattern,
+              Code::Constant.new(:Atomy))),
+          :new,
+          [Pattern::QuasiQuote.patterns_through(@module, node)])
       end
 
       def visit_prefix(node)
         if node.operator == :*
-          Pattern::Splat.new(@module.pattern(node.node))
+          Code::Send.new(
+            Code::Constant.new(
+              :Splat,
+              Code::Constant.new(
+                :Pattern,
+                Code::Constant.new(:Atomy))),
+            :new,
+            [@module.pattern(node.node)])
         end
       end
 
       def visit_infix(node)
         if node.operator == :&
-          Pattern::And.new(
-            @module.pattern(node.left),
-            @module.pattern(node.right))
+          Code::Send.new(
+            Code::Constant.new(
+              :And,
+              Code::Constant.new(
+                :Pattern,
+                Code::Constant.new(:Atomy))),
+            :new,
+            [@module.pattern(node.left), @module.pattern(node.right)])
         end
       end
 
       def visit_constant(node)
-        Pattern::KindOf.new(@module.expand(node))
+        Code::Send.new(
+          Code::Constant.new(
+            :KindOf,
+            Code::Constant.new(
+              :Pattern,
+              Code::Constant.new(:Atomy))),
+          :new,
+          [node])
       end
     end
   end

@@ -1,6 +1,7 @@
 require "spec_helper"
 
 require "atomy/module"
+require "atomy/node/equality"
 require "atomy/pattern/equality"
 require "atomy/pattern/splat"
 require "atomy/pattern/wildcard"
@@ -12,7 +13,7 @@ describe Atomy::Pattern::Splat do
     let(:pattern) { Atomy::Pattern.new }
 
     subject { described_class.new(pattern) }
-    
+
     it "returns the pattern" do
       expect(subject.pattern).to eq(pattern)
     end
@@ -34,40 +35,45 @@ describe Atomy::Pattern::Splat do
     end
   end
 
-  describe "#deconstruct" do
-    let(:wildcard) { Atomy::Pattern::Wildcard.new(:abc) }
-
-    subject { described_class.new(wildcard) }
-
-    it_compiles_as(:deconstruct) do |gen|
-      wildcard.deconstruct(gen)
-    end
-  end
-
-  describe "#wildcard?" do
-    it "returns false" do
-      expect(subject.wildcard?).to eq(false)
-    end
-  end
-
-  describe "#binds?" do
+  describe "#locals" do
     context "when its pattern binds" do
       subject { described_class.new(Atomy::Pattern::Wildcard.new(:abc)) }
 
-      it "returns true" do
-        expect(subject.binds?).to eq(true)
+      it "returns its locals" do
+        expect(subject.locals).to eq([:abc])
       end
     end
 
     context "when its pattern does NOT bind" do
       subject { described_class.new(Atomy::Pattern::Wildcard.new) }
 
-      it "returns false" do
-        expect(subject.binds?).to eq(false)
+      it "returns an empty array" do
+        expect(subject.locals).to be_empty
       end
     end
   end
 
+  describe "#assign" do
+    context "when its pattern binds" do
+      subject { described_class.new(Atomy::Pattern::Wildcard.new(:abc)) }
+
+      it "assigns them in the given scope" do
+        abc = nil
+        subject.assign(Rubinius::VariableScope.current, [ast("foo"), ast("bar")])
+        expect(abc).to eq([ast("foo"), ast("bar")])
+      end
+    end
+
+    context "when its pattern does NOT bind" do
+      subject { described_class.new(Atomy::Pattern::Wildcard.new) }
+
+      it "does not assign anything" do
+        abc = nil
+        subject.assign(Rubinius::VariableScope.current, [ast("foo"), ast("bar")])
+        expect(abc).to be_nil
+      end
+    end
+  end
 
   describe "#precludes?" do
     context "when the other pattern is a Splat" do

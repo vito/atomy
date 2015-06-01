@@ -5,56 +5,60 @@ require "atomy/pattern/wildcard"
 
 describe Atomy::Pattern::Wildcard do
   describe "#name" do
-    subject { described_class.new(:abc) }
-    
-    it "returns the binding" do
-      expect(subject.name).to eq(:abc)
+    context "when no name is given" do
+      subject { described_class.new }
+
+      it "returns nil" do
+        expect(subject.name).to be_nil
+      end
+    end
+
+    context "when a name is given" do
+      subject { described_class.new(:abc) }
+
+      it "returns the name" do
+        expect(subject.name).to eq(:abc)
+      end
     end
   end
 
   describe "#matches?" do
-    it_compiles_as(:matches?) do |gen|
-      gen.pop
-      gen.push_true
-    end
+    it { should === nil }
+    it { should === Object.new }
   end
 
-  describe "#deconstruct" do
-    context "when there are no bindings" do
-      it_compiles_as(:deconstruct) {}
+  describe "#locals" do
+    context "when no name is given" do
+      it "returns an empty array" do
+        expect(subject.locals).to be_empty
+      end
     end
 
-    context "when there is a binding" do
+    context "when a name is given" do
       subject { described_class.new(:abc) }
 
-      it_compiles_as(:deconstruct) do |gen|
-        gen.set_local(0)
+      it "returns a list containing the name" do
+        expect(subject.locals).to eq([:abc])
       end
     end
   end
 
-  describe "#wildcard?" do
-    it "returns true" do
-      expect(subject.wildcard?).to eq(true)
-    end
-  end
+  describe "#assign" do
+    context "when no name is given" do
+      subject { described_class.new }
 
-  describe "#inlineable?" do
-    it { should be_inlineable }
-  end
-
-  describe "#binds?" do
-    context "when there are no bindings" do
-      it "returns false" do
-        expect(subject.binds?).to eq(false)
+      it "does nothing" do
+        subject.assign(Rubinius::VariableScope.current, nil)
       end
     end
 
-    context "when there is a binding" do
+    context "when a name is given" do
       subject { described_class.new(:abc) }
 
-      it "returns true" do
-        expect(subject.binds?).to eq(true)
+      it "assigns the name in the given scope" do
+        abc = nil
+        subject.assign(Rubinius::VariableScope.current, 42)
+        expect(abc).to eq(42)
       end
     end
   end

@@ -2,6 +2,8 @@ require "spec_helper"
 
 require "atomy/module"
 require "atomy/pattern/and"
+require "atomy/pattern/equality"
+require "atomy/pattern/wildcard"
 
 describe Atomy::Pattern::And do
   let(:a) { wildcard }
@@ -63,22 +65,27 @@ describe Atomy::Pattern::And do
     end
   end
 
-  describe "#deconstruct" do
+  describe "#assign" do
     context "when 'a' binds" do
       let(:a) { wildcard(:a) }
 
       context "and 'b' binds" do
         let(:b) { wildcard(:b) }
 
-        it_compiles_as(:deconstruct) do |gen|
-          gen.state.scope.new_local(:a).reference.set_bytecode(gen)
-          gen.state.scope.new_local(:b).reference.set_bytecode(gen)
+        it "assigns all locals" do
+          a = nil
+          b = nil
+          subject.assign(Rubinius::VariableScope.current, 42)
+          expect(a).to eq(42)
+          expect(b).to eq(42)
         end
       end
 
       context "and 'b' does NOT bind" do
-        it_compiles_as(:deconstruct) do |gen|
-          gen.state.scope.new_local(:a).reference.set_bytecode(gen)
+        it "assigns the 'a' locals" do
+          a = nil
+          subject.assign(Rubinius::VariableScope.current, 42)
+          expect(a).to eq(42)
         end
       end
     end
@@ -87,73 +94,35 @@ describe Atomy::Pattern::And do
       context "and 'b' binds" do
         let(:b) { wildcard(:b) }
 
-        it_compiles_as(:deconstruct) do |gen|
-          gen.state.scope.new_local(:b).reference.set_bytecode(gen)
+        it "assigns the 'b' locals" do
+          b = nil
+          subject.assign(Rubinius::VariableScope.current, 42)
+          expect(b).to eq(42)
         end
       end
 
       context "and 'b' does NOT bind" do
-        it_compiles_as(:deconstruct) {}
+        it "does nothing" do
+          subject.assign(Rubinius::VariableScope.current, 42)
+        end
       end
     end
   end
 
-  describe "#wildcard?" do
-    context "when 'a' is a wildcard" do
-      context "and 'b' is a wildcard" do
-        it { should be_wildcard }
-      end
-
-      context "and 'b' is NOT a wildcard" do
-        let(:b) { equality(0) }
-
-        it { should_not be_wildcard }
-      end
-    end
-
-    context "when 'a' is NOT a wildcard" do
-      let(:a) { equality(0) }
-
-      it { should_not be_wildcard }
-    end
-  end
-
-  describe "#inlineable?" do
-    let(:uninlineable) { Atomy::Pattern.new }
-
-    context "when 'a' is inlineable" do
-      context "and 'b' is inlineable" do
-        it { should be_inlineable }
-      end
-
-      context "and 'b' is NOT inlineable" do
-        let(:b) { uninlineable }
-
-        it { should_not be_inlineable }
-      end
-    end
-
-    context "when 'a' is NOT inlineable" do
-      let(:a) { uninlineable }
-
-      it { should_not be_inlineable }
-    end
-  end
-
-  describe "#binds?" do
+  describe "#locals" do
     context "when 'a' binds" do
       let(:a) { wildcard(:a) }
 
       context "and 'b' binds" do
         let(:b) { wildcard(:b) }
 
-        it { should be_binds }
+        its(:locals) { should == [:a, :b] }
       end
 
       context "and 'b' does NOT bind" do
         let(:b) { wildcard }
 
-        it { should be_binds }
+        its(:locals) { should == [:a] }
       end
     end
 
@@ -161,13 +130,13 @@ describe Atomy::Pattern::And do
       context "and 'b' binds" do
         let(:b) { wildcard(:b) }
 
-        it { should be_binds }
+        its(:locals) { should == [:b] }
       end
 
       context "and 'b' does NOT bind" do
         let(:b) { wildcard }
 
-        it { should_not be_binds }
+        its(:locals) { should be_empty }
       end
     end
   end

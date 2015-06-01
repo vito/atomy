@@ -124,36 +124,34 @@ describe Atomy::Bootstrap do
 
   describe "#pattern" do
     context "with a Word node" do
-      let(:node) { ast("a") }
-
-      it "expands into a Wildcard pattern" do
-        pattern = subject.pattern(node)
-        expect(pattern).to be_a(Atomy::Pattern::Wildcard)
-      end
-
       context "when the text is _" do
         let(:node) { ast("_") }
 
-        it "has no name" do
-          pattern = subject.pattern(node)
-          expect(pattern.name).to_not be
+        it "expands into an unnamed Wildcard pattern" do
+          pattern = subject.evaluate(subject.pattern(node))
+          expect(pattern).to be_a(Atomy::Pattern::Wildcard)
+          expect(pattern.name).to be_nil
         end
       end
 
-      context "when the text is NOT _" do
-        it "has the word's text as its name" do
-          pattern = subject.pattern(node)
+      context "with text other than _" do
+        let(:node) { ast("a") }
+
+        it "expands into a named Wildcard pattern" do
+          pattern = subject.evaluate(subject.pattern(node))
+          expect(pattern).to be_a(Atomy::Pattern::Wildcard)
           expect(pattern.name).to eq(:a)
         end
       end
     end
 
     context "with a Constant node" do
-      let(:node) { ast("Abc") }
+      let(:node) { ast("Integer") }
 
       it "expands it into a KindOf pattern" do
-        expanded = subject.pattern(node)
+        expanded = subject.evaluate(subject.pattern(node))
         expect(expanded).to be_a(Atomy::Pattern::KindOf)
+        expect(expanded.klass).to eq(Integer)
       end
     end
 
@@ -161,8 +159,9 @@ describe Atomy::Bootstrap do
       let(:node) { ast("1") }
 
       it "expands into an Equality pattern" do
-        pattern = subject.pattern(node)
+        pattern = subject.evaluate(subject.pattern(node))
         expect(pattern).to be_a(Atomy::Pattern::Equality)
+        expect(pattern.value).to eq(1)
       end
     end
 
@@ -170,8 +169,9 @@ describe Atomy::Bootstrap do
       let(:node) { ast("'a") }
 
       it "expands into an Equality pattern" do
-        pattern = subject.pattern(node)
+        pattern = subject.evaluate(subject.pattern(node))
         expect(pattern).to be_a(Atomy::Pattern::Equality)
+        expect(pattern.value).to eq(ast("a"))
       end
     end
 
@@ -180,8 +180,10 @@ describe Atomy::Bootstrap do
         let(:node) { ast("*a") }
 
         it "expands into a Splat pattern" do
-          pattern = subject.pattern(node)
+          pattern = subject.evaluate(subject.pattern(node))
           expect(pattern).to be_a(Atomy::Pattern::Splat)
+          expect(pattern.pattern).to be_a(Atomy::Pattern::Wildcard)
+          expect(pattern.pattern.name).to eq(:a)
         end
       end
     end
@@ -191,8 +193,12 @@ describe Atomy::Bootstrap do
         let(:node) { ast("a & 1") }
 
         it "expands it into an And pattern" do
-          pattern = subject.pattern(node)
+          pattern = subject.evaluate(subject.pattern(node))
           expect(pattern).to be_a(Atomy::Pattern::And)
+          expect(pattern.a).to be_a(Atomy::Pattern::Wildcard)
+          expect(pattern.a.name).to eq(:a)
+          expect(pattern.b).to be_a(Atomy::Pattern::Equality)
+          expect(pattern.b.value).to eq(1)
         end
       end
     end

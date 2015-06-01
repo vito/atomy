@@ -12,11 +12,13 @@ module Atomy
       end
 
       def bytecode(gen, mod)
-        blk = build_branch(gen, mod)
-
         gen.push_cpath_top
         gen.find_const(:Atomy)
-        push_target(gen, mod)
+
+        gen.push_cpath_top
+        gen.find_const(:Kernel)
+        gen.send(:binding, 0)
+
         gen.push_literal(@name)
 
         gen.push_cpath_top
@@ -25,60 +27,23 @@ module Atomy
         gen.find_const(:Message)
 
         if @receiver
-          push_pattern(gen, @receiver)
+          mod.compile(gen, mod.pattern(@receiver))
         else
           gen.push_nil
         end
 
         @arguments.each do |a|
-          push_pattern(gen, a)
+          mod.compile(gen, mod.pattern(a))
         end
         gen.make_array(@arguments.size)
 
         gen.send(:new, 2)
 
-        gen.create_block(blk)
+        @body.construct(gen) # TODO might as well push_literal
 
-        gen.send_with_block(:define_branch, 3)
-      end
+        gen.push_literal(mod) # TODO totally cheating; this can't be marshalled
 
-      private
-
-      def build_branch(gen, mod)
-        Atomy::Compiler.generate(mod.file) do |blk|
-          blk.name = @name
-          blk.state.scope.parent = gen.state.scope
-          blk.required_args = blk.total_args = @arguments.size
-
-          @arguments.each.with_index do |a, i|
-            blk.state.scope.new_local(:"arg:#{i}")
-          end
-
-          message_pattern(mod).deconstruct(blk)
-
-          mod.compile(blk, @body)
-        end
-      end
-
-      def push_target(gen, mod)
-        if @receiver
-          message_pattern(mod).receiver.target(gen)
-        else
-          gen.push_scope
-          gen.send(:for_method_definition, 0)
-        end
-      end
-
-      def push_pattern(gen, pat)
-        gen.push_self
-        pat.construct(gen)
-        gen.send(:pattern, 1, true)
-      end
-
-      def message_pattern(mod)
-        Atomy::Pattern::Message.new(
-          @receiver && mod.pattern(@receiver),
-          @arguments.collect { |a| mod.pattern(a) })
+        gen.send(:define_branch, 5)
       end
     end
   end

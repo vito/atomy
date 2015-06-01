@@ -9,60 +9,23 @@ class Atomy::Pattern
       @arguments = arguments
     end
 
-    # note: this does not pop anything from the stack, which is pretty
-    # inconsistent.
-    def matches?(gen)
-      done = gen.new_label
-      mismatch = gen.new_label
+    def matches?(val)
+      return false unless val.kind_of?(Rubinius::VariableScope)
 
-      if @receiver && !@receiver.always_matches_self?
-        gen.push_self
-        @receiver.matches?(gen)
-        gen.gif(mismatch)
+      if @receiver and !@receiver.matches?(val.self)
+        return false
       end
 
-      gen.passed_arg(@arguments.size - 1)
-      gen.gif(mismatch)
+      # don't match if args aren't same count
+      #
+      # TODO: handle splats
+      return false unless val.locals.size == @arguments.size
 
-      # don't match extra args
-      gen.passed_arg(@arguments.size)
-      gen.git(mismatch)
-
-      @arguments.each.with_index do |arg, i|
-        next if arg.wildcard?
-
-        gen.push_local(i)
-        arg.matches?(gen)
-        gen.gif(mismatch)
+      @arguments.each.with_index do |pat, i|
+        return false unless pat.matches?(val.locals[i])
       end
 
-      gen.push_true
-      gen.goto done
-
-      mismatch.set!
-      gen.push_false
-
-      done.set!
-    end
-
-    def deconstruct(gen)
-      if @receiver && @receiver.binds?
-        gen.push_self
-        @receiver.deconstruct(gen)
-        gen.pop
-      end
-
-      return unless @arguments.any?(&:binds?)
-
-      @arguments.each.with_index do |arg, i|
-        gen.push_local(i)
-        arg.deconstruct(gen)
-      end
-    end
-
-    def inlineable?
-      (!@receiver || @receiver.always_matches_self? || @receiver.inlineable?) && \
-        @arguments.all?(&:inlineable?)
+      true
     end
 
     def precludes?(other)
@@ -79,8 +42,26 @@ class Atomy::Pattern
       true
     end
 
-    def binds?
-      @receiver.binds? || @arguments.any?(&:binds?)
+    def locals
+      locals = []
+
+      locals += @receiver.locals if @receiver
+
+      @arguments.each do |p|
+        locals += p.locals
+      end
+
+      locals
+    end
+
+    def assign(scope, val)
+      if @receiver
+        @receiver.assign(scope, val.self)
+      end
+
+      @arguments.each.with_index do |p, i|
+        p.assign(scope, val.locals[i])
+      end
     end
   end
 end

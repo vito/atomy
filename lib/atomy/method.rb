@@ -114,7 +114,9 @@ module Atomy
     def has_base_case?
       @branches.any? do |b|
         # receiver must always match
-        (!b.pattern.receiver || b.pattern.receiver.always_matches_self?) &&
+        #
+        # TODO: KindOf/Wildcard should count as 'base cases' for the receiver
+        !b.pattern.receiver &&
           # must take no arguments (otherwise calling with invalid arg
           # count would match, as branches can take different arg sizes)
           (uniform_argument_count? && b.total_args == 0) # &&
@@ -140,15 +142,11 @@ module Atomy
       @branches.each do |b|
         skip = gen.new_label
 
-        if b.pattern.inlineable?
-          b.pattern.matches?(gen)
-        else
-          gen.push_self
-          b.total_args.times do |i|
-            gen.push_local(i)
-          end
-          gen.send(b.matcher_name, b.total_args, true)
+        gen.push_self
+        b.total_args.times do |i|
+          gen.push_local(i)
         end
+        gen.send(b.matcher_name, b.total_args, true)
 
         gen.gif(skip)
 

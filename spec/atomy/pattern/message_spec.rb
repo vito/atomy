@@ -21,54 +21,19 @@ describe Atomy::Pattern::Message do
   describe "#matches?" do
     def match_args?(*args)
       code = Atomy::Compiler.package(__FILE__.to_sym) do |gen|
-        gen.total_args = gen.required_args = subject.arguments.size
+        gen.total_args = gen.required_args = args.size
 
-        subject.arguments.size.times do |i|
+        args.size.times do |i|
           gen.state.scope.new_local(:"arg:#{i}")
         end
 
-        subject.matches?(gen)
+        gen.push_literal(subject)
+        gen.push_variables
+        gen.send(:matches?, 1)
         gen.ret
       end
 
       Atomy::Compiler.construct_block(code, binding).call(*args)
-    end
-
-    context "with a receiver that always matches self" do
-      let(:receiver) { Atomy::Pattern.new }
-
-      subject { described_class.new(receiver) }
-
-      it "skips matching the receiver" do
-        expect(receiver).to receive(:always_matches_self?).and_return(true)
-        expect(receiver).to_not receive(:matches?)
-        expect(match_args?).to eq(true)
-      end
-
-      context "with non-wildcard argument patterns" do
-        subject { described_class.new(receiver, [equality(1)]) }
-
-        before do
-          expect(receiver).to receive(:always_matches_self?).and_return(true)
-          expect(receiver).to_not receive(:matches?)
-        end
-
-        it "does not match too few arguments" do
-          expect(match_args?).to eq(false)
-        end
-
-        it "does not match too many arguments" do
-          expect(match_args?(1, 2)).to eq(false)
-        end
-
-        it "matches if the argument matches" do
-          expect(match_args?(1)).to eq(true)
-        end
-
-        it "does not match if the argument does not match" do
-          expect(match_args?(2)).to eq(false)
-        end
-      end
     end
 
     context "with no arguments" do
@@ -119,164 +84,84 @@ describe Atomy::Pattern::Message do
     end
   end
 
-  describe "#inlineable?" do
-    let(:uninlineable) { Atomy::Pattern.new }
-    let(:receiver) { wildcard }
-    let(:arguments) { [] }
+  describe "#assign" do
+    def star_wars_episode_iv_a_new_scope(self_, locals = [])
+      current_scope = Rubinius::VariableScope.current
 
-    subject { described_class.new(receiver, arguments) }
-
-    context "when there is no receiver pattern" do
-      let(:receiver) { nil }
-
-      context "and there are arguments" do
-        context "and all arguments are inlineable" do
-          let(:arguments) { [wildcard] }
-
-          it { should be_inlineable }
-        end
-
-        context "and some of the arguments aren't inlineable" do
-          let(:arguments) { [wildcard, uninlineable] }
-
-          it { should_not be_inlineable }
-        end
-
-        context "and none of the arguments are inlineable" do
-          let(:arguments) { [uninlineable] }
-
-          it { should_not be_inlineable }
-        end
-      end
-
-      context "and there are no arguments" do
-        it { should be_inlineable }
-      end
+      Rubinius::VariableScope.synthesize(
+        current_scope.method,
+        current_scope.module,
+        current_scope.parent,
+        self_,
+        nil,
+        locals.to_tuple,
+      )
     end
 
-    context "when the receiver is inlineable" do
-      context "and there are arguments" do
-        context "and all arguments are inlineable" do
-          let(:arguments) { [wildcard] }
-
-          it { should be_inlineable }
-        end
-
-        context "and some of the arguments aren't inlineable" do
-          let(:arguments) { [wildcard, uninlineable] }
-
-          it { should_not be_inlineable }
-        end
-
-        context "and none of the arguments are inlineable" do
-          let(:arguments) { [uninlineable] }
-
-          it { should_not be_inlineable }
-        end
-      end
-
-      context "and there are no arguments" do
-        it { should be_inlineable }
-      end
-    end
-
-    context "when the receiver is NOT inlineable" do
-      let(:receiver) { uninlineable }
-
-      context "but it always matches self" do
-        before do
-          expect(receiver).to receive(:always_matches_self?).and_return(true)
-        end
-
-        context "and there are arguments" do
-          context "and all arguments are inlineable" do
-            let(:arguments) { [wildcard] }
-
-            it { should be_inlineable }
-          end
-
-          context "and some of the arguments aren't inlineable" do
-            let(:arguments) { [wildcard, uninlineable] }
-
-            it { should_not be_inlineable }
-          end
-
-          context "and none of the arguments are inlineable" do
-            let(:arguments) { [uninlineable] }
-
-            it { should_not be_inlineable }
-          end
-        end
-
-        context "and there are no arguments" do
-          it { should be_inlineable }
-        end
-      end
-
-      context "and it doesn't always match self" do
-        it { should_not be_inlineable }
-      end
-    end
-  end
-
-  describe "#deconstruct" do
     context "when there are no bindings" do
-      it_compiles_as(:deconstruct) {}
+      it "does nothing" do
+        subject.assign(Rubinius::VariableScope.current, Rubinius::VariableScope.current)
+      end
     end
 
     context "when the receiver pattern binds" do
       subject { described_class.new(wildcard(:a)) }
 
-      it_compiles_as(:deconstruct) do |gen|
-        gen.push_self
-        gen.set_local(0)
-        gen.pop
+      it "assigns locals against the given scope's receiver" do
+        a = nil
+        scope = star_wars_episode_iv_a_new_scope(42)
+        subject.assign(Rubinius::VariableScope.current, scope)
+        expect(a).to eq(42)
       end
     end
 
     context "when arguments bind" do
       subject { described_class.new(wildcard, [wildcard(:a)]) }
 
-      it_compiles_as(:deconstruct) do |gen|
-        arg = gen.state.scope.new_local(:"arg:0").reference
-        pat = gen.state.scope.new_local(:a).reference
-        gen.push_local(arg.slot)
-        gen.set_local(pat.slot)
+      it "assigns locals against the given scope's argument locals" do
+        a = nil
+        scope = star_wars_episode_iv_a_new_scope(Object.new, [42])
+        subject.assign(Rubinius::VariableScope.current, scope)
+        expect(a).to eq(42)
       end
     end
 
     context "when the arguments bind twice" do
       subject { described_class.new(wildcard, [wildcard(:a), wildcard(:b)]) }
 
-      it_compiles_as(:deconstruct) do |gen|
-        arg1 = gen.state.scope.new_local(:"arg:0").reference
-        arg2 = gen.state.scope.new_local(:"arg:1").reference
-
-        pat1 = gen.state.scope.new_local(:a).reference
-        pat2 = gen.state.scope.new_local(:b).reference
-
-        gen.push_local(arg1.slot)
-        gen.set_local(pat1.slot)
-
-        gen.push_local(arg2.slot)
-        gen.set_local(pat2.slot)
+      it "assigns locals against the given scope's argument locals" do
+        a = nil
+        b = nil
+        scope = star_wars_episode_iv_a_new_scope(Object.new, [:a, :b])
+        subject.assign(Rubinius::VariableScope.current, scope)
+        expect(a).to eq(:a)
+        expect(b).to eq(:b)
       end
     end
 
     context "when the arguments bind one local twice" do
       subject { described_class.new(wildcard, [wildcard(:a), wildcard(:a)]) }
 
-      it_compiles_as(:deconstruct) do |gen|
-        arg1 = gen.state.scope.new_local(:"arg:0").reference
-        arg2 = gen.state.scope.new_local(:"arg:1").reference
+      it "assigns locals against the given scope's argument locals" do
+        a = nil
+        scope = star_wars_episode_iv_a_new_scope(Object.new, [:a, :b])
+        subject.assign(Rubinius::VariableScope.current, scope)
+        expect(a).to eq(:b)
+      end
+    end
 
-        pat = gen.state.scope.new_local(:a).reference
+    context "when the receiver and arguments both bind" do
+      subject { described_class.new(wildcard(:a), [wildcard(:b), wildcard(:c)]) }
 
-        gen.push_local(arg1.slot)
-        gen.set_local(pat.slot)
-
-        gen.push_local(arg2.slot)
-        gen.set_local(pat.slot)
+      it "assigns locals against the given scope's argument locals" do
+        a = nil
+        b = nil
+        c = nil
+        scope = star_wars_episode_iv_a_new_scope(:a, [:b, :c])
+        subject.assign(Rubinius::VariableScope.current, scope)
+        expect(a).to eq(:a)
+        expect(b).to eq(:b)
+        expect(c).to eq(:c)
       end
     end
   end
@@ -341,27 +226,27 @@ describe Atomy::Pattern::Message do
     end
   end
 
-  describe "#binds?" do
+  describe "#locals" do
     context "when the receiver pattern binds" do
       subject { described_class.new(wildcard(:a)) }
 
-      it "returns true" do
-        expect(subject.binds?).to eq(true)
-      end
+      its(:locals) { should eq([:a]) }
     end
 
     context "when any of the argument patterns bind" do
       subject { described_class.new(wildcard, [wildcard(:a)]) }
 
-      it "returns true" do
-        expect(subject.binds?).to eq(true)
-      end
+      its(:locals) { should eq([:a]) }
+    end
+
+    context "when the receiver and argument patterns both bind" do
+      subject { described_class.new(wildcard(:a), [wildcard(:b)]) }
+
+      its(:locals) { should eq([:a, :b]) }
     end
 
     context "when neither the receiver nor the arguments bind" do
-      it "returns false" do
-        expect(subject.binds?).to eq(false)
-      end
+      its(:locals) { should be_empty }
     end
   end
 end

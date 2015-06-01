@@ -8,16 +8,16 @@ class Atomy::Pattern
       @pattern = pattern
     end
 
-    def matches?(gen)
-      @pattern.matches?(gen)
+    def matches?(val)
+      @pattern.matches?(val)
     end
 
-    def deconstruct(gen)
-      @pattern.deconstruct(gen)
+    def locals
+      @pattern.locals
     end
 
-    def binds?
-      @pattern.binds?
+    def assign(scope, val)
+      @pattern.assign(scope, val)
     end
 
     def precludes?(other)

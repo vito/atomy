@@ -9,44 +9,21 @@ class Atomy::Pattern
       @b = b
     end
 
-    def matches?(gen)
-      mismatch = gen.new_label
-      done = gen.new_label
-
-      gen.dup
-
-      @a.matches?(gen)
-      gen.gif(mismatch)
-
-      @b.matches?(gen)
-      gen.goto(done)
-
-      mismatch.set!
-      gen.pop
-      gen.push_false
-
-      done.set!
-    end
-
-    def deconstruct(gen)
-      @a.deconstruct(gen)
-      @b.deconstruct(gen)
+    def matches?(val)
+      @a.matches?(val) && @b.matches?(val)
     end
 
     def precludes?(other)
       @a.precludes?(other) && @b.precludes?(other)
     end
 
-    def wildcard?
-      @a.wildcard? && @b.wildcard?
+    def locals
+      @a.locals + @b.locals
     end
 
-    def binds?
-      @a.binds? || @b.binds?
-    end
-
-    def inlineable?
-      @a.inlineable? && @b.inlineable?
+    def assign(scope, val)
+      @a.assign(scope, val)
+      @b.assign(scope, val)
     end
   end
 end

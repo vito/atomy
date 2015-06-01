@@ -8,31 +8,20 @@ class Atomy::Pattern
   class QuasiQuote < self
     attr_reader :node
 
+    def self.patterns_through(mod, node)
+      Atomy::Grammar::AST::QuasiQuote.new(Constructor.new(mod).go(node.node))
+    end
+
     def self.make(mod, node)
-      new(Constructor.new(mod).go(node))
+      new(mod.evaluate(patterns_through(mod, node)))
     end
 
     def initialize(node)
       @node = node
     end
 
-    def matches?(gen)
-      mismatch = gen.new_label
-      done = gen.new_label
-
-      Matcher.new(gen, mismatch).go(@node)
-
-      gen.push_true
-      gen.goto done
-
-      mismatch.set!
-      gen.push_false
-
-      done.set!
-    end
-
-    def deconstruct(gen)
-      Deconstructor.new(gen).go(@node)
+    def matches?(val)
+      Matcher.new.go(@node, val)
     end
 
     def precludes?(other)
@@ -45,12 +34,12 @@ class Atomy::Pattern
       end
     end
 
-    def binds?
-      Binds.new.go(@node)
+    def locals
+      Locals.new.go(@node)
     end
 
-    def inlineable?
-      Inlineable.new.go(@node)
+    def assign(scope, val)
+      Assign.new(scope).go(@node, val)
     end
 
     private
@@ -58,21 +47,18 @@ class Atomy::Pattern
     class PrecludeChecker
       def initialize(quasi = true)
         @quasi = quasi
-        @depth = 1
       end
 
       def go(a, b)
         a_quotes = a.is_a?(Atomy::Grammar::AST::Unquote)
         b_quotes = b.is_a?(Atomy::Grammar::AST::Unquote)
 
-        @depth -= 1 if a_quotes
-
-        if @quasi && a_quotes && b_quotes && @depth == 0
-          a.node.precludes?(b.node)
-        elsif @quasi && b_quotes && @depth == 0
+        if a.is_a?(Atomy::Pattern) && b.is_a?(Atomy::Pattern)
+          a.precludes?(b)
+        elsif b.is_a?(Atomy::Pattern)
           false
-        elsif a_quotes && @depth == 0
-          a.node.precludes?(Equality.new(b))
+        elsif a.is_a?(Atomy::Pattern)
+          a.precludes?(Equality.new(b))
         elsif b.is_a?(a.class)
           a.each_attribute do |attr, val|
             return false unless val == b.send(attr)
@@ -97,8 +83,61 @@ class Atomy::Pattern
         else
           false
         end
-      ensure
-        @depth += 1 if a_quotes
+      end
+    end
+
+    class Matcher
+      def go(a, b)
+        if a.is_a?(Atomy::Pattern)
+          a.matches?(b)
+        elsif b.is_a?(a.class)
+          a.each_attribute do |attr, val|
+            return false unless val == b.send(attr)
+          end
+
+          a.each_child do |attr, val|
+            theirval = b.send(attr)
+
+            if val.is_a?(Array) # TODO test that theirval is an array too
+              return false unless go_array(val, theirval)
+            else
+              return false unless go(val, b.send(attr))
+            end
+          end
+
+          true
+        else
+          false
+        end
+      end
+
+      def go_array(as, bs)
+        splat = nil
+        req_size = 0
+        as.each do |a|
+          if a.is_a?(Atomy::Pattern::Splat)
+            splat = a
+            break
+          end
+
+          req_size += 1
+        end
+
+        if splat
+          return false unless bs.size >= req_size
+        else
+          return false unless bs.size == req_size
+        end
+
+        req_size.times do |i|
+          return false unless go(as[i], bs[i])
+        end
+
+        if splat
+          return false unless splat.matches?(bs[req_size..-1])
+        end
+
+        true
       end
     end
 
@@ -178,199 +217,70 @@ class Atomy::Pattern
       end
     end
 
-    class Matcher < Walker
-      def initialize(gen, mis)
-        super()
-        @gen = gen
-        @mismatch = mis
-      end
+    class Locals
+      def go(x)
+        locals = []
 
-      def go(x, mismatch = nil)
-        if mismatch
-          old, @mismatch = @mismatch, mismatch
+        if x.is_a?(Atomy::Pattern)
+          locals += x.locals
+        else
+          x.each_child do |_, val|
+            if val.is_a?(Array)
+              val.each do |v|
+                locals += go(v)
+              end
+            else
+              locals += go(val)
+            end
+          end
         end
 
-        super(x)
-      ensure
-        @mismatch = old if mismatch
+        locals
+      end
+    end
+
+    class Assign
+      def initialize(scope)
+        @scope = scope
       end
 
-      def match_kind(x, mismatch)
-        @gen.dup
-        push_class(@gen, x.class)
-        @gen.swap
-        @gen.kind_of
-        @gen.gif mismatch
-      end
+      def go(a, b)
+        if a.is_a?(Atomy::Pattern)
+          a.assign(@scope, b)
+        elsif b.is_a?(a.class)
+          a.each_child do |attr, val|
+            theirval = b.send(attr)
 
-      def push_class(gen, klass)
-        gen.push_cpath_top
-        klass.name.split("::").each do |name|
-          gen.find_const(name.to_sym)
+            if val.is_a?(Array)
+              go_array(val, theirval)
+            else
+              go(val, b.send(attr))
+            end
+          end
+        else
+          # this should be impossible because #matches? should prevent it
+          raise "cannot assign '#{b.inspect}' against '#{a}'"
         end
       end
 
-      def match_attribute(n, val, mismatch)
-        @gen.dup
-        @gen.send(n, 0)
-        push_literal(val)
-        @gen.send(:==, 1)
-        @gen.gif mismatch
-      end
+      def go_array(as, bs)
+        splat = nil
+        req_size = 0
+        as.each do |a|
+          if a.is_a?(Atomy::Pattern::Splat)
+            splat = a
+            break
+          end
 
-      def match_required(c, pat, mismatch)
-        @gen.dup
-        @gen.send(c, 0)
-        go(pat, mismatch)
-      end
+          req_size += 1
+        end
 
-      def match_many(c, pats, popmis, popmis2)
-        @gen.dup
-        @gen.send c, 0
-
-        pats, splat = unsplat(pats)
-
-        @gen.dup
-        @gen.send :size, 0
-        @gen.push_int(pats.size)
-        @gen.send(splat ? :>= : :==, 1)
-        @gen.gif popmis2
-
-        pats.each do |pat|
-          @gen.shift_array
-          go(pat, popmis2)
+        req_size.times do |i|
+          go(as[i], bs[i])
         end
 
         if splat
-          go(splat, popmis)
-        else
-          @gen.pop
-        end
-      end
-
-      # effect on the stack: pop
-      def visit(x)
-        popmis = @gen.new_label
-        popmis2 = @gen.new_label
-        done = @gen.new_label
-
-        match_kind(x, popmis)
-
-        x.each_attribute do |a, val|
-          match_attribute(a, val, popmis)
-        end
-
-        x.each_child do |c, val|
-          if val.is_a?(Array)
-            match_many(c, val, popmis, popmis2)
-          else
-            match_required(c, val, popmis)
-          end
-        end
-
-        @gen.goto done
-
-        popmis2.set!
-        @gen.pop
-
-        popmis.set!
-        @gen.pop
-        @gen.goto @mismatch
-
-        done.set!
-        @gen.pop
-      end
-
-      def unquote(x)
-        x.node.matches?(@gen)
-        @gen.gif @mismatch
-      end
-    end
-
-    class Deconstructor < Walker
-      def initialize(gen)
-        super()
-        @gen = gen
-      end
-
-      def unquote(x)
-        x.node.deconstruct(@gen)
-      end
-
-      def visit(x)
-        x.each_child do |c, val|
-          if val.is_a?(Array)
-            visit_many(c, val)
-          else
-            visit_one(c, val)
-          end
-        end
-      end
-
-      def visit_one(c, pat)
-        return unless binds?(pat)
-
-        @gen.dup
-        @gen.send(c, 0)
-        go(pat)
-        @gen.pop
-      end
-
-      def visit_many(c, pats)
-        return if pats.empty?
-        return if pats.none? { |p| binds?(p) }
-
-        @gen.dup
-        @gen.send(c, 0)
-
-        pats, splat = unsplat(pats)
-
-        pats.each do |pat|
-          @gen.shift_array
-          go(pat)
-          @gen.pop
-        end
-
-        go(splat) if splat
-
-        @gen.pop
-      end
-
-      def binds?(node)
-        Binds.new(@depth).go(node)
-      end
-    end
-
-    class Binds < Walker
-      def initialize(depth = 1)
-        @depth = depth
-      end
-
-      def unquote(u)
-        u.node.binds?
-      end
-
-      def visit(x)
-        x.through do |v|
-          return true if go(v)
-        end
-
-        false
-      end
-    end
-
-    class Inlineable < Walker
-      def initialize(depth = 1)
-        @depth = depth
-      end
-
-      def unquote(u)
-        u.node.inlineable?
-      end
-
-      def visit(x)
-        x.through do |v|
-          return false unless go(v)
+          splat.assign(@scope, bs[req_size..-1])
         end
 
         true

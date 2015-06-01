@@ -212,7 +212,7 @@ describe Atomy::Module do
       subject { Atomy::Bootstrap }
 
       it "makes locals accessible through evaluations" do
-        subject.evaluate(ast("a = 1"))
+        a = 1
         expect(subject.evaluate(ast("a"))).to eq(1)
       end
     end

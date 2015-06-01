@@ -8,26 +8,31 @@ class Atomy::Pattern
       @name = name
     end
 
-    def matches?(gen)
-      gen.pop
-      gen.push_true
-    end
-
-    def deconstruct(gen)
-      return unless @name
-      assignment_local(gen, @name).set_bytecode(gen)
-    end
-
-    def wildcard?
+    def matches?(_)
       true
     end
 
-    def inlineable?
-      true
+    def assign(scope, val)
+      if @name
+        if scope.eval_local_defined?(@name)
+          scope.set_eval_local(@name, val)
+          return
+        end
+
+        cur = scope
+        until local = cur.method.local_names.find_index(@name)
+          cur = cur.parent
+          if !cur
+            raise "could not find declaration for #{@name}"
+          end
+        end
+
+        cur.set_local(local, val)
+      end
     end
 
-    def binds?
-      !!@name
+    def locals
+      [@name].compact
     end
 
     def precludes?(other)

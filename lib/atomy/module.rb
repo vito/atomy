@@ -15,7 +15,7 @@ module Atomy
     end
 
     def compile(gen, node)
-      gen.set_line(node.line) if node.line
+      gen.set_line(node.line) if node.respond_to?(:line) && node.line
 
       expanded = node
       while expanded.is_a?(Atomy::Grammar::AST::Node)
