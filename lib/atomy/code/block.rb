@@ -7,7 +7,7 @@ module Atomy
       end
 
       def bytecode(gen, mod)
-        blk = build_block(gen, mod)
+        blk = build_block(gen.state.scope, mod)
 
         gen.create_block(blk)
 
@@ -22,10 +22,10 @@ module Atomy
 
       private
 
-      def build_block(gen, mod)
+      def build_block(scope, mod)
         Atomy::Compiler.generate(mod.file) do |blk|
           # close over the outer scope
-          blk.state.scope.parent = gen.state.scope
+          blk.state.scope.parent = scope
 
           # for now, only allow a fixed set of arguments
           blk.required_args = blk.total_args = @arguments.size
