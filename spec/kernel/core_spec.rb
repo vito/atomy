@@ -36,4 +36,18 @@ describe "core kernel" do
   it "implements local variable assignment notation" do
     expect(subject.evaluate(seq("a = 1, a + 2"))).to eq(3)
   end
+
+  describe "blocks" do
+    it "implements block literals" do
+      blk = subject.evaluate(ast("[a, b]: a + b"))
+      expect(blk).to be_kind_of(Proc)
+      expect(blk.call(1, 2)).to eq(3)
+    end
+
+    it "constructs blocks that close over their scope" do
+      blk = subject.evaluate(seq("a = 1, [b]: a + b"))
+      expect(blk).to be_kind_of(Proc)
+      expect(blk.call(2)).to eq(3)
+    end
+  end
 end

@@ -1,6 +1,7 @@
 require "atomy/grammar"
 require "atomy/module"
 require "atomy/code/assign"
+require "atomy/code/block"
 require "atomy/code/constant"
 require "atomy/code/define_method"
 require "atomy/code/integer"
