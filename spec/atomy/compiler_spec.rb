@@ -170,6 +170,14 @@ describe Atomy::Compiler do
       expect(gen.file).to eq(:"some/file")
     end
 
+    it "has the line set to the given line" do
+      gen = described_class.generate(:"some/file", 42) do |gen|
+        gen.push_nil
+      end
+
+      expect(gen.line).to eq(42)
+    end
+
     it "pushes a locals state" do
       described_class.generate(:"some/file") do |gen|
         expect(gen.state).to be

@@ -18,7 +18,7 @@ module Atomy
     def generate(file, line = 0, state = LocalState.new)
       gen = CodeTools::Generator.new
       gen.file = file
-      gen.set_line(0)
+      gen.set_line(line)
 
       gen.push_state(state)
 
