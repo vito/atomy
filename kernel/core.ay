@@ -30,5 +30,9 @@ macro([~*args]: ~*body):
   Atomy Code Block new(`(do: ~*body), args)
 
 -- message sends with blocks
-macro(~recv ~(msg & Word) [~*args]: ~*body):
-  Atomy Code Send new(recv, msg text, [], `([~*args]: ~*body))
+macro(~recv ~(msg & Word) [~*bargs]: ~*body):
+  Atomy Code Send new(recv, msg text, [], `([~*bargs]: ~*body))
+
+-- message sends with blocks
+macro(~recv (~(msg & Word))(~*args) [~*bargs]: ~*body):
+  Atomy Code Send new(recv, msg text, args, `([~*bargs]: ~*body))
