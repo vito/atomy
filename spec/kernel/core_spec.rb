@@ -24,6 +24,10 @@ describe "core kernel" do
     expect(subject.evaluate(ast("128 to-s(16)"))).to eq("80")
   end
 
+  it "implements sending messages to receivers, with blocks" do
+    expect(subject.evaluate(ast("[1, 2, 3] collect [x]: x + 1"))).to eq([2, 3, 4])
+  end
+
   it "implements nested constant notation" do
     expect(subject.evaluate(ast("Atomy Module"))).to eq(Atomy::Module)
   end

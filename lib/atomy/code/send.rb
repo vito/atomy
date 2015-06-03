@@ -3,10 +3,11 @@ module Atomy
     class Send
       attr_reader :receiver, :message, :arguments
 
-      def initialize(receiver, message, arguments = [])
+      def initialize(receiver, message, arguments = [], block = nil)
         @receiver = receiver
         @message = message
         @arguments = arguments
+        @block = block
       end
 
       def bytecode(gen, mod)
@@ -22,7 +23,12 @@ module Atomy
 
         gen.allow_private unless @receiver
 
-        gen.send(@message, @arguments.size)
+        if @block
+          mod.compile(gen, @block)
+          gen.send_with_block(@message, @arguments.size)
+        else
+          gen.send(@message, @arguments.size)
+        end
       end
     end
   end

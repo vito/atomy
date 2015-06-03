@@ -28,3 +28,7 @@ macro(~pat = ~val):
 -- block literals
 macro([~*args]: ~*body):
   Atomy Code Block new(`(do: ~*body), args)
+
+-- message sends with blocks
+macro(~recv ~(msg & Word) [~*args]: ~*body):
+  Atomy Code Send new(recv, msg text, [], `([~*args]: ~*body))
