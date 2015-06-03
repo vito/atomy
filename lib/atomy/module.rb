@@ -54,10 +54,12 @@ module Atomy
       mod
     end
 
+    # Node -> (Node | Code)
     def expand(node)
       raise UnknownCode.new(node)
     end
 
+    # Node -> Code::Pattern
     def pattern(node)
       raise UnknownPattern.new(node)
     end

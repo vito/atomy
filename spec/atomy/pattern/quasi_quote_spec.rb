@@ -118,44 +118,34 @@ describe Atomy::Pattern::QuasiQuote do
     end
   end
 
-  describe "#assign" do
+  describe "#bindings" do
     context "when there are no bindings" do
-      it "does nothing" do
-        a = 1
-        subject.assign(Rubinius::VariableScope.current, ast("x"))
-        expect(a).to eq(1)
+      it "returns an empty array" do
+        expect(subject.bindings(ast("x"))).to be_empty
       end
     end
 
     context "when there is a binding" do
       subject { described_class.make(mod, ast("`(1 + ~a)")) }
 
-      it "assigns locals to their matched bindings" do
-        a = nil
-        subject.assign(Rubinius::VariableScope.current, ast("1 + 2"))
-        expect(a).to eq(ast("2"))
+      it "returns its bound value" do
+        expect(subject.bindings(ast("1 + 2"))).to eq([ast("2")])
       end
     end
 
     context "when there are two bindings" do
       subject { described_class.make(mod, ast("`(~a + ~b)")) }
 
-      it "assigns locals to their matched bindings" do
-        a = nil
-        b = nil
-        subject.assign(Rubinius::VariableScope.current, ast("1 + 2"))
-        expect(a).to eq(ast("1"))
-        expect(b).to eq(ast("2"))
+      it "returns the bound values" do
+        expect(subject.bindings(ast("1 + 2"))).to eq([ast("1"), ast("2")])
       end
     end
 
     context "when there is one binding repeated" do
       subject { described_class.make(mod, ast("`(~a + ~a)")) }
 
-      it "assigns in order of occurrence in the tree" do
-        a = nil
-        subject.assign(Rubinius::VariableScope.current, ast("1 + 2"))
-        expect(a).to eq(ast("2"))
+      it "returns all bound values regardless" do
+        expect(subject.bindings(ast("1 + 2"))).to eq([ast("1"), ast("2")])
       end
     end
 
@@ -163,10 +153,8 @@ describe Atomy::Pattern::QuasiQuote do
       context "when there is only a splat" do
         subject { described_class.make(mod, ast("`[~*a]")) }
 
-        it "assigns the matched nodes" do
-          a = nil
-          subject.assign(Rubinius::VariableScope.current, ast("[1, 2]"))
-          expect(a).to eq([ast("1"), ast("2")])
+        it "binds the splatted node array" do
+          expect(subject.bindings(ast("[1, 2]"))).to eq([[ast("1"), ast("2")]])
         end
       end
 
@@ -174,36 +162,16 @@ describe Atomy::Pattern::QuasiQuote do
         subject { described_class.make(mod, ast("`[1, 2, ~*a]")) }
 
         it "assigns the matched nodes" do
-          a = nil
-          subject.assign(Rubinius::VariableScope.current, ast("[1, 2, 3, 4]"))
-          expect(a).to eq([ast("3"), ast("4")])
+          expect(subject.bindings(ast("[1, 2, 3, 4]"))).to eq([[ast("3"), ast("4")]])
         end
       end
 
       context "when they're not at depth 0" do
         subject { described_class.make(mod, ast("``[1, ~*a]")) }
 
-        it "does not assign anything" do
-          a = nil
-          subject.assign(Rubinius::VariableScope.current, ast("`[1, ~*a]"))
-          expect(a).to be_nil
+        it "returns no bindings" do
+          expect(subject.bindings(ast("`[1, ~*a]"))).to be_empty
         end
-      end
-    end
-  end
-
-  describe "#locals" do
-    context "when any unquoted patterns bind" do
-      subject { described_class.make(mod, ast("`[1, ~a]")) }
-
-      it "returns their locals" do
-        expect(subject.locals).to eq([:a])
-      end
-    end
-
-    context "when no unquoted patterns bind" do
-      it "returns no locals" do
-        expect(subject.locals).to be_empty
       end
     end
   end

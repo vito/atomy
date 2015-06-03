@@ -20,14 +20,10 @@ describe Atomy::Pattern::KindOf do
     it { should_not === Fixnum }
   end
 
-  describe "#assign" do
-    it "does nothing" do
-      subject.assign(Rubinius::VariableScope.current, nil)
+  describe "#bindings" do
+    it "returns an empty array" do
+      expect(subject.bindings(42)).to be_empty
     end
-  end
-
-  describe "#locals" do
-    its(:locals) { should be_empty }
   end
 
   describe "#target" do

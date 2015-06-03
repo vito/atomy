@@ -1,3 +1,25 @@
+# dispatch strategy:
+#
+#   1 foo([a, b]) := a + 1
+#   2 foo([c]) := 4
+#
+# defines:
+#
+#   Integer#foo           (arity 1) : 1 concrete arg
+#   Integer#foo-branch-1  (arity 2) : 2 bindings
+#   Integer#foo-branch-2  (arity 1) : 1 binding
+#
+# so, doing 1.foo([1, 2]) will execute:
+#
+# Integer#foo:
+#   - locals tuple: [arg:0]
+#   - invoke Pattern#matches? with var scope
+#     - if true, invoke Integer#foo-match-1(*Pattern#bindings(scope))
+#     - if false, invoke Pattern#matches? with var scope
+#       - if true, invoke Integer#foo-match-2(*Pattern#bindings(scope))
+#       - if false, raise Atomy::MessageMismatch
+#
+
 require "atomy/compiler"
 require "atomy/locals"
 
@@ -6,18 +28,13 @@ module Atomy
     class Branch
       @@branch = 0
 
-      attr_reader :method, :pattern, :matcher, :body, :name
+      attr_reader :method, :pattern, :body, :name
 
-      def initialize(method, pattern, matcher, body)
+      def initialize(method, pattern, body)
         @method = method
         @pattern = pattern
         @body = body
-        @matcher = matcher
         @name = :"#@method-#{tick}"
-      end
-
-      def matcher_name
-        :"#@name-matcher"
       end
 
       def total_args
@@ -38,8 +55,8 @@ module Atomy
       @branches = []
     end
 
-    def add_branch(pattern, matcher, body)
-      branch = Branch.new(@name, pattern, matcher, body)
+    def add_branch(pattern, body)
+      branch = Branch.new(@name, pattern, body)
       @branches << branch
       branch
     end
@@ -117,19 +134,18 @@ module Atomy
       @branches.each do |b|
         skip = gen.new_label
 
-        gen.push_self
-        b.total_args.times do |i|
-          gen.push_local(i)
-        end
-        gen.send(b.matcher_name, b.total_args, true)
+        gen.push_literal(b.pattern)
+        gen.push_variables
+        gen.send(:matches?, 1)
 
         gen.gif(skip)
 
         gen.push_self
-        b.total_args.times do |i|
-          gen.push_local(i)
-        end
-        gen.send(b.name, b.total_args, true)
+        gen.push_literal(b.pattern)
+        gen.push_variables
+        gen.send(:bindings, 1)
+        gen.push_nil # no block
+        gen.send_with_splat(b.name, 0, true)
 
         gen.goto(done)
 

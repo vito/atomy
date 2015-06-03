@@ -9,11 +9,13 @@ class Atomy::Pattern
     attr_reader :node
 
     def self.patterns_through(mod, node)
-      Atomy::Grammar::AST::QuasiQuote.new(Constructor.new(mod).go(node.node))
+      constructor = Constructor.new(mod)
+      [constructor.go(node), constructor.locals]
     end
 
     def self.make(mod, node)
-      new(mod.evaluate(patterns_through(mod, node)))
+      constructor, _ = patterns_through(mod, node)
+      new(mod.evaluate(constructor))
     end
 
     def initialize(node)
@@ -24,15 +26,95 @@ class Atomy::Pattern
       MatchWalker.new.go(@node, val)
     end
 
-    def locals
-      LocalsWalker.new.go(@node)
-    end
-
-    def assign(scope, val)
-      AssignWalker.new(scope).go(@node, val)
+    def bindings(val)
+      BindingsWalker.new.go(@node, val)
     end
 
     private
+
+    class Walker
+      def initialize
+        @depth = 0
+      end
+
+      def go(x)
+        x.accept(self)
+      end
+
+      def visit_quasiquote(qq)
+        @depth += 1
+        visit(qq)
+      ensure
+        @depth -= 1
+      end
+
+      def visit_unquote(x)
+        @depth -= 1
+
+        if @depth == 0
+          unquote(x)
+        else
+          visit(x)
+        end
+      ensure
+        @depth += 1
+      end
+
+      def unquote(_)
+        raise NotImplementedError
+      end
+
+      def push_literal(x)
+        case x
+        when Array
+          x.each { |v| push_literal(v) }
+          @gen.make_array(x.size)
+        when String
+          @gen.push_literal(x)
+          @gen.string_dup
+        else
+          @gen.push_literal(x)
+        end
+      end
+
+      def unsplat(pats)
+        if pats.last.is_a?(Atomy::Grammar::AST::Unquote) && \
+            pats.last.node.is_a?(Atomy::Pattern::Splat)
+          [pats[0..-2], pats[-1]]
+        else
+          [pats, nil]
+        end
+      end
+    end
+
+    class Constructor < Walker
+      attr_reader :locals
+
+      def initialize(mod)
+        super()
+
+        @module = mod
+        @locals = []
+      end
+
+      def go(x)
+        x.accept(self)
+      end
+
+      def visit(x)
+        x.through do |v|
+          go(v)
+        end
+      end
+
+      def unquote(x)
+        x.through do |p|
+          pat = @module.pattern(p)
+          @locals += pat.locals
+          pat
+        end
+      end
+    end
 
     class MatchWalker
       def go(a, b)
@@ -89,129 +171,33 @@ class Atomy::Pattern
       end
     end
 
-    class Walker
-      def initialize
-        @depth = 1
-      end
-
-      def go(x)
-        x.accept(self)
-      end
-
-      def visit_quasiquote(qq)
-        @depth += 1
-        visit(qq)
-      ensure
-        @depth -= 1
-      end
-
-      def visit_unquote(x)
-        @depth -= 1
-
-        if @depth == 0
-          unquote(x)
-        else
-          visit(x)
-        end
-      ensure
-        @depth += 1
-      end
-
-      def unquote(_)
-        raise NotImplementedError
-      end
-
-      def push_literal(x)
-        case x
-        when Array
-          x.each { |v| push_literal(v) }
-          @gen.make_array(x.size)
-        when String
-          @gen.push_literal(x)
-          @gen.string_dup
-        else
-          @gen.push_literal(x)
-        end
-      end
-
-      def unsplat(pats)
-        if pats.last.is_a?(Atomy::Grammar::AST::Unquote) && \
-            pats.last.node.is_a?(Atomy::Pattern::Splat)
-          [pats[0..-2], pats[-1]]
-        else
-          [pats, nil]
-        end
-      end
-    end
-
-    class Constructor < Walker
-      def initialize(mod)
-        super()
-        @module = mod
-      end
-
-      def go(x)
-        x.accept(self)
-      end
-
-      def visit(x)
-        x.through do |v|
-          go(v)
-        end
-      end
-
-      def unquote(x)
-        x.through { |p| @module.pattern(p) }
-      end
-    end
-
-    class LocalsWalker
-      def go(x)
-        locals = []
-
-        if x.is_a?(Atomy::Pattern)
-          locals += x.locals
-        else
-          x.each_child do |_, val|
-            if val.is_a?(Array)
-              val.each do |v|
-                locals += go(v)
-              end
-            else
-              locals += go(val)
-            end
-          end
-        end
-
-        locals
-      end
-    end
-
-    class AssignWalker
-      def initialize(scope)
-        @scope = scope
-      end
-
+    class BindingsWalker
       def go(a, b)
         if a.is_a?(Atomy::Pattern)
-          a.assign(@scope, b)
+          a.bindings(b)
         elsif b.is_a?(a.class)
+          bindings = []
+
           a.each_child do |attr, val|
             theirval = b.send(attr)
 
             if val.is_a?(Array)
-              go_array(val, theirval)
+              bindings += go_array(val, theirval)
             else
-              go(val, b.send(attr))
+              bindings += go(val, b.send(attr))
             end
           end
+
+          bindings
         else
           # this should be impossible because #matches? should prevent it
-          raise "cannot assign '#{b.inspect}' against '#{a}'"
+          raise "cannot extract bindings from '#{b.inspect}' using '#{a}'"
         end
       end
 
       def go_array(as, bs)
+        bindings = []
+
         splat = nil
         req_size = 0
         as.each do |a|
@@ -224,14 +210,14 @@ class Atomy::Pattern
         end
 
         req_size.times do |i|
-          go(as[i], bs[i])
+          bindings += go(as[i], bs[i])
         end
 
         if splat
-          splat.assign(@scope, bs[req_size..-1])
+          bindings += splat.bindings(bs[req_size..-1])
         end
 
-        true
+        bindings
       end
     end
   end

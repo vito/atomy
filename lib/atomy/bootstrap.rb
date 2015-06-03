@@ -6,6 +6,7 @@ require "atomy/code/constant"
 require "atomy/code/define_method"
 require "atomy/code/integer"
 require "atomy/code/list"
+require "atomy/code/pattern"
 require "atomy/code/quasi_quote"
 require "atomy/code/quote"
 require "atomy/code/self"
@@ -135,89 +136,112 @@ module Atomy
 
       def visit_word(node)
         args = []
+        locals = []
 
         if node.text != :_
           args << Code::Symbol.new(node.text)
+          locals << node.text
         end
 
-        Code::Send.new(
-          Code::Constant.new(
-            :Wildcard,
-            Code::Constant.new(
-              :Pattern,
-              Code::Constant.new(:Atomy))),
-          :new,
-          args)
-      end
-
-      def visit_number(node)
-        Code::Send.new(
-          Code::Constant.new(
-            :Equality,
-            Code::Constant.new(
-              :Pattern,
-              Code::Constant.new(:Atomy))),
-          :new,
-          [node])
-      end
-
-      def visit_quote(node)
-        Code::Send.new(
-          Code::Constant.new(
-            :Equality,
-            Code::Constant.new(
-              :Pattern,
-              Code::Constant.new(:Atomy))),
-          :new,
-          [node])
-      end
-
-      def visit_quasiquote(node)
-        Code::Send.new(
-          Code::Constant.new(
-            :QuasiQuote,
-            Code::Constant.new(
-              :Pattern,
-              Code::Constant.new(:Atomy))),
-          :new,
-          [Pattern::QuasiQuote.patterns_through(@module, node)])
-      end
-
-      def visit_prefix(node)
-        if node.operator == :*
+        Code::Pattern.new(
           Code::Send.new(
             Code::Constant.new(
-              :Splat,
+              :Wildcard,
               Code::Constant.new(
                 :Pattern,
                 Code::Constant.new(:Atomy))),
             :new,
-            [@module.pattern(node.node)])
+            args),
+          locals)
+      end
+
+      def visit_number(node)
+        Code::Pattern.new(
+          Code::Send.new(
+            Code::Constant.new(
+              :Equality,
+              Code::Constant.new(
+                :Pattern,
+                Code::Constant.new(:Atomy))),
+            :new,
+            [node]),
+          [])
+      end
+
+      def visit_quote(node)
+        Code::Pattern.new(
+          Code::Send.new(
+            Code::Constant.new(
+              :Equality,
+              Code::Constant.new(
+                :Pattern,
+                Code::Constant.new(:Atomy))),
+            :new,
+            [node]),
+          [])
+      end
+
+      def visit_quasiquote(node)
+        quoted_patterns, locals =
+          Pattern::QuasiQuote.patterns_through(@module, node)
+
+        Code::Pattern.new(
+          Code::Send.new(
+            Code::Constant.new(
+              :QuasiQuote,
+              Code::Constant.new(
+                :Pattern,
+                Code::Constant.new(:Atomy))),
+            :new,
+            [quoted_patterns]),
+          locals)
+      end
+
+      def visit_prefix(node)
+        if node.operator == :*
+          pattern = @module.pattern(node.node)
+
+          Code::Pattern.new(
+            Code::Send.new(
+              Code::Constant.new(
+                :Splat,
+                Code::Constant.new(
+                  :Pattern,
+                  Code::Constant.new(:Atomy))),
+              :new,
+              [pattern]),
+            pattern.locals)
         end
       end
 
       def visit_infix(node)
         if node.operator == :&
-          Code::Send.new(
-            Code::Constant.new(
-              :And,
+          patterns = [@module.pattern(node.left), @module.pattern(node.right)]
+
+          Code::Pattern.new(
+            Code::Send.new(
               Code::Constant.new(
-                :Pattern,
-                Code::Constant.new(:Atomy))),
-            :new,
-            [@module.pattern(node.left), @module.pattern(node.right)])
+                :And,
+                Code::Constant.new(
+                  :Pattern,
+                  Code::Constant.new(:Atomy))),
+              :new,
+              patterns),
+            patterns.collect(&:locals).flatten)
         end
       end
 
       def visit_constant(node)
-        Code::Send.new(
-          Code::Constant.new(
-            :KindOf,
+        Code::Pattern.new(
+          Code::Send.new(
             Code::Constant.new(
-              :Pattern,
-              Code::Constant.new(:Atomy))),
-          :new,
-          [node])
+              :KindOf,
+              Code::Constant.new(
+                :Pattern,
+                Code::Constant.new(:Atomy))),
+            :new,
+            [node]),
+          [])
       end
     end
   end

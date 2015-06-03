@@ -58,13 +58,9 @@ describe Atomy::Pattern::Equality do
     end
   end
 
-  describe "#locals" do
-    its(:locals) { should be_empty }
-  end
-
-  describe "#assign" do
-    it "does nothing" do
-      subject.assign(Rubinius::VariableScope.current, 42)
+  describe "#bindings" do
+    it "returns an empty array" do
+      expect(subject.bindings(42)).to be_empty
     end
   end
 

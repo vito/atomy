@@ -65,27 +65,21 @@ describe Atomy::Pattern::And do
     end
   end
 
-  describe "#assign" do
+  describe "#bindings" do
     context "when 'a' binds" do
       let(:a) { wildcard(:a) }
 
       context "and 'b' binds" do
         let(:b) { wildcard(:b) }
 
-        it "assigns all locals" do
-          a = nil
-          b = nil
-          subject.assign(Rubinius::VariableScope.current, 42)
-          expect(a).to eq(42)
-          expect(b).to eq(42)
+        it "returns their bound values" do
+          expect(subject.bindings(42)).to eq([42, 42])
         end
       end
 
       context "and 'b' does NOT bind" do
-        it "assigns the 'a' locals" do
-          a = nil
-          subject.assign(Rubinius::VariableScope.current, 42)
-          expect(a).to eq(42)
+        it "returns only one binding" do
+          expect(subject.bindings(42)).to eq([42])
         end
       end
     end
@@ -94,49 +88,15 @@ describe Atomy::Pattern::And do
       context "and 'b' binds" do
         let(:b) { wildcard(:b) }
 
-        it "assigns the 'b' locals" do
-          b = nil
-          subject.assign(Rubinius::VariableScope.current, 42)
-          expect(b).to eq(42)
+        it "returns only one binding" do
+          expect(subject.bindings(42)).to eq([42])
         end
       end
 
       context "and 'b' does NOT bind" do
-        it "does nothing" do
-          subject.assign(Rubinius::VariableScope.current, 42)
+        it "returns no bindings" do
+          expect(subject.bindings(42)).to be_empty
         end
-      end
-    end
-  end
-
-  describe "#locals" do
-    context "when 'a' binds" do
-      let(:a) { wildcard(:a) }
-
-      context "and 'b' binds" do
-        let(:b) { wildcard(:b) }
-
-        its(:locals) { should == [:a, :b] }
-      end
-
-      context "and 'b' does NOT bind" do
-        let(:b) { wildcard }
-
-        its(:locals) { should == [:a] }
-      end
-    end
-
-    context "when 'a' does NOT bind" do
-      context "and 'b' binds" do
-        let(:b) { wildcard(:b) }
-
-        its(:locals) { should == [:b] }
-      end
-
-      context "and 'b' does NOT bind" do
-        let(:b) { wildcard }
-
-        its(:locals) { should be_empty }
       end
     end
   end

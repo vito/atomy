@@ -12,12 +12,8 @@ class Atomy::Pattern
       @pattern.matches?(val)
     end
 
-    def locals
-      @pattern.locals
-    end
-
-    def assign(scope, val)
-      @pattern.assign(scope, val)
+    def bindings(val)
+      @pattern.bindings(val)
     end
   end
 end

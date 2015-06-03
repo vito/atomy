@@ -27,38 +27,20 @@ describe Atomy::Pattern::Wildcard do
     it { should === Object.new }
   end
 
-  describe "#locals" do
-    context "when no name is given" do
-      it "returns an empty array" do
-        expect(subject.locals).to be_empty
-      end
-    end
-
-    context "when a name is given" do
-      subject { described_class.new(:abc) }
-
-      it "returns a list containing the name" do
-        expect(subject.locals).to eq([:abc])
-      end
-    end
-  end
-
-  describe "#assign" do
+  describe "#bindings" do
     context "when no name is given" do
       subject { described_class.new }
 
-      it "does nothing" do
-        subject.assign(Rubinius::VariableScope.current, nil)
+      it "returns no bindings" do
+        expect(subject.bindings(42)).to be_empty
       end
     end
 
     context "when a name is given" do
       subject { described_class.new(:abc) }
 
-      it "assigns the name in the given scope" do
-        abc = nil
-        subject.assign(Rubinius::VariableScope.current, 42)
-        expect(abc).to eq(42)
+      it "returns the bound value" do
+        expect(subject.bindings(42)).to eq([42])
       end
     end
   end

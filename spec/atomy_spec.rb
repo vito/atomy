@@ -38,9 +38,7 @@ describe Atomy do
           binding,
           :foo,
           message(kind_of_pat(SomeTarget)),
-          ast("2"),
-          Atomy::Bootstrap,
-        )
+        ) { 2 }
 
         expect(SomeTarget.new.foo).to eq(2)
       end
@@ -56,9 +54,7 @@ describe Atomy do
           def_binding,
           :foo,
           message(nil),
-          ast("2"),
-          Atomy::Bootstrap, # so we can compile '2'
-        )
+        ) { 2 }
 
         bar = Class.new { include foo }
 
@@ -74,9 +70,7 @@ describe Atomy do
           target.module_eval { binding },
           :foo,
           pattern,
-          ast("42"),
-          Atomy::Bootstrap,
-        )
+        ) { 42 }
 
         expect(target.foo(0)).to eq(42)
         expect { target.foo(1) }.to raise_error(Atomy::MessageMismatch)
@@ -90,17 +84,13 @@ describe Atomy do
           target.module_eval { binding },
           :foo,
           pattern_0,
-          ast("42"),
-          Atomy::Bootstrap,
-        )
+        ) { 42 }
 
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
           pattern_1,
-          ast("43"),
-          Atomy::Bootstrap,
-        )
+        ) { 43 }
 
         expect(target.foo(0)).to eq(42)
         expect(target.foo(1)).to eq(43)
@@ -115,17 +105,13 @@ describe Atomy do
             target.module_eval { binding },
             :foo,
             pattern_0,
-            ast("0"),
-            Atomy::Bootstrap,
-          )
+          ) { 0 }
 
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
             pattern_wildcard,
-            ast("42"),
-            Atomy::Bootstrap,
-          )
+          ) { 42 }
 
           expect(target.foo(0)).to eq(0)
           expect(target.foo(1)).to eq(42)
@@ -141,17 +127,13 @@ describe Atomy do
             target.module_eval { binding },
             :foo,
             pattern_wildcard,
-            ast("42"),
-            Atomy::Bootstrap,
-          )
+          ) { 42 }
 
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
             pattern_0,
-            ast("0"),
-            Atomy::Bootstrap,
-          )
+          ) { 0 }
 
           expect(target.foo(0)).to eq(42)
           expect(target.foo(1)).to eq(42)
@@ -171,17 +153,13 @@ describe Atomy do
               base.class_eval { binding },
               :foo,
               pattern_0,
-              ast("0"),
-              Atomy::Bootstrap,
-            )
+            ) { 0 }
 
             described_class.define_branch(
               sub.class_eval { binding },
               :foo,
               pattern_1,
-              ast("1"),
-              Atomy::Bootstrap,
-            )
+            ) { 1 }
 
             expect(sub.new.foo(0)).to eq(0)
             expect(sub.new.foo(1)).to eq(1)
@@ -196,9 +174,7 @@ describe Atomy do
               target.module_eval { binding },
               :foo,
               pattern,
-              ast("0"),
-              Atomy::Bootstrap,
-            )
+            ) { 0 }
 
             expect { target.foo(1) }.to raise_error(Atomy::MessageMismatch)
           end

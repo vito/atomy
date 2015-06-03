@@ -13,12 +13,8 @@ module Atomy
       raise NotImplementedError
     end
 
-    def locals
+    def bindings(_)
       []
-    end
-
-    def assign(scope, val)
-      raise NotImplementedError unless locals.empty?
     end
   end
 end

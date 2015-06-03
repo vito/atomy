@@ -84,7 +84,7 @@ describe Atomy::Pattern::Message do
     end
   end
 
-  describe "#assign" do
+  describe "#bindings" do
     def star_wars_episode_iv_a_new_scope(self_, locals = [])
       current_scope = Rubinius::VariableScope.current
 
@@ -99,94 +99,54 @@ describe Atomy::Pattern::Message do
     end
 
     context "when there are no bindings" do
-      it "does nothing" do
-        subject.assign(Rubinius::VariableScope.current, Rubinius::VariableScope.current)
+      it "returns an empty array" do
+        expect(subject.bindings(Rubinius::VariableScope.current)).to be_empty
       end
     end
 
     context "when the receiver pattern binds" do
       subject { described_class.new(wildcard(:a)) }
 
-      it "assigns locals against the given scope's receiver" do
-        a = nil
+      it "returns its bound value" do
         scope = star_wars_episode_iv_a_new_scope(42)
-        subject.assign(Rubinius::VariableScope.current, scope)
-        expect(a).to eq(42)
+        expect(subject.bindings(scope)).to eq([42])
       end
     end
 
     context "when arguments bind" do
       subject { described_class.new(wildcard, [wildcard(:a)]) }
 
-      it "assigns locals against the given scope's argument locals" do
-        a = nil
+      it "returns their bound values" do
         scope = star_wars_episode_iv_a_new_scope(Object.new, [42])
-        subject.assign(Rubinius::VariableScope.current, scope)
-        expect(a).to eq(42)
+        expect(subject.bindings(scope)).to eq([42])
       end
     end
 
     context "when the arguments bind twice" do
       subject { described_class.new(wildcard, [wildcard(:a), wildcard(:b)]) }
 
-      it "assigns locals against the given scope's argument locals" do
-        a = nil
-        b = nil
+      it "returns their bound values" do
         scope = star_wars_episode_iv_a_new_scope(Object.new, [:a, :b])
-        subject.assign(Rubinius::VariableScope.current, scope)
-        expect(a).to eq(:a)
-        expect(b).to eq(:b)
+        expect(subject.bindings(scope)).to eq([:a, :b])
       end
     end
 
     context "when the arguments bind one local twice" do
       subject { described_class.new(wildcard, [wildcard(:a), wildcard(:a)]) }
 
-      it "assigns locals against the given scope's argument locals" do
-        a = nil
+      it "returns the bound values, regardless of its name" do
         scope = star_wars_episode_iv_a_new_scope(Object.new, [:a, :b])
-        subject.assign(Rubinius::VariableScope.current, scope)
-        expect(a).to eq(:b)
+        expect(subject.bindings(scope)).to eq([:a, :b])
       end
     end
 
     context "when the receiver and arguments both bind" do
       subject { described_class.new(wildcard(:a), [wildcard(:b), wildcard(:c)]) }
 
-      it "assigns locals against the given scope's argument locals" do
-        a = nil
-        b = nil
-        c = nil
+      it "returns their bound values" do
         scope = star_wars_episode_iv_a_new_scope(:a, [:b, :c])
-        subject.assign(Rubinius::VariableScope.current, scope)
-        expect(a).to eq(:a)
-        expect(b).to eq(:b)
-        expect(c).to eq(:c)
+        expect(subject.bindings(scope)).to eq([:a, :b, :c])
       end
-    end
-  end
-
-  describe "#locals" do
-    context "when the receiver pattern binds" do
-      subject { described_class.new(wildcard(:a)) }
-
-      its(:locals) { should eq([:a]) }
-    end
-
-    context "when any of the argument patterns bind" do
-      subject { described_class.new(wildcard, [wildcard(:a)]) }
-
-      its(:locals) { should eq([:a]) }
-    end
-
-    context "when the receiver and argument patterns both bind" do
-      subject { described_class.new(wildcard(:a), [wildcard(:b)]) }
-
-      its(:locals) { should eq([:a, :b]) }
-    end
-
-    context "when neither the receiver nor the arguments bind" do
-      its(:locals) { should be_empty }
     end
   end
 end
