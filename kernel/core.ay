@@ -23,7 +23,7 @@ macro(def((~(msg & Word))(~*args)): ~*body):
 
 -- assignment
 macro(~(name & Word) = ~y):
-  Atomy Code Assign new(name text, y)
+  Atomy Code Assign new(name, y)
 
 -- block literals
 macro([~*args]: ~*body):
