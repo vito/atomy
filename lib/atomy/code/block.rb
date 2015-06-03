@@ -35,8 +35,13 @@ module Atomy
           blk.arity = @arguments.size
 
           # create a local for each argument name
-          @arguments.each do |a|
-            blk.state.scope.new_local(a.text)
+          @arguments.each.with_index do |a, i|
+            blk.state.scope.new_local(:"arg:#{i}")
+          end
+
+          # pattern-match all args
+          @arguments.each.with_index do |a, i|
+            Assign.new(a, Variable.new(:"arg:#{i}")).bytecode(blk, mod)
           end
 
           # build the block's body

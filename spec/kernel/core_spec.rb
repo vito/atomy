@@ -56,5 +56,11 @@ describe "core kernel" do
       expect(blk).to be_kind_of(Proc)
       expect(blk.call(2)).to eq(3)
     end
+
+    it "pattern-matches block arguments" do
+      blk = subject.evaluate(seq("[a, `(1 + ~b)]: [a, b value]"))
+      expect(blk).to be_kind_of(Proc)
+      expect(blk.call(1, ast("1 + 2"))).to eq([1, 2])
+    end
   end
 end

@@ -23,6 +23,19 @@ describe Atomy::Code::Block do
     end
   end
 
+  context "when any argument patterns do not match" do
+    let(:args) { [ast("1"), ast("b")] }
+    let(:body) { ast("b + 3") }
+
+    it "raises Atomy::PatternMismatch" do
+      expect(compile_module.evaluate(subject).call(1, 2)).to eq(5)
+
+      expect {
+        compile_module.evaluate(subject).call(2, 2)
+      }.to raise_error(Atomy::PatternMismatch)
+    end
+  end
+
   context "when called with too many arguments" do
     it "raises ArgumentError" do
       expect {
