@@ -22,8 +22,8 @@ macro(def((~(msg & Word))(~*args)): ~*body):
   Atomy Code DefineMethod new(msg text, `(do: ~*body), args)
 
 -- assignment
-macro(~(name & Word) = ~y):
-  Atomy Code Assign new(name, y)
+macro(~pat = ~val):
+  Atomy Code Assign new(pat, val)
 
 -- block literals
 macro([~*args]: ~*body):

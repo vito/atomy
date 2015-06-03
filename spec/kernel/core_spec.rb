@@ -40,8 +40,16 @@ describe "core kernel" do
     end
   end
 
-  it "implements local variable assignment notation" do
-    expect(subject.evaluate(seq("a = 1, a + 2"))).to eq(3)
+  describe "assignment" do
+    it "implements local variable assignment notation" do
+      expect(subject.evaluate(seq("a = 1, a + 2"))).to eq(3)
+    end
+
+    it "raises an error when the patterns don't match" do
+      expect {
+        subject.evaluate(ast("2 = 1"))
+      }.to raise_error(Atomy::PatternMismatch)
+    end
   end
 
   describe "blocks" do
