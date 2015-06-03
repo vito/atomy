@@ -25,10 +25,18 @@ describe "core kernel" do
   end
 
   it "implements sending messages to receivers, with blocks" do
+    expect(subject.evaluate(ast("3 times collect: 1"))).to eq([1, 1, 1])
+  end
+
+  it "implements sending messages to receivers, with blocks with argumennts" do
     expect(subject.evaluate(ast("[1, 2, 3] collect [x]: x + 1"))).to eq([2, 3, 4])
   end
 
   it "implements sending messages to receivers, with arguments and blocks" do
+    expect(subject.evaluate(ast("[1, 2, 3] fetch(3): 42"))).to eq(42)
+  end
+
+  it "implements sending messages to receivers, with arguments and blocks with arguments" do
     expect(subject.evaluate(ast("[1, 2, 3] inject(3) [a, b]: a + b"))).to eq(9)
   end
 
@@ -62,6 +70,12 @@ describe "core kernel" do
 
   describe "blocks" do
     it "implements block literals" do
+      blk = subject.evaluate(ast("{ 1 + 2 }"))
+      expect(blk).to be_kind_of(Proc)
+      expect(blk.call).to eq(3)
+    end
+
+    it "implements block literals with arguments" do
       blk = subject.evaluate(ast("[a, b]: a + b"))
       expect(blk).to be_kind_of(Proc)
       expect(blk.call(1, 2)).to eq(3)

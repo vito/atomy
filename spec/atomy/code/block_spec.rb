@@ -37,10 +37,8 @@ describe Atomy::Code::Block do
   end
 
   context "when called with too many arguments" do
-    it "raises ArgumentError" do
-      expect {
-        compile_module.evaluate(subject).call(1, 2, 3)
-      }.to raise_error(ArgumentError)
+    it "ignores the extra ones" do
+      expect(compile_module.evaluate(subject).call(1, 2, 3)).to eq(3)
     end
   end
 
