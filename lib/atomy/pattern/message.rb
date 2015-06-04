@@ -23,8 +23,10 @@ class Atomy::Pattern
       # TODO: won't work for methods with branches that have varying arg counts
       return false unless val.locals.size == @arguments.size
 
-      @arguments.each.with_index do |pat, i|
-        return false unless pat.matches?(val.locals[i])
+      idx = 0
+      @arguments.each do |pat|
+        return false unless pat.matches?(val.locals[idx])
+        idx += 1
       end
 
       true
@@ -37,8 +39,10 @@ class Atomy::Pattern
         bindings += @receiver.bindings(val.self)
       end
 
-      @arguments.each.with_index do |p, i|
-        bindings += p.bindings(val.locals[i])
+      idx = 0
+      @arguments.each do |p|
+        bindings += p.bindings(val.locals[idx])
+        idx += 1
       end
 
       bindings
