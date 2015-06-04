@@ -9,34 +9,6 @@ class Atomy::Pattern
       @arguments = arguments
     end
 
-    def matches?(val)
-      return false unless val.kind_of?(Rubinius::VariableScope)
-
-      if @receiver and !@receiver.matches?(val.self)
-        return false
-      end
-
-      idx = 0
-      @arguments.each do |pat|
-        return false unless pat.matches?(val.locals[idx])
-        idx += 1
-      end
-
-      true
-    end
-
-    def assign(scope, val)
-      if @receiver
-        @receiver.assign(scope, val.self)
-      end
-
-      idx = 0
-      @arguments.each do |p|
-        p.assign(scope, val.locals[idx])
-        idx += 1
-      end
-    end
-
     def required_arguments
       @arguments.size
     end

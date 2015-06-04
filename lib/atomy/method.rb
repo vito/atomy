@@ -153,18 +153,37 @@ module Atomy
         gen.passed_arg(b.pattern.total_arguments)
         gen.git(skip)
 
-        gen.push_literal(b.pattern)
-        gen.push_variables
-        gen.send(:matches?, 1)
+        if b.pattern.receiver
+          gen.push_literal(b.pattern.receiver)
+          gen.push_self
+          gen.send(:matches?, 1)
+          gen.gif(skip)
+        end
 
-        gen.gif(skip)
+        b.pattern.arguments.each.with_index do |p, i|
+          gen.push_literal(p)
+          gen.push_local(i)
+          gen.send(:matches?, 1)
+          gen.gif(skip)
+        end
+
+        if b.pattern.receiver
+          gen.push_literal(b.pattern.receiver)
+          gen.push_variables
+          gen.push_self
+          gen.send(:assign, 2)
+          gen.pop
+        end
+
+        b.pattern.arguments.each.with_index do |p, i|
+          gen.push_literal(p)
+          gen.push_variables
+          gen.push_local(i)
+          gen.send(:assign, 2)
+          gen.pop
+        end
 
         gen.push_self
-        gen.push_literal(b.pattern)
-        gen.push_variables
-        gen.dup
-        gen.send(:assign, 2)
-        gen.pop
 
         b.locals.each do |loc|
           if local = gen.state.scope.search_local(loc)
