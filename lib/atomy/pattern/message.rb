@@ -16,13 +16,6 @@ class Atomy::Pattern
         return false
       end
 
-      # don't match if args aren't same count
-      #
-      # TODO: handle splats
-      #
-      # TODO: won't work for methods with branches that have varying arg counts
-      return false unless val.locals.size == @arguments.size
-
       idx = 0
       @arguments.each do |pat|
         return false unless pat.matches?(val.locals[idx])
@@ -32,20 +25,24 @@ class Atomy::Pattern
       true
     end
 
-    def bindings(val)
-      bindings = []
-
+    def assign(scope, val)
       if @receiver
-        bindings.concat(@receiver.bindings(val.self))
+        @receiver.assign(scope, val.self)
       end
 
       idx = 0
       @arguments.each do |p|
-        bindings.concat(p.bindings(val.locals[idx]))
+        p.assign(scope, val.locals[idx])
         idx += 1
       end
+    end
 
-      bindings
+    def required_arguments
+      @arguments.size
+    end
+
+    def total_arguments
+      @arguments.size
     end
   end
 end

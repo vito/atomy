@@ -12,11 +12,24 @@ class Atomy::Pattern
       true
     end
 
-    def bindings(val)
+    def assign(scope, val)
       if @name
-        [val]
-      else
-        []
+        cur = scope
+        while cur
+          if scope.eval_local_defined?(@name)
+            scope.set_eval_local(@name, val)
+            return
+          end
+
+          if local = cur.method.local_names.find_index(@name)
+            cur.set_local(local, val)
+            return
+          end
+
+          cur = cur.parent
+        end
+
+        raise "could not find local for #@name"
       end
     end
   end

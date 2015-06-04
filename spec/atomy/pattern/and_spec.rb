@@ -65,21 +65,27 @@ describe Atomy::Pattern::And do
     end
   end
 
-  describe "#bindings" do
+  describe "#assign" do
     context "when 'a' binds" do
       let(:a) { wildcard(:a) }
 
       context "and 'b' binds" do
         let(:b) { wildcard(:b) }
 
-        it "returns their bound values" do
-          expect(subject.bindings(42)).to eq([42, 42])
+        it "assigns all locals" do
+          a = nil
+          b = nil
+          subject.assign(Rubinius::VariableScope.current, 42)
+          expect(a).to eq(42)
+          expect(b).to eq(42)
         end
       end
 
       context "and 'b' does NOT bind" do
-        it "returns only one binding" do
-          expect(subject.bindings(42)).to eq([42])
+        it "assigns the 'a' locals" do
+          a = nil
+          subject.assign(Rubinius::VariableScope.current, 42)
+          expect(a).to eq(42)
         end
       end
     end
@@ -88,14 +94,16 @@ describe Atomy::Pattern::And do
       context "and 'b' binds" do
         let(:b) { wildcard(:b) }
 
-        it "returns only one binding" do
-          expect(subject.bindings(42)).to eq([42])
+        it "assigns the 'b' locals" do
+          b = nil
+          subject.assign(Rubinius::VariableScope.current, 42)
+          expect(b).to eq(42)
         end
       end
 
       context "and 'b' does NOT bind" do
-        it "returns no bindings" do
-          expect(subject.bindings(42)).to be_empty
+        it "does nothing" do
+          subject.assign(Rubinius::VariableScope.current, 42)
         end
       end
     end

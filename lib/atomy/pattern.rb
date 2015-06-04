@@ -13,8 +13,7 @@ module Atomy
       raise NotImplementedError
     end
 
-    def bindings(_)
-      []
+    def assign(_, _)
     end
   end
 end

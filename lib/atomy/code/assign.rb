@@ -9,9 +9,14 @@ module Atomy
       def bytecode(gen, mod)
         pattern = mod.pattern(@pattern)
 
-        vars = []
         pattern.locals.each do |name|
-          vars << assignment_local(gen, name)
+          local = assignment_local(gen, name)
+
+          # assign at least an empty local var; this is necessary in case it's
+          # an eval local, so that Wildcard can find the eval local to assign to
+          gen.push_nil
+          local.set_bytecode(gen)
+          gen.pop
         end
 
         # [value]
@@ -35,19 +40,14 @@ module Atomy
         # [value, pattern, value]
         gen.gif(mismatch)
 
-        # [[bindings], value]
-        gen.send(:bindings, 1)
+        # [#<Rubinius::VariableScope>, value, pattern, value]
+        gen.push_variables
 
-        vars.each do |v|
-          # [binding, [bindings], value]
-          gen.shift_array
+        # [value, #<Rubinius::VariableScope>, pattern, value]
+        gen.swap
 
-          # [binding, [bindings], value]
-          v.set_bytecode(gen)
-
-          # [[bindings], value]
-          gen.pop
-        end
+        # [<junk>, value]
+        gen.send(:assign, 2)
 
         # [value]
         gen.pop

@@ -58,9 +58,9 @@ describe Atomy::Pattern::Equality do
     end
   end
 
-  describe "#bindings" do
-    it "returns an empty array" do
-      expect(subject.bindings(42)).to be_empty
+  describe "#assign" do
+    it "does nothing" do
+      subject.assign(Rubinius::VariableScope.current, 42)
     end
   end
 

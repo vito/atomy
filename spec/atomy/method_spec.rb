@@ -29,19 +29,19 @@ describe Atomy::Method do
   describe "#add_branch" do
     it "creates a branch and inserts it" do
       expect {
-        subject.add_branch(Atomy::Pattern.new, block {})
+        subject.add_branch(Atomy::Pattern.new, block {}, [])
       }.to change { subject.branches.size }.from(0).to(1)
     end
 
     it "inserts branches with unique names" do
-      subject.add_branch(equality(0), block {})
-      subject.add_branch(equality(1), block {})
+      subject.add_branch(equality(0), block {}, [])
+      subject.add_branch(equality(1), block {}, [])
       expect(subject.branches.collect(&:name).uniq.size).to eq(2)
     end
 
     it "appends the branch to the end" do
-      subject.add_branch(equality(0), block { :new })
-      subject.add_branch(wildcard, block { :old })
+      subject.add_branch(equality(0), block { :new }, [])
+      subject.add_branch(wildcard, block { :old }, [])
       expect(subject.branches.collect(&:name).uniq.size).to eq(2)
       expect(subject.branches.first.body.call).to eq(:new)
     end
@@ -62,7 +62,7 @@ describe Atomy::Method do
 
     describe "invoking the method" do
       let(:target) { Atomy::Module.new }
-      let(:branch) { subject.add_branch(message, block { :ok }) }
+      let(:branch) { subject.add_branch(message, block { :ok }, []) }
       let(:method_name) { :foo }
 
       subject { described_class.new(method_name) }
@@ -85,7 +85,7 @@ describe Atomy::Method do
 
       context "when a block is given" do
         let(:branch) do
-          subject.add_branch(message, block { |&blk| blk })
+          subject.add_branch(message, block { |&blk| blk }, [])
         end
 
         before { define! }
@@ -102,7 +102,8 @@ describe Atomy::Method do
         let(:branch) do
           subject.add_branch(
             message(wildcard, [equality(0)]),
-            block { :ok })
+            block { :ok },
+            [])
         end
 
         context "and the method exists on the superclass" do

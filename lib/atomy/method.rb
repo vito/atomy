@@ -28,12 +28,13 @@ module Atomy
     class Branch
       @@branch = 0
 
-      attr_reader :method, :pattern, :body, :name
+      attr_reader :method, :pattern, :body, :name, :locals
 
-      def initialize(method, pattern, body)
+      def initialize(method, pattern, body, locals)
         @method = method
         @pattern = pattern
         @body = body
+        @locals = locals
         @name = :"#@method-#{tick}"
       end
 
@@ -55,8 +56,8 @@ module Atomy
       @branches = []
     end
 
-    def add_branch(pattern, body)
-      branch = Branch.new(@name, pattern, body)
+    def add_branch(pattern, body, locals)
+      branch = Branch.new(@name, pattern, body, locals)
       @branches << branch
       branch
     end
@@ -71,6 +72,16 @@ module Atomy
 
         total.times do |i|
           gen.state.scope.new_local(:"arg:#{i}")
+        end
+
+        declared_locals = {}
+        @branches.each do |b|
+          b.locals.each do |loc|
+            if !declared_locals[loc]
+              gen.state.scope.new_local(loc)
+              declared_locals[loc] = true
+            end
+          end
         end
 
         done = gen.new_label
@@ -134,6 +145,14 @@ module Atomy
       @branches.each do |b|
         skip = gen.new_label
 
+        # check for too few arguments
+        gen.passed_arg(b.pattern.required_arguments - 1)
+        gen.gif(skip)
+
+        # check for too many arguments
+        gen.passed_arg(b.pattern.total_arguments)
+        gen.git(skip)
+
         gen.push_literal(b.pattern)
         gen.push_variables
         gen.send(:matches?, 1)
@@ -143,9 +162,19 @@ module Atomy
         gen.push_self
         gen.push_literal(b.pattern)
         gen.push_variables
-        gen.send(:bindings, 1)
-        gen.push_nil # no block
-        gen.send_with_splat(b.name, 0, true)
+        gen.dup
+        gen.send(:assign, 2)
+        gen.pop
+
+        b.locals.each do |loc|
+          if local = gen.state.scope.search_local(loc)
+            local.get_bytecode(gen)
+          else
+            raise "undeclared local: #{loc}"
+          end
+        end
+
+        gen.send(b.name, b.locals.size, true)
 
         gen.goto(done)
 

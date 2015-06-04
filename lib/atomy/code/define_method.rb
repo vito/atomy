@@ -46,9 +46,14 @@ module Atomy
 
         gen.send(:new, 2)
 
+        branch_locals.each do |loc|
+          gen.push_literal(loc)
+        end
+        gen.make_array(branch_locals.size)
+
         gen.create_block(build_branch(gen.state.scope, mod, branch_locals))
 
-        gen.send_with_block(:define_branch, 3)
+        gen.send_with_block(:define_branch, 4)
       end
 
       private

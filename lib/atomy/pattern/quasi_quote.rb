@@ -26,8 +26,8 @@ class Atomy::Pattern
       MatchWalker.new.go(@node, val)
     end
 
-    def bindings(val)
-      BindingsWalker.new.go(@node, val)
+    def assign(scope, val)
+      AssignWalker.new(scope).go(@node, val)
     end
 
     private
@@ -116,6 +116,54 @@ class Atomy::Pattern
       end
     end
 
+    class AssignWalker
+      def initialize(scope)
+        @scope = scope
+      end
+
+      def go(a, b)
+        if a.is_a?(Atomy::Pattern)
+          a.assign(@scope, b)
+        elsif b.is_a?(a.class)
+          a.each_child do |attr, val|
+            theirval = b.send(attr)
+
+            if val.is_a?(Array)
+              go_array(val, theirval)
+            else
+              go(val, b.send(attr))
+            end
+          end
+        else
+          # this should be impossible because #matches? should prevent it
+          raise "cannot assign '#{b.inspect}' against '#{a}'"
+        end
+      end
+
+      def go_array(as, bs)
+        splat = nil
+        req_size = 0
+        as.each do |a|
+          if a.is_a?(Atomy::Pattern::Splat)
+            splat = a
+            break
+          end
+
+          req_size += 1
+        end
+
+        req_size.times do |i|
+          go(as[i], bs[i])
+        end
+
+        if splat
+          splat.assign(@scope, bs[req_size..-1])
+        end
+
+        true
+      end
+    end
+
     class MatchWalker
       def go(a, b)
         if a.is_a?(Atomy::Pattern)
@@ -168,56 +216,6 @@ class Atomy::Pattern
         end
 
         true
-      end
-    end
-
-    class BindingsWalker
-      def go(a, b)
-        if a.is_a?(Atomy::Pattern)
-          a.bindings(b)
-        elsif b.is_a?(a.class)
-          bindings = []
-
-          a.each_child do |attr, val|
-            theirval = b.send(attr)
-
-            if val.is_a?(Array)
-              bindings += go_array(val, theirval)
-            else
-              bindings += go(val, b.send(attr))
-            end
-          end
-
-          bindings
-        else
-          # this should be impossible because #matches? should prevent it
-          raise "cannot extract bindings from '#{b.inspect}' using '#{a}'"
-        end
-      end
-
-      def go_array(as, bs)
-        bindings = []
-
-        splat = nil
-        req_size = 0
-        as.each do |a|
-          if a.is_a?(Atomy::Pattern::Splat)
-            splat = a
-            break
-          end
-
-          req_size += 1
-        end
-
-        req_size.times do |i|
-          bindings += go(as[i], bs[i])
-        end
-
-        if splat
-          bindings += splat.bindings(bs[req_size..-1])
-        end
-
-        bindings
       end
     end
   end

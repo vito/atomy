@@ -38,6 +38,7 @@ describe Atomy do
           binding,
           :foo,
           message(kind_of_pat(SomeTarget)),
+          [],
         ) { 2 }
 
         expect(SomeTarget.new.foo).to eq(2)
@@ -54,6 +55,7 @@ describe Atomy do
           def_binding,
           :foo,
           message(nil),
+          [],
         ) { 2 }
 
         bar = Class.new { include foo }
@@ -70,6 +72,7 @@ describe Atomy do
           target.module_eval { binding },
           :foo,
           pattern,
+          [],
         ) { 42 }
 
         expect(target.foo(0)).to eq(42)
@@ -84,16 +87,60 @@ describe Atomy do
           target.module_eval { binding },
           :foo,
           pattern_0,
+          [],
         ) { 42 }
 
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
           pattern_1,
+          [],
         ) { 43 }
 
         expect(target.foo(0)).to eq(42)
         expect(target.foo(1)).to eq(43)
+      end
+
+      it "does not match if not enough arguments were given" do
+        pattern_0 = message(nil, [equality(1), wildcard])
+        pattern_1 = message(nil, [equality(0)])
+
+        described_class.define_branch(
+          target.module_eval { binding },
+          :foo,
+          pattern_0,
+          [],
+        ) { 42 }
+
+        described_class.define_branch(
+          target.module_eval { binding },
+          :foo,
+          pattern_1,
+          [],
+        ) { 43 }
+
+        expect { target.foo(1) }.to raise_error(Atomy::MessageMismatch)
+      end
+
+      it "does not match if too many arguments were given" do
+        pattern_0 = message(nil, [equality(1), wildcard])
+        pattern_1 = message(nil, [equality(2), wildcard, wildcard])
+
+        described_class.define_branch(
+          target.module_eval { binding },
+          :foo,
+          pattern_0,
+          [],
+        ) { 42 }
+
+        described_class.define_branch(
+          target.module_eval { binding },
+          :foo,
+          pattern_1,
+          [],
+        ) { 43 }
+
+        expect { target.foo(1, 2, 3) }.to raise_error(Atomy::MessageMismatch)
       end
 
       context "when a wildcard method is defined after a specific one" do
@@ -105,12 +152,14 @@ describe Atomy do
             target.module_eval { binding },
             :foo,
             pattern_0,
+            [],
           ) { 0 }
 
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
             pattern_wildcard,
+            [],
           ) { 42 }
 
           expect(target.foo(0)).to eq(0)
@@ -127,12 +176,14 @@ describe Atomy do
             target.module_eval { binding },
             :foo,
             pattern_wildcard,
+            [],
           ) { 42 }
 
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
             pattern_0,
+            [],
           ) { 0 }
 
           expect(target.foo(0)).to eq(42)
@@ -153,12 +204,14 @@ describe Atomy do
               base.class_eval { binding },
               :foo,
               pattern_0,
+              [],
             ) { 0 }
 
             described_class.define_branch(
               sub.class_eval { binding },
               :foo,
               pattern_1,
+              [],
             ) { 1 }
 
             expect(sub.new.foo(0)).to eq(0)
@@ -174,6 +227,7 @@ describe Atomy do
               target.module_eval { binding },
               :foo,
               pattern,
+              [],
             ) { 0 }
 
             expect { target.foo(1) }.to raise_error(Atomy::MessageMismatch)

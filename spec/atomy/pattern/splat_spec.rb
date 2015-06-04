@@ -35,20 +35,24 @@ describe Atomy::Pattern::Splat do
     end
   end
 
-  describe "#bindings" do
+  describe "#assign" do
     context "when its pattern binds" do
       subject { described_class.new(Atomy::Pattern::Wildcard.new(:abc)) }
 
-      it "returns the bound values" do
-        expect(subject.bindings([ast("foo"), ast("bar")])).to eq([[ast("foo"), ast("bar")]])
+      it "assigns them in the given scope" do
+        abc = nil
+        subject.assign(Rubinius::VariableScope.current, [ast("foo"), ast("bar")])
+        expect(abc).to eq([ast("foo"), ast("bar")])
       end
     end
 
     context "when its pattern does NOT bind" do
       subject { described_class.new(Atomy::Pattern::Wildcard.new) }
 
-      it "returns no bindings" do
-        expect(subject.bindings([ast("foo"), ast("bar")])).to be_empty
+      it "does not assign anything" do
+        abc = nil
+        subject.assign(Rubinius::VariableScope.current, [ast("foo"), ast("bar")])
+        expect(abc).to be_nil
       end
     end
   end

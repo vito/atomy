@@ -11,7 +11,7 @@ end
 module Atomy
   module_function
 
-  def define_branch(binding, name, pattern, &body)
+  def define_branch(binding, name, pattern, locals, &body)
     target =
       if pattern.receiver
         pattern.receiver.target
@@ -22,7 +22,7 @@ module Atomy
     methods = target.atomy_methods
     method = methods[name] ||= Atomy::Method.new(name)
 
-    branch = method.add_branch(pattern, body.block)
+    branch = method.add_branch(pattern, body.block, locals)
 
     Rubinius.add_method(
       branch.name,
