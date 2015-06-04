@@ -1,5 +1,4 @@
 require "atomy/compiler"
-require "atomy/pattern/message"
 
 module Atomy
   module Code
@@ -21,11 +20,6 @@ module Atomy
 
         gen.push_literal(@name)
 
-        gen.push_cpath_top
-        gen.find_const(:Atomy)
-        gen.find_const(:Pattern)
-        gen.find_const(:Message)
-
         branch_locals = []
 
         if @receiver
@@ -41,10 +35,7 @@ module Atomy
           branch_locals += pattern.locals
           mod.compile(gen, pattern)
         end
-
         gen.make_array(@arguments.size)
-
-        gen.send(:new, 2)
 
         branch_locals.each do |loc|
           gen.push_literal(loc)
@@ -53,7 +44,7 @@ module Atomy
 
         gen.create_block(build_branch(gen.state.scope, mod, branch_locals))
 
-        gen.send_with_block(:define_branch, 4)
+        gen.send_with_block(:define_branch, 5)
       end
 
       private

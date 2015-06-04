@@ -3,7 +3,6 @@ require "spec_helper"
 require "atomy/bootstrap"
 require "atomy/codeloader"
 require "atomy/module"
-require "atomy/pattern/message"
 require "atomy/pattern/equality"
 require "atomy/pattern/wildcard"
 

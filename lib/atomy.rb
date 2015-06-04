@@ -11,10 +11,10 @@ end
 module Atomy
   module_function
 
-  def define_branch(binding, name, pattern, locals, &body)
+  def define_branch(binding, name, receiver, arguments, locals, &body)
     target =
-      if pattern.receiver
-        pattern.receiver.target
+      if receiver
+        receiver.target
       else
         binding.constant_scope.for_method_definition
       end
@@ -22,7 +22,7 @@ module Atomy
     methods = target.atomy_methods
     method = methods[name] ||= Atomy::Method.new(name)
 
-    branch = method.add_branch(pattern, body.block, locals)
+    branch = method.add_branch(receiver, arguments, body.block, locals)
 
     Rubinius.add_method(
       branch.name,

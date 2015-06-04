@@ -6,7 +6,6 @@ require "atomy/code/constant"
 require "atomy/module"
 require "atomy/pattern/equality"
 require "atomy/pattern/kind_of"
-require "atomy/pattern/message"
 require "atomy/pattern/wildcard"
 
 describe Atomy do
@@ -17,10 +16,6 @@ describe Atomy do
 
     def equality(value)
       Atomy::Pattern::Equality.new(value)
-    end
-
-    def message(receiver = wildcard, arguments = [])
-      Atomy::Pattern::Message.new(receiver, arguments)
     end
 
     def kind_of_pat(klass)
@@ -37,7 +32,8 @@ describe Atomy do
         described_class.define_branch(
           binding,
           :foo,
-          message(kind_of_pat(SomeTarget)),
+          kind_of_pat(SomeTarget),
+          [],
           [],
         ) { 2 }
 
@@ -54,7 +50,8 @@ describe Atomy do
         described_class.define_branch(
           def_binding,
           :foo,
-          message(nil),
+          nil,
+          [],
           [],
         ) { 2 }
 
@@ -66,12 +63,11 @@ describe Atomy do
 
     describe "pattern-matching" do
       it "pattern-matches the message with the given pattern" do
-        pattern = message(nil, [equality(0)])
-
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          pattern,
+          nil,
+          [equality(0)],
           [],
         ) { 42 }
 
@@ -80,20 +76,19 @@ describe Atomy do
       end
 
       it "extends methods with branches for different patterns" do
-        pattern_0 = message(nil, [equality(0)])
-        pattern_1 = message(nil, [equality(1)])
-
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          pattern_0,
+          nil,
+          [equality(0)],
           [],
         ) { 42 }
 
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          pattern_1,
+          nil,
+          [equality(1)],
           [],
         ) { 43 }
 
@@ -102,20 +97,19 @@ describe Atomy do
       end
 
       it "does not match if not enough arguments were given" do
-        pattern_0 = message(nil, [equality(1), wildcard])
-        pattern_1 = message(nil, [equality(0)])
-
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          pattern_0,
+          nil,
+          [equality(1), wildcard],
           [],
         ) { 42 }
 
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          pattern_1,
+          nil,
+          [equality(0)],
           [],
         ) { 43 }
 
@@ -123,20 +117,19 @@ describe Atomy do
       end
 
       it "does not match if too many arguments were given" do
-        pattern_0 = message(nil, [equality(1), wildcard])
-        pattern_1 = message(nil, [equality(2), wildcard, wildcard])
-
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          pattern_0,
+          nil,
+          [equality(1), wildcard],
           [],
         ) { 42 }
 
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          pattern_1,
+          nil,
+          [equality(2), wildcard, wildcard],
           [],
         ) { 43 }
 
@@ -145,20 +138,19 @@ describe Atomy do
 
       context "when a wildcard method is defined after a specific one" do
         it "does not clobber the more specific one, as it was defined first" do
-          pattern_0 = message(nil, [equality(0)])
-          pattern_wildcard = message(nil, [wildcard])
-
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
-            pattern_0,
+            nil,
+            [equality(0)],
             [],
           ) { 0 }
 
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
-            pattern_wildcard,
+            nil,
+            [wildcard],
             [],
           ) { 42 }
 
@@ -169,20 +161,19 @@ describe Atomy do
 
       context "when a wildcard method is defined before a specific one" do
         it "clobbers later definitions" do
-          pattern_0 = message(nil, [equality(0)])
-          pattern_wildcard = message(nil, [wildcard])
-
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
-            pattern_wildcard,
+            nil,
+            [wildcard],
             [],
           ) { 42 }
 
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
-            pattern_0,
+            nil,
+            [equality(0)],
             [],
           ) { 0 }
 
@@ -197,20 +188,19 @@ describe Atomy do
             base = Class.new
             sub = Class.new(base)
 
-            pattern_0 = message(nil, [equality(0)])
-            pattern_1 = message(nil, [equality(1)])
-
             described_class.define_branch(
               base.class_eval { binding },
               :foo,
-              pattern_0,
+              nil,
+              [equality(0)],
               [],
             ) { 0 }
 
             described_class.define_branch(
               sub.class_eval { binding },
               :foo,
-              pattern_1,
+              nil,
+              [equality(1)],
               [],
             ) { 1 }
 
@@ -221,12 +211,11 @@ describe Atomy do
 
         context "and a method is NOT defined on super" do
           it "fails with MessageMismatch" do
-            pattern = message(nil, [equality(0)])
-
             described_class.define_branch(
               target.module_eval { binding },
               :foo,
-              pattern,
+              nil,
+              [equality(0)],
               [],
             ) { 0 }
 

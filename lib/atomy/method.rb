@@ -28,18 +28,23 @@ module Atomy
     class Branch
       @@branch = 0
 
-      attr_reader :method, :pattern, :body, :name, :locals
+      attr_reader :method, :receiver, :arguments, :body, :name, :locals
 
-      def initialize(method, pattern, body, locals)
+      def initialize(method, receiver, arguments, body, locals)
         @method = method
-        @pattern = pattern
+        @receiver = receiver
+        @arguments = arguments
         @body = body
         @locals = locals
         @name = :"#@method-#{tick}"
       end
 
-      def total_args
-        @pattern.arguments.size
+      def total_arguments
+        @arguments.size
+      end
+
+      def required_arguments
+        @arguments.size
       end
 
       private
@@ -56,8 +61,8 @@ module Atomy
       @branches = []
     end
 
-    def add_branch(pattern, body, locals)
-      branch = Branch.new(@name, pattern, body, locals)
+    def add_branch(receiver, arguments, body, locals)
+      branch = Branch.new(@name, receiver, arguments, body, locals)
       @branches << branch
       branch
     end
@@ -106,7 +111,7 @@ module Atomy
       req = nil
 
       @branches.each do |b|
-        args = b.total_args
+        args = b.total_arguments
         total = args if args > total
         req = args if !req || args < req
       end
@@ -119,26 +124,26 @@ module Atomy
         # receiver must always match
         #
         # TODO: KindOf/Wildcard should count as 'base cases' for the receiver
-        !b.pattern.receiver &&
+        !b.receiver &&
           # must take no arguments (otherwise calling with invalid arg
           # count would match, as branches can take different arg sizes)
-          (uniform_argument_count? && b.total_args == 0) # &&
+          (uniform_argument_count? && b.total_arguments == 0) # &&
 
           # and either have no splat or a wildcard splat
           #(!b.splat || b.splat.wildcard?)
       end
     end
 
-    def total_args
-      @branches.collect(&:total_args).max
+    def total_arguments
+      @branches.collect(&:total_arguments).max
     end
 
-    def required_args
-      @branches.collect(&:total_args).min
+    def required_arguments
+      @branches.collect(&:total_arguments).min
     end
 
     def uniform_argument_count?
-      total_args == required_args
+      total_arguments == required_arguments
     end
 
     def build_branches(gen, done)
@@ -146,36 +151,36 @@ module Atomy
         skip = gen.new_label
 
         # check for too few arguments
-        gen.passed_arg(b.pattern.required_arguments - 1)
+        gen.passed_arg(b.required_arguments - 1)
         gen.gif(skip)
 
         # check for too many arguments
-        gen.passed_arg(b.pattern.total_arguments)
+        gen.passed_arg(b.total_arguments)
         gen.git(skip)
 
-        if b.pattern.receiver
-          gen.push_literal(b.pattern.receiver)
+        if b.receiver
+          gen.push_literal(b.receiver)
           gen.push_self
           gen.send(:matches?, 1)
           gen.gif(skip)
         end
 
-        b.pattern.arguments.each.with_index do |p, i|
+        b.arguments.each.with_index do |p, i|
           gen.push_literal(p)
           gen.push_local(i)
           gen.send(:matches?, 1)
           gen.gif(skip)
         end
 
-        if b.pattern.receiver
-          gen.push_literal(b.pattern.receiver)
+        if b.receiver
+          gen.push_literal(b.receiver)
           gen.push_variables
           gen.push_self
           gen.send(:assign, 2)
           gen.pop
         end
 
-        b.pattern.arguments.each.with_index do |p, i|
+        b.arguments.each.with_index do |p, i|
           gen.push_literal(p)
           gen.push_variables
           gen.push_local(i)
