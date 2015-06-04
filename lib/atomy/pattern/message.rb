@@ -36,12 +36,12 @@ class Atomy::Pattern
       bindings = []
 
       if @receiver
-        bindings += @receiver.bindings(val.self)
+        bindings.concat(@receiver.bindings(val.self))
       end
 
       idx = 0
       @arguments.each do |p|
-        bindings += p.bindings(val.locals[idx])
+        bindings.concat(p.bindings(val.locals[idx]))
         idx += 1
       end
 
