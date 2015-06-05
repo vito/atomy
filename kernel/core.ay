@@ -17,6 +17,10 @@ macro(~recv (~(msg & Word))(~*args)):
 macro(~parent ~(name & Constant)):
   make-constant(name text, parent)
 
+-- booleans
+macro(false): Atomy Code False new
+macro(true): Atomy Code True new
+
 -- assignment
 macro(~pat = ~val):
   Atomy Code Assign new(pat, val)
