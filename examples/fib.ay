@@ -1,7 +1,22 @@
 use(require("core"))
+use(require("define"))
+
+require("rubinius/profiler")
 
 def(fib(0)): 0
 def(fib(1)): 1
 def(fib(n)): fib(n - 2) + fib(n - 1)
 
-p(fib(20))
+profiler = Rubinius Profiler Instrumenter new
+
+-- profiler profile:
+100 times:
+  a = Time now
+  fib(20)
+  p(Time now - a)
+
+require("benchmark/ips")
+
+Benchmark ips(10, 5) [x]:
+  x report("fib(20)"):
+    fib(20)
