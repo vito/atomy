@@ -134,6 +134,12 @@ describe Atomy::CodeLoader do
       end
     end
 
+    context "when an Atomy file can not be found for the given path" do
+      it "delegates to Ruby's #require" do
+        expect { Atomy::CodeLoader.require("stringio") }.to_not raise_error
+      end
+    end
+
     context "when the file has already been loaded" do
       it "returns the loaded module" do
         mod = Atomy::CodeLoader.require(fixture("codeloader/require/basic"))

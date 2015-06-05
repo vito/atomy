@@ -78,7 +78,7 @@ module Atomy
     def require(path)
       file = find_source(path)
 
-      raise LoadError, "no such file to load -- #{path}" unless file
+      return super unless file
 
       wait = false
       req = nil
