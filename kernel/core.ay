@@ -17,10 +17,6 @@ macro(~recv (~(msg & Word))(~*args)):
 macro(~parent ~(name & Constant)):
   make-constant(name text, parent)
 
--- method definition
-macro(def((~(msg & Word))(~*args)): ~*body):
-  Atomy Code DefineMethod new(msg text, `(do: ~*body), args)
-
 -- assignment
 macro(~pat = ~val):
   Atomy Code Assign new(pat, val)

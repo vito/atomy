@@ -8,5 +8,6 @@ end
 
 group "development" do
   gem "pry"
-  gem "benchmark_suite"
+  gem "benchmark-ips"
+  gem "rubinius-profiler"
 end

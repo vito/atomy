@@ -1,0 +1,5 @@
+use(require("core"))
+
+-- method definition
+macro(def((~(msg & Word))(~*args)): ~*body):
+  Atomy Code DefineMethod new(msg text, `(do: ~*body), args)

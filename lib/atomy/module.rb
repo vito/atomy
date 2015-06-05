@@ -36,7 +36,8 @@ module Atomy
       code = Atomy::Compiler.compile(
         node,
         self,
-        Atomy::EvalLocalState.new(binding.variables))
+        Atomy::EvalLocalState.new(binding.variables),
+        true)
 
       code.add_metadata :for_eval, true
 

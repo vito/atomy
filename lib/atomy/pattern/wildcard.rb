@@ -16,15 +16,19 @@ class Atomy::Pattern
       if @name
         cur = scope
         while cur
-          if scope.eval_local_defined?(@name)
-            scope.set_eval_local(@name, val)
+          if cur.dynamic_locals.key?(@name)
+            p [:setting_dynamic_local, @name, val]
+            cur.dynamic_locals[name] = val
             return
           end
 
           if local = cur.method.local_names.find_index(@name)
+            p [:found_local, local, cur.locals]
             cur.set_local(local, val)
             return
           end
+
+          p [:not_in, cur]
 
           cur = cur.parent
         end

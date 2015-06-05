@@ -5,14 +5,16 @@ module Atomy
   module Compiler
     module_function
 
-    def compile(node, mod, state = LocalState.new)
+    def compile(node, mod, state = LocalState.new, for_eval = true)
       package(mod.file, 0, state) do |gen|
         mod.compile(gen, node)
       end
     end
 
     def package(file, line = 0, state = LocalState.new, &blk)
-      generate(file, line, state, &blk).package(Rubinius::CompiledCode)
+      generate(file, line, state, &blk).package(Rubinius::CompiledCode).tap do |code|
+        CodeTools::Compiler::MethodPrinter.new.tap { |p| p.bytecode = true }.print_method(code)
+      end
     end
 
     def generate(file, line = 0, state = LocalState.new)
@@ -27,6 +29,8 @@ module Atomy
       gen.ret
 
       gen.close
+
+      p [:scope, gen.state.scope, gen.state.scope.local_count, gen.state.scope.local_names]
 
       gen.local_count = gen.state.scope.local_count
       gen.local_names = gen.state.scope.local_names

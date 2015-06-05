@@ -19,10 +19,10 @@ describe Atomy::Code::Assign do
   it "pattern-matches the value, assigning locals in the current scope" do
     a = :unmodified
 
-    expect(compile_module.evaluate(Atomy::Code::Sequence.new([
+    expect(compile_module.evaluate(Atomy::Code::Block.new(Atomy::Code::Sequence.new([
       subject,
       Atomy::Code::Variable.new(:a),
-    ]))).to eq(1)
+    ]))).call).to eq(1)
 
     expect(a).to eq(:unmodified)
   end

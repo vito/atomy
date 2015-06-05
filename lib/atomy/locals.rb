@@ -46,6 +46,14 @@ module Atomy
       variables[name] = variable
     end
 
+    # def local_count
+    #   0
+    # end
+    #
+    # def local_names
+    #   []
+    # end
+
     private
 
     def search_scopes(name)
