@@ -85,9 +85,10 @@ describe Atomy::Method do
 
         before { define! }
 
-        it "is not passed to the branch" do
+        it "is passed to the branch" do
           define!
-          expect(target.foo {}).to be_nil
+          blk = proc {}
+          expect(target.foo(&blk)).to eq(blk)
         end
       end
 

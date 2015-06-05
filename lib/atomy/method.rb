@@ -188,8 +188,10 @@ module Atomy
           gen.pop
         end
 
+        gen.push_literal(Rubinius::BlockEnvironment::AsMethod.new(b.body))
+        gen.push_literal(@name)
+        gen.push_literal(b.body.constant_scope.module)
         gen.push_self
-
         b.locals.each do |loc|
           if local = gen.state.scope.search_local(loc)
             local.get_bytecode(gen)
@@ -197,8 +199,9 @@ module Atomy
             raise "undeclared local: #{loc}"
           end
         end
-
-        gen.send(b.name, b.locals.size, true)
+        gen.make_array(b.locals.size)
+        gen.push_proc
+        gen.send(:invoke, 5)
 
         gen.goto(done)
 

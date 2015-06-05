@@ -24,12 +24,6 @@ module Atomy
 
     branch = method.add_branch(receiver, arguments, body.block, locals)
 
-    Rubinius.add_method(
-      branch.name,
-      Rubinius::BlockEnvironment::AsMethod.new(branch.body),
-      target,
-      :private)
-
     Rubinius.add_method(name, method.build, target, :public)
   end
 end
