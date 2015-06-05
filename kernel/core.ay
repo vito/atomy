@@ -23,7 +23,11 @@ macro(true): Atomy Code True new
 
 -- assignment
 macro(~pat = ~val):
-  Atomy Code Assign new(pat, val)
+  Atomy Code Assign new(pat, val, false)
+
+-- assignment, overriding locals
+macro(~pat =! ~val):
+  Atomy Code Assign new(pat, val, true)
 
 -- block literals
 macro({ ~*body }):

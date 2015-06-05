@@ -44,28 +44,60 @@ describe "core kernel" do
     expect(subject.evaluate(ast("Atomy Module"))).to eq(Atomy::Module)
   end
 
+  it "implements boolean literals" do
+    expect(subject.evaluate(ast("false"))).to eq(false)
+    expect(subject.evaluate(ast("true"))).to eq(true)
+  end
+
   describe "assignment" do
-    it "implements local variable assignment notation" do
-      expect(subject.evaluate(seq("a = 1, a + 2"))).to eq(3)
+    context "with =" do
+      it "implements local variable assignment notation" do
+        expect(subject.evaluate(seq("a = 1, a + 2"))).to eq(3)
+      end
+
+      it "assigns variables spanning evals" do
+        expect(subject.evaluate(seq("a = 1"))).to eq(1)
+        expect(subject.evaluate(seq("a + 2"))).to eq(3)
+      end
+
+      it "raises an error when the patterns don't match" do
+        expect {
+          subject.evaluate(ast("2 = 1"))
+        }.to raise_error(Atomy::PatternMismatch)
+      end
+
+      it "assigns only in the innermost scope" do
+        expect(subject.evaluate(seq("
+          a = 1
+          b = { a = 2, a } call
+          [a, b]
+        "))).to eq([1, 2])
+      end
     end
 
-    it "assigns variables spanning evals" do
-      expect(subject.evaluate(seq("a = 1"))).to eq(1)
-      expect(subject.evaluate(seq("a + 2"))).to eq(3)
-    end
+    context "with =!" do
+      it "implements local variable assignment notation" do
+        expect(subject.evaluate(seq("a =! 1, a + 2"))).to eq(3)
+      end
 
-    it "raises an error when the patterns don't match" do
-      expect {
-        subject.evaluate(ast("2 = 1"))
-      }.to raise_error(Atomy::PatternMismatch)
-    end
+      it "assigns variables spanning evals" do
+        expect(subject.evaluate(seq("a =! 1"))).to eq(1)
+        expect(subject.evaluate(seq("a + 2"))).to eq(3)
+      end
 
-    it "assigns only in the innermost scope" do
-      expect(subject.evaluate(seq("
-        a = 1
-        b = { a = 2, a } call
-        [a, b]
-      "))).to eq([1, 2])
+      it "raises an error when the patterns don't match" do
+        expect {
+          subject.evaluate(ast("2 =! 1"))
+        }.to raise_error(Atomy::PatternMismatch)
+      end
+
+      it "overrides existing locals if possible" do
+        expect(subject.evaluate(seq("
+          a = 1
+          b = { a =! 2, a } call
+          [a, b]
+        "))).to eq([2, 2])
+      end
     end
   end
 

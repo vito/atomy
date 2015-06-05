@@ -1,9 +1,10 @@
 module Atomy
   module Code
     class Assign
-      def initialize(pattern, value)
+      def initialize(pattern, value, set = false)
         @pattern = pattern
         @value = value
+        @set = set
       end
 
       def bytecode(gen, mod)
@@ -13,7 +14,7 @@ module Atomy
           # pre-declare locals, in case they're eval locals, so that pattern
           # assignment can find them and reassign them
           gen.push_nil
-          assignment_local(gen, name).set_bytecode(gen)
+          assignment_local(gen, name, @set).set_bytecode(gen)
           gen.pop
         end
 
