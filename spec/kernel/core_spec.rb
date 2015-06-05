@@ -2,6 +2,8 @@ require "spec_helper"
 
 require "atomy/codeloader"
 
+module ABC; end
+
 describe "core kernel" do
   subject { Atomy::Module.new { use(require_kernel("core")) } }
 
@@ -125,5 +127,20 @@ describe "core kernel" do
       expect(blk).to be_kind_of(Proc)
       expect(blk.call(1, ast("1 + 2"))).to eq([1, 2])
     end
+  end
+
+  it "implements toplevel constant access" do
+    Thread.current[:binding] = nil
+
+    module XYZ
+      module ABC
+      end
+
+      Thread.current[:binding] = binding
+    end
+
+    bnd = Thread.current[:binding]
+
+    expect(subject.evaluate(ast("//ABC"), bnd)).to eq(::ABC)
   end
 end

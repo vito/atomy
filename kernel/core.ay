@@ -48,3 +48,6 @@ macro(~recv (~(msg & Word))(~*args): ~*body):
 
 macro(~recv (~(msg & Word))(~*args) [~*bargs]: ~*body):
   Atomy Code Send new(recv, msg text, args, `([~*bargs]: ~*body))
+
+macro(//~(name & Constant)):
+  Atomy Code Constant new(name text, 'Object)
