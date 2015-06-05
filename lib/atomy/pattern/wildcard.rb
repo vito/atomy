@@ -16,8 +16,8 @@ class Atomy::Pattern
       if @name
         cur = scope
         while cur
-          if scope.eval_local_defined?(@name)
-            scope.set_eval_local(@name, val)
+          if cur.dynamic_locals.key?(@name)
+            cur.dynamic_locals[name] = val
             return
           end
 

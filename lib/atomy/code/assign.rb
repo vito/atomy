@@ -10,12 +10,10 @@ module Atomy
         pattern = mod.pattern(@pattern)
 
         pattern.locals.each do |name|
-          local = assignment_local(gen, name)
-
-          # assign at least an empty local var; this is necessary in case it's
-          # an eval local, so that Wildcard can find the eval local to assign to
+          # pre-declare locals, in case they're eval locals, so that pattern
+          # assignment can find them and reassign them
           gen.push_nil
-          local.set_bytecode(gen)
+          assignment_local(gen, name).set_bytecode(gen)
           gen.pop
         end
 

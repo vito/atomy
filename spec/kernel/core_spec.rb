@@ -61,10 +61,23 @@ describe "core kernel" do
       expect(subject.evaluate(seq("a = 1, a + 2"))).to eq(3)
     end
 
+    it "assigns variables spanning evals" do
+      expect(subject.evaluate(seq("a = 1"))).to eq(1)
+      expect(subject.evaluate(seq("a + 2"))).to eq(3)
+    end
+
     it "raises an error when the patterns don't match" do
       expect {
         subject.evaluate(ast("2 = 1"))
       }.to raise_error(Atomy::PatternMismatch)
+    end
+
+    it "assigns only in the innermost scope" do
+      expect(subject.evaluate(seq("
+        a = 1
+        b = { a = 2, a } call
+        [a, b]
+      "))).to eq([1, 2])
     end
   end
 
