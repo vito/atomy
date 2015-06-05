@@ -3,18 +3,30 @@ use(require("define"))
 
 require("rubinius/profiler")
 
+puts("defining")
+
 def(fib(0)): 0
 def(fib(1)): 1
 def(fib(n)): fib(n - 2) + fib(n - 1)
 
-profiler = Rubinius Profiler Instrumenter new
+puts("running 200 times")
 
--- profiler profile:
-100 times:
+200 times:
   a = Time now
   fib(20)
   p(Time now - a)
 
+puts("")
+puts("profiling 100 times")
+
+Rubinius Profiler Instrumenter new profile:
+  100 times:
+    a = Time now
+    fib(20)
+    p(Time now - a)
+
+puts("")
+puts("benchmarking")
 require("benchmark/ips")
 
 Benchmark ips(10, 5) [x]:
