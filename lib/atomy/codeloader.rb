@@ -156,10 +156,10 @@ module Atomy
     def find_source(path, search_in = $LOAD_PATH)
       if qualified?(path)
         expanded = File.expand_path(path)
-        return expanded if File.exists?(expanded)
+        return expanded if File.file?(expanded)
 
         expanded = "#{expanded}#{source_extension}"
-        return expanded if File.exists?(expanded)
+        return expanded if File.file?(expanded)
       else
         search_path(path, search_in)
       end

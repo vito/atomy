@@ -39,6 +39,13 @@ describe Atomy::CodeLoader do
             Atomy::CodeLoader.find_source("file-b.ay", load_path)).to be_nil
         end
       end
+
+      context "when the path refers to a directory" do
+        it "does not mistakenly find the directory" do
+          expect(
+            Atomy::CodeLoader.find_source("some-dir", load_path)).to be_nil
+        end
+      end
     end
 
     context "when the path is relative from the home directory" do
