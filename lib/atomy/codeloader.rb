@@ -182,7 +182,15 @@ module Atomy
         end
       end
 
+      if found = find_source("#{kernel_path}/#{path}")
+        return found
+      end
+
       nil
+    end
+
+    def kernel_path
+      @kernel_path ||= File.expand_path("../../../kernel", __FILE__)
     end
 
     # something that doesn't look like it should be grabbed from the load

@@ -28,6 +28,11 @@ describe Atomy::CodeLoader do
           fixture("codeloader/find_source/file-b"))
       end
 
+      it "finds modules in the kernel" do
+        expect(Atomy::CodeLoader.find_source("core", load_path)).to eq(
+          File.expand_path("../../../kernel/core.ay", __FILE__))
+      end
+
       context "and .ay is given" do
         it "finds files with .ay at the end" do
           expect(Atomy::CodeLoader.find_source("file-a.ay", load_path)).to eq(

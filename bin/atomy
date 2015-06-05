@@ -6,6 +6,4 @@ require "atomy/codeloader"
 
 file, *_ = ARGV
 
-$LOAD_PATH.unshift(File.expand_path("../../kernel", __FILE__))
-
 Atomy::CodeLoader.run_script(File.expand_path(file))
