@@ -12,7 +12,13 @@ module Atomy
     end
 
     def package(file, line = 0, state = LocalState.new, &blk)
-      generate(file, line, state, &blk).package(Rubinius::CompiledCode)
+      generate(file, line, state, &blk).package(Rubinius::CompiledCode).tap do |code|
+        if ENV["DEBUG"]
+          printer = CodeTools::Compiler::MethodPrinter.new
+          printer.bytecode = true
+          printer.print_method(code)
+        end
+      end
     end
 
     def generate(file, line = 0, state = LocalState.new)
