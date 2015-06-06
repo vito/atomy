@@ -1,0 +1,21 @@
+use(require("core"))
+use(require("define"))
+use(require("patterns"))
+
+or = class:
+  def(initialize(@a, @b)) {}
+
+  def(bytecode(gen, mod)):
+    done = gen new-label
+
+    mod compile(gen, @a)
+    gen dup
+    gen git(done)
+
+    gen pop
+    mod compile(gen, @b)
+
+    done set!
+
+macro(~a || ~b):
+  or new(a, b)
