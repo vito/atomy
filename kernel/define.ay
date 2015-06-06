@@ -25,3 +25,22 @@ macro(def(~(msg & Word) &~blk): ~*body):
 
 macro(def((~(msg & Word))(~*args) &~blk): ~*body):
   Atomy Code DefineMethod new(msg text, `(do: ~*body), args, nil, blk)
+
+-- helper for adding a module to the constant scope
+with-module = Class new:
+  def(bytecode(gen, _)):
+    gen push-self
+    gen add-scope
+    gen push-nil
+
+-- class creation
+macro(class: ~*body):
+  -- force it to return the class
+  --
+  -- TODO: this would be more elegant if placed after the splat, but that
+  -- currently does not work
+  body << 'self
+
+  `(//Class new module-eval:
+      ~(with-module new)
+      ~*body)

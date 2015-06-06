@@ -144,4 +144,35 @@ describe "define kernel" do
       }.to_not change { subject.respond_to?(:foo) }
     end
   end
+
+  describe "class creation" do
+    it "constructs an anonymous class" do
+      expect(subject.evaluate(ast("class {}"))).to be_a(Class)
+    end
+
+    it "evaluates the body with the class as the method target" do
+      klass = subject.evaluate(ast("class: def(foo): 42"))
+      expect(klass).to be_a(Class)
+      expect(klass.respond_to?(:foo)).to eq(false)
+      expect(klass.new.foo).to eq(42)
+      expect(subject.respond_to?(:foo)).to eq(false)
+    end
+
+    it "closes over the scope" do
+      klass, a = subject.evaluate(seq("
+        a = 1
+
+        x = class:
+          a = (a + 1)
+          def(foo): a
+
+        [x, a]
+      "))
+      expect(klass).to be_a(Class)
+      expect(klass.respond_to?(:foo)).to eq(false)
+      expect(klass.new.foo).to eq(2)
+      expect(a).to eq(1)
+      expect(subject.respond_to?(:foo)).to eq(false)
+    end
+  end
 end
