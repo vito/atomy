@@ -11,6 +11,13 @@ describe "define kernel" do
       expect(subject.foo(41)).to eq(42)
     end
 
+    it "can define function methods with blocks" do
+      expect(subject.evaluate(seq("
+        def(foo(a) &b): a + b call
+        foo(2): 3
+      "))).to eq(5)
+    end
+
     it "defines branches that close over its scope" do
       subject.evaluate(seq("a = 1, def(foo(b)): a + b"), subject.compile_context)
       expect(subject.foo(41)).to eq(42)
@@ -23,6 +30,13 @@ describe "define kernel" do
         fn(foo(a)): a + 1
         foo(2)
       "))).to eq(3)
+    end
+
+    it "can define function branches with blocks" do
+      expect(subject.evaluate(seq("
+        fn(foo(a) &b): a + b call
+        foo(2): 3
+      "))).to eq(5)
     end
 
     it "defines function that close over their scope" do

@@ -42,7 +42,7 @@ describe Atomy::Method do
 
     describe "invoking the method" do
       let(:target) { Atomy::Module.new }
-      let(:branch) { Atomy::Method::Branch.new(wildcard, [], []) { :ok } }
+      let(:branch) { Atomy::Method::Branch.new(wildcard, [], nil, []) { :ok } }
       let(:method_name) { :foo }
 
       subject { described_class.new(method_name) }
@@ -57,16 +57,15 @@ describe Atomy::Method do
       end
 
       context "when a block is given" do
-        let(:branch) { Atomy::Method::Branch.new(wildcard, [], []) { |&blk| blk } }
+        let(:branch) { Atomy::Method::Branch.new(wildcard, [], nil, []) { |&blk| blk } }
 
-        it "is passed to the branch" do
-          blk = proc {}
-          expect(target.foo(&blk)).to eq(blk)
+        it "is not passed to the branch, as it should be bound via pattern-matching instead" do
+          expect(target.foo {}).to be_nil
         end
       end
 
       context "when no patterns match" do
-        let(:branch) { Atomy::Method::Branch.new(wildcard, [equality(0)], []) { :ok } }
+        let(:branch) { Atomy::Method::Branch.new(wildcard, [equality(0)], nil, []) { :ok } }
 
         context "and the method exists on the superclass" do
           let(:a) do

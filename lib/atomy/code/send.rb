@@ -12,6 +12,7 @@ module Atomy
 
       def bytecode(gen, mod)
         if fun = gen.state.scope.search_local(:"#{@message}:function")
+          # TODO: should probably only be if there's no receiver?
           invoke_function(gen, mod, fun)
         else
           invoke_method(gen, mod)
@@ -42,7 +43,12 @@ module Atomy
           mod.compile(gen, arg)
         end
 
-        gen.send(:call_under, @arguments.size + 3)
+        if @block
+          mod.compile(gen, @block)
+          gen.send_with_block(:call_under, @arguments.size + 3)
+        else
+          gen.send(:call_under, @arguments.size + 3)
+        end
       end
 
       def invoke_method(gen, mod)

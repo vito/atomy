@@ -26,12 +26,13 @@ require "atomy/locals"
 module Atomy
   class Method
     class Branch
-      attr_reader :receiver, :arguments, :body, :name, :locals
+      attr_reader :receiver, :arguments, :body, :block, :locals
 
-      def initialize(receiver, arguments, locals, &body)
+      def initialize(receiver, arguments, block, locals, &body)
         @receiver = receiver
         @arguments = arguments
         @locals = locals
+        @block = block
         @body = body.block
       end
 
@@ -163,6 +164,13 @@ module Atomy
           gen.gif(skip)
         end
 
+        if b.block
+          gen.push_literal(b.block)
+          gen.push_proc
+          gen.send(:matches?, 1)
+          gen.gif(skip)
+        end
+
         if b.receiver
           gen.push_literal(b.receiver)
           gen.push_variables
@@ -179,6 +187,14 @@ module Atomy
           gen.pop
         end
 
+        if b.block
+          gen.push_literal(b.block)
+          gen.push_variables
+          gen.push_proc
+          gen.send(:assign, 2)
+          gen.pop
+        end
+
         gen.push_literal(Rubinius::BlockEnvironment::AsMethod.new(b.body))
         gen.push_literal(@name)
         gen.push_literal(b.body.constant_scope.module)
@@ -191,7 +207,7 @@ module Atomy
           end
         end
         gen.make_array(b.locals.size)
-        gen.push_proc
+        gen.push_nil
         gen.send(:invoke, 5)
 
         gen.goto(done)

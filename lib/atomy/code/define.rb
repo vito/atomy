@@ -1,11 +1,12 @@
 module Atomy
   module Code
     class Define
-      def initialize(name, body, arguments = [], receiver = nil)
+      def initialize(name, body, arguments = [], receiver = nil, block = nil)
         @name = name
         @body = body
         @receiver = receiver
         @arguments = arguments
+        @block = block
       end
 
       private
@@ -33,6 +34,14 @@ module Atomy
         end
         gen.make_array(@arguments.size)
 
+        if @block
+          block_pattern = mod.pattern(@block)
+          branch_locals += block_pattern.locals
+          mod.compile(gen, block_pattern)
+        else
+          gen.push_nil
+        end
+
         branch_locals.each do |loc|
           gen.push_literal(loc)
         end
@@ -40,7 +49,7 @@ module Atomy
 
         gen.create_block(build_branch_body(gen.state.scope, mod, branch_locals))
 
-        gen.send_with_block(:new, 3)
+        gen.send_with_block(:new, 4)
       end
 
       def build_branch_body(scope, mod, locals)
