@@ -1,0 +1,5 @@
+use(require("core"))
+use(require("define"))
+
+pattern(~parent ~(constant & Constant)):
+  Atomy Code Pattern new(`(//Atomy Pattern KindOf new(~parent ~constant)), [])
