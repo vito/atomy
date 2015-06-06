@@ -1,5 +1,10 @@
 use(require("core"))
 use(require("define"))
 
+require("atomy/pattern/instance_variable")
+
 pattern(~parent ~(constant & Constant)):
   Atomy Code Pattern new(`(//Atomy Pattern KindOf new(~parent ~constant)), [])
+
+pattern(@~(name & Word)):
+  Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new('~name text)), [])
