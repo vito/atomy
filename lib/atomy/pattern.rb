@@ -15,5 +15,9 @@ module Atomy
 
     def assign(_, _)
     end
+
+    def target
+      raise NotImplementedError
+    end
   end
 end
