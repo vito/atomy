@@ -34,13 +34,15 @@ with-module = Class new:
     gen push-nil
 
 -- class creation
-macro(class: ~*body):
+macro(class: ~*body): `(Object class: ~*body)
+
+macro(~parent class: ~*body):
   -- force it to return the class
   --
   -- TODO: this would be more elegant if placed after the splat, but that
   -- currently does not work
   body << 'self
 
-  `(//Class new module-eval:
+  `(//Class new(~parent) module-eval:
       ~(with-module new)
       ~*body)
