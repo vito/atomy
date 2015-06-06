@@ -21,6 +21,9 @@ macro(~parent ~(name & Constant)):
 macro(false): Atomy Code False new
 macro(true): Atomy Code True new
 
+-- nils
+macro(nil): Atomy Code Nil new
+
 -- assignment
 macro(~pat = ~val):
   Atomy Code Assign new(pat, val, false)

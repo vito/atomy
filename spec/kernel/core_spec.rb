@@ -51,6 +51,10 @@ describe "core kernel" do
     expect(subject.evaluate(ast("true"))).to eq(true)
   end
 
+  it "implements nil literals" do
+    expect(subject.evaluate(ast("nil"))).to eq(nil)
+  end
+
   describe "assignment" do
     context "with =" do
       it "implements local variable assignment notation" do
