@@ -12,3 +12,11 @@ pattern(~receiver ~(attribute & Word)):
 
 pattern(@~(name & Word)):
   Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new('~name text)), [])
+
+pattern(~a | ~b):
+  a-pattern = pattern(a)
+  b-pattern = pattern(b)
+
+  Atomy Code Pattern new(
+      `(//Atomy Pattern Or new(~a-pattern, ~b-pattern))
+      a-pattern locals + b-pattern locals)

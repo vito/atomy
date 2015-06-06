@@ -1,8 +1,9 @@
 require "spec_helper"
 
 require "atomy/codeloader"
-require "atomy/pattern/instance_variable"
 require "atomy/pattern/attribute"
+require "atomy/pattern/instance_variable"
+require "atomy/pattern/or"
 
 module PatternsKernelModule
   class Blah
@@ -53,6 +54,26 @@ describe "patterns kernel" do
 
       it "declares no locals" do
         expect(subject.pattern(node).locals).to be_empty
+      end
+    end
+
+    context "with a | b" do
+      let(:node) { ast("a | (b & 2)") }
+
+      it "expands it into an InstanceVariable pattern" do
+        expanded = subject.evaluate(subject.pattern(node))
+        expect(expanded).to be_a(Atomy::Pattern::Or)
+        expect(expanded.a).to be_a(Atomy::Pattern::Wildcard)
+        expect(expanded.a.name).to eq(:a)
+        expect(expanded.b).to be_a(Atomy::Pattern::And)
+        expect(expanded.b.a).to be_a(Atomy::Pattern::Wildcard)
+        expect(expanded.b.a.name).to eq(:b)
+        expect(expanded.b.b).to be_a(Atomy::Pattern::Equality)
+        expect(expanded.b.b.value).to eq(2)
+      end
+
+      it "declares locals of both branches" do
+        expect(subject.pattern(node).locals).to eq([:a, :b])
       end
     end
   end
