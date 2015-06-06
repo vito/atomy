@@ -24,6 +24,10 @@ macro(true): Atomy Code True new
 -- nils
 macro(nil): Atomy Code Nil new
 
+-- symbols
+macro(.~(sym & Word)): Atomy Code Symbol new(sym text)
+macro(.~(sym & Constant)): Atomy Code Symbol new(sym text)
+
 -- assignment
 macro(~pat = ~val):
   Atomy Code Assign new(pat, val, false)
