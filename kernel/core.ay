@@ -39,7 +39,20 @@ macro({ ~*body }):
 macro([~*args]: ~*body):
   Atomy Code Block new(`(do: ~*body), args)
 
--- message sends with blocks
+-- message sends to self with blocks
+macro(~(msg & Word): ~*body):
+  Atomy Code Send new(nil, msg text, [], `{ ~*body })
+
+macro(~(msg & Word) [~*bargs]: ~*body):
+  Atomy Code Send new(nil, msg text, [], `([~*bargs]: ~*body))
+
+macro((~(msg & Word))(~*args): ~*body):
+  Atomy Code Send new(nil, msg text, args, `{ ~*body })
+
+macro((~(msg & Word))(~*args) [~*bargs]: ~*body):
+  Atomy Code Send new(nil, msg text, args, `([~*bargs]: ~*body))
+
+-- message sends to receivers with blocks
 macro(~recv ~(msg & Word): ~*body):
   Atomy Code Send new(recv, msg text, [], `{ ~*body })
 

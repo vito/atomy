@@ -18,6 +18,36 @@ describe "core kernel" do
     expect(subject.evaluate(ast("1"))).to eq(2)
   end
 
+  it "implements sending messages to self" do
+    bnd = 1.instance_eval { binding }
+    expect(subject.evaluate(ast("inspect"), bnd)).to eq("1")
+  end
+
+  it "implements sending messages to self, with arguments" do
+    bnd = 128.instance_eval { binding }
+    expect(subject.evaluate(ast("to-s(16)"), bnd)).to eq("80")
+  end
+
+  it "implements sending messages to self, with blocks" do
+    bnd = [1, 2, 3].instance_eval { binding }
+    expect(subject.evaluate(ast("collect: 1"), bnd)).to eq([1, 1, 1])
+  end
+
+  it "implements sending messages to self, with blocks with argumennts" do
+    bnd = [1, 2, 3].instance_eval { binding }
+    expect(subject.evaluate(ast("collect [x]: x + 1"), bnd)).to eq([2, 3, 4])
+  end
+
+  it "implements sending messages to self, with arguments and blocks" do
+    bnd = [1, 2, 3].instance_eval { binding }
+    expect(subject.evaluate(ast("fetch(3): 42"), bnd)).to eq(42)
+  end
+
+  it "implements sending messages to self, with arguments and blocks with arguments" do
+    bnd = [1, 2, 3].instance_eval { binding }
+    expect(subject.evaluate(ast("inject(3) [a, b]: a + b"), bnd)).to eq(9)
+  end
+
   it "implements sending messages to receivers" do
     expect(subject.evaluate(ast("1 inspect"))).to eq("1")
   end
@@ -27,7 +57,7 @@ describe "core kernel" do
   end
 
   it "implements sending messages to receivers, with blocks" do
-    expect(subject.evaluate(ast("3 times collect: 1"))).to eq([1, 1, 1])
+    expect(subject.evaluate(ast("[1, 2, 3] collect: 1"))).to eq([1, 1, 1])
   end
 
   it "implements sending messages to receivers, with blocks with argumennts" do
