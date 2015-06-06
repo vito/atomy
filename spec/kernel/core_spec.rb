@@ -340,6 +340,11 @@ describe "core kernel" do
     expect(subject.evaluate(ast(".String"))).to eq(:String)
   end
 
+  it "implements instance variable access" do
+    @foo = 1
+    expect(subject.evaluate(ast("@foo"))).to eq(1)
+  end
+
   describe "assignment" do
     context "with =" do
       it "implements local variable assignment notation" do

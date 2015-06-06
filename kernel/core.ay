@@ -77,6 +77,10 @@ macro(//~(name & Constant)):
 macro(~recv [~*args]):
   Atomy Code Send new(recv, "[]" to-sym, args)
 
+-- accessing instance variables
+macro(@~(name & Word)):
+  Atomy Code InstanceVariable new(name text)
+
 -- sending foo! to self
 macro((~(msg & Word))!):
   Atomy Code Send new(nil, (msg text to-s + "!") to-sym)
