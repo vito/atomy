@@ -76,6 +76,9 @@ module Atomy
               @gen.make_array(size)
               @module.compile(@gen, e.node.node)
               @gen.send(:+, 1)
+
+              # TODO: handle entries after splat; right now they're dropped on
+              # the floor
               return
             else
               size += 1
