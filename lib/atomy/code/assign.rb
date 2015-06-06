@@ -11,11 +11,14 @@ module Atomy
         pattern = mod.pattern(@pattern)
 
         pattern.locals.each do |name|
-          # pre-declare locals, in case they're eval locals, so that pattern
-          # assignment can find them and reassign them
-          gen.push_nil
-          assignment_local(gen, name, @set).set_bytecode(gen)
-          gen.pop
+          local, created = assignment_local(gen, name, @set)
+          if created
+            # pre-declare locals, in case they're eval locals, so that pattern
+            # assignment can find them and reassign them
+            gen.push_nil
+            local.set_bytecode(gen)
+            gen.pop
+          end
         end
 
         # [value]
@@ -80,9 +83,9 @@ module Atomy
         var = gen.state.scope.search_local(name)
 
         if var && (set || var.depth == 0)
-          var
+          [var, false]
         else
-          gen.state.scope.new_local(name).nested_reference
+          [gen.state.scope.new_local(name).nested_reference, true]
         end
       end
     end

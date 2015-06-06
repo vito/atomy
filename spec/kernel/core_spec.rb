@@ -109,6 +109,14 @@ describe "core kernel" do
           [a, b]
         "))).to eq([1, 2])
       end
+
+      it "does not zero-out already-existing values during assignment" do
+        expect(subject.evaluate(seq("
+          a = 1
+          a = (a + 1)
+          a
+        "))).to eq(2)
+      end
     end
 
     context "with =!" do
@@ -133,6 +141,15 @@ describe "core kernel" do
           b = { a =! 2, a } call
           [a, b]
         "))).to eq([2, 2])
+      end
+
+      it "does not zero-out already-existing values during assignment" do
+        expect(subject.evaluate(seq("
+          a = 1
+          a =! (a + 1)
+          { a =! (a + 1) } call
+          a
+        "))).to eq(3)
       end
     end
   end
