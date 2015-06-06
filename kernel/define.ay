@@ -43,14 +43,9 @@ macro(~x open: ~*body):
 macro(class: ~*body): `(Object class: ~*body)
 
 macro(~parent class: ~*body):
-  -- force it to return the class
-  --
-  -- TODO: this would be more elegant if placed after the splat, but that
-  -- currently does not work
-  body << 'self
-
   `(//Class new(~parent) open:
-      ~*body)
+      ~*body
+      self)
 
 -- singleton class opening
 macro(singleton: ~*body): `(self singleton: ~*body)
@@ -60,11 +55,6 @@ macro(~x singleton: ~*body):
 
 -- module creation
 macro(module: ~*body):
-  -- force it to return the class
-  --
-  -- TODO: this would be more elegant if placed after the splat, but that
-  -- currently does not work
-  body << 'self
-
   `(//Module new open:
-      ~*body)
+      ~*body
+      self)

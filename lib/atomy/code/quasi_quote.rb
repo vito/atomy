@@ -68,6 +68,7 @@ module Atomy
 
         def construct_many(c)
           size = 0
+          splats = 0
           c.each do |e|
             if @depth == 1 && e.is_a?(Atomy::Grammar::AST::Unquote) && \
                 e.node.is_a?(Atomy::Grammar::AST::Prefix) && \
@@ -77,9 +78,8 @@ module Atomy
               @module.compile(@gen, e.node.node)
               @gen.send(:+, 1)
 
-              # TODO: handle entries after splat; right now they're dropped on
-              # the floor
-              return
+              splats += 1
+              size = 0
             else
               size += 1
               go(e)
@@ -87,6 +87,10 @@ module Atomy
           end
 
           @gen.make_array(size)
+
+          splats.times do
+            @gen.send(:+, 1)
+          end
         end
 
         def push_literal(x)

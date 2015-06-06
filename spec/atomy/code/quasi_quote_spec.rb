@@ -43,5 +43,45 @@ describe Atomy::Code::QuasiQuote do
     it "inlines the nodes into the node" do
       expect(eval!).to eq(ast("{ 1, 2, 3 }"))
     end
+
+    context "with nodes preceding the splat" do
+      let(:quoted) { ast("{ 0, ~*['1, '2, '3] }") }
+
+      it "inlines the nodes into the node" do
+        expect(eval!).to eq(ast("{ 0, 1, 2, 3 }"))
+      end
+    end
+
+    context "with nodes following the splat" do
+      let(:quoted) { ast("{ ~*['1, '2, '3], 4}") }
+
+      it "inlines the nodes into the node" do
+        expect(eval!).to eq(ast("{ 1, 2, 3, 4 }"))
+      end
+    end
+
+    context "with nodes surrounding the splat" do
+      let(:quoted) { ast("{ 0, ~*['1, '2, '3], 4}") }
+
+      it "inlines the nodes into the node" do
+        expect(eval!).to eq(ast("{ 0, 1, 2, 3, 4 }"))
+      end
+    end
+
+    context "when splats and nodes interleaved" do
+      let(:quoted) { ast("{ 0, ~*['1, '2, '3], 4, ~*['5, '6], 7}") }
+
+      it "inlines the nodes into the node" do
+        expect(eval!).to eq(ast("{ 0, 1, 2, 3, 4, 5, 6, 7 }"))
+      end
+    end
+
+    context "when splats and nodes interleaved, ending with a splat" do
+      let(:quoted) { ast("{ 0, ~*['1, '2, '3], 4, ~*['5, '6], 7, ~*['8, '9]}") }
+
+      it "inlines the nodes into the node" do
+        expect(eval!).to eq(ast("{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }"))
+      end
+    end
   end
 end
