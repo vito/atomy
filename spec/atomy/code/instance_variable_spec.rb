@@ -8,6 +8,6 @@ describe Atomy::Code::InstanceVariable do
   subject { described_class.new(:abc) }
 
   it_compiles_as do |gen|
-    gen.push_ivar(:abc)
+    gen.push_ivar(:@abc)
   end
 end
