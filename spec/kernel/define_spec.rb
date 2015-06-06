@@ -44,6 +44,20 @@ describe "define kernel" do
       "))).to eq(3)
     end
 
+    it "implements method definition notation with no args and a block" do
+      expect(subject.evaluate(seq("
+        def(foo &blk): blk call
+        foo(): 3
+      "))).to eq(3)
+    end
+
+    it "implements method invocation notation with no args and a block" do
+      expect(subject.evaluate(seq("
+        def(foo &blk): blk call
+        foo: 3
+      "))).to eq(3)
+    end
+
     it "defines branches that close over its scope" do
       subject.evaluate(seq("a = 1, def(foo(b)): a + b"), subject.compile_context)
       expect(subject.foo(41)).to eq(42)
@@ -88,6 +102,20 @@ describe "define kernel" do
         foo
         foo
         foo
+      "))).to eq(3)
+    end
+
+    it "implements function definition notation with no args and a block" do
+      expect(subject.evaluate(seq("
+        fn(foo &blk): blk call
+        foo(): 3
+      "))).to eq(3)
+    end
+
+    it "implements function invocation notation with no args and a block" do
+      expect(subject.evaluate(seq("
+        fn(foo &blk): blk call
+        foo: 3
       "))).to eq(3)
     end
 

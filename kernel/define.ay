@@ -7,6 +7,9 @@ macro(fn((~(msg & Word))(~*args)): ~*body):
 macro(fn(~(msg & Word)): ~*body):
   Atomy Code DefineFunction new(msg text, `(do: ~*body), [])
 
+macro(fn(~(msg & Word) &~blk): ~*body):
+  Atomy Code DefineFunction new(msg text, `(do: ~*body), [], nil, blk)
+
 macro(fn((~(msg & Word))(~*args) &~blk): ~*body):
   Atomy Code DefineFunction new(msg text, `(do: ~*body), args, nil, blk)
 
@@ -16,6 +19,9 @@ macro(def((~(msg & Word))(~*args)): ~*body):
 
 macro(def(~(msg & Word)): ~*body):
   Atomy Code DefineMethod new(msg text, `(do: ~*body), [])
+
+macro(def(~(msg & Word) &~blk): ~*body):
+  Atomy Code DefineMethod new(msg text, `(do: ~*body), [], nil, blk)
 
 macro(def((~(msg & Word))(~*args) &~blk): ~*body):
   Atomy Code DefineMethod new(msg text, `(do: ~*body), args, nil, blk)
