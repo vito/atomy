@@ -184,4 +184,46 @@ describe "define kernel" do
       end
     end
   end
+
+  describe "module creation" do
+    it "constructs an anonymous module" do
+      expect(subject.evaluate(ast("module {}"))).to be_a(Module)
+    end
+
+    it "evaluates the body with the module as the method target" do
+      mod = subject.evaluate(ast("module: def(foo): 42"))
+      expect(mod).to be_a(Module)
+      expect(mod.respond_to?(:foo)).to eq(false)
+      expect(subject.respond_to?(:foo)).to eq(false)
+
+      subject.use(mod)
+
+      expect(subject.foo).to eq(42)
+    end
+  end
+
+  describe "module opening" do
+    it "can reopen modules" do
+      expect(subject.evaluate(ast("Atomy Grammar open: AST"))).to eq(Atomy::Grammar::AST)
+    end
+  end
+
+  describe "class opening" do
+    it "can reopen classes" do
+      x = Class.new
+      subject.evaluate(ast("x open: def(foo): 42"))
+      expect(x.new.foo).to eq(42)
+    end
+
+    it "can reopen singleton classes" do
+      x = Class.new
+      subject.evaluate(ast("x singleton: def(foo): 42"))
+      expect(x.foo).to eq(42)
+    end
+
+    it "can reopen the current singleton class" do
+      klass = subject.evaluate(ast("class: singleton: def(foo): 42"))
+      expect(klass.foo).to eq(42)
+    end
+  end
 end

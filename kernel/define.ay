@@ -33,6 +33,12 @@ with-module = Class new:
     gen add-scope
     gen push-nil
 
+-- module/class opening
+macro(~x open: ~*body):
+  `(~x module-eval:
+      ~(with-module new)
+      ~*body)
+
 -- class creation
 macro(class: ~*body): `(Object class: ~*body)
 
@@ -43,6 +49,22 @@ macro(~parent class: ~*body):
   -- currently does not work
   body << 'self
 
-  `(//Class new(~parent) module-eval:
-      ~(with-module new)
+  `(//Class new(~parent) open:
+      ~*body)
+
+-- singleton class opening
+macro(singleton: ~*body): `(self singleton: ~*body)
+
+macro(~x singleton: ~*body):
+  `(~x singleton-class open: ~*body)
+
+-- module creation
+macro(module: ~*body):
+  -- force it to return the class
+  --
+  -- TODO: this would be more elegant if placed after the splat, but that
+  -- currently does not work
+  body << 'self
+
+  `(//Module new open:
       ~*body)
