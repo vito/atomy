@@ -1,6 +1,7 @@
 use(require("core"))
 use(require("define"))
 
+require("atomy/pattern/index")
 require("atomy/pattern/instance_variable")
 require("atomy/pattern/attribute")
 
@@ -9,6 +10,9 @@ pattern(~parent ~(constant & Constant)):
 
 pattern(~receiver ~(attribute & Word)):
   Atomy Code Pattern new(`(//Atomy Pattern Attribute new('~attribute text, ~receiver)), [])
+
+pattern(~receiver [~*arguments]):
+  Atomy Code Pattern new(`(//Atomy Pattern Index new(~receiver, [~*arguments])), [])
 
 pattern(@~(name & Word)):
   Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new('~name text)), [])

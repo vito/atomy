@@ -79,6 +79,10 @@ describe "core kernel" do
     expect(subject.evaluate(ast("[1, 2, 3] inject(3) [a, b]: a + b"))).to eq(9)
   end
 
+  it "implements sending #[]" do
+    expect(subject.evaluate(ast("[1, 2, 3, 4, 5] [1, 2]"))).to eq([2, 3])
+  end
+
   it "implements nested constant notation" do
     expect(subject.evaluate(ast("Atomy Module"))).to eq(Atomy::Module)
   end

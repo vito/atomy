@@ -43,6 +43,21 @@ describe "patterns kernel" do
       end
     end
 
+    context "with a Compose node with a List as the right-hand side" do
+      let(:node) { ast("[1, 2, 3] [4, 5]") }
+
+      it "expands it into an Index pattern" do
+        expanded = subject.evaluate(subject.pattern(node))
+        expect(expanded).to be_a(Atomy::Pattern::Index)
+        expect(expanded.receiver).to eq([1, 2, 3])
+        expect(expanded.arguments).to eq([4, 5])
+      end
+
+      it "declares no locals" do
+        expect(subject.pattern(node).locals).to be_empty
+      end
+    end
+
     context "with an instance variable" do
       let(:node) { ast("@foo") }
 
