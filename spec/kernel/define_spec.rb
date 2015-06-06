@@ -11,11 +11,37 @@ describe "define kernel" do
       expect(subject.foo(41)).to eq(42)
     end
 
-    it "can define function methods with blocks" do
+    it "can define methods with blocks" do
       expect(subject.evaluate(seq("
         def(foo(a) &b): a + b call
         foo(2): 3
       "))).to eq(5)
+    end
+
+    it "implements method definition notation with no args" do
+      expect(subject.evaluate(seq("
+        a = 0
+        def(foo):
+          a =! (a + 1)
+          a
+
+        foo()
+        foo()
+        foo()
+      "))).to eq(3)
+    end
+
+    it "implements method invocation notation with no args" do
+      expect(subject.evaluate(seq("
+        a = 0
+        def(foo):
+          a =! (a + 1)
+          a
+
+        foo
+        foo
+        foo
+      "))).to eq(3)
     end
 
     it "defines branches that close over its scope" do
