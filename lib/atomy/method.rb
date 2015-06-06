@@ -26,17 +26,13 @@ require "atomy/locals"
 module Atomy
   class Method
     class Branch
-      @@branch = 0
+      attr_reader :receiver, :arguments, :body, :name, :locals
 
-      attr_reader :method, :receiver, :arguments, :body, :name, :locals
-
-      def initialize(method, receiver, arguments, body, locals)
-        @method = method
+      def initialize(receiver, arguments, locals, &body)
         @receiver = receiver
         @arguments = arguments
-        @body = body
         @locals = locals
-        @name = :"#@method-#{tick}"
+        @body = body.block
       end
 
       def total_arguments
@@ -45,12 +41,6 @@ module Atomy
 
       def required_arguments
         @arguments.size
-      end
-
-      private
-
-      def tick
-        @@branch += 1
       end
     end
 
@@ -61,8 +51,7 @@ module Atomy
       @branches = []
     end
 
-    def add_branch(receiver, arguments, body, locals)
-      branch = Branch.new(@name, receiver, arguments, body, locals)
+    def add_branch(branch)
       @branches << branch
       branch
     end
@@ -101,6 +90,8 @@ module Atomy
         gen.push_nil
 
         done.set!
+      end.tap do |cm|
+        cm.scope = Rubinius::ConstantScope.new(Object)
       end
     end
 

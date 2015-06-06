@@ -3,3 +3,7 @@ use(require("core"))
 -- method definition
 macro(def((~(msg & Word))(~*args)): ~*body):
   Atomy Code DefineMethod new(msg text, `(do: ~*body), args)
+
+-- function definition
+macro(fn((~(msg & Word))(~*args)): ~*body):
+  Atomy Code DefineFunction new(msg text, `(do: ~*body), args)

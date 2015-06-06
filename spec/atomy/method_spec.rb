@@ -21,27 +21,6 @@ describe Atomy::Method do
     blk.block
   end
 
-  describe "#add_branch" do
-    it "creates a branch and inserts it" do
-      expect {
-        subject.add_branch(wildcard, [], block {}, [])
-      }.to change { subject.branches.size }.from(0).to(1)
-    end
-
-    it "inserts branches with unique names" do
-      subject.add_branch(equality(0), [], block {}, [])
-      subject.add_branch(equality(1), [], block {}, [])
-      expect(subject.branches.collect(&:name).uniq.size).to eq(2)
-    end
-
-    it "appends the branch to the end" do
-      subject.add_branch(equality(0), [], block { :new }, [])
-      subject.add_branch(wildcard, [], block { :old }, [])
-      expect(subject.branches.collect(&:name).uniq.size).to eq(2)
-      expect(subject.branches.first.body.call).to eq(:new)
-    end
-  end
-
   describe "#build" do
     it "returns a CompiledCode" do
       expect(subject.build).to be_a(Rubinius::CompiledCode)
@@ -55,53 +34,39 @@ describe Atomy::Method do
       expect(subject.build.file).to eq(:__wrapper__)
     end
 
+    it "has a basic constant scope, so that #under_context works" do
+      scope = subject.build.scope
+      expect(scope).to_not be_nil
+      expect(scope.module).to eq(Object)
+    end
+
     describe "invoking the method" do
       let(:target) { Atomy::Module.new }
-      let(:branch) { subject.add_branch(wildcard, [], block { :ok }, []) }
+      let(:branch) { Atomy::Method::Branch.new(wildcard, [], []) { :ok } }
       let(:method_name) { :foo }
 
       subject { described_class.new(method_name) }
 
-      def define!
-        # prep the branch
-        Rubinius.add_method(
-          branch.name,
-          Rubinius::BlockEnvironment::AsMethod.new(branch.body),
-          target,
-          :private)
-
+      before do
+        subject.add_branch(branch)
         Rubinius.add_method(method_name, subject.build, target, :public)
       end
 
       it "can be invoked when attached to a target" do
-        define!
         expect(target.foo).to eq(:ok)
       end
 
       context "when a block is given" do
-        let(:branch) do
-          subject.add_branch(wildcard, [], block { |&blk| blk }, [])
-        end
-
-        before { define! }
+        let(:branch) { Atomy::Method::Branch.new(wildcard, [], []) { |&blk| blk } }
 
         it "is passed to the branch" do
-          define!
           blk = proc {}
           expect(target.foo(&blk)).to eq(blk)
         end
       end
 
       context "when no patterns match" do
-        before { define! }
-
-        let(:branch) do
-          subject.add_branch(
-            wildcard,
-            [equality(0)],
-            block { :ok },
-            [])
-        end
+        let(:branch) { Atomy::Method::Branch.new(wildcard, [equality(0)], []) { :ok } }
 
         context "and the method exists on the superclass" do
           let(:a) do

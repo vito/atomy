@@ -11,6 +11,41 @@ module Atomy
       end
 
       def bytecode(gen, mod)
+        if fun = gen.state.scope.search_local(:"#{@message}:function")
+          invoke_function(gen, mod, fun)
+        else
+          invoke_method(gen, mod)
+        end
+      end
+
+      private
+
+      def invoke_function(gen, mod, fun)
+        fun.get_bytecode(gen)
+
+        gen.dup
+        gen.send(:compiled_code, 0)
+        gen.send(:scope, 0)
+
+        if @receiver
+          mod.compile(gen, @receiver)
+        else
+          gen.push_self
+        end
+
+        gen.swap
+
+        # visibility_scope
+        gen.push_false
+
+        @arguments.each do |arg|
+          mod.compile(gen, arg)
+        end
+
+        gen.send(:call_under, @arguments.size + 3)
+      end
+
+      def invoke_method(gen, mod)
         if @receiver
           mod.compile(gen, @receiver)
         else
