@@ -41,6 +41,10 @@ module Atomy
       BootstrapHelper::WithGrammar.new(Atomy::Code::DefineMethod.new(:expand, body, [pattern]))
     end
 
+    def pattern_definer(pattern, body)
+      BootstrapHelper::WithGrammar.new(Atomy::Code::DefineMethod.new(:pattern, body, [pattern]))
+    end
+
     def make_send(recv, msg, args = [])
       Atomy::Code::Send.new(recv, msg.text, args)
     end

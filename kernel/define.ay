@@ -58,3 +58,7 @@ macro(module: ~*body):
   `(//Module new open:
       ~*body
       self)
+
+-- pattern definition
+macro(pattern(~pat): ~*body):
+  pattern-definer(make-quasiquote(pat), `(do: ~*body))
