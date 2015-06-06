@@ -4,6 +4,9 @@ use(require("core"))
 macro(fn((~(msg & Word))(~*args)): ~*body):
   Atomy Code DefineFunction new(msg text, `(do: ~*body), args)
 
+macro(fn(~(msg & Word)): ~*body):
+  Atomy Code DefineFunction new(msg text, `(do: ~*body), [])
+
 macro(fn((~(msg & Word))(~*args) &~blk): ~*body):
   Atomy Code DefineFunction new(msg text, `(do: ~*body), args, nil, blk)
 

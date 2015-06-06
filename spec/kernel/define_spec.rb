@@ -39,6 +39,32 @@ describe "define kernel" do
       "))).to eq(5)
     end
 
+    it "implements function definition notation with no args" do
+      expect(subject.evaluate(seq("
+        a = 0
+        fn(foo):
+          a =! (a + 1)
+          a
+
+        foo()
+        foo()
+        foo()
+      "))).to eq(3)
+    end
+
+    it "implements function invocation notation with no args" do
+      expect(subject.evaluate(seq("
+        a = 0
+        fn(foo):
+          a =! (a + 1)
+          a
+
+        foo
+        foo
+        foo
+      "))).to eq(3)
+    end
+
     it "defines function that close over their scope" do
       expect(subject.evaluate(seq("
         b = 1
