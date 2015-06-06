@@ -10,10 +10,14 @@ module Atomy
       def bytecode(gen, mod)
         pattern = mod.pattern(@pattern)
 
+        # [value]
+        mod.compile(gen, @value)
+
+        # declare new locals
         pattern.locals.each do |name|
           local, created = assignment_local(gen, name, @set)
           if created
-            # pre-declare locals, in case they're eval locals, so that pattern
+            # assign new locals, in case they're eval locals, so that pattern
             # assignment can find them and reassign them
             gen.push_nil
             local.set_bytecode(gen)
@@ -21,8 +25,6 @@ module Atomy
           end
         end
 
-        # [value]
-        mod.compile(gen, @value)
         # [value, value]
         gen.dup
         # [pattern, value, value]

@@ -132,6 +132,14 @@ describe "core kernel" do
           a
         "))).to eq(2)
       end
+
+      it "does not zero-out already-existing values during assignment in a nested scope" do
+        expect(subject.evaluate(seq("
+          a = 1
+          b = { a = (a + 1) } call
+          [a, b]
+        "))).to eq([1, 2])
+      end
     end
 
     context "with =!" do
