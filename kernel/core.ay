@@ -1,10 +1,11 @@
--- sequences
-define-macro('`(do: ~*nodes), 'make-sequence(nodes))
-
 -- a macro for defining macros!
-define-macro(
+evaluate(macro-definer(
   '`(macro(~pat): ~*body)
-  '`(define-macro('~make-quasiquote(pat), '(do: ~*body))))
+  'macro-definer(make-quasiquote(pat), make-sequence(body))))
+
+-- sequences
+macro(do: ~*nodes):
+  make-sequence(nodes)
 
 -- a few macros so we can actually, you know, send messages
 macro(~recv ~(msg & Word)):

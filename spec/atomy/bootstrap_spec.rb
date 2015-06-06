@@ -297,46 +297,20 @@ describe Atomy::Bootstrap do
     end
   end
 
-  describe "#define_macro" do
+  describe "#macro_definer" do
     it "returns the CompiledCode of the method" do
-      code = subject.module_eval { define_macro(ast("'foo"), ast("42")) }
+      code = subject.evaluate(subject.macro_definer(ast("'foo"), ast("42")))
       expect(code).to be_a(Rubinius::CompiledCode)
       expect(code.name).to eq(:expand)
     end
 
     it "defines #expand on the current scope's for_method_definition" do
-      subject.module_exec do
-        define_macro(ast("'foo"), ast("'42"))
-      end
-
+      subject.evaluate(subject.macro_definer(ast("'foo"), ast("'42")), subject.compile_context)
       expect(subject.expand(ast("foo"))).to eq(ast("42"))
     end
 
-    it "has the caller's variable scope visible" do
-      a = 1
-
-      subject.module_exec do
-        define_macro(ast("'foo"), ast("eval(\"a\")"))
-      end
-
-      expect(subject.expand(ast("foo"))).to eq(1)
-    end
-
-    it "has the caller's constant scope" do
-      A = 1
-
-      subject.module_exec do
-        define_macro(ast("'foo"), ast("eval(\"A\")"))
-      end
-
-      expect(subject.expand(ast("foo"))).to eq(1)
-    end
-
     it "adds Atomy::Grammar::AST to its constant scope" do
-      subject.module_exec do
-        define_macro(ast("Word"), ast("Word"))
-      end
-
+      subject.evaluate(subject.macro_definer(ast("Word"), ast("Word")), subject.compile_context)
       expect(subject.expand(ast("foo"))).to eq(Atomy::Grammar::AST::Word)
     end
   end

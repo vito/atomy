@@ -13,9 +13,16 @@ describe "core kernel" do
     expect(subject.evaluate(ast("do: foo, bar"), subject.compile_context)).to eq(2)
   end
 
-  it "implements a macro-defining macro" do
-    subject.evaluate(ast("macro(1): '2"), subject.compile_context)
-    expect(subject.evaluate(ast("1"))).to eq(2)
+  describe "macro defining" do
+    it "implements a macro-defining macro" do
+      subject.evaluate(ast("macro(1): '2"), subject.compile_context)
+      expect(subject.evaluate(ast("1"))).to eq(2)
+    end
+
+    it "closes over its scope" do
+      subject.evaluate(seq("a = '2, macro(1): a"), subject.compile_context)
+      expect(subject.evaluate(ast("1"))).to eq(2)
+    end
   end
 
   it "implements sending messages to self" do

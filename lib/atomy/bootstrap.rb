@@ -37,21 +37,8 @@ module Atomy
       node.accept(PatternExpander.new(self)) || super
     end
 
-    def define_macro(pattern, body)
-      bnd =
-        Binding.setup(
-          Rubinius::VariableScope.of_sender,
-          Rubinius::CompiledCode.of_sender,
-          BootstrapHelper.with_grammar(Rubinius::ConstantScope.of_sender),
-          self)
-
-      code = Atomy::Compiler.package(@file) do |gen|
-        Atomy::Code::DefineMethod.new(:expand, body, [pattern]).
-          bytecode(gen, self)
-      end
-
-      block = Atomy::Compiler.construct_block(code, bnd)
-      block.call
+    def macro_definer(pattern, body)
+      BootstrapHelper::WithGrammar.new(Atomy::Code::DefineMethod.new(:expand, body, [pattern]))
     end
 
     def make_send(recv, msg, args = [])
@@ -254,24 +241,42 @@ module Atomy
   module BootstrapHelper
     extend self
 
-    def with_grammar(scope)
-      cs =
-        if scope.module == Object
-          Rubinius::ConstantScope.new(
-            Atomy::Grammar::AST,
-            scope)
-        else
-          Rubinius::ConstantScope.new(
-            scope.module,
-            Rubinius::ConstantScope.new(
-              Atomy::Grammar::AST, scope.parent))
+    class WithGrammar
+      def initialize(body)
+        @body = body
+      end
+
+      def bytecode(gen, mod)
+        gen.create_block(build_block(gen.state.scope, mod))
+        gen.send(:call, 0)
+      end
+
+      private
+
+      def build_block(scope, mod)
+        Atomy::Compiler.generate(mod.file) do |blk|
+          # close over the outer scope
+          blk.state.scope.parent = scope
+
+          # capture original module
+          blk.push_scope
+          blk.send(:module, 0)
+
+          # add Atomy::Grammar::AST to the constant scope
+          blk.push_cpath_top
+          blk.find_const(:Atomy)
+          blk.find_const(:Grammar)
+          blk.find_const(:AST)
+          blk.add_scope
+
+          # restore original module for definition targets
+          blk.push_scope
+          blk.swap
+          blk.send(:current_module=, 1)
+
+          mod.compile(blk, @body)
         end
-
-      cs.current_module = scope.current_module
-      cs.disabled_for_methods = scope.disabled_for_methods
-      cs.flip_flops = scope.flip_flops
-
-      cs
+      end
     end
   end
 end
