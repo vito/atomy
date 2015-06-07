@@ -17,6 +17,12 @@ macro(fn((~(msg & Word))(~*args) &~blk): ~*body):
 macro(def((~(msg & Word))(~*args)): ~*body):
   Atomy Code DefineMethod new(msg text, `(do: ~*body), args)
 
+macro(def((~(msg & Word))!(~*args)): ~*body):
+  Atomy Code DefineMethod new((msg text to-s + "!") to-sym, `(do: ~*body), args)
+
+macro(def((~(msg & Word))?(~*args)): ~*body):
+  Atomy Code DefineMethod new((msg text to-s + "?") to-sym, `(do: ~*body), args)
+
 macro(def(~(msg & Word)): ~*body):
   Atomy Code DefineMethod new(msg text, `(do: ~*body), [])
 

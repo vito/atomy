@@ -11,6 +11,16 @@ describe "define kernel" do
       expect(subject.foo(41)).to eq(42)
     end
 
+    it "implements method definition notation for methods ending in ?" do
+      subject.evaluate(ast("def(foo?(a)): a + 1"), subject.compile_context)
+      expect(subject.foo?(41)).to eq(42)
+    end
+
+    it "implements method definition notation for methods ending in !" do
+      subject.evaluate(ast("def(foo!(a)): a + 1"), subject.compile_context)
+      expect(subject.foo!(41)).to eq(42)
+    end
+
     it "can define methods with blocks" do
       expect(subject.evaluate(seq("
         def(foo(a) &b): a + b call
