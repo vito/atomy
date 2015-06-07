@@ -152,8 +152,7 @@ module Atomy::Grammar::AST
     end
 
     def through
-      # TODO don't yield lhs if nil
-      self.class.new(yield(@left), yield(@right), @operator)
+      self.class.new(@left && yield(@left), yield(@right), @operator)
     end
   end
 

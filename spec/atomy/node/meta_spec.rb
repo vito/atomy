@@ -185,5 +185,23 @@ describe Atomy::Grammar::AST::Node do
 
       expect(actual).to eq([ast("a"), ast("b"), ast("c")])
     end
+
+    context "with an Infix node" do
+      context "when the left-hand side is missing" do
+        let(:node) { ast("+ 1") }
+
+        it "skips the left-hand side" do
+          expect(node.through { ast("123") }).to eq(ast("+ 123"))
+        end
+      end
+
+      context "when both sides are present" do
+        let(:node) { ast("1 + 2") }
+
+        it "skips the left-hand side" do
+          expect(node.through { ast("123") }).to eq(ast("123 + 123"))
+        end
+      end
+    end
   end
 end
