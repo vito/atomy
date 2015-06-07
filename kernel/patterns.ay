@@ -1,5 +1,6 @@
 use(require("core"))
 use(require("define"))
+use(require("control-flow"))
 
 require("atomy/pattern/index")
 require("atomy/pattern/instance_variable")
@@ -43,3 +44,56 @@ pattern(with(~expr, ~pat)):
   Atomy Code Pattern new(
     `(//Atomy Pattern With new({ ~expr }, ~sub-pattern))
     sub-pattern locals)
+
+list-pattern = class:
+  def(initialize(patterns)):
+    @patterns = []
+
+    patterns each [p]:
+      if(p is-a?(Atomy Pattern Splat))
+        then: @splat = p -- TODO: break
+        else: @patterns << p
+
+  def(matches?(val)):
+    if(@splat && (val size < @patterns size))
+      then: false -- TODO: return
+      else:
+
+    if(!@splat && (val size != @patterns size))
+      then: false -- TODO: return
+      else:
+
+    idx = 0
+    mismatch = false
+    @patterns each [p]:
+      unless(p matches?(val[idx])):
+        mismatch =! true
+        -- TODO: break, or return false
+
+      idx =! (idx + 1)
+
+    if(mismatch)
+      then: false
+      else:
+
+    if(@splat)
+      then: @splat matches?(val drop(idx))
+      else: true
+
+  def(assign(scope, val)):
+    idx = 0
+    @patterns each [p]:
+      p assign(scope, val[idx])
+      idx =! (idx + 1)
+
+    when(@splat):
+      @splat assign(scope, val drop(idx))
+
+Atomy Pattern const-set(.List, list-pattern)
+
+pattern([~*pats]):
+  sub-patterns = pats collect [p]: pattern(p)
+
+  Atomy Code Pattern new(
+      `(//Atomy Pattern List new([~*sub-patterns]))
+      sub-patterns collect [p] { p locals } flatten)

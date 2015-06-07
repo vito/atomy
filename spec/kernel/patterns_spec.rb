@@ -55,4 +55,58 @@ describe "patterns kernel" do
     x.foo = 3
     expect { subject.evaluate(seq("with(@foo, a & 2) = x, a")) }.to raise_error(Atomy::PatternMismatch)
   end
+
+  describe "list patterns" do
+    it "succeeds in a basic equality case" do
+      expect(subject.evaluate(ast("[1, 2, 3] = [1, 2, 3]"))).to eq([1, 2, 3])
+    end
+
+    it "binds locals" do
+      expect(subject.evaluate(seq("[a, 2, b] = [1, 2, 3], [a, b]"))).to eq([1, 3])
+    end
+
+    it "does not match if the other array is too long" do
+      expect {
+        subject.evaluate(ast("[1, 2, 3] = [1, 2, 3, 4]"))
+      }.to raise_error(Atomy::PatternMismatch)
+    end
+
+    it "does not match if the other array is too short" do
+      expect {
+        subject.evaluate(ast("[1, 2, 3] = [1, 2]"))
+      }.to raise_error(Atomy::PatternMismatch)
+    end
+
+    it "does not match if the sub-patterns do not match" do
+      expect {
+        subject.evaluate(ast("[1, 2, 3] = [1, 2, 4]"))
+      }.to raise_error(Atomy::PatternMismatch)
+    end
+
+    context "with splats" do
+      it "matches the rest of the list via a splat" do
+        expect(subject.evaluate(seq("[a, *bs] = [1, 2, 3], [a, bs]"))).to eq([1, [2, 3]])
+      end
+
+      it "matches when the rest is empty" do
+        expect(subject.evaluate(seq("[a, *bs] = [1], [a, bs]"))).to eq([1, []])
+      end
+
+      it "does not match if the array does not fit the minimum length" do
+        expect {
+          subject.evaluate(seq("[a, b, *cs] = [1]"))
+        }.to raise_error(Atomy::PatternMismatch)
+      end
+
+      it "does not match if the splat pattern does not match" do
+        expect {
+          subject.evaluate(seq("[a, *[3]] = [1, 2]"))
+        }.to raise_error(Atomy::PatternMismatch)
+      end
+
+      it "binds locals from the splat" do
+        expect(subject.evaluate(seq("[a, *[2, b]] = [1, 2, 3], [a, b]"))).to eq([1, 3])
+      end
+    end
+  end
 end
