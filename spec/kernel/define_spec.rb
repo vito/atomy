@@ -97,6 +97,12 @@ describe "define kernel" do
       "))).to eq(5)
     end
 
+    it "can define branches in separate evaluations" do
+      subject.evaluate(ast("fn(foo(2)): foo(4)"))
+      subject.evaluate(ast("fn(foo(4)): 42"))
+      expect(subject.evaluate(ast("foo(2)"))).to eq(42)
+    end
+
     it "implements function definition notation with no args" do
       expect(subject.evaluate(seq("
         a = 0

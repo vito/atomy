@@ -15,7 +15,7 @@ module Atomy
 
         gen.push_cpath_top
         gen.find_const(:Atomy)
-        gen.push_variables
+        gen.push_scope
         gen.push_literal(@name)
         push_branch(gen, mod)
         gen.send(:register_branch, 3)
