@@ -1,5 +1,7 @@
 require "spec_helper"
 
+require "pathname"
+
 require "atomy/codeloader"
 
 describe Atomy::CodeLoader do
