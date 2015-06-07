@@ -124,3 +124,26 @@ until-loop = class:
 
 macro(until(~condition): ~*body):
   until-loop new(condition, `(do: ~*body))
+
+
+negate = class:
+  def(initialize(node)):
+    instance-variable-set("@node", node)
+
+  def(bytecode(gen, mod)):
+    done = gen new-label
+    yes = gen new-label
+
+    mod compile(gen, @node)
+    gen git(yes)
+
+    gen push-true
+    gen goto(done)
+
+    yes set!
+    gen push-false
+
+    done set!
+
+macro(!~node):
+  negate new(node)

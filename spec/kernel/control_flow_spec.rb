@@ -114,4 +114,20 @@ describe "control-flow kernel" do
       expect(a).to eq(10)
     end
   end
+
+  describe "!x" do
+    context "when x is truthy" do
+      it "returns false" do
+        expect(subject.evaluate(ast("!true"))).to eq(false)
+        expect(subject.evaluate(ast("!42"))).to eq(false)
+      end
+    end
+
+    context "when x is falsy" do
+      it "returns true" do
+        expect(subject.evaluate(ast("!false"))).to eq(true)
+        expect(subject.evaluate(ast("!nil"))).to eq(true)
+      end
+    end
+  end
 end
