@@ -2,8 +2,38 @@
 # vim: set ft=ruby
 
 require "atomy"
+require "atomy/bootstrap"
 require "atomy/codeloader"
+require "atomy/parser"
 
 file, *_ = ARGV
 
-Atomy::CodeLoader.run_script(File.expand_path(file))
+def repl
+  mod = Atomy::Module.new { use(Atomy::Bootstrap) }
+
+  while true
+    line =
+      begin
+        Readline.readline("> ")
+      rescue Interript
+        ""
+      end
+
+    return unless line
+    next if line.empty?
+
+    begin
+      res = mod.evaluate(Atomy::Parser.parse_string(line), mod.compile_context)
+      p(res)
+    rescue => e
+      puts "#{e.class}: #{e}"
+    end
+  end
+end
+
+if file
+  Atomy::CodeLoader.run_script(File.expand_path(file))
+else
+  require "readline"
+  repl
+end
