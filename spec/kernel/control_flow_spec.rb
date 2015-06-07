@@ -5,6 +5,24 @@ require "atomy/codeloader"
 describe "control-flow kernel" do
   subject { Atomy::Module.new { use(require_kernel("control-flow")) } }
 
+  describe "a && b" do
+    context "when a is truthy" do
+      it "evaluates and returns b" do
+        expect(subject.evaluate(ast("1 && 42"))).to eq(42)
+      end
+    end
+
+    context "when a is falsy" do
+      it "returns a" do
+        expect(subject.evaluate(ast("false && 2"))).to eq(false)
+      end
+
+      it "does not evaluate b" do
+        expect(subject.evaluate(ast("false && raise(\"evaluated\")"))).to eq(false)
+      end
+    end
+  end
+
   describe "a || b" do
     context "when a is truthy" do
       it "returns a" do
