@@ -4,6 +4,7 @@ use(require("define"))
 require("atomy/pattern/index")
 require("atomy/pattern/instance_variable")
 require("atomy/pattern/attribute")
+require("atomy/pattern/or")
 
 pattern(~parent ~(constant & Constant)):
   Atomy Code Pattern new(`(//Atomy Pattern KindOf new(~parent ~constant)), [])
