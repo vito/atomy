@@ -37,3 +37,24 @@ or = class:
 
 macro(~a || ~b):
   or new(a, b)
+
+if-then-else = class:
+  def(initialize(@if, @then, @else)) {}
+
+  def(bytecode(gen, mod)):
+    else = gen new-label
+    done = gen new-label
+
+    mod compile(gen, @if)
+    gen gif(else)
+
+    mod compile(gen, @then)
+    gen goto(done)
+
+    else set!
+    mod compile(gen, @else)
+
+    done set!
+
+macro(if(~x) then: ~*y; else: ~*z):
+  if-then-else new(x, `(do: ~*y), `(do: ~*z))

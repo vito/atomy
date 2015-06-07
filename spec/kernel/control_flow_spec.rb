@@ -40,4 +40,26 @@ describe "control-flow kernel" do
       end
     end
   end
+
+  describe "if(x) then: y; else: z" do
+    context "when x is truthy" do
+      it "returns y" do
+        expect(subject.evaluate(ast("if(true) then: 1; else: 2"))).to eq(1)
+      end
+
+      it "does not evaluate z" do
+        expect(subject.evaluate(ast("if(true) then: 1; else: raise(\"evaluated\")"))).to eq(1)
+      end
+    end
+
+    context "when x is falsy" do
+      it "returns z" do
+        expect(subject.evaluate(ast("if(false) then: 1; else: 2"))).to eq(2)
+      end
+
+      it "does not evaluate y" do
+        expect(subject.evaluate(ast("if(false) then: raise(\"evaluated\"); else: 2"))).to eq(2)
+      end
+    end
+  end
 end
