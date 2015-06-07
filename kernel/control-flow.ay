@@ -58,3 +58,9 @@ if-then-else = class:
 
 macro(if(~x) then: ~*y; else: ~*z):
   if-then-else new(x, `(do: ~*y), `(do: ~*z))
+
+macro(when(~x): ~*y):
+  `(if(~x) then: ~*y; else: nil)
+
+macro(unless(~x): ~*y):
+  `(if(~x) then: nil; else: ~*y)

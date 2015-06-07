@@ -62,4 +62,40 @@ describe "control-flow kernel" do
       end
     end
   end
+
+  describe "when(x): y" do
+    context "when x is truthy" do
+      it "returns y" do
+        expect(subject.evaluate(ast("when(true): 1"))).to eq(1)
+      end
+    end
+
+    context "when x is falsy" do
+      it "returns nil" do
+        expect(subject.evaluate(ast("when(false): 1"))).to be_nil
+      end
+
+      it "does not evaluate y" do
+        expect { subject.evaluate(ast("when(false): raise(\"evaluated\")")) }.to_not raise_error
+      end
+    end
+  end
+
+  describe "unless(x): y" do
+    context "when x is truthy" do
+      it "returns nil" do
+        expect(subject.evaluate(ast("unless(true): 1"))).to be_nil
+      end
+
+      it "does not evaluate y" do
+        expect { subject.evaluate(ast("unless(true): raise(\"evaluated\")")) }.to_not raise_error
+      end
+    end
+
+    context "when x is falsy" do
+      it "returns y" do
+        expect(subject.evaluate(ast("unless(false): 1"))).to eq(1)
+      end
+    end
+  end
 end
