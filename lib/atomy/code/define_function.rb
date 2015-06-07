@@ -5,6 +5,8 @@ module Atomy
   module Code
     class DefineFunction < Define
       def bytecode(gen, mod)
+        var = assignment_local(gen, :"#{@name}:function")
+
         gen.push_rubinius
         gen.find_const(:BlockEnvironment)
         gen.send(:new, 0)
@@ -21,7 +23,7 @@ module Atomy
 
         gen.send(:under_context, 2)
 
-        assignment_local(gen, :"#{@name}:function").set_bytecode(gen)
+        var.set_bytecode(gen)
       end
 
       private

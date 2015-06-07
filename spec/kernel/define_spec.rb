@@ -82,6 +82,14 @@ describe "define kernel" do
       "))).to eq(3)
     end
 
+    it "can be recursive, as the body sees itself as a function" do
+      expect(subject.evaluate(seq("
+        fn(foo(2)): foo(4)
+        fn(foo(4)): 42
+        foo(2)
+      "))).to eq(42)
+    end
+
     it "can define function branches with blocks" do
       expect(subject.evaluate(seq("
         fn(foo(a) &b): a + b call
