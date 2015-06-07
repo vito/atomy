@@ -1,9 +1,10 @@
 use(require("core"))
 use(require("define"))
-use(require("patterns"))
 
 and = class:
-  def(initialize(@a, @b)) {}
+  def(initialize(a, b)):
+    instance-variable-set("@a", a)
+    instance-variable-set("@b", b)
 
   def(bytecode(gen, mod)):
     done = gen new-label
@@ -21,7 +22,9 @@ macro(~a && ~b):
   and new(a, b)
 
 or = class:
-  def(initialize(@a, @b)) {}
+  def(initialize(a, b)):
+    instance-variable-set("@a", a)
+    instance-variable-set("@b", b)
 
   def(bytecode(gen, mod)):
     done = gen new-label
@@ -39,7 +42,10 @@ macro(~a || ~b):
   or new(a, b)
 
 if-then-else = class:
-  def(initialize(@if, @then, @else)) {}
+  def(initialize(if, then, else)):
+    instance-variable-set("@if", if)
+    instance-variable-set("@then", then)
+    instance-variable-set("@else", else)
 
   def(bytecode(gen, mod)):
     else = gen new-label
@@ -67,7 +73,9 @@ macro(unless(~x): ~*y):
 
 
 while-loop = class:
-  def(initialize(@condition, @body)) {}
+  def(initialize(condition, body)):
+    instance-variable-set("@condition", condition)
+    instance-variable-set("@body", body)
 
   def(bytecode(gen, mod)):
     -- TODO: check_interrupts? how to test that?
@@ -92,7 +100,9 @@ macro(while(~condition): ~*body):
 
 
 until-loop = class:
-  def(initialize(@condition, @body)) {}
+  def(initialize(condition, body)):
+    instance-variable-set("@condition", condition)
+    instance-variable-set("@body", body)
 
   def(bytecode(gen, mod)):
     -- TODO: check_interrupts? how to test that?
