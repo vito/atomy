@@ -1,0 +1,102 @@
+-- TODO: make this work:
+--
+-- module:
+--   data(A(@x))
+--   A(x) foo := x
+--
+-- right now pattern definitions can only be at the toplevel
+
+use(require("core"))
+use(require("define"))
+use(require("control-flow"))
+
+-- patterns defined by dsl use 'with', so make sure it's exported
+-- TODO: export this? need to ensure modules using the user work.
+use(require("patterns"))
+
+fn(define-class(root, e & Atomy Grammar AST Constant)):
+  define-class(root, `((~e)()))
+
+fn(define-class(root, x & `((~name)(~*as)))):
+  define-class(root, `(~x {}))
+
+fn(define-class(root, `(~(n & Atomy Grammar AST Constant) { ~*cs }))):
+  define-class(root, `((~n)() { ~*cs }))
+
+fn(define-class(root, `((~name)(~*as): ~*cs))):
+  attrs = []
+  as each [x & ((is-attr & (`@~_)) | _)]:
+    when(is-attr):
+      attrs << x
+
+    x
+
+  tmps = attrs collect [`@~name]: Atomy Grammar AST Unquote new(name)
+
+  pat = name
+  attrs zip(tmps) [[attr, tmp]]:
+    pat =! `(~pat & with(~attr, ~tmp))
+
+  cons = `((~name)(~*tmps))
+
+  pat-def =
+    `(pattern(~cons):
+        pattern(~make-quasiquote(pat)))
+
+  parent = (root || 'Object)
+
+  `(do:
+      const-set(
+        .~name
+        ~parent class:
+          attr-accessor(
+            ~*(attrs collect [a]:
+                `.~(a node)))
+
+          def(initialize(~*as)): nil
+
+          def(inspect):
+            result = (~(Atomy Code StringLiteral new(name text to-s)) + "(")
+
+            args = []
+            recursed = //Thread detect-recursion(self):
+              [~*attrs] each [v]:
+                args << v inspect
+
+            when(recursed):
+              args << "..."
+
+            result << args join(", ")
+            result << ")"
+
+            Rubinius Type infect(result, self)
+
+            result
+        )
+
+      ~pat-def
+
+      ~*(cs collect [c]: define-class(name, c)))
+
+macro(data: ~*children):
+  `(Object data: ~*children)
+
+macro(data(~x)):
+  `(Object data(~x) {})
+
+macro(~root data(~x)):
+  `(~root data(~x) {})
+
+macro(data(~parent): ~*children):
+  `(Object data(~parent): ~*children)
+
+macro(~root data: ~*children):
+  `(do:
+      ~*(children collect [c]:
+          define-class(root, c))
+      nil)
+
+macro(~root data(~parent): ~*children):
+  `(do:
+      ~(define-class(root, `(~(parent): ~*children)))
+      nil)
