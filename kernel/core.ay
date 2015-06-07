@@ -3,6 +3,10 @@ evaluate(macro-definer(
   '`(macro(~pat): ~*body)
   'macro-definer(make-quasiquote(pat), make-sequence(body))))
 
+-- pattern definition
+macro(pattern(~pat): ~*body):
+  pattern-definer(make-quasiquote(pat), make-sequence(body))
+
 -- sequences
 macro(do: ~*nodes):
   make-sequence(nodes)
@@ -83,11 +87,11 @@ macro(@~(name & Word)):
 
 -- sending foo! to self
 macro((~(msg & Word))!):
-  Atomy Code Send new(nil, (msg text to-s + "!") to-sym)
+  Atomy Code Variable new((msg text to-s + "!") to-sym)
 
 -- sending foo? to self
 macro((~(msg & Word))?):
-  Atomy Code Send new(nil, (msg text to-s + "?") to-sym)
+  Atomy Code Variable new((msg text to-s + "?") to-sym)
 
 -- sending foo! to self with arguments
 macro((~(msg & Word))!(~*args)):
@@ -176,3 +180,21 @@ macro(~recv (~(msg & Word))!(~*args) [~*bargs]: ~*body):
 -- sending foo? to a receiver with arguments and a block that has arguments
 macro(~recv (~(msg & Word))?(~*args) [~*bargs]: ~*body):
   Atomy Code Send new(recv, (msg text to-s + "?") to-sym, args, `([~*bargs]: ~*body))
+
+-- pattern for assigning foo!
+pattern((~(name & Word))!):
+  var-name = (name text to-s + "!") to-sym
+
+  Atomy Code Pattern new(
+    `(//Atomy Pattern Wildcard new(~(Atomy Code Symbol new(var-name))))
+    [var-name]
+  )
+
+-- pattern for assigning foo?
+pattern((~(name & Word))?):
+  var-name = (name text to-s + "?") to-sym
+
+  Atomy Code Pattern new(
+    `(//Atomy Pattern Wildcard new(~(Atomy Code Symbol new(var-name))))
+    [var-name]
+  )

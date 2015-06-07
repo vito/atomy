@@ -226,19 +226,4 @@ describe "define kernel" do
       expect(klass.foo).to eq(42)
     end
   end
-
-  describe "pattern defining" do
-    it "provides a macro for defining patterns" do
-      subject.evaluate(
-        ast("pattern(42 foo(~(bar & Word))): pattern(bar)"),
-        subject.compile_context,
-      )
-
-      patcode = subject.pattern(ast("42 foo(fizz)"))
-      pat = subject.evaluate(patcode)
-      expect(patcode.locals).to eq([:fizz])
-      expect(pat).to be_a(Atomy::Pattern::Wildcard)
-      expect(pat.name).to eq(:fizz)
-    end
-  end
 end

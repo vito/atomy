@@ -25,6 +25,21 @@ describe "core kernel" do
     end
   end
 
+  describe "pattern defining" do
+    it "provides a macro for defining patterns" do
+      subject.evaluate(
+        ast("pattern(42 foo(~(bar & Word))): pattern(bar)"),
+        subject.compile_context,
+      )
+
+      patcode = subject.pattern(ast("42 foo(fizz)"))
+      pat = subject.evaluate(patcode)
+      expect(patcode.locals).to eq([:fizz])
+      expect(pat).to be_a(Atomy::Pattern::Wildcard)
+      expect(pat.name).to eq(:fizz)
+    end
+  end
+
   it "implements sending messages to self" do
     bnd = 1.instance_eval { binding }
     expect(subject.evaluate(ast("inspect"), bnd)).to eq("1")
@@ -385,6 +400,14 @@ describe "core kernel" do
           [a, b]
         "))).to eq([1, 2])
       end
+
+      it "can assign variables with ? at the end" do
+        expect(subject.evaluate(seq("a? = 1, a? + 2"))).to eq(3)
+      end
+
+      it "can assign variables with ! at the end" do
+        expect(subject.evaluate(seq("a! = 1, a! + 2"))).to eq(3)
+      end
     end
 
     context "with =!" do
@@ -418,6 +441,14 @@ describe "core kernel" do
           { a =! (a + 1) } call
           a
         "))).to eq(3)
+      end
+
+      it "can set variables with ? at the end" do
+        expect(subject.evaluate(seq("a? =! 1, a? + 2"))).to eq(3)
+      end
+
+      it "can set variables with ! at the end" do
+        expect(subject.evaluate(seq("a! =! 1, a! + 2"))).to eq(3)
       end
     end
   end
