@@ -24,3 +24,21 @@ pattern(~a | ~b):
   Atomy Code Pattern new(
       `(//Atomy Pattern Or new(~a-pattern, ~b-pattern))
       a-pattern locals + b-pattern locals)
+
+Atomy Pattern open:
+  const-set(.With, class:
+    def(initialize(@block, @pattern)) {}
+
+    def(matches?(val)):
+      @pattern matches?(@block call-on-object(val))
+
+    def(assign(scope, val)):
+      @pattern assign(scope, @block call-on-object(val))
+  )
+
+pattern(with(~expr, ~pat)):
+  sub-pattern = pattern(pat)
+
+  Atomy Code Pattern new(
+    `(//Atomy Pattern With new({ ~expr }, ~sub-pattern))
+    sub-pattern locals)
