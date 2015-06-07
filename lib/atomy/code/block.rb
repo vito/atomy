@@ -1,9 +1,10 @@
 module Atomy
   module Code
     class Block
-      def initialize(body, args = [])
+      def initialize(body, args = [], block = nil)
         @body = body
         @arguments = args
+        @block = block
       end
 
       def bytecode(gen, mod)
@@ -48,8 +49,22 @@ module Atomy
             Assign.new(a, Variable.new(:"arg:#{i}")).bytecode(blk, mod)
           end
 
+          # pattern-match the block arg
+          if @block
+            Assign.new(@block, PushProc.new).bytecode(blk, mod)
+          end
+
           # build the block's body
           mod.compile(blk, @body)
+        end
+      end
+
+      class PushProc
+        def initialize
+        end
+
+        def bytecode(gen, mod)
+          gen.push_proc
         end
       end
     end

@@ -477,6 +477,16 @@ describe "core kernel" do
       expect(blk).to be_kind_of(Proc)
       expect(blk.call(1, ast("1 + 2"))).to eq([1, 2])
     end
+
+    it "implements block literals with block arguments" do
+      blk = subject.evaluate(ast("&abc { abc call + 1 }"))
+      expect(blk.call { 41 }).to eq(42)
+    end
+
+    it "implements block literals with arguments and block arguments" do
+      blk = subject.evaluate(ast("[a, b] &abc { abc call + (a + b) }"))
+      expect(blk.call(1, 2) { 39 }).to eq(42)
+    end
   end
 
   it "implements toplevel constant access" do
