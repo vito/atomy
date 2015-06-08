@@ -13,8 +13,7 @@ module Atomy
       end
 
       def bytecode(gen, mod)
-        if fun = gen.state.scope.search_local(:"#{@message}:function")
-          # TODO: should probably only be if there's no receiver?
+        if @receiver.nil? && fun = gen.state.scope.search_local(:"#{@message}:function")
           invoke_function(gen, mod, fun)
         else
           invoke_method(gen, mod)
@@ -30,11 +29,7 @@ module Atomy
         gen.send(:compiled_code, 0)
         gen.send(:scope, 0)
 
-        if @receiver
-          mod.compile(gen, @receiver)
-        else
-          gen.push_self
-        end
+        gen.push_self
 
         gen.swap
 
@@ -45,7 +40,17 @@ module Atomy
           mod.compile(gen, arg)
         end
 
-        if @proc_argument
+        if @splat_argument
+          mod.compile(gen, @splat_argument)
+          if @proc_argument
+            push_proc_argument(gen, mod)
+          elsif @block
+            mod.compile(gen, @block)
+          else
+            gen.push_nil
+          end
+          gen.send_with_splat(:call_under, @arguments.size + 3)
+        elsif @proc_argument
           push_proc_argument(gen, mod)
           gen.send_with_block(:call_under, @arguments.size + 3)
         elsif @block

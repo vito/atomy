@@ -99,6 +99,60 @@ describe "define kernel" do
         subject.evaluate(ast("fn(foo(a)): a + 1"), subject.compile_context)
       }.to_not change { subject.respond_to?(:foo) }
     end
+
+    MESSAGE_FORMS.each do |form|
+      node = ast(form)
+
+      structure = Atomy::MessageStructure.new(node)
+      next if structure.receiver # cannot possibly be a function definition
+
+      next if structure.block # defining with block literal arg means nothing
+
+      it "implements function defining and calling in the form '#{form}'" do
+        if structure.splat_argument
+          pending "defining functions with splat arguments is not currently supported"
+        end
+
+        receiver = Object.new
+
+        # define a function that just calls through to the receiver
+        subject.evaluate(ast("fn(#{form}): receiver #{form}"))
+
+        # be sure to hide away these locals so the function doesn't just close
+        # over them
+        proc do
+          arg_1 = Object.new
+          arg_2 = Object.new
+          splat_args = [Object.new, Object.new]
+          proc_arg = proc {}
+          block_body = Object.new
+          result = Object.new
+
+          expect(receiver).to receive(structure.name) do |*args, &blk|
+            expected_args = [arg_1, arg_2][0...structure.arguments.size]
+            expected_args += splat_args if structure.splat_argument
+
+            expect(args).to eq(expected_args)
+
+            if structure.proc_argument
+              expect(blk).to eq(proc_arg)
+            elsif structure.block
+              if structure.block.is_a?(Atomy::Grammar::AST::Compose)
+                # block has arguments
+                expect(blk.call(1, 2)).to eq([1, 2])
+              else
+                # block has no args
+                expect(blk.call).to eq(block_body)
+              end
+            end
+
+            result
+          end
+
+          expect(subject.evaluate(node)).to eq(result)
+        end.call
+      end
+    end
   end
 
   describe "class creation" do
