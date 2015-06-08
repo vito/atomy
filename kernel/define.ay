@@ -1,36 +1,30 @@
 use(require("core"))
 
+require("atomy/message_structure")
+
 -- function definition
-macro(fn((~(msg & Word))(~*args)): ~*body):
-  Atomy Code DefineFunction new(msg text, `(do: ~*body), args)
+macro(fn(~message): ~*body):
+  structure = Atomy MessageStructure new(message)
 
-macro(fn(~(msg & Word)): ~*body):
-  Atomy Code DefineFunction new(msg text, `(do: ~*body), [])
-
-macro(fn(~(msg & Word) &~blk): ~*body):
-  Atomy Code DefineFunction new(msg text, `(do: ~*body), [], nil, blk)
-
-macro(fn((~(msg & Word))(~*args) &~blk): ~*body):
-  Atomy Code DefineFunction new(msg text, `(do: ~*body), args, nil, blk)
+  Atomy Code DefineFunction new(
+    structure name
+    `(do: ~*body)
+    structure arguments
+    structure receiver
+    structure block
+  )
 
 -- method definition
-macro(def((~(msg & Word))(~*args)): ~*body):
-  Atomy Code DefineMethod new(msg text, `(do: ~*body), args)
+macro(def(~message): ~*body):
+  structure = Atomy MessageStructure new(message)
 
-macro(def((~(msg & Word))!(~*args)): ~*body):
-  Atomy Code DefineMethod new((msg text to-s + "!") to-sym, `(do: ~*body), args)
-
-macro(def((~(msg & Word))?(~*args)): ~*body):
-  Atomy Code DefineMethod new((msg text to-s + "?") to-sym, `(do: ~*body), args)
-
-macro(def(~(msg & Word)): ~*body):
-  Atomy Code DefineMethod new(msg text, `(do: ~*body), [])
-
-macro(def(~(msg & Word) &~blk): ~*body):
-  Atomy Code DefineMethod new(msg text, `(do: ~*body), [], nil, blk)
-
-macro(def((~(msg & Word))(~*args) &~blk): ~*body):
-  Atomy Code DefineMethod new(msg text, `(do: ~*body), args, nil, blk)
+  Atomy Code DefineMethod new(
+    structure name
+    `(do: ~*body)
+    structure arguments
+    structure receiver
+    structure block
+  )
 
 -- helper for adding a module to the constant scope
 with-module = Class new:

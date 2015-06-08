@@ -1,85 +1,64 @@
 require "spec_helper"
 
 require "atomy/codeloader"
+require "atomy/message_structure"
+require "atomy/node/equality"
 
 describe "define kernel" do
   subject { Atomy::Module.new { use(require_kernel("define")) } }
 
   describe "method definition" do
-    it "implements method definition notation" do
-      subject.evaluate(ast("def(foo(a)): a + 1"), subject.compile_context)
-      expect(subject.foo(41)).to eq(42)
+    it "implements method definition using MessageStructure to determine everything" do
+      fake_structure = instance_double(
+        "Atomy::MessageStruture",
+        name: :some_name,
+        block: ast("some-block"),
+        arguments: [ast("arg-1"), ast("arg-2")],
+        receiver: ast("SomeClass"),
+      )
+
+      allow(Atomy::MessageStructure).to receive(:new).and_call_original
+      expect(Atomy::MessageStructure).to receive(:new).with(ast("some-method-definition")).and_return(fake_structure)
+
+      some_class = Class.new
+      subject.const_set(:SomeClass, some_class)
+
+      subject.evaluate(ast("
+        def(some-method-definition):
+          some-block call(arg-1, arg-2)
+      "), subject.compile_context)
+
+      expect(some_class.new.some_name(1, 2) { |a, b| a + b }).to eq(3)
     end
 
-    it "implements method definition notation for methods ending in ?" do
-      subject.evaluate(ast("def(foo?(a)): a + 1"), subject.compile_context)
-      expect(subject.foo?(41)).to eq(42)
-    end
-
-    it "implements method definition notation for methods ending in !" do
-      subject.evaluate(ast("def(foo!(a)): a + 1"), subject.compile_context)
-      expect(subject.foo!(41)).to eq(42)
-    end
-
-    it "can define methods with blocks" do
-      expect(subject.evaluate(seq("
-        def(foo(a) &b): a + b call
-        foo(2): 3
-      "))).to eq(5)
-    end
-
-    it "implements method definition notation with no args" do
-      expect(subject.evaluate(seq("
-        a = 0
-        def(foo):
-          a =! (a + 1)
-          a
-
-        foo()
-        foo()
-        foo()
-      "))).to eq(3)
-    end
-
-    it "implements method invocation notation with no args" do
-      expect(subject.evaluate(seq("
-        a = 0
-        def(foo):
-          a =! (a + 1)
-          a
-
-        foo
-        foo
-        foo
-      "))).to eq(3)
-    end
-
-    it "implements method definition notation with no args and a block" do
-      expect(subject.evaluate(seq("
-        def(foo &blk): blk call
-        foo(): 3
-      "))).to eq(3)
-    end
-
-    it "implements method invocation notation with no args and a block" do
-      expect(subject.evaluate(seq("
-        def(foo &blk): blk call
-        foo: 3
-      "))).to eq(3)
-    end
-
-    it "defines branches that close over its scope" do
+    it "closes over its scope" do
       subject.evaluate(seq("a = 1, def(foo(b)): a + b"), subject.compile_context)
       expect(subject.foo(41)).to eq(42)
     end
   end
 
   describe "function definition" do
-    it "implements function definition notation" do
+    it "implements function definition using MessageStructure to determine everything" do
+      fake_structure = instance_double(
+        "Atomy::MessageStruture",
+        name: :some_name,
+        block: ast("some-block"),
+        arguments: [ast("arg-1"), ast("arg-2")],
+        receiver: nil, #ast("SomeClass"),
+      )
+
+      allow(Atomy::MessageStructure).to receive(:new).and_call_original
+      expect(Atomy::MessageStructure).to receive(:new).with(ast("some-method-definition")).and_return(fake_structure)
+
+      some_class = Class.new
+      subject.const_set(:SomeClass, some_class)
+
       expect(subject.evaluate(seq("
-        fn(foo(a)): a + 1
-        foo(2)
-      "))).to eq(3)
+        fn(some-method-definition):
+          some-block call(arg-1, arg-2)
+
+        some-name(1, 2) [a, b]: a + b
+      "), subject.compile_context)).to eq(3)
     end
 
     it "can be recursive, as the body sees itself as a function" do
@@ -90,57 +69,10 @@ describe "define kernel" do
       "))).to eq(42)
     end
 
-    it "can define function branches with blocks" do
-      expect(subject.evaluate(seq("
-        fn(foo(a) &b): a + b call
-        foo(2): 3
-      "))).to eq(5)
-    end
-
     it "can define branches in separate evaluations" do
       subject.evaluate(ast("fn(foo(2)): foo(4)"))
       subject.evaluate(ast("fn(foo(4)): 42"))
       expect(subject.evaluate(ast("foo(2)"))).to eq(42)
-    end
-
-    it "implements function definition notation with no args" do
-      expect(subject.evaluate(seq("
-        a = 0
-        fn(foo):
-          a =! (a + 1)
-          a
-
-        foo()
-        foo()
-        foo()
-      "))).to eq(3)
-    end
-
-    it "implements function invocation notation with no args" do
-      expect(subject.evaluate(seq("
-        a = 0
-        fn(foo):
-          a =! (a + 1)
-          a
-
-        foo
-        foo
-        foo
-      "))).to eq(3)
-    end
-
-    it "implements function definition notation with no args and a block" do
-      expect(subject.evaluate(seq("
-        fn(foo &blk): blk call
-        foo(): 3
-      "))).to eq(3)
-    end
-
-    it "implements function invocation notation with no args and a block" do
-      expect(subject.evaluate(seq("
-        fn(foo &blk): blk call
-        foo: 3
-      "))).to eq(3)
     end
 
     it "defines function that close over their scope" do
@@ -151,7 +83,7 @@ describe "define kernel" do
       "))).to eq(3)
     end
 
-    it "defines function branches" do
+    it "defines multiple function branches" do
       expect(subject.evaluate(seq("
         fn(fib(0)): 0
         fn(fib(1)):1
@@ -160,7 +92,7 @@ describe "define kernel" do
        "))).to eq(5)
     end
 
-    it "does not define any methods" do
+    it "does not define any methods, unlike def" do
       expect(subject).to_not respond_to(:foo)
 
       expect {
