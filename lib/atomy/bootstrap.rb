@@ -27,6 +27,7 @@ require "atomy/pattern/kind_of"
 require "atomy/pattern/quasi_quote"
 require "atomy/pattern/splat"
 require "atomy/pattern/wildcard"
+require "atomy/message_structure"
 
 module Atomy
   Bootstrap = Atomy::Module.new do
