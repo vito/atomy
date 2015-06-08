@@ -12,7 +12,7 @@ describe "define kernel" do
       fake_structure = instance_double(
         "Atomy::MessageStruture",
         name: :some_name,
-        block: ast("some-block"),
+        proc_argument: ast("some-block"),
         arguments: [ast("arg-1"), ast("arg-2")],
         receiver: ast("SomeClass"),
       )
@@ -42,7 +42,7 @@ describe "define kernel" do
       fake_structure = instance_double(
         "Atomy::MessageStruture",
         name: :some_name,
-        block: ast("some-block"),
+        proc_argument: ast("some-block"),
         arguments: [ast("arg-1"), ast("arg-2")],
         receiver: nil, #ast("SomeClass"),
       )

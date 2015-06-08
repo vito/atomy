@@ -26,8 +26,8 @@ module Atomy
       receiver_from(@node)
     end
 
-    def block
-      block_from(@node)
+    def proc_argument
+      proc_argument_from(@node)
     end
 
     private
@@ -52,7 +52,7 @@ module Atomy
         end
       when Grammar::AST::Compose
         case node.right
-        when Grammar::AST::Prefix # block
+        when Grammar::AST::Prefix # proc argument
           return name_from(node.left)
         when Grammar::AST::Word, Grammar::AST::Apply # has a receiver
           return name_from(node.right)
@@ -73,7 +73,7 @@ module Atomy
         return node.arguments
       when Grammar::AST::Compose
         case node.right
-        when Grammar::AST::Prefix # block
+        when Grammar::AST::Prefix # proc argument
           return arguments_from(node.left)
         when Grammar::AST::Word, Grammar::AST::Apply # has a receiver
           return arguments_from(node.right)
@@ -83,12 +83,12 @@ module Atomy
       []
     end
 
-    def block_from(node)
+    def proc_argument_from(node)
       case node
       when Grammar::AST::Compose
         case node.right
         when Grammar::AST::Prefix
-          if node.right.operator == :"&" # block
+          if node.right.operator == :"&" # proc argument
             return node.right.node
           end
         end
@@ -107,7 +107,7 @@ module Atomy
             return node.left
           end
         when Grammar::AST::Prefix
-          if node.right.operator == :"&" # block
+          if node.right.operator == :"&" # proc argument
             return receiver_from(node.left)
           end
         end

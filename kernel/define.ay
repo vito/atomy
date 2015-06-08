@@ -11,7 +11,7 @@ macro(fn(~message): ~*body):
     `(do: ~*body)
     structure arguments
     structure receiver
-    structure block
+    structure proc-argument
   )
 
 -- method definition
@@ -23,7 +23,7 @@ macro(def(~message): ~*body):
     `(do: ~*body)
     structure arguments
     structure receiver
-    structure block
+    structure proc-argument
   )
 
 -- helper for adding a module to the constant scope
