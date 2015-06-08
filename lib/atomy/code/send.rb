@@ -75,8 +75,6 @@ module Atomy
           mod.compile(gen, arg)
         end
 
-        gen.allow_private unless @receiver
-
         if @proc_argument
           nil_proc_arg = gen.new_label
           mod.compile(gen, @proc_argument)
@@ -88,11 +86,14 @@ module Atomy
           gen.swap
           gen.send(:__from_block__, 1)
           nil_proc_arg.set!
+          gen.allow_private unless @receiver
           gen.send_with_block(@message, @arguments.size)
         elsif @block
           mod.compile(gen, @block)
+          gen.allow_private unless @receiver
           gen.send_with_block(@message, @arguments.size)
         else
+          gen.allow_private unless @receiver
           gen.send(@message, @arguments.size)
         end
       end

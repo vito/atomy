@@ -28,6 +28,29 @@ describe Atomy::Code::Send do
       gen.send :foo, 0
     end
 
+    context "and a proc argument" do
+      let(:proc_argument) { ast("abc") }
+
+      it_compiles_as do |gen|
+        nil_proc_argument = gen.new_label
+
+        gen.push_literal "foo"
+        gen.string_dup
+        gen.push_self
+        gen.allow_private
+        gen.send(:abc, 0)
+        gen.dup
+        gen.is_nil
+        gen.git(nil_proc_argument)
+        gen.push_cpath_top
+        gen.find_const(:Proc)
+        gen.swap
+        gen.send(:__from_block__, 1)
+        nil_proc_argument.set!
+        gen.send_with_block :foo, 0
+      end
+    end
+
     context "and arguments" do
       let(:arguments) { [ast('"bar"'), ast('"baz"')] }
 
@@ -94,6 +117,42 @@ describe Atomy::Code::Send do
       gen.send :foo, 0
     end
 
+    context "and a proc argument" do
+      let(:proc_argument) { ast("abc") }
+
+      it_compiles_as do |gen|
+        nil_proc_argument = gen.new_label
+
+        gen.push_self
+        gen.push_self
+        gen.allow_private
+        gen.send(:abc, 0)
+        gen.dup
+        gen.is_nil
+        gen.git(nil_proc_argument)
+        gen.push_cpath_top
+        gen.find_const(:Proc)
+        gen.swap
+        gen.send(:__from_block__, 1)
+        nil_proc_argument.set!
+        gen.allow_private
+        gen.send_with_block :foo, 0
+      end
+    end
+
+    context "and a block" do
+      let(:block) { ast("abc") }
+
+      it_compiles_as do |gen|
+        gen.push_self
+        gen.push_self
+        gen.allow_private
+        gen.send(:abc, 0)
+        gen.allow_private
+        gen.send_with_block :foo, 0
+      end
+    end
+
     context "with arguments" do
       let(:arguments) { [ast('"foo"'), ast('"bar"')] }
 
@@ -105,6 +164,50 @@ describe Atomy::Code::Send do
         gen.string_dup
         gen.allow_private
         gen.send :foo, 2
+      end
+
+      context "and a proc argument" do
+        let(:proc_argument) { ast("abc") }
+
+        it_compiles_as do |gen|
+          nil_proc_argument = gen.new_label
+
+          gen.push_self
+          gen.push_literal "foo"
+          gen.string_dup
+          gen.push_literal "bar"
+          gen.string_dup
+          gen.push_self
+          gen.allow_private
+          gen.send(:abc, 0)
+          gen.dup
+          gen.is_nil
+          gen.git(nil_proc_argument)
+          gen.push_cpath_top
+          gen.find_const(:Proc)
+          gen.swap
+          gen.send(:__from_block__, 1)
+          nil_proc_argument.set!
+          gen.allow_private
+          gen.send_with_block :foo, 2
+        end
+      end
+
+      context "and a block" do
+        let(:block) { ast("abc") }
+
+        it_compiles_as do |gen|
+          gen.push_self
+          gen.push_literal "foo"
+          gen.string_dup
+          gen.push_literal "bar"
+          gen.string_dup
+          gen.push_self
+          gen.allow_private
+          gen.send(:abc, 0)
+          gen.allow_private
+          gen.send_with_block :foo, 2
+        end
       end
     end
   end
