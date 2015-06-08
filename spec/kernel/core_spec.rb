@@ -55,6 +55,7 @@ describe "core kernel" do
     "message-name! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
     "message-name? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
     "message-name(arg-1, arg-2)",
+    "message-name(arg-1, arg-2, *splat-args)",
     "message-name!(arg-1, arg-2)",
     "message-name?(arg-1, arg-2)",
     "message-name(arg-1, arg-2) &proc-arg",
@@ -79,6 +80,7 @@ describe "core kernel" do
     "receiver message-name! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
     "receiver message-name? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
     "receiver message-name(arg-1, arg-2)",
+    "receiver message-name(arg-1, arg-2, *splat-args)",
     "receiver message-name!(arg-1, arg-2)",
     "receiver message-name?(arg-1, arg-2)",
     "receiver message-name(arg-1, arg-2) &proc-arg",
@@ -99,12 +101,16 @@ describe "core kernel" do
       receiver = Object.new
       arg_1 = Object.new
       arg_2 = Object.new
+      splat_args = [Object.new, Object.new]
       proc_arg = proc {}
       block_body = Object.new
       result = Object.new
 
       expect(receiver).to receive(structure.name) do |*args, &blk|
-        expect(args).to eq([arg_1, arg_2][0...structure.arguments.size])
+        expected_args = [arg_1, arg_2][0...structure.arguments.size]
+        expected_args += splat_args if structure.splat_argument
+
+        expect(args).to eq(expected_args)
 
         if structure.proc_argument
           expect(blk).to eq(proc_arg)

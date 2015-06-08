@@ -19,7 +19,11 @@ module Atomy
     end
 
     def arguments
-      arguments_from(@node)
+      arguments_from(argument_list_from(@node))
+    end
+
+    def splat_argument
+      splat_argument_from(argument_list_from(@node))
     end
 
     def receiver
@@ -87,7 +91,27 @@ module Atomy
       raise unknown_message
     end
 
-    def arguments_from(node)
+    def arguments_from(list)
+      case list.last
+      when Grammar::AST::Prefix
+        if list.last.operator == :*
+          return list[0...(list.size - 1)]
+        end
+      end
+
+      list
+    end
+
+    def splat_argument_from(list)
+      case list.last
+      when Grammar::AST::Prefix
+        if list.last.operator == :*
+          return list.last.node
+        end
+      end
+    end
+
+    def argument_list_from(node)
       case node
       when Grammar::AST::Apply
         return node.arguments
@@ -96,20 +120,20 @@ module Atomy
       when Grammar::AST::Compose
         case node.right
         when Grammar::AST::Prefix # proc argument
-          return arguments_from(node.left)
+          return argument_list_from(node.left)
         when Grammar::AST::Word, Grammar::AST::Apply # has a receiver
-          return arguments_from(node.right)
+          return argument_list_from(node.right)
         when Grammar::AST::Block # block literal argument
           case node.left
           when Grammar::AST::Compose
             case node.left.right
             when Grammar::AST::List # block args; skip
-              return arguments_from(node.left.left)
+              return argument_list_from(node.left.left)
             else
-              return arguments_from(node.left)
+              return argument_list_from(node.left)
             end
           else
-            return arguments_from(node.left)
+            return argument_list_from(node.left)
           end
         when Grammar::AST::List # foo[bar]
           return node.right.nodes

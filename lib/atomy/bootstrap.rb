@@ -77,6 +77,7 @@ module Atomy
           structure.receiver,
           structure.name,
           structure.arguments,
+          structure.splat_argument,
           structure.proc_argument,
           structure.block,
         )

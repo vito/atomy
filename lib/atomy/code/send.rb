@@ -3,10 +3,11 @@ module Atomy
     class Send
       attr_reader :receiver, :message, :arguments, :proc_argument, :block
 
-      def initialize(receiver, message, arguments = [], proc_argument = nil, block = nil)
+      def initialize(receiver, message, arguments = [], splat_argument = nil, proc_argument = nil, block = nil)
         @receiver = receiver
         @message = message
         @arguments = arguments
+        @splat_argument = splat_argument
         @proc_argument = proc_argument
         @block = block
       end
@@ -45,16 +46,7 @@ module Atomy
         end
 
         if @proc_argument
-          nil_proc_arg = gen.new_label
-          mod.compile(gen, @proc_argument)
-          gen.dup
-          gen.is_nil
-          gen.git(nil_proc_arg)
-          gen.push_cpath_top
-          gen.find_const(:Proc)
-          gen.swap
-          gen.send(:__from_block__, 1)
-          nil_proc_arg.set!
+          push_proc_argument(gen, mod)
           gen.send_with_block(:call_under, @arguments.size + 3)
         elsif @block
           mod.compile(gen, @block)
@@ -75,7 +67,31 @@ module Atomy
           mod.compile(gen, arg)
         end
 
-        if @proc_argument
+        if @splat_argument
+          mod.compile(gen, @splat_argument)
+          if @proc_argument
+            push_proc_argument(gen, mod)
+          elsif @block
+            mod.compile(gen, @block)
+          else
+            gen.push_nil
+          end
+          gen.allow_private unless @receiver
+          gen.send_with_splat(@message, @arguments.size)
+        elsif @proc_argument
+          push_proc_argument(gen, mod)
+          gen.allow_private unless @receiver
+          gen.send_with_block(@message, @arguments.size)
+        elsif @block
+          mod.compile(gen, @block)
+          gen.allow_private unless @receiver
+          gen.send_with_block(@message, @arguments.size)
+        else
+          gen.allow_private unless @receiver
+          gen.send(@message, @arguments.size)
+        end
+
+        def push_proc_argument(gen, mod)
           nil_proc_arg = gen.new_label
           mod.compile(gen, @proc_argument)
           gen.dup
@@ -86,15 +102,6 @@ module Atomy
           gen.swap
           gen.send(:__from_block__, 1)
           nil_proc_arg.set!
-          gen.allow_private unless @receiver
-          gen.send_with_block(@message, @arguments.size)
-        elsif @block
-          mod.compile(gen, @block)
-          gen.allow_private unless @receiver
-          gen.send_with_block(@message, @arguments.size)
-        else
-          gen.allow_private unless @receiver
-          gen.send(@message, @arguments.size)
         end
       end
     end
