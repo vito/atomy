@@ -355,6 +355,16 @@ describe "core kernel" do
     expect(subject.evaluate(ast(".String"))).to eq(:String)
   end
 
+  it "implements symbol literals for [] and []=" do
+    expect(subject.evaluate(ast(".[]"))).to eq(:[])
+    expect(subject.evaluate(ast(".[]="))).to eq(:[]=)
+  end
+
+  it "implements symbol literals for strings" do
+    expect(subject.evaluate(ast(".\"abc\""))).to eq(:abc)
+    expect(subject.evaluate(ast(".\"blah blah\""))).to eq(:"blah blah")
+  end
+
   it "implements instance variable access" do
     @foo = 1
     expect(subject.evaluate(ast("@foo"))).to eq(1)

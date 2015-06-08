@@ -32,6 +32,9 @@ macro(nil): Atomy Code Nil new
 -- symbols
 macro(.~(sym & Word)): Atomy Code Symbol new(sym text)
 macro(.~(sym & Constant)): Atomy Code Symbol new(sym text)
+macro(.~(str & StringLiteral)): Atomy Code Symbol new(str value to-sym)
+macro(.[]): Atomy Code Symbol new("[]" to-sym)
+macro(.[]=): Atomy Code Symbol new("[]=" to-sym)
 
 -- assignment
 macro(~pat = ~val):
