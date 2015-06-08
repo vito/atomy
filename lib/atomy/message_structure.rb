@@ -30,6 +30,10 @@ module Atomy
       proc_argument_from(@node)
     end
 
+    def block
+      block_from(@node)
+    end
+
     private
 
     def unknown_message
@@ -61,6 +65,10 @@ module Atomy
           when :"!", :"?"
             return name_from(node.right)
           end
+        when Grammar::AST::Block # block literal argument
+          return name_from(node.left)
+        when Grammar::AST::List # arguments to block literal argument...probably (unless it's just foo[1, 2])
+          return name_from(node.left)
         end
       end
 
@@ -77,6 +85,10 @@ module Atomy
           return arguments_from(node.left)
         when Grammar::AST::Word, Grammar::AST::Apply # has a receiver
           return arguments_from(node.right)
+        when Grammar::AST::Block # block literal argument
+          return arguments_from(node.left)
+        when Grammar::AST::List # arguments to block literal argument...probably (unless it's just foo[1, 2])
+          return arguments_from(node.left)
         end
       end
 
@@ -106,11 +118,39 @@ module Atomy
           when :"!", :"?"
             return node.left
           end
+        when Grammar::AST::Block # block literal argument
+          return receiver_from(node.left)
+        when Grammar::AST::List # arguments to block literal argument...probably (unless it's just foo[1, 2])
+          return receiver_from(node.left)
         when Grammar::AST::Prefix
           if node.right.operator == :"&" # proc argument
             return receiver_from(node.left)
           end
         end
+      end
+    end
+    
+    def block_from(node)
+      case node
+      when Grammar::AST::Compose
+        blk = nil
+
+        case node.right
+        when Grammar::AST::Block
+          blk = node.right
+        else
+          return
+        end
+
+        case node.left
+        when Grammar::AST::Compose
+          case node.left.right
+          when Grammar::AST::List
+            return Grammar::AST::Compose.new(node.left.right, blk)
+          end
+        end
+
+        return blk
       end
     end
   end

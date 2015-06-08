@@ -6,6 +6,8 @@ require "atomy/node/equality"
 describe Atomy::MessageStructure do
   subject { described_class.new(node) }
 
+  # TODO: support []
+
   context "when not a message-like structure" do
     let(:node) { ast("42") }
 
@@ -18,6 +20,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a word" do
@@ -26,6 +29,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a word followed by !" do
@@ -34,6 +38,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a word followed by ?" do
@@ -42,6 +47,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a word followed by some other symbol" do
@@ -56,6 +62,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a word with arguments" do
@@ -64,6 +71,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a word followed by ! with arguments" do
@@ -72,6 +80,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a word followed by ? with arguments" do
@@ -80,6 +89,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a word with a proc argument" do
@@ -88,6 +98,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
   end
 
   context "when a word followed by ! with a proc argument" do
@@ -96,6 +107,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
   end
 
   context "when a word followed by ? with a proc argument" do
@@ -104,6 +116,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
   end
 
   context "when a word with arguments with a proc argument" do
@@ -112,6 +125,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
   end
 
   context "when a word followed by ! with arguments with a proc argument" do
@@ -120,6 +134,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
   end
 
   context "when a word followed by ? with arguments with a proc argument" do
@@ -128,6 +143,115 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+  end
+
+  context "when a word with a block that has no arguments" do
+    let(:node) { ast("foo: a + b") }
+    its(:name) { should == :foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a word followed by ! with a block that has no arguments" do
+    let(:node) { ast("foo!: a + b") }
+    its(:name) { should == :foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a word followed by ? with a block that has no arguments" do
+    let(:node) { ast("foo?: a + b") }
+    its(:name) { should == :foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a word with arguments with a block that has no arguments" do
+    let(:node) { ast("foo(a, b): a + b") }
+    its(:name) { should == :foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a word followed by ! with arguments with a block that has no arguments" do
+    let(:node) { ast("foo!(a, b): a + b") }
+    its(:name) { should == :foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a word followed by ? with arguments with a block that has no arguments" do
+    let(:node) { ast("foo?(a, b): a + b") }
+    its(:name) { should == :foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a word with a block that has arguments" do
+    let(:node) { ast("foo [a, b]: a + b") }
+    its(:name) { should == :foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a word followed by ! with a block that has arguments" do
+    let(:node) { ast("foo! [a, b]: a + b") }
+    its(:name) { should == :foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a word followed by ? with a block that has arguments" do
+    let(:node) { ast("foo? [a, b]: a + b") }
+    its(:name) { should == :foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a word with arguments with a block that has arguments" do
+    let(:node) { ast("foo(a, b) [a, b]: a + b") }
+    its(:name) { should == :foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a word followed by ! with arguments with a block that has arguments" do
+    let(:node) { ast("foo!(a, b) [a, b]: a + b") }
+    its(:name) { should == :foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a word followed by ? with arguments with a block that has arguments" do
+    let(:node) { ast("foo?(a, b) [a, b]: a + b") }
+    its(:name) { should == :foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
   end
 
   context "when a node followed by a word" do
@@ -136,6 +260,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word followed by !" do
@@ -144,6 +269,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word followed by ?" do
@@ -152,6 +278,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word with arguments" do
@@ -160,6 +287,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word followed by ! with arguments" do
@@ -168,6 +296,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word followed by ? with arguments" do
@@ -176,6 +305,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word with a proc argument" do
@@ -184,6 +314,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word followed by ! with a proc argument" do
@@ -192,6 +323,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word followed by ? with a proc argument" do
@@ -200,6 +332,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word with arguments with a proc argument" do
@@ -208,6 +341,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word followed by ! with arguments with a proc argument" do
@@ -216,6 +350,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
   end
 
   context "when a node followed by a word followed by ? with arguments with a proc argument" do
@@ -224,5 +359,114 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+  end
+
+  context "when a node followed by a word with a block that has no arguments" do
+    let(:node) { ast("42 foo: a + b") }
+    its(:name) { should == :foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a node followed by a word followed by ! with a block that has no arguments" do
+    let(:node) { ast("42 foo!: a + b") }
+    its(:name) { should == :foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a node followed by a word followed by ? with a block that has no arguments" do
+    let(:node) { ast("42 foo?: a + b") }
+    its(:name) { should == :foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a node followed by a word with arguments with a block that has no arguments" do
+    let(:node) { ast("42 foo(a, b): a + b") }
+    its(:name) { should == :foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a node followed by a word followed by ! with arguments with a block that has no arguments" do
+    let(:node) { ast("42 foo!(a, b): a + b") }
+    its(:name) { should == :foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a node followed by a word followed by ? with arguments with a block that has no arguments" do
+    let(:node) { ast("42 foo?(a, b): a + b") }
+    its(:name) { should == :foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+  end
+
+  context "when a node followed by a word with a block that has arguments" do
+    let(:node) { ast("42 foo [a, b]: a + b") }
+    its(:name) { should == :foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a node followed by a word followed by ! with a block that has arguments" do
+    let(:node) { ast("42 foo! [a, b]: a + b") }
+    its(:name) { should == :foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a node followed by a word followed by ? with a block that has arguments" do
+    let(:node) { ast("42 foo? [a, b]: a + b") }
+    its(:name) { should == :foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a node followed by a word with arguments with a block that has arguments" do
+    let(:node) { ast("42 foo(a, b) [a, b]: a + b") }
+    its(:name) { should == :foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a node followed by a word followed by ! with arguments with a block that has arguments" do
+    let(:node) { ast("42 foo!(a, b) [a, b]: a + b") }
+    its(:name) { should == :foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a node followed by a word followed by ? with arguments with a block that has arguments" do
+    let(:node) { ast("42 foo?(a, b) [a, b]: a + b") }
+    its(:name) { should == :foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
   end
 end
