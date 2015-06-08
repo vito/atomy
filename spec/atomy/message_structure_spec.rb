@@ -6,9 +6,6 @@ require "atomy/node/equality"
 describe Atomy::MessageStructure do
   subject { described_class.new(node) }
 
-  # TODO: support []
-  # TODO: support a + b
-
   context "when not a message-like structure" do
     let(:node) { ast("42") }
 
@@ -469,5 +466,23 @@ describe Atomy::MessageStructure do
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
     its(:block) { should == ast("[a, b] { a + b }") }
+  end
+
+  context "when a node followed by a list" do
+    let(:node) { ast("42 [a, b]") }
+    its(:name) { should == :[] }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+  end
+
+  context "when an infix node" do
+    let(:node) { ast("a + b") }
+    its(:name) { should == :+ }
+    its(:arguments) { should == [ast("b")] }
+    its(:receiver) { should == ast("a") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
   end
 end

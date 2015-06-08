@@ -54,10 +54,6 @@ macro([~*args] &~blk { ~*body }):
 macro(//~(name & Constant)):
   Atomy Code Constant new(name text, 'Object)
 
--- sending #[] message
-macro(~recv [~*args]):
-  Atomy Code Send new(recv, "[]" to-sym, args)
-
 -- accessing instance variables
 macro(@~(name & Word)):
   Atomy Code InstanceVariable new(name text)

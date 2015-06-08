@@ -111,10 +111,6 @@ module Atomy
         Code::Integer.new(node.value)
       end
 
-      def visit_infix(node)
-        Code::Send.new(node.left, node.operator, [node.right])
-      end
-
       def visit_quote(node)
         Code::Quote.new(node.node)
       end

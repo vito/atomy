@@ -46,6 +46,8 @@ module Atomy
         return node.text
       when Grammar::AST::Apply
         return name_from(node.node)
+      when Grammar::AST::Infix
+        return node.operator
       when Grammar::AST::Postfix
         case node.operator
         when :"!", :"?"
@@ -66,9 +68,19 @@ module Atomy
             return name_from(node.right)
           end
         when Grammar::AST::Block # block literal argument
-          return name_from(node.left)
-        when Grammar::AST::List # arguments to block literal argument...probably (unless it's just foo[1, 2])
-          return name_from(node.left)
+          case node.left
+          when Grammar::AST::Compose
+            case node.left.right
+            when Grammar::AST::List # block args; skip
+              return name_from(node.left.left)
+            else
+              return name_from(node.left)
+            end
+          else
+            return name_from(node.left)
+          end
+        when Grammar::AST::List # foo[bar]
+          return :[]
         end
       end
 
@@ -79,6 +91,8 @@ module Atomy
       case node
       when Grammar::AST::Apply
         return node.arguments
+      when Grammar::AST::Infix
+        return [node.right]
       when Grammar::AST::Compose
         case node.right
         when Grammar::AST::Prefix # proc argument
@@ -86,9 +100,19 @@ module Atomy
         when Grammar::AST::Word, Grammar::AST::Apply # has a receiver
           return arguments_from(node.right)
         when Grammar::AST::Block # block literal argument
-          return arguments_from(node.left)
-        when Grammar::AST::List # arguments to block literal argument...probably (unless it's just foo[1, 2])
-          return arguments_from(node.left)
+          case node.left
+          when Grammar::AST::Compose
+            case node.left.right
+            when Grammar::AST::List # block args; skip
+              return arguments_from(node.left.left)
+            else
+              return arguments_from(node.left)
+            end
+          else
+            return arguments_from(node.left)
+          end
+        when Grammar::AST::List # foo[bar]
+          return node.right.nodes
         end
       end
 
@@ -109,6 +133,8 @@ module Atomy
 
     def receiver_from(node)
       case node
+      when Grammar::AST::Infix
+        return node.left
       when Grammar::AST::Compose
         case node.right
         when Grammar::AST::Word, Grammar::AST::Apply
@@ -119,9 +145,19 @@ module Atomy
             return node.left
           end
         when Grammar::AST::Block # block literal argument
-          return receiver_from(node.left)
-        when Grammar::AST::List # arguments to block literal argument...probably (unless it's just foo[1, 2])
-          return receiver_from(node.left)
+          case node.left
+          when Grammar::AST::Compose
+            case node.left.right
+            when Grammar::AST::List # block args; skip
+              return receiver_from(node.left.left)
+            else
+              return receiver_from(node.left)
+            end
+          else
+            return receiver_from(node.left)
+          end
+        when Grammar::AST::List
+          return node.left
         when Grammar::AST::Prefix
           if node.right.operator == :"&" # proc argument
             return receiver_from(node.left)
