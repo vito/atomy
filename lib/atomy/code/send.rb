@@ -1,12 +1,13 @@
 module Atomy
   module Code
     class Send
-      attr_reader :receiver, :message, :arguments
+      attr_reader :receiver, :message, :arguments, :proc_argument, :block
 
-      def initialize(receiver, message, arguments = [], block = nil)
+      def initialize(receiver, message, arguments = [], proc_argument = nil, block = nil)
         @receiver = receiver
         @message = message
         @arguments = arguments
+        @proc_argument = proc_argument
         @block = block
       end
 
@@ -43,7 +44,19 @@ module Atomy
           mod.compile(gen, arg)
         end
 
-        if @block
+        if @proc_argument
+          nil_proc_arg = gen.new_label
+          mod.compile(gen, @proc_argument)
+          gen.dup
+          gen.is_nil
+          gen.git(nil_proc_arg)
+          gen.push_cpath_top
+          gen.find_const(:Proc)
+          gen.swap
+          gen.send(:__from_block__, 1)
+          nil_proc_arg.set!
+          gen.send_with_block(:call_under, @arguments.size + 3)
+        elsif @block
           mod.compile(gen, @block)
           gen.send_with_block(:call_under, @arguments.size + 3)
         else
@@ -64,7 +77,19 @@ module Atomy
 
         gen.allow_private unless @receiver
 
-        if @block
+        if @proc_argument
+          nil_proc_arg = gen.new_label
+          mod.compile(gen, @proc_argument)
+          gen.dup
+          gen.is_nil
+          gen.git(nil_proc_arg)
+          gen.push_cpath_top
+          gen.find_const(:Proc)
+          gen.swap
+          gen.send(:__from_block__, 1)
+          nil_proc_arg.set!
+          gen.send_with_block(@message, @arguments.size)
+        elsif @block
           mod.compile(gen, @block)
           gen.send_with_block(@message, @arguments.size)
         else

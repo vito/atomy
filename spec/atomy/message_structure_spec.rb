@@ -7,6 +7,7 @@ describe Atomy::MessageStructure do
   subject { described_class.new(node) }
 
   # TODO: support []
+  # TODO: support a + b
 
   context "when not a message-like structure" do
     let(:node) { ast("42") }

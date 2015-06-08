@@ -69,14 +69,17 @@ module Atomy
         @module = mod
       end
 
-      def visit(_)
-        nil
-      end
+      def visit(node)
+        structure = Atomy::MessageStructure.new(node)
 
-      def visit_apply(node)
-        if node.node.is_a?(Atomy::Grammar::AST::Word)
-          Code::Send.new(nil, node.node.text, node.arguments)
-        end
+        Code::Send.new(
+          structure.receiver,
+          structure.name,
+          structure.arguments,
+          structure.proc_argument,
+          structure.block,
+        )
+      rescue Atomy::MessageStructure::UnknownMessageStructure
       end
 
       def visit_stringliteral(node)

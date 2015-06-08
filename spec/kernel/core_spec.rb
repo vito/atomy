@@ -1,6 +1,7 @@
 require "spec_helper"
 
 require "atomy/codeloader"
+require "atomy/message_structure"
 
 module ABC; end
 
@@ -40,294 +41,94 @@ describe "core kernel" do
     end
   end
 
-  it "implements sending messages to self" do
-    bnd = 1.instance_eval { binding }
-    expect(subject.evaluate(ast("inspect"), bnd)).to eq("1")
-  end
-
-  it "implements sending messages to self, with arguments" do
-    bnd = 128.instance_eval { binding }
-    expect(subject.evaluate(ast("to-s(16)"), bnd)).to eq("80")
-  end
-
-  it "implements sending messages to self, with blocks" do
-    bnd = [1, 2, 3].instance_eval { binding }
-    expect(subject.evaluate(ast("collect: 1"), bnd)).to eq([1, 1, 1])
-  end
-
-  it "implements sending messages to self, with blocks with argumennts" do
-    bnd = [1, 2, 3].instance_eval { binding }
-    expect(subject.evaluate(ast("collect [x]: x + 1"), bnd)).to eq([2, 3, 4])
-  end
-
-  it "implements sending messages to self, with arguments and blocks" do
-    bnd = [1, 2, 3].instance_eval { binding }
-    expect(subject.evaluate(ast("fetch(3): 42"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self, with arguments and blocks with arguments" do
-    bnd = [1, 2, 3].instance_eval { binding }
-    expect(subject.evaluate(ast("inject(3) [a, b]: a + b"), bnd)).to eq(9)
-  end
-
-  it "implements sending messages to self with ! at the end of the name" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-    expect(foo).to receive(:bar!).and_return(42)
-    expect(subject.evaluate(ast("bar!"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ? at the end of the name" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-    expect(foo).to receive(:bar?).and_return(42)
-    expect(subject.evaluate(ast("bar?"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ! at the end of the name, with arguments" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-    expect(foo).to receive(:bar!).with(1, 2).and_return(42)
-    expect(subject.evaluate(ast("bar!(1, 2)"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ? at the end of the name, with arguments" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-    expect(foo).to receive(:bar?).with(1, 2).and_return(42)
-    expect(subject.evaluate(ast("bar?(1, 2)"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ! at the end of the name, with a block that has no arguments" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-
-    block = proc{}
-    expect(foo).to receive(:bar!) { |&blk|
-      blk.call + 1
-    }
-
-    expect(subject.evaluate(ast("bar!: 41"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ? at the end of the name, with a block that has no arguments" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-
-    block = proc{}
-    expect(foo).to receive(:bar?) { |&blk|
-      blk.call + 1
-    }
-
-    expect(subject.evaluate(ast("bar?: 41"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ! at the end of the name, with a block that has arguments" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-
-    block = proc{}
-    expect(foo).to receive(:bar!) { |&blk|
-      blk.call(40, 1) + 1
-    }
-
-    expect(subject.evaluate(ast("bar! [a, b]: a + b"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ? at the end of the name, with a block that has arguments" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-
-    block = proc{}
-    expect(foo).to receive(:bar?) { |&blk|
-      blk.call(40, 1) + 1
-    }
-
-    expect(subject.evaluate(ast("bar? [a, b]: a + b"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ! at the end of the name, with arguments and a block that has no arguments" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-
-    block = proc{}
-    expect(foo).to receive(:bar!).with(1, 2) { |&blk|
-      blk.call + 1
-    }
-
-    expect(subject.evaluate(ast("bar!(1, 2): 41"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ? at the end of the name, with arguments and a block that has no arguments" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-
-    block = proc{}
-    expect(foo).to receive(:bar?).with(1, 2) { |&blk|
-      blk.call + 1
-    }
-
-    expect(subject.evaluate(ast("bar?(1, 2): 41"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ! at the end of the name, with arguments and a block that has arguments" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-
-    block = proc{}
-    expect(foo).to receive(:bar!).with(1, 2) { |&blk|
-      blk.call(40, 1) + 1
-    }
-
-    expect(subject.evaluate(ast("bar!(1, 2) [a, b]: a + b"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to self with ? at the end of the name, with arguments and a block that has arguments" do
-    foo = Object.new
-    bnd = foo.instance_eval { binding }
-
-    block = proc{}
-    expect(foo).to receive(:bar?).with(1, 2) { |&blk|
-      blk.call(40, 1) + 1
-    }
-
-    expect(subject.evaluate(ast("bar?(1, 2) [a, b]: a + b"), bnd)).to eq(42)
-  end
-
-  it "implements sending messages to receivers" do
-    expect(subject.evaluate(ast("1 inspect"))).to eq("1")
-  end
-
-  it "implements sending messages to receivers, with arguments" do
-    expect(subject.evaluate(ast("128 to-s(16)"))).to eq("80")
-  end
-
-  it "implements sending messages to receivers, with blocks" do
-    expect(subject.evaluate(ast("[1, 2, 3] collect: 1"))).to eq([1, 1, 1])
-  end
-
-  it "implements sending messages to receivers, with blocks with argumennts" do
-    expect(subject.evaluate(ast("[1, 2, 3] collect [x]: x + 1"))).to eq([2, 3, 4])
-  end
-
-  it "implements sending messages to receivers, with arguments and blocks" do
-    expect(subject.evaluate(ast("[1, 2, 3] fetch(3): 42"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers, with arguments and blocks with arguments" do
-    expect(subject.evaluate(ast("[1, 2, 3] inject(3) [a, b]: a + b"))).to eq(9)
-  end
-
-  it "implements sending messages to receivers with ! at the end of the name" do
-    foo = Object.new
-    expect(foo).to receive(:bar!).and_return(42)
-    expect(subject.evaluate(ast("foo bar!"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ? at the end of the name" do
-    foo = Object.new
-    expect(foo).to receive(:bar?).and_return(42)
-    expect(subject.evaluate(ast("foo bar?"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ! at the end of the name, with arguments" do
-    foo = Object.new
-    expect(foo).to receive(:bar!).with(1, 2).and_return(42)
-    expect(subject.evaluate(ast("foo bar!(1, 2)"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ? at the end of the name, with arguments" do
-    foo = Object.new
-    expect(foo).to receive(:bar?).with(1, 2).and_return(42)
-    expect(subject.evaluate(ast("foo bar?(1, 2)"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ! at the end of the name, with a block that has no arguments" do
-    foo = Object.new
-
-    block = proc{}
-    expect(foo).to receive(:bar!) { |&blk|
-      blk.call + 1
-    }
-
-    expect(subject.evaluate(ast("foo bar!: 41"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ? at the end of the name, with a block that has no arguments" do
-    foo = Object.new
-
-    block = proc{}
-    expect(foo).to receive(:bar?) { |&blk|
-      blk.call + 1
-    }
-
-    expect(subject.evaluate(ast("foo bar?: 41"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ! at the end of the name, with a block that has arguments" do
-    foo = Object.new
-
-    block = proc{}
-    expect(foo).to receive(:bar!) { |&blk|
-      blk.call(40, 1) + 1
-    }
-
-    expect(subject.evaluate(ast("foo bar! [a, b]: a + b"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ? at the end of the name, with a block that has arguments" do
-    foo = Object.new
-
-    block = proc{}
-    expect(foo).to receive(:bar?) { |&blk|
-      blk.call(40, 1) + 1
-    }
-
-    expect(subject.evaluate(ast("foo bar? [a, b]: a + b"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ! at the end of the name, with arguments and a block that has no arguments" do
-    foo = Object.new
-
-    block = proc{}
-    expect(foo).to receive(:bar!).with(1, 2) { |&blk|
-      blk.call + 1
-    }
-
-    expect(subject.evaluate(ast("foo bar!(1, 2): 41"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ? at the end of the name, with arguments and a block that has no arguments" do
-    foo = Object.new
-
-    block = proc{}
-    expect(foo).to receive(:bar?).with(1, 2) { |&blk|
-      blk.call + 1
-    }
-
-    expect(subject.evaluate(ast("foo bar?(1, 2): 41"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ! at the end of the name, with arguments and a block that has arguments" do
-    foo = Object.new
-
-    block = proc{}
-    expect(foo).to receive(:bar!).with(1, 2) { |&blk|
-      blk.call(40, 1) + 1
-    }
-
-    expect(subject.evaluate(ast("foo bar!(1, 2) [a, b]: a + b"))).to eq(42)
-  end
-
-  it "implements sending messages to receivers with ? at the end of the name, with arguments and a block that has arguments" do
-    foo = Object.new
-
-    block = proc{}
-    expect(foo).to receive(:bar?).with(1, 2) { |&blk|
-      blk.call(40, 1) + 1
-    }
-
-    expect(subject.evaluate(ast("foo bar?(1, 2) [a, b]: a + b"))).to eq(42)
+  [
+    "message-name",
+    "message-name!",
+    "message-name?",
+    "message-name &proc-arg",
+    "message-name! &proc-arg",
+    "message-name? &proc-arg",
+    "message-name: block-body",
+    "message-name!: block-body",
+    "message-name?: block-body",
+    "message-name [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "message-name! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "message-name? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "message-name(arg-1, arg-2)",
+    "message-name!(arg-1, arg-2)",
+    "message-name?(arg-1, arg-2)",
+    "message-name(arg-1, arg-2) &proc-arg",
+    "message-name!(arg-1, arg-2) &proc-arg",
+    "message-name?(arg-1, arg-2) &proc-arg",
+    "message-name(arg-1, arg-2): block-body",
+    "message-name!(arg-1, arg-2): block-body",
+    "message-name?(arg-1, arg-2): block-body",
+    "message-name(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "message-name!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "message-name?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "receiver message-name",
+    "receiver message-name!",
+    "receiver message-name?",
+    "receiver message-name &proc-arg",
+    "receiver message-name! &proc-arg",
+    "receiver message-name? &proc-arg",
+    "receiver message-name: block-body",
+    "receiver message-name!: block-body",
+    "receiver message-name?: block-body",
+    "receiver message-name [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "receiver message-name! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "receiver message-name? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "receiver message-name(arg-1, arg-2)",
+    "receiver message-name!(arg-1, arg-2)",
+    "receiver message-name?(arg-1, arg-2)",
+    "receiver message-name(arg-1, arg-2) &proc-arg",
+    "receiver message-name!(arg-1, arg-2) &proc-arg",
+    "receiver message-name?(arg-1, arg-2) &proc-arg",
+    "receiver message-name(arg-1, arg-2): block-body",
+    "receiver message-name!(arg-1, arg-2): block-body",
+    "receiver message-name?(arg-1, arg-2): block-body",
+    "receiver message-name(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "receiver message-name!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    "receiver message-name?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+  ].each do |form|
+    it "implements message sending in the form '#{form}'" do
+      node = ast(form)
+
+      structure = Atomy::MessageStructure.new(node)
+
+      receiver = Object.new
+      arg_1 = Object.new
+      arg_2 = Object.new
+      proc_arg = proc {}
+      block_body = Object.new
+      result = Object.new
+
+      expect(receiver).to receive(structure.name) do |*args, &blk|
+        expect(args).to eq([arg_1, arg_2][0...structure.arguments.size])
+
+        if structure.proc_argument
+          expect(blk).to eq(proc_arg)
+        elsif structure.block
+          if structure.block.is_a?(Atomy::Grammar::AST::Compose)
+            # block has arguments
+            expect(blk.call(1, 2)).to eq([1, 2])
+          else
+            # block has no args
+            expect(blk.call).to eq(block_body)
+          end
+        end
+
+        result
+      end
+
+      if structure.receiver
+        bnd = binding
+      else
+        bnd = receiver.instance_eval { binding }
+      end
+
+      expect(subject.evaluate(node, bnd)).to eq(result)
+    end
   end
 
   it "implements sending #[]" do

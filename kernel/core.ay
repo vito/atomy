@@ -11,13 +11,6 @@ macro(pattern(~pat): ~*body):
 macro(do: ~*nodes):
   make-sequence(nodes)
 
--- a few macros so we can actually, you know, send messages
-macro(~recv ~(msg & Word)):
-  make-send(recv, msg)
-
-macro(~recv (~(msg & Word))(~*args)):
-  make-send(recv, msg, args)
-
 -- constant scoping
 macro(~parent ~(name & Constant)):
   make-constant(name text, parent)
@@ -57,32 +50,7 @@ macro(&~blk { ~*body }):
 macro([~*args] &~blk { ~*body }):
   Atomy Code Block new(`(do: ~*body), args, blk)
 
--- message sends to self with blocks
-macro(~(msg & Word): ~*body):
-  Atomy Code Send new(nil, msg text, [], `{ ~*body })
-
-macro(~(msg & Word) [~*bargs]: ~*body):
-  Atomy Code Send new(nil, msg text, [], `([~*bargs]: ~*body))
-
-macro((~(msg & Word))(~*args): ~*body):
-  Atomy Code Send new(nil, msg text, args, `{ ~*body })
-
-macro((~(msg & Word))(~*args) [~*bargs]: ~*body):
-  Atomy Code Send new(nil, msg text, args, `([~*bargs]: ~*body))
-
--- message sends to receivers with blocks
-macro(~recv ~(msg & Word): ~*body):
-  Atomy Code Send new(recv, msg text, [], `{ ~*body })
-
-macro(~recv ~(msg & Word) [~*bargs]: ~*body):
-  Atomy Code Send new(recv, msg text, [], `([~*bargs]: ~*body))
-
-macro(~recv (~(msg & Word))(~*args): ~*body):
-  Atomy Code Send new(recv, msg text, args, `{ ~*body })
-
-macro(~recv (~(msg & Word))(~*args) [~*bargs]: ~*body):
-  Atomy Code Send new(recv, msg text, args, `([~*bargs]: ~*body))
-
+-- toplevel constant access
 macro(//~(name & Constant)):
   Atomy Code Constant new(name text, 'Object)
 
@@ -94,101 +62,13 @@ macro(~recv [~*args]):
 macro(@~(name & Word)):
   Atomy Code InstanceVariable new(name text)
 
--- sending foo! to self
+-- foo! access/sending
 macro((~(msg & Word))!):
   Atomy Code Variable new((msg text to-s + "!") to-sym)
 
--- sending foo? to self
+-- foo? access/sending
 macro((~(msg & Word))?):
   Atomy Code Variable new((msg text to-s + "?") to-sym)
-
--- sending foo! to self with arguments
-macro((~(msg & Word))!(~*args)):
-  Atomy Code Send new(nil, (msg text to-s + "!") to-sym, args)
-
--- sending foo? to self with arguments
-macro((~(msg & Word))?(~*args)):
-  Atomy Code Send new(nil, (msg text to-s + "?") to-sym, args)
-
--- sending foo! to self with a block that has no arguments
-macro((~(msg & Word))!: ~*body):
-  Atomy Code Send new(nil, (msg text to-s + "!") to-sym, [], `{ ~*body })
-
--- sending foo? to self with a block that has no arguments
-macro((~(msg & Word))?: ~*body):
-  Atomy Code Send new(nil, (msg text to-s + "?") to-sym, [], `{ ~*body })
-
--- sending foo! to self with a block that has arguments
-macro((~(msg & Word))! [~*bargs]: ~*body):
-  Atomy Code Send new(nil, (msg text to-s + "!") to-sym, [], `([~*bargs]: ~*body))
-
--- sending foo? to self with a block that has arguments
-macro((~(msg & Word))? [~*bargs]: ~*body):
-  Atomy Code Send new(nil, (msg text to-s + "?") to-sym, [], `([~*bargs]: ~*body))
-
--- sending foo! to self with arguments and a block that has no arguments
-macro((~(msg & Word))!(~*args): ~*body):
-  Atomy Code Send new(nil, (msg text to-s + "!") to-sym, args, `{ ~*body })
-
--- sending foo? to self with arguments and a block that has no arguments
-macro((~(msg & Word))?(~*args): ~*body):
-  Atomy Code Send new(nil, (msg text to-s + "?") to-sym, args, `{ ~*body })
-
--- sending foo! to self with arguments and a block that has arguments
-macro((~(msg & Word))!(~*args) [~*bargs]: ~*body):
-  Atomy Code Send new(nil, (msg text to-s + "!") to-sym, args, `([~*bargs]: ~*body))
-
--- sending foo? to self with arguments and a block that has arguments
-macro((~(msg & Word))?(~*args) [~*bargs]: ~*body):
-  Atomy Code Send new(nil, (msg text to-s + "?") to-sym, args, `([~*bargs]: ~*body))
-
--- sending foo! to a receiver
-macro(~recv (~(msg & Word))!):
-  Atomy Code Send new(recv, (msg text to-s + "!") to-sym)
-
--- sending foo? to a receiver
-macro(~recv (~(msg & Word))?):
-  Atomy Code Send new(recv, (msg text to-s + "?") to-sym)
-
--- sending foo! to a receiver with arguments
-macro(~recv (~(msg & Word))!(~*args)):
-  Atomy Code Send new(recv, (msg text to-s + "!") to-sym, args)
-
--- sending foo? to a receiver with arguments
-macro(~recv (~(msg & Word))?(~*args)):
-  Atomy Code Send new(recv, (msg text to-s + "?") to-sym, args)
-
--- sending foo! to a receiver with a block that has no arguments
-macro(~recv (~(msg & Word))!: ~*body):
-  Atomy Code Send new(recv, (msg text to-s + "!") to-sym, [], `{ ~*body })
-
--- sending foo? to a receiver with a block that has no arguments
-macro(~recv (~(msg & Word))?: ~*body):
-  Atomy Code Send new(recv, (msg text to-s + "?") to-sym, [], `{ ~*body })
-
--- sending foo! to a receiver with a block that has arguments
-macro(~recv (~(msg & Word))! [~*bargs]: ~*body):
-  Atomy Code Send new(recv, (msg text to-s + "!") to-sym, [], `([~*bargs]: ~*body))
-
--- sending foo? to a receiver with a block that has arguments
-macro(~recv (~(msg & Word))? [~*bargs]: ~*body):
-  Atomy Code Send new(recv, (msg text to-s + "?") to-sym, [], `([~*bargs]: ~*body))
-
--- sending foo! to a receiver with arguments and a block that has no arguments
-macro(~recv (~(msg & Word))!(~*args): ~*body):
-  Atomy Code Send new(recv, (msg text to-s + "!") to-sym, args, `{ ~*body })
-
--- sending foo? to a receiver with arguments and a block that has no arguments
-macro(~recv (~(msg & Word))?(~*args): ~*body):
-  Atomy Code Send new(recv, (msg text to-s + "?") to-sym, args, `{ ~*body })
-
--- sending foo! to a receiver with arguments and a block that has arguments
-macro(~recv (~(msg & Word))!(~*args) [~*bargs]: ~*body):
-  Atomy Code Send new(recv, (msg text to-s + "!") to-sym, args, `([~*bargs]: ~*body))
-
--- sending foo? to a receiver with arguments and a block that has arguments
-macro(~recv (~(msg & Word))?(~*args) [~*bargs]: ~*body):
-  Atomy Code Send new(recv, (msg text to-s + "?") to-sym, args, `([~*bargs]: ~*body))
 
 -- pattern for assigning foo!
 pattern((~(name & Word))!):
