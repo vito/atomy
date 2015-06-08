@@ -182,4 +182,26 @@ describe "define kernel" do
       expect(klass.foo).to eq(42)
     end
   end
+
+  describe "variable mutation" do
+    it "implements +=" do
+      expect(subject.evaluate(seq("a = 1, { a += 1 } call, a"))).to eq(2)
+    end
+
+    it "implements -=" do
+      expect(subject.evaluate(seq("a = 1, { a -= 1 } call, a"))).to eq(0)
+    end
+
+    it "implements *=" do
+      expect(subject.evaluate(seq("a = 2, { a *= 5 } call, a"))).to eq(10)
+    end
+
+    it "implements **=" do
+      expect(subject.evaluate(seq("a = 5, { a **= 2 } call, a"))).to eq(25)
+    end
+
+    it "implements /=" do
+      expect(subject.evaluate(seq("a = 10, { a /= 5 } call, a"))).to eq(2)
+    end
+  end
 end
