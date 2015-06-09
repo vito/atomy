@@ -112,6 +112,14 @@ describe "core kernel" do
     expect(subject.evaluate(ast(".to-s"))).to eq(:to_s)
   end
 
+  it "implements symbol literals for words ending in !" do
+    expect(subject.evaluate(ast(".to-s!"))).to eq(:to_s!)
+  end
+
+  it "implements symbol literals for words ending in ?" do
+    expect(subject.evaluate(ast(".to-s?"))).to eq(:to_s?)
+  end
+
   it "implements symbol literals for constants" do
     expect(subject.evaluate(ast(".String"))).to eq(:String)
   end

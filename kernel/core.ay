@@ -27,6 +27,8 @@ macro(_): Atomy Code Undefined new
 
 -- symbols
 macro(.~(sym & Word)): Atomy Code Symbol new(sym text)
+macro(.(~(sym & Word))!): Atomy Code Symbol new((sym text to-s + "!") to-sym)
+macro(.(~(sym & Word))?): Atomy Code Symbol new((sym text to-s + "?") to-sym)
 macro(.~(sym & Constant)): Atomy Code Symbol new(sym text)
 macro(.~(str & StringLiteral)): Atomy Code Symbol new(str value to-sym)
 macro(.[]): Atomy Code Symbol new("[]" to-sym)
