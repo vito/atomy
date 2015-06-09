@@ -3,7 +3,12 @@ module Atomy
     class Block
       def initialize(body, args = [], proc_argument = nil)
         @body = body
-        @arguments = args
+
+        @arguments = args.dup
+        if args.last.is_a?(Atomy::Grammar::AST::Prefix) && args.last.operator == :*
+          @splat_argument = @arguments.pop
+        end
+
         @proc_argument = proc_argument
       end
 
@@ -29,12 +34,18 @@ module Atomy
           # for now, only allow a fixed set of arguments
           blk.required_args = blk.total_args = @arguments.size
 
-          # this bubbles up to Proc#arity and BlockEnvironment, though it
-          # doesn't appear to change actual behavior of the block
-          blk.arity = @arguments.size
-
           # discard extra arguments
           blk.splat_index = @arguments.size
+
+          # this bubbles up to Proc#arity and BlockEnvironment, though it
+          # doesn't appear to change actual behavior of the block
+          if @splat_argument
+            # this is + 1 so that if there are no args the arity is -1, not -0
+            # (which is not a thing)
+            blk.arity = -(@arguments.size + 1)
+          else
+            blk.arity = @arguments.size
+          end
 
           # create a local for each argument name
           @arguments.each.with_index do |a, i|
@@ -47,6 +58,11 @@ module Atomy
           # pattern-match all args
           @arguments.each.with_index do |a, i|
             Assign.new(a, Variable.new(:"arg:#{i}")).bytecode(blk, mod)
+          end
+
+          # pattern-match the splat arg
+          if @splat_argument
+            Assign.new(@splat_argument, Variable.new(:"arg:extra")).bytecode(blk, mod)
           end
 
           # pattern-match the proc arg

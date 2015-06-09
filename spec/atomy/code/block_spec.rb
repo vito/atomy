@@ -49,4 +49,96 @@ describe Atomy::Code::Block do
       }.to raise_error(ArgumentError)
     end
   end
+
+  context "with a splat argument" do
+    let(:args) { [ast("a"), ast("b"), ast("*cs")] }
+    let(:body) { ast("[a, b, cs]") }
+
+    it "constructs a Proc with the correct arity" do
+      blk = compile_module.evaluate(subject)
+      expect(blk).to be_kind_of(Proc)
+      expect(blk.arity).to eq(-3)
+    end
+
+    context "when called with the minimal argument count" do
+      it "binds the splat as an empty array" do
+        expect(compile_module.evaluate(subject).call(1, 2)).to eq([1, 2, []])
+      end
+    end
+
+    context "when the splat pattern does not match" do
+      let(:args) { [ast("a"), ast("b"), ast("*String")] }
+      let(:body) { ast("42") }
+
+      it "raises Atomy::PatternMismatch" do
+        expect {
+          compile_module.evaluate(subject).call(1, 2, 3, 4)
+        }.to raise_error(Atomy::PatternMismatch)
+
+        expect {
+          compile_module.evaluate(subject).call(1, 2, 4)
+        }.to raise_error(Atomy::PatternMismatch)
+
+        expect {
+          compile_module.evaluate(subject).call(1, 2)
+        }.to raise_error(Atomy::PatternMismatch)
+      end
+    end
+
+    context "when called with too many arguments" do
+      it "collects the extra ones via the splat" do
+        expect(compile_module.evaluate(subject).call(1, 2, 3, 4)).to eq([1, 2, [3, 4]])
+      end
+    end
+
+    context "when called with too few arguments" do
+      it "raises ArgumentError" do
+        expect {
+          compile_module.evaluate(subject).call(1)
+        }.to raise_error(ArgumentError)
+      end
+    end
+  end
+
+  context "with only a splat argument" do
+    let(:args) { [ast("*cs")] }
+    let(:body) { ast("cs") }
+
+    it "constructs a Proc with the correct arity" do
+      blk = compile_module.evaluate(subject)
+      expect(blk).to be_kind_of(Proc)
+      expect(blk.arity).to eq(-1)
+    end
+
+    context "when called with no arguments" do
+      it "binds the splat as an empty array" do
+        expect(compile_module.evaluate(subject).call).to eq([])
+      end
+    end
+
+    context "when the splat pattern does not match" do
+      let(:args) { [ast("*String")] }
+      let(:body) { ast("42") }
+
+      it "raises Atomy::PatternMismatch" do
+        expect {
+          compile_module.evaluate(subject).call(1)
+        }.to raise_error(Atomy::PatternMismatch)
+
+        expect {
+          compile_module.evaluate(subject).call(1, 2)
+        }.to raise_error(Atomy::PatternMismatch)
+
+        expect {
+          compile_module.evaluate(subject).call
+        }.to raise_error(Atomy::PatternMismatch)
+      end
+    end
+
+    context "when called with too many arguments" do
+      it "collects the extra ones via the splat" do
+        expect(compile_module.evaluate(subject).call(1, 2, 3, 4)).to eq([1, 2, 3, 4])
+      end
+    end
+  end
 end
