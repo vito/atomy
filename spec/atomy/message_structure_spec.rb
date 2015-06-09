@@ -546,4 +546,24 @@ describe Atomy::MessageStructure do
     its(:proc_argument) { should be_nil }
     its(:block) { should be_nil }
   end
+
+  context "when a prefix node" do
+    let(:node) { ast("^foo") }
+    its(:name) { should == :"^@" }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("foo") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+
+    context "wrapping a suffix node" do
+      let(:node) { ast("^foo?") }
+      its(:name) { should == :"^@" }
+      its(:arguments) { should be_empty }
+      its(:receiver) { should == ast("foo?") }
+      its(:proc_argument) { should be_nil }
+      its(:block) { should be_nil }
+      its(:splat_argument) { should be_nil }
+    end
+  end
 end

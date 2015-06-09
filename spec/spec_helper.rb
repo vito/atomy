@@ -103,6 +103,7 @@ MESSAGE_FORMS = [
   "receiver message-name(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
   "receiver message-name!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
   "receiver message-name?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+  "^receiver",
 ]
 
 RSpec.configure do |c|

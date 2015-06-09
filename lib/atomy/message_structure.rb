@@ -60,6 +60,8 @@ module Atomy
             return :"#{node.node.text}#{node.operator}"
           end
         end
+      when Grammar::AST::Prefix
+        return :"#{node.operator}@"
       when Grammar::AST::Compose
         case node.right
         when Grammar::AST::Prefix # proc argument
@@ -187,6 +189,8 @@ module Atomy
             return receiver_from(node.left)
           end
         end
+      when Grammar::AST::Prefix
+        return node.node
       end
     end
     
