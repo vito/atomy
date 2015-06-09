@@ -55,13 +55,11 @@ list-pattern = class:
         else: @patterns << p
 
   def(matches?(val)):
-    if(@splat && (val size < @patterns size))
-      then: false -- TODO: return
-      else:
+    when(@splat && (val size < @patterns size)):
+      return(false)
 
-    if(!@splat && (val size != @patterns size))
-      then: false -- TODO: return
-      else:
+    when(!@splat && (val size != @patterns size)):
+      return(false)
 
     idx = 0
     mismatch = false
