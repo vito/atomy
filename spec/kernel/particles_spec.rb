@@ -133,14 +133,13 @@ describe "particles kernel" do
   end
   
   describe "Symbol" do
-    subject { :inject }
+    subject { :size }
 
-    # one required arg, the rest are splat
-    its(:arity) { should == -2 }
+    its(:arity) { should == 1 }
 
     describe "#call" do
       it "sends the message to the receiverwith the given arguments and block" do
-        expect(subject.call([1, 2, 3], 3) { |x, y| x + y }).to eq(9)
+        expect(subject.call([1, 2, 3])).to eq(3)
       end
     end
   end

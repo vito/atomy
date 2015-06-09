@@ -50,9 +50,9 @@ def(Particle == other):
       (other message == @message) && (
         other arguments == @arguments)))
 
-def(Symbol call(*args) &blk): to-proc [*args] &blk
+def(Symbol call(recv)): to-proc call(recv)
 
-def(Symbol arity): -2
+def(Symbol arity): 1
 
 macro(.[~a, ~*as]):
   `(Particle new(_, .[], [~a, ~*as]))
