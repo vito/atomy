@@ -6,12 +6,18 @@ module Atomy
         "f" => "\f", "b" => "\b", "a" => "\a", "e" => "\e", "\\" => "\\"
       }
 
-      def initialize(value)
+      def initialize(value, raw = false)
         @value = value
+        @raw = raw
       end
 
       def bytecode(gen, mod)
-        gen.push_literal(process_escapes(@value))
+        if @raw
+          gen.push_literal(@value)
+        else
+          gen.push_literal(process_escapes(@value))
+        end
+
         gen.string_dup
       end
 

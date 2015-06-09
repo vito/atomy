@@ -4,8 +4,9 @@ require "atomy/code/string_literal"
 
 describe Atomy::Code::StringLiteral do
   let(:compile_module) { nil }
+  let(:raw) { false }
 
-  subject { described_class.new(value) }
+  subject { described_class.new(value, raw) }
 
   describe "basic strings" do
     let(:value) { "foo" }
@@ -23,6 +24,15 @@ describe Atomy::Code::StringLiteral do
       gen.push_literal("foo \\q bar")
       gen.string_dup
     end
+
+    context "when raw" do
+      let(:raw) { true }
+
+      it_compiles_as do |gen|
+        gen.push_literal("foo \\q bar")
+        gen.string_dup
+      end
+    end
   end
 
   described_class::ESCAPES.each do |esc, val|
@@ -32,6 +42,15 @@ describe Atomy::Code::StringLiteral do
       it_compiles_as do |gen|
         gen.push_literal("foo #{val} bar")
         gen.string_dup
+      end
+
+      context "when raw" do
+        let(:raw) { true }
+
+        it_compiles_as do |gen|
+          gen.push_literal(value)
+          gen.string_dup
+        end
       end
     end
   end
@@ -43,6 +62,15 @@ describe Atomy::Code::StringLiteral do
       gen.push_literal("foo {")
       gen.string_dup
     end
+
+    context "when raw" do
+      let(:raw) { true }
+
+      it_compiles_as do |gen|
+        gen.push_literal(value)
+        gen.string_dup
+      end
+    end
   end
 
   describe "hexadecimal escapes" do
@@ -53,12 +81,30 @@ describe Atomy::Code::StringLiteral do
       gen.string_dup
     end
 
+    context "when raw" do
+      let(:raw) { true }
+
+      it_compiles_as do |gen|
+        gen.push_literal(value)
+        gen.string_dup
+      end
+    end
+
     context "with a capital X" do
       let(:value) { 'foo \Xabcdefg' }
 
       it_compiles_as do |gen|
         gen.push_literal("foo \u{ABCDE}fg")
         gen.string_dup
+      end
+
+      context "when raw" do
+        let(:raw) { true }
+
+        it_compiles_as do |gen|
+          gen.push_literal(value)
+          gen.string_dup
+        end
       end
     end
   end
@@ -71,12 +117,30 @@ describe Atomy::Code::StringLiteral do
       gen.string_dup
     end
 
+    context "when raw" do
+      let(:raw) { true }
+
+      it_compiles_as do |gen|
+        gen.push_literal(value)
+        gen.string_dup
+      end
+    end
+
     context "with a capital O" do
       let(:value) { 'foo \O12345678' }
 
       it_compiles_as do |gen|
         gen.push_literal("foo \u{53977}8")
         gen.string_dup
+      end
+
+      context "when raw" do
+        let(:raw) { true }
+
+        it_compiles_as do |gen|
+          gen.push_literal(value)
+          gen.string_dup
+        end
       end
     end
   end
@@ -89,12 +153,30 @@ describe Atomy::Code::StringLiteral do
       gen.string_dup
     end
 
+    context "when raw" do
+      let(:raw) { true }
+
+      it_compiles_as do |gen|
+        gen.push_literal(value)
+        gen.string_dup
+      end
+    end
+
     context "with a capital U" do
       let(:value) { 'foo \U12AB' }
 
       it_compiles_as do |gen|
         gen.push_literal("foo \u12AB")
         gen.string_dup
+      end
+
+      context "when raw" do
+        let(:raw) { true }
+
+        it_compiles_as do |gen|
+          gen.push_literal(value)
+          gen.string_dup
+        end
       end
     end
   end

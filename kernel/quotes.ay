@@ -1,0 +1,29 @@
+use(require("core"))
+use(require("define"))
+use(require("control-flow"))
+
+macro(macro-quoter(~n) [~*as]: ~*body):
+  strpat = Unquote new('(string-literal & StringLiteral))
+  argpat = Unquote new('*args)
+
+  `({
+      quoter = [~*as]: ~*body
+
+      macro(~n ~strpat):
+        quoter call(string-literal value, [], evaluate(string-literal))
+
+      macro(~n (~strpat)(~argpat)):
+        quoter call(string-literal value, args collect &.text, evaluate(string-literal))
+    } call)
+
+
+macro-quoter(w) [_, _, v]:
+  `[~*(v split collect [s]: Atomy Grammar AST StringLiteral new(s))]
+
+macro-quoter(s) [_, _, v]:
+  `[~*(v split collect [s]:
+         if(s =~ Regexp new("[\p{Ll}_]", Regexp KCODE_UTF8))
+           then: `.~(Atomy Grammar AST Word new(s tr("-", "_") to-sym))
+           else: `.~(Atomy Grammar AST Word new(s to-sym)))]
+
+macro-quoter(raw) [r]: Atomy Code StringLiteral new(r, true)
