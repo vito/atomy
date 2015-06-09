@@ -103,6 +103,11 @@ describe "core kernel" do
     expect(subject.evaluate(ast("nil"))).to eq(nil)
   end
 
+  it "implements undefined literals" do
+    # can't expect(undefined)
+    expect(subject.evaluate(ast("_")) == undefined).to eq(true)
+  end
+
   it "implements symbol literals for words" do
     expect(subject.evaluate(ast(".to-s"))).to eq(:to_s)
   end

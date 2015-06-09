@@ -10,6 +10,13 @@ require "rubinius/compiler"
 
 require "rspec/its"
 
+def undefined
+  Rubinius.asm do
+    set_line(0)
+    push_undef
+  end
+end
+
 ALL_NODES = {}
 Atomy::Grammar::AST.constants.each do |name|
   next if [:Node, :Sequence].include?(name)
