@@ -147,3 +147,14 @@ negate = class:
 
 macro(!~node):
   negate new(node)
+
+return = class:
+  def(initialize(node)):
+    instance-variable-set("@node", node)
+
+  def(bytecode(gen, mod)):
+    mod compile(gen, @node)
+    gen ret
+
+macro(return(~node)):
+  return new(node)

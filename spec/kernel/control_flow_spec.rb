@@ -130,4 +130,15 @@ describe "control-flow kernel" do
       end
     end
   end
+
+  describe "return" do
+    it "performs local return" do
+      expect(subject.evaluate(ast("
+        {
+          return(1 + { return(2), 42 } call)
+          42
+        } call
+      "))).to eq(3)
+    end
+  end
 end
