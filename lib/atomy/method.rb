@@ -26,13 +26,14 @@ require "atomy/locals"
 module Atomy
   class Method
     class Branch
-      attr_reader :receiver, :arguments, :body, :block, :locals
+      attr_reader :receiver, :arguments, :body, :splat_argument, :proc_argument, :locals
 
-      def initialize(receiver, arguments, block, locals, &body)
+      def initialize(receiver, arguments, splat_argument, proc_argument, locals, &body)
         @receiver = receiver
         @arguments = arguments
         @locals = locals
-        @block = block
+        @splat_argument = splat_argument
+        @proc_argument = proc_argument
         @body = body.block
       end
 
@@ -42,6 +43,10 @@ module Atomy
 
       def required_arguments
         @arguments.size
+      end
+
+      def splat_index
+        @arguments.size if @splat_argument
       end
     end
 
@@ -64,9 +69,14 @@ module Atomy
         total, req = argument_count
         gen.total_args = total
         gen.required_args = req
+        gen.splat_index = splat_index
 
         total.times do |i|
           gen.state.scope.new_local(:"arg:#{i}")
+        end
+
+        if gen.splat_index
+          gen.state.scope.new_local(:"arg:splat")
         end
 
         declared_locals = {}
@@ -134,6 +144,21 @@ module Atomy
       @branches.collect(&:total_arguments).min
     end
 
+    def splat_index
+      index = nil
+      has_splat = false
+      @branches.each do |b|
+        i = b.splat_index
+        if (has_splat && i != index) || (has_splat && !i)
+          raise "inconsistent splattage"
+        end
+
+        index = i
+      end
+
+      index
+    end
+
     def uniform_argument_count?
       total_arguments == required_arguments
     end
@@ -147,8 +172,10 @@ module Atomy
         gen.gif(skip)
 
         # check for too many arguments
-        gen.passed_arg(b.total_arguments)
-        gen.git(skip)
+        unless b.splat_index
+          gen.passed_arg(b.total_arguments)
+          gen.git(skip)
+        end
 
         if b.receiver
           gen.push_literal(b.receiver)
@@ -164,8 +191,15 @@ module Atomy
           gen.gif(skip)
         end
 
-        if b.block
-          gen.push_literal(b.block)
+        if b.splat_argument
+          gen.push_literal(b.splat_argument)
+          gen.push_local(splat_index)
+          gen.send(:matches?, 1)
+          gen.gif(skip)
+        end
+
+        if b.proc_argument
+          gen.push_literal(b.proc_argument)
           gen.push_proc
           gen.send(:matches?, 1)
           gen.gif(skip)
@@ -187,8 +221,16 @@ module Atomy
           gen.pop
         end
 
-        if b.block
-          gen.push_literal(b.block)
+        if b.splat_argument
+          gen.push_literal(b.splat_argument)
+          gen.push_variables
+          gen.push_local(splat_index)
+          gen.send(:assign, 2)
+          gen.pop
+        end
+
+        if b.proc_argument
+          gen.push_literal(b.proc_argument)
           gen.push_variables
           gen.push_proc
           gen.send(:assign, 2)

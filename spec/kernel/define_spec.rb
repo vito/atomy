@@ -12,6 +12,7 @@ describe "define kernel" do
       fake_structure = instance_double(
         "Atomy::MessageStruture",
         name: :some_name,
+        splat_argument: ast("some-splat"),
         proc_argument: ast("some-block"),
         arguments: [ast("arg-1"), ast("arg-2")],
         receiver: ast("SomeClass"),
@@ -25,10 +26,10 @@ describe "define kernel" do
 
       subject.evaluate(ast("
         def(some-method-definition):
-          some-block call(arg-1, arg-2)
+          some-block call(arg-1, arg-2, some-splat)
       "), subject.compile_context)
 
-      expect(some_class.new.some_name(1, 2) { |a, b| a + b }).to eq(3)
+      expect(some_class.new.some_name(1, 2, 3, 4) { |a, b, c| [a, b, c] }).to eq([1, 2, [3, 4]])
     end
 
     it "closes over its scope" do
@@ -42,9 +43,10 @@ describe "define kernel" do
       fake_structure = instance_double(
         "Atomy::MessageStruture",
         name: :some_name,
-        proc_argument: ast("some-block"),
         arguments: [ast("arg-1"), ast("arg-2")],
-        receiver: nil, #ast("SomeClass"),
+        splat_argument: ast("some-splat"),
+        proc_argument: ast("some-block"),
+        receiver: nil,
       )
 
       allow(Atomy::MessageStructure).to receive(:new).and_call_original
@@ -55,10 +57,10 @@ describe "define kernel" do
 
       expect(subject.evaluate(seq("
         fn(some-method-definition):
-          some-block call(arg-1, arg-2)
+          some-block call(arg-1, arg-2, some-splat)
 
-        some-name(1, 2) [a, b]: a + b
-      "), subject.compile_context)).to eq(3)
+        some-name(1, 2, 3, 4) [a, b, c]: [a, b, c]
+      "), subject.compile_context)).to eq([1, 2, [3, 4]])
     end
 
     it "can be recursive, as the body sees itself as a function" do
@@ -109,10 +111,6 @@ describe "define kernel" do
       next if structure.block # defining with block literal arg means nothing
 
       it "implements function defining and calling in the form '#{form}'" do
-        if structure.splat_argument
-          pending "defining functions with splat arguments is not currently supported"
-        end
-
         receiver = Object.new
 
         # define a function that just calls through to the receiver
