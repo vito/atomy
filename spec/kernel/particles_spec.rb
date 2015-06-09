@@ -3,7 +3,7 @@ require "spec_helper"
 require "atomy/codeloader"
 
 describe "particles kernel" do
-  let(:particles) { Atomy::Module.new { use(require_kernel("particles")) } }
+  let!(:particles) { Atomy::Module.new { use(require_kernel("particles")) } }
 
   it "defines literal syntax for .[a, b]" do
     expect(particles.evaluate(ast(".[1, _]"), particles.compile_context)).to eq(particles::Particle.new(undefined, :[], [1, undefined]))
@@ -142,5 +142,83 @@ describe "particles kernel" do
         expect(subject.call([1, 2, 3])).to eq(3)
       end
     end
+  end
+
+  describe "Atomy::Pattern::Particle" do
+    let(:receiver) { wildcard }
+    let(:message) { :some_message }
+    let(:arguments) { particles.evaluate(particles.pattern(ast("[_]"))) }
+
+    subject { Atomy::Pattern::Particle.new(receiver, message, arguments) }
+
+    its(:target) { should == particles::Particle }
+
+    describe "#matches?" do
+      it { should === particles::Particle.new(undefined, :some_message, [undefined]) }
+      it { should === particles::Particle.new(undefined, :some_message, [42]) }
+      it { should === particles::Particle.new(42, :some_message, [undefined]) }
+      it { should === particles::Particle.new(42, :some_message, [42]) }
+      it { should_not === particles::Particle.new(undefined, :some_message, [undefined, undefined]) }
+      it { should_not === particles::Particle.new(undefined, :some_message, [undefined, 42]) }
+      it { should_not === particles::Particle.new(undefined, :some_other_message, [undefined]) }
+      it { should_not === Object.new }
+
+      context "with a receiver pattern" do
+        let(:receiver) { equality(42) }
+
+        it { should === particles::Particle.new(42, :some_message, [undefined]) }
+        it { should_not === particles::Particle.new(43, :some_message, [undefined]) }
+        it { should_not === particles::Particle.new(undefined, :some_message, [undefined]) }
+        it { should_not === Object.new }
+      end
+
+      context "with argument patterns" do
+        let(:arguments) { particles.evaluate(particles.pattern(ast("[42]"))) }
+
+        it { should === particles::Particle.new(undefined, :some_message, [42]) }
+        it { should_not === particles::Particle.new(undefined, :some_message, [43]) }
+        it { should_not === particles::Particle.new(undefined, :some_message, [undefined]) }
+        it { should_not === Object.new }
+
+        context "with splats" do
+          let(:arguments) { particles.evaluate(particles.pattern(ast("[42, *as]"))) }
+
+          it { should === particles::Particle.new(undefined, :some_message, [42]) }
+          it { should === particles::Particle.new(undefined, :some_message, [42, 43, 44]) }
+          it { should_not === particles::Particle.new(undefined, :some_message, [43]) }
+          it { should_not === particles::Particle.new(undefined, :some_message, [undefined]) }
+          it { should_not === Object.new }
+        end
+      end
+    end
+  end
+
+  it "defines pattern notation for particles, that bind" do
+    expect(particles.evaluate(seq(".[] = .[]"), particles.compile_context)).to eq(:[])
+    expect(particles.evaluate(seq(".[a] = .[1], a"), particles.compile_context)).to eq(1)
+    expect(particles.evaluate(seq(".[*as] = .[], as"), particles.compile_context)).to eq([])
+    expect(particles.evaluate(seq(".[a, *bs] = .[1, 2, 3], [a, bs]"), particles.compile_context)).to eq([1, [2, 3]])
+    expect(particles.evaluate(seq(".[a, *bs] = .[1], [a, bs]"), particles.compile_context)).to eq([1, []])
+    expect(particles.evaluate(seq(".(+ a) = .(+ 1), a"), particles.compile_context)).to eq(1)
+    expect(particles.evaluate(seq(".(a + b) = .(+ 1), [a, b]"), particles.compile_context)).to eq([undefined, 1])
+    expect(particles.evaluate(seq(".(1 + a) = .(1 + 2), a"), particles.compile_context)).to eq(2)
+    expect(particles.evaluate(seq(".foo(a) = .foo(1), a"), particles.compile_context)).to eq(1)
+    expect(particles.evaluate(seq(".foo() = .foo"), particles.compile_context)).to eq(:foo)
+    expect(particles.evaluate(seq(".foo(*as) = .foo(1), as"), particles.compile_context)).to eq([1])
+    expect(particles.evaluate(seq(".foo(a, *bs) = .foo(1), [a, bs]"), particles.compile_context)).to eq([1, []])
+    expect(particles.evaluate(seq(".foo(a) = .(42 foo(1)), a"), particles.compile_context)).to eq(1)
+    expect(particles.evaluate(seq(".(42 foo(a)) = .(42 foo(1)), a"), particles.compile_context)).to eq(1)
+    expect(particles.evaluate(seq(".(a foo(b)) = .(42 foo(1)), [a, b]"), particles.compile_context)).to eq([42, 1])
+    expect(particles.evaluate(seq(".(a foo(b)) = .(_ foo(1)), [a, b]"), particles.compile_context)).to eq([undefined, 1])
+    expect(particles.evaluate(seq(".(a foo(b)) = .foo(1), [a, b]"), particles.compile_context)).to eq([undefined, 1])
+
+    expect { particles.evaluate(seq(".[] = .nope"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
+    expect { particles.evaluate(seq(".[a] = .[1, 2]"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
+    expect { particles.evaluate(seq(".[a, *as] = .[]"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
+    expect { particles.evaluate(seq(".foo(a) = .foo"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
+    expect { particles.evaluate(seq(".(a foo(b)) = .bar(1)"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
+    expect { particles.evaluate(seq(".(a foo(2)) = .foo(1)"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
+    expect { particles.evaluate(seq(".(2 foo(_)) = .foo(1)"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
+    expect { particles.evaluate(seq(".(2 foo(_)) = .(3 foo(1))"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
   end
 end

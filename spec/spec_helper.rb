@@ -17,6 +17,15 @@ def undefined
   end
 end
 
+def wildcard(name = nil)
+  Atomy::Pattern::Wildcard.new(name)
+end
+
+def equality(value)
+  Atomy::Pattern::Equality.new(value)
+end
+
+
 ALL_NODES = {}
 Atomy::Grammar::AST.constants.each do |name|
   next if [:Node, :Sequence].include?(name)

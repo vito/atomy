@@ -71,3 +71,74 @@ macro(.~(x & Infix)):
       ~(x left || '_)
       .~(StringLiteral new(x operator to-s))
       [~(x right)]))
+
+particle-klass = Particle
+
+Atomy Pattern open:
+  self data(Particle(@receiver, @message, @arguments))
+
+  def(Particle target): particle-klass
+
+  def(Particle matches?(value)):
+    when(value is-a?(Symbol)):
+      value =! particle-klass new(undefined, value, [])
+
+    unless(value is-a?(particle-klass)):
+      return(false)
+
+    when(value message != @message):
+      return(false)
+
+    unless(@receiver matches?(value receiver)):
+      return(false)
+
+    @arguments matches?(value arguments)
+
+  def(Particle assign(scope, value)):
+    when(value is-a?(Symbol)):
+      value =! particle-klass new(undefined, value, [])
+
+    @receiver assign(scope, value receiver)
+    @arguments assign(scope, value arguments)
+
+
+pattern(.(~r [~*as])):
+  Atomy Patterns Particle new(
+    pattern(r)
+    .[]
+    pattern(`[~*as]))
+
+pattern(.[]):
+  Atomy Code Pattern new(`(Atomy Pattern Equality new(.[])), [])
+
+pattern(.[~a, ~*as]):
+  recv-pattern = pattern('_)
+  args-pattern = pattern(`[~a, ~*as])
+
+  Atomy Code Pattern new(
+    `(Atomy Pattern Particle new(~recv-pattern, .[], ~args-pattern))
+    args-pattern locals)
+
+pattern(.~(x & Infix)):
+  recv-pattern = pattern(x left || '_)
+  args-pattern = pattern(`[~(x right)])
+
+  Atomy Code Pattern new(
+    `(Atomy Pattern Particle new(~recv-pattern, .~(StringLiteral new(x operator to-s)), ~args-pattern))
+    recv-pattern locals + args-pattern locals)
+
+pattern(.((~x)(~*as))):
+  recv-pattern = pattern('_)
+  args-pattern = pattern(`[~*as])
+
+  Atomy Code Pattern new(
+    `(Atomy Pattern Particle new(~recv-pattern, .~x, ~args-pattern))
+    args-pattern locals)
+
+pattern(.(~r (~x)(~*as))):
+  recv-pattern = pattern(r)
+  args-pattern = pattern(`[~*as])
+
+  Atomy Code Pattern new(
+    `(Atomy Pattern Particle new(~recv-pattern, .~x, ~args-pattern))
+    recv-pattern locals + args-pattern locals)

@@ -11,14 +11,6 @@ describe Atomy::Pattern::And do
 
   subject { described_class.new(a, b) }
 
-  def wildcard(name = nil)
-    Atomy::Pattern::Wildcard.new(name)
-  end
-
-  def equality(value)
-    Atomy::Pattern::Equality.new(value)
-  end
-
   describe "#a" do
     it "returns the first pattern" do
       expect(subject.a).to eq(a)
