@@ -158,3 +158,34 @@ return = class:
 
 macro(return(~node)):
   return new(node)
+
+ensure = class:
+  def(initialize(node, ensured)):
+    instance-variable-set("@node", node)
+    instance-variable-set("@ensured", ensured)
+
+  -- TODO: this is pretty barebones compared to:
+  -- https://github.com/rubinius/rubinius-ast/blob/aa5ff6260a7647a9ef1035feb66b6d4b632d4211/lib/rubinius/ast/exceptions.rb
+  -- i'd rather prove out the complexiy than blindly mirror it
+  def(bytecode(gen, mod)):
+    ok = gen new-label
+    ex = gen new-label
+
+    gen setup-unwind(ex, 1) -- EnsureType
+
+    mod compile(gen, @node)
+    gen goto(ok)
+
+    ex set!
+    gen push-exception-state
+    mod compile(gen, @ensured)
+    gen pop
+    gen restore-exception-state
+    gen reraise
+
+    ok set!
+    mod compile(gen, @ensured)
+    gen pop
+
+macro(~node ensuring: ~*ensured):
+  ensure new(node, `(do: ~*ensured))

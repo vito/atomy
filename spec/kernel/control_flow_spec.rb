@@ -141,4 +141,31 @@ describe "control-flow kernel" do
       "))).to eq(3)
     end
   end
+
+  describe "ensuring" do
+    it "evaluates the block in the happy path, returning the original value" do
+      expect(subject.evaluate(seq("
+        a = 0
+        val = (true ensuring: a += 1)
+        [a, val]
+      "))).to eq([1, true])
+    end
+
+    it "evaluates the block in the sad path, reraising the exception" do
+      a = []
+
+      expect {
+        subject.evaluate(seq("
+          do {
+            a << .a,
+            raise(\"hell\")
+            a << .b
+          } ensuring:
+            a << .c
+        "))
+      }.to raise_error("hell")
+
+      expect(a).to eq([:a, :c])
+    end
+  end
 end
