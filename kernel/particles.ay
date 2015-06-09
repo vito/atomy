@@ -1,0 +1,73 @@
+use(require("core"))
+use(require("define"))
+use(require("data"))
+use(require("control-flow"))
+use(require("patterns"))
+
+data(Particle(@receiver, @message, @arguments))
+
+def(Particle call(*args) &blk):
+  to-proc call(*args) &blk
+
+Particle open:
+  alias-method(.[], .call)
+
+def(Particle to-proc):
+  [*args] &blk:
+    unless(args size >= arity):
+      raise(ArgumentError new((("given " + args size to-s) + ", expected ") + arity to-s))
+
+    [recv, cur] =
+      if(@receiver equal?(_))
+        then: [args[0], 1]
+        else: [@receiver, 0]
+
+    filled =
+      @arguments collect [v]:
+        if(v equal?(_) && (args size >= cur))
+          then:
+            cur += 1
+            args[cur - 1]
+          else:
+            v
+
+    recv __send__(@message, *filled) &blk
+
+def(Particle arity):
+  required-args = 0
+  when(@receiver equal?(_)):
+    required-args += 1
+
+  @arguments each [v]:
+    when(v equal?(_)):
+      required-args += 1
+
+  required-args
+
+def(Particle == other):
+  other is-a?(self class) && (
+    (other receiver == @receiver) && (
+      (other message == @message) && (
+        other arguments == @arguments)))
+
+def(Symbol call(*args) &blk): to-proc [*args] &blk
+
+def(Symbol arity): -2
+
+macro(.[~a, ~*as]):
+  `(Particle new(_, .[], [~a, ~*as]))
+
+macro(.((~x)(~*as))):
+  `(Particle new(_, .~x, [~*as]))
+
+macro(.(~r (~x)(~*as))):
+  `(Particle new(~r, .~x, [~*as]))
+
+macro(.(~r [~*as])):
+  `(Particle new(~r, .[], [~*as]))
+
+macro(.~(x & Infix)):
+  `(Particle new(
+      ~(x left || '_)
+      .~(StringLiteral new(x operator to-s))
+      [~(x right)]))
