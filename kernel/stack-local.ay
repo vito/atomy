@@ -1,0 +1,23 @@
+use(require("core"))
+use(require("define"))
+use(require("control-flow"))
+use(require("patterns"))
+
+stack-local = class:
+  setter = class:
+    def(initialize(@local, @code)) {}
+
+    def(bytecode(gen, mod)):
+      mod compile(gen, @code)
+      gen set-stack-local(@local allocate(gen))
+
+  def(bytecode(gen, mod)):
+    gen push-stack-local(allocate(gen))
+
+  def(allocate(gen)):
+    @stack-local = (@stack-local || gen new-stack-local)
+
+  def(set(code)):
+    setter new(self, code)
+
+const-set(.Local, stack-local)

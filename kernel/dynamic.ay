@@ -4,6 +4,8 @@ use(require("control-flow"))
 use(require("data"))
 use(require("hash"))
 
+stack-local = require("stack-local")
+
 data(Dynvar(@default))
 
 def(^Dynvar): values fetch(Thread current): @default
@@ -19,26 +21,8 @@ def(Dynvar values): @values = (@values || #{})
 macro(dynamic): `dynamic(_)
 macro(dynamic(~default)): `(Dynvar new(~default))
 
-stack-local = class:
-  setter = class:
-    def(initialize(@local, @code)) {}
-
-    def(bytecode(gen, mod)):
-      mod compile(gen, @code)
-      gen set-stack-local(@local allocate(gen))
-
-  def(bytecode(gen, mod)):
-    gen push-stack-local(allocate(gen))
-
-  def(allocate(gen)):
-    @stack-local = (@stack-local || gen new-stack-local)
-
-  def(set(code)):
-    setter new(self, code)
-
-
 macro(with(~*bindings): ~*body):
-  tmps = bindings collect [b]: [b, stack-local new]
+  tmps = bindings collect [b]: [b, stack-local Local new]
 
   save = tmps collect [[`(~n = ~_), tmp]]: tmp set(`(~n get))
 
