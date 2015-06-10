@@ -178,4 +178,154 @@ describe "control-flow kernel" do
       expect(a).to eq([:a, :c])
     end
   end
+
+  describe "super" do
+    context "with no arguments" do
+      it "calls the parent method with no arguments" do
+        parent = Class.new
+        child = Class.new(parent)
+
+        subject.evaluate(seq("
+          parent open:
+            def(foo(*args)): args
+
+          child open:
+            def(foo(*args)): super
+        "))
+
+        expect(child.new.foo(1, 2, 3)).to eq([])
+      end
+    end
+
+    context "with arguments" do
+      it "calls the parent method with the given arguments" do
+        parent = Class.new
+        child = Class.new(parent)
+
+        subject.evaluate(seq("
+          parent open:
+            def(foo(*args)): args
+
+          child open:
+            def(foo(*args)): super(1, 2)
+        "))
+
+        expect(child.new.foo(42)).to eq([1, 2])
+      end
+
+      context "and a block" do
+        it "calls the parent method with the given arguments and block" do
+          parent = Class.new
+          child = Class.new(parent)
+
+          subject.evaluate(seq("
+            parent open:
+              def(foo(*args) &blk): [args, blk]
+
+            child open:
+              def(foo(*args)): super(1, 2) { .called }
+          "))
+
+          args, blk = child.new.foo(42)
+          expect(args).to eq([1, 2])
+          expect(blk.call).to eq(:called)
+        end
+
+        context "with arguments" do
+          it "calls the parent method with the given arguments and block" do
+            parent = Class.new
+            child = Class.new(parent)
+
+            subject.evaluate(seq("
+              parent open:
+                def(foo(*args) &blk): [args, blk]
+
+              child open:
+                def(foo(*args)): super(1, 2) [a, b] { a + b }
+            "))
+
+            args, blk = child.new.foo(42)
+            expect(args).to eq([1, 2])
+            expect(blk.call(3, 4)).to eq(7)
+          end
+        end
+      end
+
+      context "and a proc argument" do
+        it "calls the parent method with the given arguments and proc argument" do
+          parent = Class.new
+          child = Class.new(parent)
+
+          subject.evaluate(seq("
+            parent open:
+              def(foo(*args) &blk): [args, blk]
+
+            child open:
+              def(foo(*args) &blk): super(1, 2) &blk
+          "))
+
+          args, blk = child.new.foo(42) { :called_original }
+          expect(args).to eq([1, 2])
+          expect(blk.call).to eq(:called_original)
+        end
+      end
+    end
+
+    context "and a block" do
+      it "calls the parent method with the given arguments and block" do
+        parent = Class.new
+        child = Class.new(parent)
+
+        subject.evaluate(seq("
+          parent open:
+            def(foo(*args) &blk): [args, blk]
+
+          child open:
+            def(foo(*args)): super { .called }
+         "))
+
+        args, blk = child.new.foo(42)
+        expect(args).to be_empty
+        expect(blk.call).to eq(:called)
+      end
+
+      context "with arguments" do
+        it "calls the parent method with the given arguments and block" do
+          parent = Class.new
+          child = Class.new(parent)
+
+          subject.evaluate(seq("
+            parent open:
+              def(foo(*args) &blk): [args, blk]
+
+            child open:
+              def(foo(*args)): super [a, b] { a + b }
+          "))
+
+          args, blk = child.new.foo(42)
+          expect(args).to be_empty
+          expect(blk.call(3, 4)).to eq(7)
+        end
+      end
+    end
+
+    context "and a proc argument" do
+      it "calls the parent method with the given arguments and proc argument" do
+        parent = Class.new
+        child = Class.new(parent)
+
+        subject.evaluate(seq("
+          parent open:
+            def(foo(*args) &blk): [args, blk]
+
+          child open:
+            def(foo(*args) &blk): super &blk
+         "))
+
+        args, blk = child.new.foo(42) { :called_original }
+        expect(args).to be_empty
+        expect(blk.call).to eq(:called_original)
+      end
+    end
+  end
 end

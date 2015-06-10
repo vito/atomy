@@ -192,3 +192,49 @@ macro(~node ensuring: ~*ensured):
 
 macro(~x ||= ~y): `(~x =! (~x || ~y))
 macro(~x &&= ~y): `(~x =! (~x && ~y))
+
+super-code = class:
+  def(initialize(form)):
+    structure = Atomy MessageStructure new(form)
+    instance-variable-set("@arguments", structure arguments)
+    instance-variable-set("@splat_argument", structure splat-argument)
+    instance-variable-set("@proc_argument", structure proc-argument)
+    instance-variable-set("@block", structure block)
+
+  def(bytecode(gen, mod)):
+    @arguments each [a]:
+      mod compile(gen, a)
+
+    when(@splat-argument):
+      mod compile(gen, @splat-argument)
+      gen cast-array
+
+    if(@block)
+      then: mod compile(gen, @block)
+      else:
+        if(@proc-argument)
+          then: push-proc-argument(gen, mod)
+          else: gen push-nil
+
+    gen send-super(nil, @arguments size, !!@splat-argument)
+
+  def(push-proc-argument(gen, mod)):
+    nil-proc-arg = gen new-label
+    mod compile(gen, @proc-argument)
+    gen dup
+    gen is-nil
+    gen git(nil_proc_arg)
+    gen push-cpath-top
+    gen find-const(.Proc)
+    gen swap
+    gen send(.__from_block__, 1)
+    nil-proc-arg set!
+
+macro(super): super-code new('super)
+macro(super(~*args)): super-code new(`super(~*args))
+macro(super &~blk): super-code new(`(super &~blk))
+macro(super: ~*blk): super-code new(`(super: ~*blk))
+macro(super [~*bargs]: ~*blk): super-code new(`(super [~*bargs]: ~*blk))
+macro(super(~*args) &~blk): super-code new(`(super(~*args) &~blk))
+macro(super(~*args): ~*blk): super-code new(`(super(~*args): ~*blk))
+macro(super(~*args) [~*bargs]: ~*blk): super-code new(`(super(~*args) [~*bargs]: ~*blk))

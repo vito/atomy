@@ -63,6 +63,9 @@ module Atomy
 
       def build_branch_body(scope, mod, locals)
         Atomy::Compiler.generate(mod.file) do |blk|
+          # set method name so calls to super work
+          blk.name = @name
+
           # close over the outer scope
           blk.state.scope.parent = scope
 
