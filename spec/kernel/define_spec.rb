@@ -255,5 +255,13 @@ describe "define kernel" do
     it "implements /=" do
       expect(subject.evaluate(seq("a = 10, { a /= 5 } call, a"))).to eq(2)
     end
+
+    it "implements &=" do
+      expect(subject.evaluate(seq("a = 258, { a &= 2 } call, a"))).to eq(2)
+    end
+
+    it "implements |=" do
+      expect(subject.evaluate(seq("a = 256, { a |= 2 } call, a"))).to eq(258)
+    end
   end
 end
