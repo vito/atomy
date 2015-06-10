@@ -147,7 +147,7 @@ module Atomy::Grammar::AST
     end
 
     def each_child
-      yield :left, @left
+      yield :left, @left if @left
       yield :right, @right
     end
 

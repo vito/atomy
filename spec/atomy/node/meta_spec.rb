@@ -22,6 +22,7 @@ describe Atomy::Grammar::AST::Node do
       ast("!a") => [[:node, ast("a")]],
       ast("a!") => [[:node, ast("a")]],
       ast("a + b") => [[:left, ast("a")], [:right, ast("b")]],
+      ast("+ b") => [[:right, ast("b")]],
       ast("{ a }") => [[:nodes, [ast("a")]]],
       ast("[a]") => [[:nodes, [ast("a")]]],
       ast("a b") => [[:left, ast("a")], [:right, ast("b")]],
