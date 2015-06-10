@@ -21,6 +21,11 @@ describe "control-flow kernel" do
         expect(subject.evaluate(ast("false && raise(\"evaluated\")"))).to eq(false)
       end
     end
+
+    it "implements &&=" do
+      expect(subject.evaluate(seq("a = nil, { a &&= 1 } call, a"))).to eq(nil)
+      expect(subject.evaluate(seq("a = 1, { a &&= 2 } call, a"))).to eq(2)
+    end
   end
 
   describe "a || b" do
@@ -38,6 +43,11 @@ describe "control-flow kernel" do
       it "returns b" do
         expect(subject.evaluate(ast("false || 2"))).to eq(2)
       end
+    end
+
+    it "implements ||=" do
+      expect(subject.evaluate(seq("a = nil, { a ||= 1 } call, a"))).to eq(1)
+      expect(subject.evaluate(seq("a = 1, { a ||= 2 } call, a"))).to eq(1)
     end
   end
 

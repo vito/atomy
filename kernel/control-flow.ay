@@ -189,3 +189,6 @@ ensure = class:
 
 macro(~node ensuring: ~*ensured):
   ensure new(node, `(do: ~*ensured))
+
+macro(~x ||= ~y): `(~x =! (~x || ~y))
+macro(~x &&= ~y): `(~x =! (~x && ~y))
