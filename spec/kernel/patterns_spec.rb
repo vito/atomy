@@ -4,6 +4,7 @@ require "atomy/codeloader"
 require "atomy/pattern/attribute"
 require "atomy/pattern/instance_variable"
 require "atomy/pattern/or"
+require "atomy/node/equality"
 
 module PatternsKernelModule
   class Blah
@@ -106,6 +107,41 @@ describe "patterns kernel" do
 
       it "binds locals from the splat" do
         expect(subject.evaluate(seq("[a, *[2, b]] = [1, 2, 3], [a, b]"))).to eq([1, 3])
+      end
+    end
+  end
+
+  describe "match" do
+    it "evaluates whichever branch matches the value" do
+      expect(subject.evaluate(ast("
+        1 match:
+          1: .one
+          2: .two
+      "))).to eq(:one)
+    end
+
+    it "captures locals from the pattern" do
+      expect(subject.evaluate(ast("
+        '(1 + 2) match:
+          `(~a + ~b): [a, b]
+      "))).to eq([ast("1"), ast("2")])
+    end
+
+    it "shadows locals" do
+      expect(subject.evaluate(seq("
+        a = 1
+        '(1 + 2) match:
+          `(~a + ~b): [a, b]
+        a
+      "))).to eq(1)
+    end
+
+    context "when no branches match" do
+      it "returns nil" do
+        expect(subject.evaluate(ast("
+          1 match:
+            2: .two
+        "))).to be_nil
       end
     end
   end

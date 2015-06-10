@@ -95,3 +95,109 @@ pattern([~*pats]):
   Atomy Code Pattern new(
       `(//Atomy Pattern List new([~*sub-patterns]))
       sub-patterns collect [p] { p locals } flatten)
+
+match = class:
+  def(initialize(@node, @branches)) {}
+
+  def(bytecode(gen, mod)):
+    gen create-block(build-block(gen state scope, mod))
+    mod compile(gen, @node)
+    gen send(.call, 1)
+
+
+  def(build-block(scope, mod)):
+    Atomy Compiler generate(mod file) [blk]:
+      -- close over the outer scope
+      blk state scope parent = scope
+
+      blk total-args = 1
+      blk required-args = 1
+      blk arity = 1
+
+      pairs = @branches collect [`(~pat: ~*body)]:
+        [mod pattern(pat), `(do: ~*body)]
+
+      -- create a local for the value being matched against
+      blk state scope new-local(."arg:match-value")
+
+      -- [node]
+      blk push-local(0)
+
+      done = blk new-label
+
+      pairs each [pair]:
+        pat = pair[0]
+        body = pair[1]
+
+        skip = blk new-label
+
+        -- [pattern, node]
+        mod compile(blk, pat)
+
+        -- [pattern, node, pattern, node]
+        blk dup-many(2)
+
+        -- [node, pattern, pattern, node]
+        blk swap
+
+        -- [bool, pattern, node]
+        blk send(.matches?, 1)
+
+        -- [pattern, node]
+        blk gif(skip)
+
+        pat locals each [name]:
+          assigned = assignment-local(blk, name)
+          local = assigned[0]
+          created = assigned[1]
+          when(created):
+            blk push-nil
+            local set-bytecode(blk)
+            blk pop
+
+        -- [node, pattern]
+        blk swap
+
+        -- [#<Rubinius::VariableScope>, node, pattern]
+        blk push-variables
+
+        -- [node, #<Rubinius::VariableScope>, pattern]
+        blk swap
+
+        -- [<junk>]
+        blk send(.assign, 2)
+
+        -- []
+        blk pop
+
+        -- [value]
+        mod compile(blk, body)
+
+        -- [value]
+        blk goto(done)
+
+        -- [pattern, node]
+        skip set!
+
+        -- [node]
+        blk pop
+
+      -- []
+      blk pop
+
+      -- [value]
+      blk push-nil
+
+      -- [value]
+      done set!
+
+  def(assignment-local(gen, name)):
+    var = gen state scope search-local(name)
+
+    if(var && (var depth == 0))
+      then: [var, false]
+      else: [gen state scope new-local(name) nested-reference, true]
+
+
+macro(~x match: ~*branches):
+  match new(x, branches)
