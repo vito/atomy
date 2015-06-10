@@ -15,6 +15,9 @@ module Atomy
     end
 
     def name
+      # don't treat sole constant as message send
+      raise unknown_message if @node.is_a?(Atomy::Grammar::AST::Constant)
+
       name_from(@node)
     end
 
@@ -46,7 +49,7 @@ module Atomy
 
     def name_from(node)
       case node
-      when Grammar::AST::Word
+      when Grammar::AST::Word, Grammar::AST::Constant
         return node.text
       when Grammar::AST::Apply
         return name_from(node.node)
@@ -56,7 +59,7 @@ module Atomy
         case node.operator
         when :"!", :"?"
           case node.node
-          when Grammar::AST::Word
+          when Grammar::AST::Word, Grammar::AST::Constant
             return :"#{node.node.text}#{node.operator}"
           end
         end
@@ -66,7 +69,7 @@ module Atomy
         case node.right
         when Grammar::AST::Prefix # proc argument
           return name_from(node.left)
-        when Grammar::AST::Word, Grammar::AST::Apply # has a receiver
+        when Grammar::AST::Word, Grammar::AST::Constant, Grammar::AST::Apply # has a receiver
           return name_from(node.right)
         when Grammar::AST::Postfix
           case node.right.operator
@@ -123,7 +126,7 @@ module Atomy
         case node.right
         when Grammar::AST::Prefix # proc argument
           return argument_list_from(node.left)
-        when Grammar::AST::Word, Grammar::AST::Apply # has a receiver
+        when Grammar::AST::Word, Grammar::AST::Constant, Grammar::AST::Apply # has a receiver
           return argument_list_from(node.right)
         when Grammar::AST::Block # block literal argument
           case node.left
@@ -163,7 +166,7 @@ module Atomy
         return node.left
       when Grammar::AST::Compose
         case node.right
-        when Grammar::AST::Word, Grammar::AST::Apply
+        when Grammar::AST::Word, Grammar::AST::Constant, Grammar::AST::Apply
           return node.left
         when Grammar::AST::Postfix
           case node.right.operator

@@ -566,4 +566,500 @@ describe Atomy::MessageStructure do
       its(:splat_argument) { should be_nil }
     end
   end
+
+  context "when a constant" do
+    let(:node) { ast("Foo") }
+
+    describe "#name" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.name }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by !" do
+    let(:node) { ast("Foo!") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ?" do
+    let(:node) { ast("Foo?") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant with arguments" do
+    let(:node) { ast("Foo(a, b)") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant with arguments with a splat" do
+    let(:node) { ast("Foo(a, b, *c)") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should == ast("c") }
+  end
+
+  context "when a constant followed by ! with arguments" do
+    let(:node) { ast("Foo!(a, b)") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ? with arguments" do
+    let(:node) { ast("Foo?(a, b)") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant with a proc argument" do
+    let(:node) { ast("Foo &blk") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ! with a proc argument" do
+    let(:node) { ast("Foo! &blk") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ? with a proc argument" do
+    let(:node) { ast("Foo? &blk") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant with arguments with a proc argument" do
+    let(:node) { ast("Foo(a, b) &blk") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ! with arguments with a proc argument" do
+    let(:node) { ast("Foo!(a, b) &blk") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ? with arguments with a proc argument" do
+    let(:node) { ast("Foo?(a, b) &blk") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant with a block that has no arguments" do
+    let(:node) { ast("Foo: a + b") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ! with a block that has no arguments" do
+    let(:node) { ast("Foo!: a + b") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ? with a block that has no arguments" do
+    let(:node) { ast("Foo?: a + b") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant with arguments with a block that has no arguments" do
+    let(:node) { ast("Foo(a, b): a + b") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ! with arguments with a block that has no arguments" do
+    let(:node) { ast("Foo!(a, b): a + b") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ? with arguments with a block that has no arguments" do
+    let(:node) { ast("Foo?(a, b): a + b") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant with a block that has arguments" do
+    let(:node) { ast("Foo [a, b]: a + b") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ! with a block that has arguments" do
+    let(:node) { ast("Foo! [a, b]: a + b") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ? with a block that has arguments" do
+    let(:node) { ast("Foo? [a, b]: a + b") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant with arguments with a block that has arguments" do
+    let(:node) { ast("Foo(a, b) [a, b]: a + b") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ! with arguments with a block that has arguments" do
+    let(:node) { ast("Foo!(a, b) [a, b]: a + b") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ? with arguments with a block that has arguments" do
+    let(:node) { ast("Foo?(a, b) [a, b]: a + b") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant" do
+    let(:node) { ast("42 Foo") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by !" do
+    let(:node) { ast("42 Foo!") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ?" do
+    let(:node) { ast("42 Foo?") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant with arguments" do
+    let(:node) { ast("42 Foo(a, b)") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ! with arguments" do
+    let(:node) { ast("42 Foo!(a, b)") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ? with arguments" do
+    let(:node) { ast("42 Foo?(a, b)") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant with a proc argument" do
+    let(:node) { ast("42 Foo &blk") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ! with a proc argument" do
+    let(:node) { ast("42 Foo! &blk") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ? with a proc argument" do
+    let(:node) { ast("42 Foo? &blk") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant with arguments with a proc argument" do
+    let(:node) { ast("42 Foo(a, b) &blk") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ! with arguments with a proc argument" do
+    let(:node) { ast("42 Foo!(a, b) &blk") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ? with arguments with a proc argument" do
+    let(:node) { ast("42 Foo?(a, b) &blk") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should == ast("blk") }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant with a block that has no arguments" do
+    let(:node) { ast("42 Foo: a + b") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ! with a block that has no arguments" do
+    let(:node) { ast("42 Foo!: a + b") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ? with a block that has no arguments" do
+    let(:node) { ast("42 Foo?: a + b") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant with arguments with a block that has no arguments" do
+    let(:node) { ast("42 Foo(a, b): a + b") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ! with arguments with a block that has no arguments" do
+    let(:node) { ast("42 Foo!(a, b): a + b") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ? with arguments with a block that has no arguments" do
+    let(:node) { ast("42 Foo?(a, b): a + b") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("{ a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant with a block that has arguments" do
+    let(:node) { ast("42 Foo [a, b]: a + b") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ! with a block that has arguments" do
+    let(:node) { ast("42 Foo! [a, b]: a + b") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ? with a block that has arguments" do
+    let(:node) { ast("42 Foo? [a, b]: a + b") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant with arguments with a block that has arguments" do
+    let(:node) { ast("42 Foo(a, b) [a, b]: a + b") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ! with arguments with a block that has arguments" do
+    let(:node) { ast("42 Foo!(a, b) [a, b]: a + b") }
+    its(:name) { should == :Foo! }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a node followed by a constant followed by ? with arguments with a block that has arguments" do
+    let(:node) { ast("42 Foo?(a, b) [a, b]: a + b") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should == ast("42") }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:splat_argument) { should be_nil }
+  end
 end
