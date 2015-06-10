@@ -15,7 +15,8 @@ def repl
     line =
       begin
         Readline.readline("> ")
-      rescue Interript
+      rescue Interrupt
+        puts ""
         ""
       end
 
@@ -25,8 +26,9 @@ def repl
     begin
       res = mod.evaluate(Atomy::Parser.parse_string(line), mod.compile_context)
       p(res)
-    rescue => e
+    rescue Exception => e
       puts "#{e.class}: #{e}"
+      puts e.backtrace
     end
   end
 end
