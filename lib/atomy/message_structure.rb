@@ -1,5 +1,20 @@
 module Atomy
   class MessageStructure
+    class DefaultArgument
+      attr_reader :node, :default
+
+      def initialize(node, default)
+        @node = node
+        @default = default
+      end
+
+      def ==(other)
+        other.is_a?(self.class) && \
+          other.node == @node && \
+          other.default == @default
+      end
+    end
+
     class UnknownMessageStructure < RuntimeError
       def initialize(node)
         @node = node
@@ -22,11 +37,13 @@ module Atomy
     end
 
     def arguments
-      arguments_from(argument_list_from(@node))
+      pre, defaults, post, splat = arguments_from(argument_list_from(@node))
+      pre
     end
 
     def splat_argument
-      splat_argument_from(argument_list_from(@node))
+      pre, defaults, post, splat = arguments_from(argument_list_from(@node))
+      splat
     end
 
     def receiver
@@ -39,6 +56,16 @@ module Atomy
 
     def block
       block_from(@node)
+    end
+
+    def default_arguments
+      pre, defaults, post, splat = arguments_from(argument_list_from(@node))
+      defaults
+    end
+
+    def post_arguments
+      pre, defaults, post, splat = arguments_from(argument_list_from(@node))
+      post
     end
 
     private
@@ -97,23 +124,32 @@ module Atomy
     end
 
     def arguments_from(list)
-      case list.last
-      when Grammar::AST::Prefix
-        if list.last.operator == :*
-          return list[0...(list.size - 1)]
+      pre = []
+      defaults = []
+      post = []
+      splat = nil
+
+      list.each do |a|
+        if a.is_a?(Grammar::AST::Infix) && a.operator == :"="
+          if splat || !post.empty?
+            raise unknown_message
+          end
+
+          defaults << DefaultArgument.new(a.left, a.right)
+        elsif a.is_a?(Grammar::AST::Prefix) && a.operator == :"*"
+          if splat || !post.empty?
+            raise unknown_message
+          end
+
+          splat = a.node
+        elsif splat || !defaults.empty?
+          post << a
+        else
+          pre << a
         end
       end
 
-      list
-    end
-
-    def splat_argument_from(list)
-      case list.last
-      when Grammar::AST::Prefix
-        if list.last.operator == :*
-          return list.last.node
-        end
-      end
+      [pre, defaults, post, splat]
     end
 
     def argument_list_from(node)

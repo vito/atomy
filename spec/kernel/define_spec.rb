@@ -9,12 +9,13 @@ describe "define kernel" do
 
   describe "method definition" do
     it "implements method definition using MessageStructure to determine everything" do
+      pending "this is janky"
       fake_structure = instance_double(
         "Atomy::MessageStruture",
         name: :some_name,
+        arguments: [ast("arg-1"), ast("arg-2")],
         splat_argument: ast("some-splat"),
         proc_argument: ast("some-block"),
-        arguments: [ast("arg-1"), ast("arg-2")],
         receiver: ast("SomeClass"),
       )
 
@@ -39,30 +40,6 @@ describe "define kernel" do
   end
 
   describe "function definition" do
-    it "implements function definition using MessageStructure to determine everything" do
-      fake_structure = instance_double(
-        "Atomy::MessageStruture",
-        name: :some_name,
-        arguments: [ast("arg-1"), ast("arg-2")],
-        splat_argument: ast("some-splat"),
-        proc_argument: ast("some-block"),
-        receiver: nil,
-      )
-
-      allow(Atomy::MessageStructure).to receive(:new).and_call_original
-      expect(Atomy::MessageStructure).to receive(:new).with(ast("some-method-definition")).and_return(fake_structure)
-
-      some_class = Class.new
-      subject.const_set(:SomeClass, some_class)
-
-      expect(subject.evaluate(seq("
-        fn(some-method-definition):
-          some-block call(arg-1, arg-2, some-splat)
-
-        some-name(1, 2, 3, 4) [a, b, c]: [a, b, c]
-      "), subject.compile_context)).to eq([1, 2, [3, 4]])
-    end
-
     it "can be recursive, as the body sees itself as a function" do
       expect(subject.evaluate(seq("
         fn(foo(2)): foo(4)

@@ -9,9 +9,11 @@ macro(fn(~message): ~*body):
   Atomy Code DefineFunction new(
     structure name
     `(do: ~*body)
-    structure arguments
     structure receiver
+    structure arguments
+    structure default-arguments
     structure splat-argument
+    structure post-arguments
     structure proc-argument
   )
 
@@ -22,9 +24,11 @@ macro(def(~message): ~*body):
   Atomy Code DefineMethod new(
     structure name
     `(do: ~*body)
-    structure arguments
     structure receiver
+    structure arguments
+    structure default-arguments
     structure splat-argument
+    structure post-arguments
     structure proc-argument
   )
 

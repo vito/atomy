@@ -32,7 +32,7 @@ describe Atomy do
         described_class.define_branch(
           binding,
           :foo,
-          Atomy::Method::Branch.new(kind_of_pat(SomeTarget), [], nil, nil, []) { 2 },
+          Atomy::Method::Branch.new(kind_of_pat(SomeTarget)) { 2 },
         )
 
         expect(SomeTarget.new.foo).to eq(2)
@@ -49,7 +49,7 @@ describe Atomy do
         described_class.define_branch(
           def_binding,
           :foo,
-          Atomy::Method::Branch.new(nil, [], nil, nil, []) { 2 },
+          Atomy::Method::Branch.new { 2 },
         )
 
         bar = Class.new { include foo }
@@ -63,7 +63,7 @@ describe Atomy do
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [equality(0)], nil, nil, []) { 42 },
+          Atomy::Method::Branch.new(nil, [equality(0)]) { 42 },
         )
 
         expect(target.foo(0)).to eq(42)
@@ -74,13 +74,13 @@ describe Atomy do
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [equality(0)], nil, nil, []) { 42 },
+          Atomy::Method::Branch.new(nil, [equality(0)]) { 42 },
         )
 
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [equality(1)], nil, nil, []) { 43 },
+          Atomy::Method::Branch.new(nil, [equality(1)]) { 43 },
         )
 
         expect(target.foo(0)).to eq(42)
@@ -91,13 +91,13 @@ describe Atomy do
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [equality(1), wildcard], nil, nil, []) { 42 },
+          Atomy::Method::Branch.new(nil, [equality(1), wildcard]) { 42 },
         )
 
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [equality(0)], nil, nil, []) { 43 },
+          Atomy::Method::Branch.new(nil, [equality(0)]) { 43 },
         )
 
         expect { target.foo(1) }.to raise_error(Atomy::MessageMismatch)
@@ -107,13 +107,13 @@ describe Atomy do
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [equality(1), wildcard], nil, nil, []) { 42 },
+          Atomy::Method::Branch.new(nil, [equality(1), wildcard]) { 42 },
         )
 
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [equality(2), wildcard, wildcard], nil, nil, []) { 43 },
+          Atomy::Method::Branch.new(nil, [equality(2), wildcard, wildcard]) { 43 },
         )
 
         expect { target.foo(1, 2, 3) }.to raise_error(Atomy::MessageMismatch)
@@ -123,13 +123,13 @@ describe Atomy do
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [wildcard], equality([2, 3]), nil, []) { :a },
+          Atomy::Method::Branch.new(nil, [wildcard], [], equality([2, 3])) { :a },
         )
 
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [wildcard], wildcard, nil, []) { :b },
+          Atomy::Method::Branch.new(nil, [wildcard], [], wildcard) { :b },
         )
 
         expect(target.foo(1, 2, 3)).to eq(:a)
@@ -146,7 +146,9 @@ describe Atomy do
           Atomy::Method::Branch.new(
             nil,
             [wildcard(:x)],
+            [],
             wildcard(:ys),
+            [],
             nil,
             [:x, :ys],
           ) { |x, ys| [x, ys] },
@@ -159,13 +161,13 @@ describe Atomy do
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [], nil, equality(nil), []) { :not_provided },
+          Atomy::Method::Branch.new(nil, [], [], nil, [], equality(nil), []) { :not_provided },
         )
 
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [], nil, wildcard, []) { :provided },
+          Atomy::Method::Branch.new(nil, [], [], nil, [], wildcard, []) { :provided },
         )
 
         expect(target.foo {}).to eq(:provided)
@@ -176,7 +178,7 @@ describe Atomy do
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [], nil, wildcard(:x), [:x]) { |x| x.call },
+          Atomy::Method::Branch.new(nil, [], [], nil, [], wildcard(:x), [:x]) { |x| x.call },
         )
 
         expect(target.foo { 42 }).to eq(42)
@@ -187,13 +189,13 @@ describe Atomy do
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
-            Atomy::Method::Branch.new(nil, [equality(0)], nil, nil, []) { 0 },
+            Atomy::Method::Branch.new(nil, [equality(0)]) { 0 },
           )
 
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
-            Atomy::Method::Branch.new(nil, [wildcard], nil, nil, []) { 42 },
+            Atomy::Method::Branch.new(nil, [wildcard]) { 42 },
           )
 
           expect(target.foo(0)).to eq(0)
@@ -206,13 +208,13 @@ describe Atomy do
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
-            Atomy::Method::Branch.new(nil, [wildcard], nil, nil, []) { 42 },
+            Atomy::Method::Branch.new(nil, [wildcard]) { 42 },
           )
 
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
-            Atomy::Method::Branch.new(nil, [equality(0)], nil, nil, []) { 0 },
+            Atomy::Method::Branch.new(nil, [equality(0)]) { 0 },
           )
 
           expect(target.foo(0)).to eq(42)
@@ -229,13 +231,13 @@ describe Atomy do
             described_class.define_branch(
               base.class_eval { binding },
               :foo,
-              Atomy::Method::Branch.new(nil, [equality(0)], nil, nil, []) { 0 },
+              Atomy::Method::Branch.new(nil, [equality(0)]) { 0 },
             )
 
             described_class.define_branch(
               sub.class_eval { binding },
               :foo,
-              Atomy::Method::Branch.new(nil, [equality(1)], nil, nil, []) { 1 },
+              Atomy::Method::Branch.new(nil, [equality(1)]) { 1 },
             )
 
             expect(sub.new.foo(0)).to eq(0)
@@ -248,7 +250,7 @@ describe Atomy do
             described_class.define_branch(
               target.module_eval { binding },
               :foo,
-              Atomy::Method::Branch.new(nil, [equality(0)], nil, nil, []) { 0 },
+              Atomy::Method::Branch.new(nil, [equality(0)]) { 0 },
             )
 
             expect { target.foo(1) }.to raise_error(Atomy::MessageMismatch)

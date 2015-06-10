@@ -41,11 +41,11 @@ module Atomy
     end
 
     def macro_definer(pattern, body)
-      BootstrapHelper::WithGrammar.new(Atomy::Code::DefineMethod.new(:expand, body, [pattern]))
+      BootstrapHelper::WithGrammar.new(Atomy::Code::DefineMethod.new(:expand, body, nil, [pattern]))
     end
 
     def pattern_definer(pattern, body)
-      BootstrapHelper::WithGrammar.new(Atomy::Code::DefineMethod.new(:pattern, body, [pattern]))
+      BootstrapHelper::WithGrammar.new(Atomy::Code::DefineMethod.new(:pattern, body, nil, [pattern]))
     end
 
     def make_send(recv, msg, args = [])

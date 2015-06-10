@@ -26,19 +26,24 @@ require "atomy/locals"
 module Atomy
   class Method
     class Branch
-      attr_reader :receiver, :arguments, :body, :splat_argument, :proc_argument, :locals
+      attr_reader :body, :receiver, :arguments, :default_arguments,
+        :splat_argument, :post_arguments, :proc_argument, :locals
 
-      def initialize(receiver, arguments, splat_argument, proc_argument, locals, &body)
+      def initialize(receiver = nil, arguments = [], default_arguments = [],
+                     splat_argument = nil, post_arguments = [],
+                     proc_argument = nil, locals = [], &body)
+        @body = body.block
         @receiver = receiver
         @arguments = arguments
-        @locals = locals
+        @default_arguments = default_arguments
         @splat_argument = splat_argument
+        @post_arguments = post_arguments
         @proc_argument = proc_argument
-        @body = body.block
+        @locals = locals
       end
 
       def total_arguments
-        @arguments.size
+        @arguments.size + @default_arguments.size
       end
 
       def required_arguments
@@ -46,7 +51,7 @@ module Atomy
       end
 
       def splat_index
-        @arguments.size if @splat_argument
+        total_arguments if @splat_argument
       end
     end
 

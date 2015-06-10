@@ -1,12 +1,16 @@
 module Atomy
   module Code
     class Define
-      def initialize(name, body, arguments = [], receiver = nil, splat_argument = nil, proc_argument = nil)
+      def initialize(name, body, receiver = nil, arguments = [],
+                     default_arguments = [], splat_argument = nil,
+                     post_arguments = [], proc_argument = nil)
         @name = name
         @body = body
         @receiver = receiver
         @arguments = arguments
+        @default_arguments = default_arguments
         @splat_argument = splat_argument
+        @post_arguments = post_arguments
         @proc_argument = proc_argument
       end
 
@@ -35,6 +39,11 @@ module Atomy
         end
         gen.make_array(@arguments.size)
 
+        # default arguments
+        # TODO: push defaults as blocks capturing current environment, with
+        # arguments for all the locals
+        gen.make_array(0)
+
         if @splat_argument
           splat_argument_pattern = mod.pattern(@splat_argument)
           branch_locals += splat_argument_pattern.locals
@@ -42,6 +51,9 @@ module Atomy
         else
           gen.push_nil
         end
+
+        # post arguments
+        gen.make_array(0)
 
         if @proc_argument
           proc_argument_pattern = mod.pattern(@proc_argument)
@@ -58,7 +70,7 @@ module Atomy
 
         gen.create_block(build_branch_body(gen.state.scope, mod, branch_locals))
 
-        gen.send_with_block(:new, 5)
+        gen.send_with_block(:new, 7)
       end
 
       def build_branch_body(scope, mod, locals)

@@ -76,16 +76,167 @@ describe Atomy::MessageStructure do
     its(:proc_argument) { should be_nil }
     its(:block) { should be_nil }
     its(:splat_argument) { should be_nil }
+    its(:default_arguments) { should be_empty }
   end
 
   context "when a word with arguments with a splat" do
-    let(:node) { ast("foo(a, b, *c)") }
+    let(:node) { ast("foo(a, b, *cs)") }
     its(:name) { should == :foo }
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
     its(:block) { should be_nil }
-    its(:splat_argument) { should == ast("c") }
+    its(:splat_argument) { should == ast("cs") }
+  end
+
+  context "when a word with arguments with a splat and post arguments" do
+    let(:node) { ast("foo(a, b, *cs, d)") }
+    its(:name) { should == :foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should == ast("cs") }
+    its(:post_arguments) { should == [ast("d")] }
+  end
+
+  context "when a word with arguments with a splat and default arguments" do
+    let(:node) { ast("foo(a, b, *cs, d = 1)") }
+    its(:name) { should == :foo }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+
+    describe "#arguments" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.arguments }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+
+    describe "#default_arguments" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.default_arguments }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+
+    describe "#splat_argument" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.splat_argument }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+
+    describe "#post_arguments" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.post_arguments }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+  end
+
+  context "when a word with arguments with defaults" do
+    let(:node) { ast("foo(a, b, c = 1, d = 2)") }
+    its(:name) { should == :foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+    its(:default_arguments) { should == [
+      described_class::DefaultArgument.new(ast("c"), ast("1")),
+      described_class::DefaultArgument.new(ast("d"), ast("2")),
+    ] }
+  end
+
+  context "when a word with arguments with defaults and post arguments" do
+    let(:node) { ast("foo(a, b, c = 1, d = 2, e, f)") }
+    its(:name) { should == :foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+    its(:default_arguments) { should == [
+      described_class::DefaultArgument.new(ast("c"), ast("1")),
+      described_class::DefaultArgument.new(ast("d"), ast("2")),
+    ] }
+    its(:post_arguments) { should == [ast("e"), ast("f")] }
+  end
+
+  context "when a word with arguments with defaults and a splat" do
+    let(:node) { ast("foo(a, b, c = 1, d = 2, *cs)") }
+    its(:name) { should == :foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should == ast("cs") }
+    its(:default_arguments) { should == [
+      described_class::DefaultArgument.new(ast("c"), ast("1")),
+      described_class::DefaultArgument.new(ast("d"), ast("2")),
+    ] }
+  end
+
+  context "when a word with arguments with defaults, post arguments, and a splat" do
+    let(:node) { ast("foo(a, b, c = 1, d = 2, e, f, *gs)") }
+    its(:name) { should == :foo }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+
+    describe "#arguments" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.arguments }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+
+    describe "#default_arguments" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.default_arguments }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+
+    describe "#splat_argument" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.splat_argument }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+
+    describe "#post_arguments" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.post_arguments }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+  end
+
+  context "when a word with arguments with defaults, post arguments, and more default arguments" do
+    let(:node) { ast("foo(a, b, c = 1, d = 2, e, f, g = 3)") }
+    its(:name) { should == :foo }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+
+    describe "#arguments" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.arguments }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+
+    describe "#default_arguments" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.default_arguments }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+
+    describe "#splat_argument" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.splat_argument }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
+
+    describe "#post_arguments" do
+      it "raises UnknownMessageStructure" do
+        expect { subject.post_arguments }.to raise_error(described_class::UnknownMessageStructure)
+      end
+    end
   end
 
   context "when a word followed by ! with arguments" do
@@ -621,6 +772,48 @@ describe Atomy::MessageStructure do
     its(:proc_argument) { should be_nil }
     its(:block) { should be_nil }
     its(:splat_argument) { should == ast("c") }
+  end
+
+  context "when a constant with arguments with defaults" do
+    let(:node) { ast("Foo(a, b, c = 1, d = 2)") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should be_nil }
+    its(:default_arguments) { should == [
+      described_class::DefaultArgument.new(ast("c"), ast("1")),
+      described_class::DefaultArgument.new(ast("d"), ast("2")),
+    ] }
+  end
+
+  context "when a constant with arguments with defaults and a splat" do
+    let(:node) { ast("Foo(a, b, c = 1, d = 2, *cs)") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should == ast("cs") }
+    its(:default_arguments) { should == [
+      described_class::DefaultArgument.new(ast("c"), ast("1")),
+      described_class::DefaultArgument.new(ast("d"), ast("2")),
+    ] }
+  end
+
+  context "when a constant with arguments with defaults and a splat" do
+    let(:node) { ast("Foo(a, b, c = 1, d = 2, *cs)") }
+    its(:name) { should == :Foo }
+    its(:arguments) { should == [ast("a"), ast("b")] }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    its(:block) { should be_nil }
+    its(:splat_argument) { should == ast("cs") }
+    its(:default_arguments) { should == [
+      described_class::DefaultArgument.new(ast("c"), ast("1")),
+      described_class::DefaultArgument.new(ast("d"), ast("2")),
+    ] }
   end
 
   context "when a constant followed by ! with arguments" do
