@@ -1,0 +1,264 @@
+use(require("core"))
+use(require("define"))
+use(require("control-flow"))
+use(require("dynamic"))
+use(require("particles"))
+
+stack-local = require("stack-local")
+
+require("kpeg")
+require("kpeg/compiled_parser")
+require("rubinius/processor") -- needed by compiler
+require("rubinius/melbourne") -- needed by compiler
+require("rubinius/compiler")
+require("set")
+
+
+-- lazily load these modules to prevent circular dependency
+loaded-pretty = nil
+fn(pretty): loaded-pretty =! (loaded-pretty || require("pretty"))
+
+loaded-interpolation = nil
+fn(intp): loaded-interpolation =! (loaded-interpolation || require("interpolation"))
+
+
+actions = dynamic
+setups = dynamic
+vars = dynamic
+rule = dynamic
+rule-vars = dynamic
+
+fn(const-name(c & Atomy Grammar AST Compose)): [const-name(c left), "::", const-name(c right)] join
+fn(const-name(c & Atomy Grammar AST Constant)): c text to-s
+
+fn(process-val(g, `(%(~grammar)(~name)(~*args)))):
+  `(~g foreign-invoke(
+      .~grammar
+      .~name
+      ~(args collect .(pretty show(_)) join(", "))))
+
+fn(process-val(g, `(%(~grammar)(~name)))):
+  `(~g foreign-invoke(.~grammar, .~name))
+
+fn(process-val(g, `((~name)=(~v)))):
+  val = process-val(g, v)
+
+  when(^rule-vars):
+    ^rule-vars << name text
+
+  `(~g t(~val, ~(Atomy Grammar AST StringLiteral new(name text to-s))))
+
+fn(process-val(g, `(~a ~b))):
+  `(~g seq(~process-val(g, a), ~process-val(g, b)))
+
+fn(process-val(g, `(~a | ~b))):
+  process-val(g, `[~a, ~b])
+
+fn(process-val(g, `[~*xs])):
+  original = ^rule-vars
+  new = Set new
+  choices =
+    xs collect [x]:
+      with(rule-vars = original dup):
+        choice = process-val(g, x)
+        new merge(^rule-vars - original)
+        choice
+
+  ^rule-vars merge(new)
+
+  `(~g any(~*choices))
+
+fn(process-val(g, a & `{ ~*bs })):
+  if(^actions)
+    then:
+      vars = ^rule-vars to-a
+
+      call = [
+        "actions["
+        ^actions size to-s
+        "]["
+        vars collect &.to-s join(", ")
+        "]"
+      ] join
+
+      ^actions << [a, vars]
+      `(~g action(~(Atomy Grammar AST StringLiteral new(call))))
+    else:
+      `(~g action({ ~*bs }))
+
+fn(process-val(g, `(<(~x)>))):
+  val = process-val(g, x)
+
+  when(^rule-vars):
+    ^rule-vars << .text
+
+  `(~g collect(~val))
+
+fn(process-val(g, `(@<(~x)>))):
+  `(~g bounds(~process-val(g, x)))
+
+fn(process-val(g, s & Atomy Grammar AST StringLiteral)):
+  `(~g str(~s))
+
+fn(process-val(g, `(/(~(b & Atomy Grammar AST StringLiteral))/))):
+  if(^actions)
+    then:
+      vars = ^rule-vars to-a
+
+      -- this is a bit gross because it has to parse as a valid regexp
+      -- so we use .call() because actions[0][] is invalid
+      --
+      -- should be fine as the embedded parts are limited to numbers and words
+      call = [
+        "#{actions["
+        ^actions size to-s
+        "].call("
+        vars collect &.to-s join(", ")
+        ")}"
+      ] join
+
+      ^actions << [`{ ~(intp interpolated(b raw)) }, vars]
+
+      `(~g reg(~(Atomy Grammar AST StringLiteral new(call))))
+    else:
+      `(~g reg(r~b))
+
+fn(process-val(g, c & Atomy Grammar AST Apply)):
+  args = [
+    "("
+    c arguments collect .(pretty show(_)) join(", ")
+    ")"
+  ] join
+
+  `(~g ref(~(Atomy Grammar AST StringLiteral new(c name text to-s)), nil, ~(Atomy Grammar AST StringLiteral new(args))))
+
+fn(process-val(g, `@~(c & Atomy Grammar AST Apply))):
+  args = [
+    "("
+    c arguments collect .(pretty show(_)) join(", ")
+    ")"
+  ] join
+
+  `(~g invoke(~(Atomy Grammar AST StringLiteral new(c name text to-s)), ~(Atomy Grammar AST StringLiteral new(args))))
+
+fn(process-val(g, `^~(c & Atomy Grammar AST Apply))):
+  args = [
+    "("
+    c arguments collect .(pretty show(_)) join(", ")
+    ")"
+  ] join
+
+  `(~g foreign-invoke("parent", ~(Atomy Grammar AST StringLiteral new(c name text to-s)), ~(Atomy Grammar AST StringLiteral new(args))))
+
+fn(process-val(g, w & Atomy Grammar AST Word)):
+  `(~g ref(~(Atomy Grammar AST StringLiteral new(w text to-s))))
+
+fn(process-val(g, `@~(w & Atomy Grammar AST Word))):
+  `(~g invoke(~(Atomy Grammar AST StringLiteral new(w text to-s))))
+
+fn(process-val(g, `^~(w & Atomy Grammar AST Word))):
+  `(~g foreign-invoke("parent", ~(Atomy Grammar AST StringLiteral new(w text to-s))))
+
+fn(process-val(g, `((~v)?))):
+  `(~g maybe(~process-val(g, v)))
+
+fn(process-val(g, `((~v)+))):
+  `(~g many(~process-val(g, v)))
+
+fn(process-val(g, `((~v)*))):
+  `(~g kleene(~process-val(g, v)))
+
+fn(process-val(g, `&~v)):
+  `(~g andp(~process-val(g, v)))
+
+fn(process-val(g, `!~v)):
+  `(~g notp(~process-val(g, v)))
+
+fn(process-val(g, '_)):
+  `(~g dot)
+
+fn(process-val(_, s)):
+  raise(ArgumentError, "unknown parsing operator:\n" + s inspect)
+
+parser-definer = class:
+  def(initialize(@source)) {}
+
+  def(bytecode(gen, mod)):
+    gen push-rubinius
+    gen push-literal(.__parser_init__)
+    gen push-literal(CodeTools Compiler compile-string(@source))
+    gen push-scope
+    gen push-self
+    gen send(.attach-method, 4)
+    gen pop
+
+    gen push-self
+    gen send(.__parser_init__, 0)
+
+
+fn(process-toplevel(grammar, `%%{ ~*xs })):
+  call =
+    if(^setups)
+      then:
+        ^setups << `{ ~*xs }
+        Atomy Grammar AST StringLiteral new(["setups[", (^setups size - 1) to-s, "][]"] join)
+      else:
+        `{ ~*xs }
+
+    `(~grammar add-setup(~grammar action(~call)))
+
+fn(process-toplevel(grammar, `(%~name = ~const))):
+  `(~grammar add-foreign-grammar(
+      ~(Atomy Grammar AST StringLiteral new(name text to-s))
+      ~(Atomy Grammar AST StringLiteral new(const-name(const)))
+    ))
+
+fn(process-toplevel(grammar, `(rule((~name)(~*args)): ~val))):
+  with(rule = name text, rule-vars = //Set new(args collect .text)):
+    `(~grammar set(
+        ~(Atomy Grammar AST StringLiteral new(name text to-s))
+        ~process-val(grammar, val)
+        [~*(args collect [x]: Atomy Grammar AST StringLiteral new(x text to-s))]
+      ))
+
+fn(process-toplevel(grammar, `(rule(~name): ~val))):
+  with(rule = name text, rule-vars = //Set new):
+    `(~grammar set(
+        ~(Atomy Grammar AST StringLiteral new(name text to-s))
+        ~process-val(grammar, val)
+      ))
+
+fn(process-toplevel(grammar, u)):
+  raise("unknown toplevel grammar form:\n" + u inspect)
+
+macro(grammar: ~*body):
+  grammar = stack-local Local new
+
+  `(do:
+      ~(grammar set(`(//KPeg Grammar new)))
+      ~*(body collect [n]: process-toplevel(grammar, n))
+      ~grammar)
+
+
+macro(parser(~name): ~*grammar):
+  with(actions = [], setups = [], vars = []):
+    g = evaluate(`(grammar: ~*grammar))
+
+    acts =
+      ^actions collect [[action, as]]:
+        args = as collect [a]: Word new(a)
+        `([~*args] ~action)
+
+    def = parser-definer new(//KPeg CodeGenerator new(const-name(name), g) output)
+
+    `(do:
+        const-set(.~name, //KPeg CompiledParser class:
+          singleton:
+            def(setups): @setups ||= [~*^setups]
+            def(vars): @vars ||= [~*^vars]
+
+          def(actions): @actions ||= [~*acts])
+
+        ~def
+
+        ~name)

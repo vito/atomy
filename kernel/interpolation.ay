@@ -1,0 +1,59 @@
+use(require("core"))
+use(require("define"))
+use(require("control-flow"))
+use(require("quotes"))
+use(require("range"))
+use(require("grammar"))
+use(require("patterns"))
+
+parser(Parser):
+  %atomy = Atomy Grammar
+
+  rule(root): %atomy(wsp) es=(%atomy(expressions)) %atomy(wsp) "}" {
+    Atomy Grammar AST Sequence new(Array(es))
+  }
+
+fn(intp-segments(s)):
+  s split(Regexp new("(?<!\\\\)#\\{"), 2) match:
+    []: ['""]
+
+    [x]: [Atomy Grammar AST StringLiteral new(x)]
+
+    [pre, chunk]:
+      p = Parser new(chunk)
+
+      unless(p parse):
+        p raise-error
+
+      segments = [Atomy Grammar AST StringLiteral new(pre), `(~(p result) to-s)]
+
+      rest = p string[p pos .. -1]
+
+      if(rest nil? || rest empty?)
+        then: segments
+        else: segments + intp-segments(rest)
+
+
+interpolation = class:
+  def(initialize(@segments)) {}
+
+  def(interpolated?): @segments size > 1
+
+  def(bytecode(gen, mod)):
+    @segments each [s]:
+      mod compile(gen, s)
+
+    when(interpolated?):
+      gen string-build(@segments size)
+
+
+def(interpolated(x)): interpolation new(intp-segments(x))
+
+macro-quoter(i) [_, _, v]: interpolated(v)
+
+-- symbol literals with interpolation
+macro(.~(x & StringLiteral)):
+  i = interpolated(x value)
+  if(i interpolated?)
+    then: `(~i to-sym)
+    else: Atomy Code Symbol new(x value to-sym)
