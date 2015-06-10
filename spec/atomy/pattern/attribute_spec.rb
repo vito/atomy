@@ -31,5 +31,14 @@ describe Atomy::Pattern::Attribute do
       subject.assign(Rubinius::VariableScope.current, 42)
       expect(receiver.abc).to eq(42)
     end
+
+    context "when the receiver implements #send" do
+      before { allow(receiver).to receive(:send).and_raise("hell") }
+
+      it "still assigns the correct attribute" do
+        subject.assign(Rubinius::VariableScope.current, 42)
+        expect(receiver.abc).to eq(42)
+      end
+    end
   end
 end

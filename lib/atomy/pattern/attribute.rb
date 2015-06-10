@@ -14,7 +14,8 @@ class Atomy::Pattern
     end
 
     def assign(scope, val)
-      @receiver.send(:"#{@attribute}=", val)
+      # don't use send; Generator implements #send, other things might too.
+      @receiver.__send__(:"#{@attribute}=", val)
     end
   end
 end
