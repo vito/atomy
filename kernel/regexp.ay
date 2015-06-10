@@ -1,0 +1,22 @@
+use(require("core"))
+use(require("define"))
+use(require("quotes"))
+use(require("control-flow"))
+interpolate = require("interpolation")
+
+macro-quoter(r) [r, fs]:
+  flags = 0
+
+  when(fs include?(.m)):
+    flags |= Regexp MULTILINE
+
+  when(fs include?(.i)):
+    flags |= Regexp IGNORECASE
+
+  when(fs include?(.x)):
+    flags |= Regexp EXTENDED
+
+  -- UTF8 by default
+  flags |= Regexp KCODE_UTF8
+
+  `(//Regexp new(~(interpolate interpolated(r)), ~(Atomy Grammar AST Number new(flags))))

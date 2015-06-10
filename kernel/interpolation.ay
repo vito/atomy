@@ -17,7 +17,7 @@ fn(intp-segments(s)):
   s split(Regexp new("(?<!\\\\)#\\{"), 2) match:
     []: ['""]
 
-    [x]: [Atomy Grammar AST StringLiteral new(x)]
+    [x]: [Atomy Code StringLiteral new(x, true)]
 
     [pre, chunk]:
       p = Parser new(chunk)
@@ -25,7 +25,7 @@ fn(intp-segments(s)):
       unless(p parse):
         p raise-error
 
-      segments = [Atomy Grammar AST StringLiteral new(pre), `(~(p result) to-s)]
+      segments = [Atomy Code StringLiteral new(pre, true), `(~(p result) to-s)]
 
       rest = p string[p pos .. -1]
 
