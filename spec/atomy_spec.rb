@@ -10,14 +10,6 @@ require "atomy/pattern/wildcard"
 
 describe Atomy do
   describe ".define_branch" do
-    def wildcard(name = nil)
-      Atomy::Pattern::Wildcard.new(name)
-    end
-
-    def equality(value)
-      Atomy::Pattern::Equality.new(value)
-    end
-
     def kind_of_pat(klass)
       Atomy::Pattern::KindOf.new(klass)
     end
@@ -87,18 +79,67 @@ describe Atomy do
         expect(target.foo(1)).to eq(43)
       end
 
-      it "does not permit defining branches with different argument forms" do
+      it "permits defining branches with different default argument counts" do
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
-          Atomy::Method::Branch.new(nil, [equality(1), wildcard]) { 42 },
+          Atomy::Method::Branch.new(nil, [equality(1)], []) { 42 },
+        )
+
+        described_class.define_branch(
+          target.module_eval { binding },
+          :foo,
+          Atomy::Method::Branch.new(nil, [equality(1)], [[wildcard, proc{}]]) { 43 },
+        )
+
+        expect(target.foo(1)).to eq(42)
+        expect(target.foo(1, 2)).to eq(43)
+      end
+
+      it "does not permit defining branches with different splat indexes" do
+        described_class.define_branch(
+          target.module_eval { binding },
+          :foo,
+          Atomy::Method::Branch.new(nil, [equality(1)], [], wildcard) { 42 },
         )
 
         expect {
           described_class.define_branch(
             target.module_eval { binding },
             :foo,
-            Atomy::Method::Branch.new(nil, [equality(0)]) { 43 },
+            Atomy::Method::Branch.new(nil, [equality(1)], [[wildcard, proc{}]], wildcard) { 42 },
+          )
+        }.to raise_error(Atomy::InconsistentArgumentForms)
+      end
+
+      it "does not permit defining branches with different required argument counts" do
+        described_class.define_branch(
+          target.module_eval { binding },
+          :foo,
+          Atomy::Method::Branch.new(nil, [wildcard]) { 42 },
+        )
+
+        expect {
+          described_class.define_branch(
+            target.module_eval { binding },
+            :foo,
+            Atomy::Method::Branch.new(nil, [wildcard, wildcard]) { 42 },
+          )
+        }.to raise_error(Atomy::InconsistentArgumentForms)
+      end
+
+      it "does not permit defining branches with different post-argument counts" do
+        described_class.define_branch(
+          target.module_eval { binding },
+          :foo,
+          Atomy::Method::Branch.new(nil, [wildcard], [], nil, [wildcard]) { 42 },
+        )
+
+        expect {
+          described_class.define_branch(
+            target.module_eval { binding },
+            :foo,
+            Atomy::Method::Branch.new(nil, [wildcard], [], nil, [wildcard, wildcard]) { 42 },
           )
         }.to raise_error(Atomy::InconsistentArgumentForms)
       end

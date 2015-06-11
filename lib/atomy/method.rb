@@ -136,10 +136,13 @@ module Atomy
 
     def uniform_argument_forms?
       return true if @branches.empty?
+
       return false unless @branches.collect(&:pre_arguments_count).uniq.size == 1
-      return false unless @branches.collect(&:default_arguments_count).uniq.size == 1
       return false unless @branches.collect(&:splat_index).uniq.size == 1
       return false unless @branches.collect(&:post_arguments_count).uniq.size == 1
+
+      # permit varying default argument counts; as long as the rest are the
+      # same it's unambiguous
 
       true
     end
@@ -147,23 +150,29 @@ module Atomy
     def argument_form
       return [0, 0, nil, 0] if @branches.empty?
 
-      unless uniform_argument_forms?
-        raise InconsistentArgumentForms
-      end
-
-      exemplary_branch = @branches.first
+      raise InconsistentArgumentForms unless uniform_argument_forms?
 
       [
-        exemplary_branch.pre_arguments_count,
-        exemplary_branch.default_arguments_count,
-        exemplary_branch.splat_index,
-        exemplary_branch.post_arguments_count,
+        @branches.collect(&:pre_arguments_count).first,
+        @branches.collect(&:default_arguments_count).max,
+        @branches.collect(&:splat_index).first,
+        @branches.collect(&:post_arguments_count).first,
       ]
     end
 
     def build_branches(gen, done)
       @branches.each do |b|
         skip = gen.new_label
+
+        # check for too few arguments
+        gen.passed_arg(b.pre_arguments_count - 1)
+        gen.gif(skip)
+
+        # check for too many arguments
+        unless b.splat_index
+          gen.passed_arg(b.pre_arguments_count + b.default_arguments.count + b.post_arguments.count)
+          gen.git(skip)
+        end
 
         if b.receiver
           gen.push_literal(b.receiver)
