@@ -25,11 +25,13 @@ fn(define-class(root, `(~(n & Atomy Grammar AST Constant) { ~*cs }))):
 
 fn(define-class(root, `((~name)(~*as): ~*cs))):
   attrs = []
-  as each [x & ((is-attr & (`@~_)) | _)]:
-    when(is-attr):
-      attrs << x
+  as each [x]:
+    x match:
+      (`@~_):
+        attrs << x
 
-    x
+      `(@~_ = ~_):
+        attrs << x left
 
   tmps = attrs collect [`@~name]: Atomy Grammar AST Unquote new(name)
 

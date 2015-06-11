@@ -81,6 +81,18 @@ describe "data kernel" do
     it_defines Object, :Point, x: 1, y: 2
   end
 
+  describe "a class defined with no children and no parent, with default values" do
+    before do
+      subject.evaluate(ast("data(Point(@x, @y = 2))"), subject.compile_context)
+    end
+
+    it_defines Object, :Point, x: 1, y: 2
+
+    it "defaults the arguments" do
+      expect(subject::Point.new(1).y).to eq(2)
+    end
+  end
+
   describe "a class defined with a parent" do
     before do
       subject.evaluate(ast("DataParent data(Point(@x, @y))"), subject.compile_context)
