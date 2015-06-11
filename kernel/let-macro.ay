@@ -1,0 +1,24 @@
+use(require("core"))
+use(require("define"))
+use(require("patterns"))
+
+require("atomy/bootstrap")
+
+let-macro = class:
+  def(initialize(@body, @macros)) {}
+
+  def(bytecode(gen, mod)):
+    new = Atomy Module new: use(mod)
+
+    @macros each [`(~pat = ~exp)]:
+      definer = Atomy Bootstrap macro-definer(
+        Atomy Grammar AST QuasiQuote new(pat)
+        exp
+      )
+
+      new evaluate(definer, new compile-context)
+
+    new compile(gen, @body)
+
+macro(let-macro(~*ms): ~*body):
+  let-macro new(`(do: ~*body), ms)
