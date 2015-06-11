@@ -194,6 +194,9 @@ describe "particles kernel" do
   end
 
   it "defines pattern notation for particles, that bind" do
+    expect(particles.evaluate(seq(".abc = .abc"), particles.compile_context)).to eq(:abc)
+    expect(particles.evaluate(seq(".abc! = .abc!"), particles.compile_context)).to eq(:abc!)
+    expect(particles.evaluate(seq(".abc? = .abc?"), particles.compile_context)).to eq(:abc?)
     expect(particles.evaluate(seq(".[] = .[]"), particles.compile_context)).to eq(:[])
     expect(particles.evaluate(seq(".[a] = .[1], a"), particles.compile_context)).to eq(1)
     expect(particles.evaluate(seq(".[*as] = .[], as"), particles.compile_context)).to eq([])
@@ -212,6 +215,9 @@ describe "particles kernel" do
     expect(particles.evaluate(seq(".(a foo(b)) = .(_ foo(1)), [a, b]"), particles.compile_context)).to eq([undefined, 1])
     expect(particles.evaluate(seq(".(a foo(b)) = .foo(1), [a, b]"), particles.compile_context)).to eq([undefined, 1])
 
+    expect { particles.evaluate(seq(".abc = .nope"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
+    expect { particles.evaluate(seq(".abc? = .abc"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
+    expect { particles.evaluate(seq(".abc! = .abc"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
     expect { particles.evaluate(seq(".[] = .nope"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
     expect { particles.evaluate(seq(".[a] = .[1, 2]"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)
     expect { particles.evaluate(seq(".[a, *as] = .[]"), particles.compile_context) }.to raise_error(Atomy::PatternMismatch)

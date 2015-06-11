@@ -111,6 +111,15 @@ pattern(.(~r [~*as])):
 pattern(.[]):
   Atomy Code Pattern new(`(Atomy Pattern Equality new(.[])), [])
 
+pattern(.~(x & Word)):
+  Atomy Code Pattern new(`(Atomy Pattern Equality new(.~x)), [])
+
+pattern(.(~(x & Word))!):
+  Atomy Code Pattern new(`(Atomy Pattern Equality new(.(~x)!)), [])
+
+pattern(.(~(x & Word))?):
+  Atomy Code Pattern new(`(Atomy Pattern Equality new(.(~x)?)), [])
+
 pattern(.[~a, ~*as]):
   recv-pattern = pattern('_)
   args-pattern = pattern(`[~a, ~*as])
