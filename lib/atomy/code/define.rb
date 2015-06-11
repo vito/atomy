@@ -1,7 +1,7 @@
 module Atomy
   module Code
     class Define
-      def initialize(name, body, receiver = nil, arguments = [],
+      def initialize(name, body = nil, receiver = nil, arguments = [],
                      default_arguments = [], splat_argument = nil,
                      post_arguments = [], proc_argument = nil)
         @name = name

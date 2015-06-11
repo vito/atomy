@@ -156,6 +156,15 @@ describe "define kernel" do
       "))).to eq(42)
     end
 
+    it "can predeclare a function" do
+      expect(subject.evaluate(seq("
+        fn(bar)
+        fn(foo(x)): bar(x * 2)
+        fn(bar(x)): x + 1
+        foo(15)
+      "))).to eq(31)
+    end
+
     it "can define branches in separate evaluations" do
       subject.evaluate(ast("fn(foo(2)): foo(4)"))
       subject.evaluate(ast("fn(foo(4)): 42"))

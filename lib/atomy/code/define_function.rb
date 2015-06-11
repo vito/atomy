@@ -15,17 +15,19 @@ module Atomy
         gen.find_const(:BlockEnvironment)
         gen.send(:new, 0)
 
-        gen.push_variables
+        if @body
+          gen.push_variables
 
-        gen.push_cpath_top
-        gen.find_const(:Atomy)
-        gen.push_scope
-        gen.push_literal(@name)
-        push_branch(gen, mod)
-        gen.send(:register_branch, 3)
-        gen.send(:build, 0)
+          gen.push_cpath_top
+          gen.find_const(:Atomy)
+          gen.push_scope
+          gen.push_literal(@name)
+          push_branch(gen, mod)
+          gen.send(:register_branch, 3)
+          gen.send(:build, 0)
 
-        gen.send(:under_context, 2)
+          gen.send(:under_context, 2)
+        end
 
         gen.send(:new, 1)
 

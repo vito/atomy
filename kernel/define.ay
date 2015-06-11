@@ -17,6 +17,11 @@ macro(fn(~message): ~*body):
     structure proc-argument
   )
 
+macro(fn(~dummy-message)):
+  structure = Atomy MessageStructure new(dummy-message)
+  Atomy Code DefineFunction new(structure name)
+
+
 -- method definition
 macro(def(~message): ~*body):
   structure = Atomy MessageStructure new(message)
