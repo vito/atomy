@@ -150,4 +150,38 @@ describe "patterns kernel" do
       end
     end
   end
+
+  describe "rescue" do
+    context "when no exception is raised" do
+      it "returns the result, having not evaluated any branches" do
+        expect(subject.evaluate(seq("
+          a = 0
+          val = (true rescue: _: a += 1)
+          [a, val]
+        "))).to eq([0, true])
+      end
+    end
+
+    context "when an exception is raised" do
+      it "evaluates the branch matching the exception, returning its value" do
+        expect(subject.evaluate(seq("
+          a = 0
+          val = (raise(\"hell\") rescue: _: a += 1, .ok)
+          [a, val]
+        "))).to eq([1, :ok])
+      end
+
+      context "when no branches match" do
+        it "reraises the exception" do
+          expect {
+            subject.evaluate(seq("
+              a = 0
+              val = (raise(\"hell\") rescue: NoMethodError: a += 1, .ok)
+              [a, val]
+            "))
+          }.to raise_error("hell")
+        end
+      end
+    end
+  end
 end
