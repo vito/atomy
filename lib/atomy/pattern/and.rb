@@ -17,5 +17,11 @@ class Atomy::Pattern
       @a.assign(scope, val)
       @b.assign(scope, val)
     end
+
+    def target
+      a = @a.target
+      b = @b.target
+      a < b ? a : b
+    end
   end
 end

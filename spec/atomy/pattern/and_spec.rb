@@ -100,4 +100,23 @@ describe Atomy::Pattern::And do
       end
     end
   end
+
+  describe "#target" do
+    let(:parent) { Class.new }
+    let(:child) { Class.new(parent) }
+
+    context "when the lhs is more specific" do
+      let(:a) { double(target: parent) }
+      let(:b) { double(target: child) }
+
+      its(:target) { should == child }
+    end
+
+    context "when the rhs is more specific" do
+      let(:a) { double(target: child) }
+      let(:b) { double(target: parent) }
+
+      its(:target) { should == child }
+    end
+  end
 end
