@@ -37,6 +37,11 @@ describe "patterns kernel" do
     expect(@foo).to eq(42)
   end
 
+  it "defines a pattern for setting global variables" do
+    expect(subject.evaluate(ast("$foo = 42"))).to eq(42)
+    expect($foo).to eq(42)
+  end
+
   it "defines an or pattern" do
     expect(subject.evaluate(seq("((a & 1) | (b & 2)) = 1, [a, b]"))).to eq([1, nil])
     expect(subject.evaluate(seq("((c & 1) | (d & 2)) = 2, [c, d]"))).to eq([nil, 2])
