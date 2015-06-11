@@ -87,36 +87,20 @@ describe Atomy do
         expect(target.foo(1)).to eq(43)
       end
 
-      it "does not match if not enough arguments were given" do
+      it "does not permit defining branches with different argument forms" do
         described_class.define_branch(
           target.module_eval { binding },
           :foo,
           Atomy::Method::Branch.new(nil, [equality(1), wildcard]) { 42 },
         )
 
-        described_class.define_branch(
-          target.module_eval { binding },
-          :foo,
-          Atomy::Method::Branch.new(nil, [equality(0)]) { 43 },
-        )
-
-        expect { target.foo(1) }.to raise_error(Atomy::MessageMismatch)
-      end
-
-      it "does not match if too many arguments were given and there is no splat" do
-        described_class.define_branch(
-          target.module_eval { binding },
-          :foo,
-          Atomy::Method::Branch.new(nil, [equality(1), wildcard]) { 42 },
-        )
-
-        described_class.define_branch(
-          target.module_eval { binding },
-          :foo,
-          Atomy::Method::Branch.new(nil, [equality(2), wildcard, wildcard]) { 43 },
-        )
-
-        expect { target.foo(1, 2, 3) }.to raise_error(Atomy::MessageMismatch)
+        expect {
+          described_class.define_branch(
+            target.module_eval { binding },
+            :foo,
+            Atomy::Method::Branch.new(nil, [equality(0)]) { 43 },
+          )
+        }.to raise_error(Atomy::InconsistentArgumentForms)
       end
 
       it "pattern-matches on the splat argument" do

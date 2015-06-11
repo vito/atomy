@@ -39,10 +39,14 @@ module Atomy
         end
         gen.make_array(@arguments.size)
 
-        # default arguments
-        # TODO: push defaults as blocks capturing current environment, with
-        # arguments for all the locals
-        gen.make_array(0)
+        @default_arguments.each do |d|
+          pattern = mod.pattern(d.node)
+          branch_locals += pattern.locals
+          mod.compile(gen, pattern)
+          gen.create_block(build_block(gen.state.scope, mod, branch_locals, :"#{@name}:default", d.default))
+          gen.make_array(2)
+        end
+        gen.make_array(@default_arguments.size)
 
         if @splat_argument
           splat_argument_pattern = mod.pattern(@splat_argument)
@@ -52,8 +56,12 @@ module Atomy
           gen.push_nil
         end
 
-        # post arguments
-        gen.make_array(0)
+        @post_arguments.each do |p|
+          pattern = mod.pattern(p)
+          branch_locals += pattern.locals
+          mod.compile(gen, pattern)
+        end
+        gen.make_array(@post_arguments.size)
 
         if @proc_argument
           proc_argument_pattern = mod.pattern(@proc_argument)
@@ -68,21 +76,21 @@ module Atomy
         end
         gen.make_array(branch_locals.size)
 
-        gen.create_block(build_branch_body(gen.state.scope, mod, branch_locals))
+        gen.create_block(build_block(gen.state.scope, mod, branch_locals, @name, @body))
 
         gen.send_with_block(:new, 7)
       end
 
-      def build_branch_body(scope, mod, locals)
+      def build_block(scope, mod, locals, name, body)
         Atomy::Compiler.generate(mod.file) do |blk|
           # set method name so calls to super work
-          blk.name = @name
+          blk.name = name
 
           # close over the outer scope
           blk.state.scope.parent = scope
 
-          # only allow a fixed set of arguments; splats should be resolved
-          # upstream once they're implemented
+          # only allow a fixed set of arguments; splats and defaults are
+          # resolved before this block is even called
           blk.required_args = blk.total_args = locals.size
 
           # this bubbles up to Proc#arity and BlockEnvironment, though it
@@ -95,7 +103,7 @@ module Atomy
           end
 
           # build the method branch's body
-          mod.compile(blk, @body)
+          mod.compile(blk, body)
         end
       end
     end

@@ -9,18 +9,6 @@ require "atomy/pattern/wildcard"
 describe Atomy::Method do
   subject { described_class.new(:foo) }
 
-  def wildcard(name = nil)
-    Atomy::Pattern::Wildcard.new(name)
-  end
-
-  def equality(val)
-    Atomy::Pattern::Equality.new(val)
-  end
-
-  def block(&blk)
-    blk.block
-  end
-
   describe "#build" do
     it "returns a CompiledCode" do
       expect(subject.build).to be_a(Rubinius::CompiledCode)

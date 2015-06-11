@@ -26,39 +26,35 @@ module Atomy
         fun.get_bytecode(gen)
 
         gen.dup
-        gen.send(:compiled_code, 0)
-        gen.send(:scope, 0)
+        gen.send(:block_env, 0)
+        gen.send(:constant_scope, 0)
+        gen.send(:module, 0)
 
-        gen.push_self
+        gen.push_literal(@message)
 
         gen.swap
 
-        # visibility_scope
-        gen.push_false
+        gen.push_self
 
         @arguments.each do |arg|
           mod.compile(gen, arg)
         end
+        gen.make_array(@arguments.size)
 
         if @splat_argument
           mod.compile(gen, @splat_argument)
-          if @proc_argument
-            push_proc_argument(gen, mod)
-          elsif @block
-            mod.compile(gen, @block)
-          else
-            gen.push_nil
-          end
-          gen.send_with_splat(:call_under, @arguments.size + 3)
-        elsif @proc_argument
+          gen.send(:+, 1)
+        end
+
+        if @proc_argument
           push_proc_argument(gen, mod)
-          gen.send_with_block(:call_under, @arguments.size + 3)
         elsif @block
           mod.compile(gen, @block)
-          gen.send_with_block(:call_under, @arguments.size + 3)
         else
-          gen.send(:call_under, @arguments.size + 3)
+          gen.push_nil
         end
+
+        gen.send(:invoke, 5)
       end
 
       def invoke_method(gen, mod)

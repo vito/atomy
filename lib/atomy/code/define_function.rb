@@ -9,6 +9,10 @@ module Atomy
 
         gen.push_rubinius
         gen.find_const(:BlockEnvironment)
+        gen.find_const(:AsMethod)
+
+        gen.push_rubinius
+        gen.find_const(:BlockEnvironment)
         gen.send(:new, 0)
 
         gen.push_variables
@@ -22,6 +26,8 @@ module Atomy
         gen.send(:build, 0)
 
         gen.send(:under_context, 2)
+
+        gen.send(:new, 1)
 
         var.set_bytecode(gen)
       end

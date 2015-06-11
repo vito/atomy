@@ -24,6 +24,12 @@ require "atomy/compiler"
 require "atomy/locals"
 
 module Atomy
+  class InconsistentArgumentForms < RuntimeError
+    def to_s
+      "inconsistent method argument forms"
+    end
+  end
+
   class Method
     class Branch
       attr_reader :body, :receiver, :arguments, :default_arguments,
@@ -42,16 +48,20 @@ module Atomy
         @locals = locals
       end
 
-      def total_arguments
-        @arguments.size + @default_arguments.size
-      end
-
-      def required_arguments
+      def pre_arguments_count
         @arguments.size
       end
 
+      def default_arguments_count
+        @default_arguments.size
+      end
+
+      def post_arguments_count
+        @post_arguments.size
+      end
+
       def splat_index
-        total_arguments if @splat_argument
+        @arguments.size + @default_arguments.size if @splat_argument
       end
     end
 
@@ -71,17 +81,30 @@ module Atomy
       Atomy::Compiler.package(:__wrapper__) do |gen|
         gen.name = @name
 
-        total, req = argument_count
-        gen.total_args = total
-        gen.required_args = req
-        gen.splat_index = splat_index
+        pre, default, splat, post = argument_form
+        gen.total_args = pre + default + post
+        gen.required_args = pre + post
+        gen.splat_index = splat
+        gen.post_args = post
 
-        total.times do |i|
-          gen.state.scope.new_local(:"arg:#{i}")
+        arg = 0
+        pre.times do
+          gen.state.scope.new_local(:"arg:#{arg}")
+          arg += 1
+        end
+
+        default.times do
+          gen.state.scope.new_local(:"arg:#{arg}")
+          arg += 1
         end
 
         if gen.splat_index
           gen.state.scope.new_local(:"arg:splat")
+        end
+
+        post.times do
+          gen.state.scope.new_local(:"arg:#{arg}")
+          arg += 1
         end
 
         declared_locals = {}
@@ -98,10 +121,8 @@ module Atomy
 
         build_branches(gen, done)
 
-        unless has_base_case?
-          try_super(gen, done) unless @name == :initialize
-          raise_mismatch(gen)
-        end
+        try_super(gen, done) unless @name == :initialize
+        raise_mismatch(gen)
 
         gen.push_nil
 
@@ -113,94 +134,130 @@ module Atomy
 
     private
 
-    def argument_count
-      total = 0
-      req = nil
+    def uniform_argument_forms?
+      return true if @branches.empty?
+      return false unless @branches.collect(&:pre_arguments_count).uniq.size == 1
+      return false unless @branches.collect(&:default_arguments_count).uniq.size == 1
+      return false unless @branches.collect(&:splat_index).uniq.size == 1
+      return false unless @branches.collect(&:post_arguments_count).uniq.size == 1
 
-      @branches.each do |b|
-        args = b.total_arguments
-        total = args if args > total
-        req = args if !req || args < req
+      true
+    end
+
+    def argument_form
+      return [0, 0, nil, 0] if @branches.empty?
+
+      unless uniform_argument_forms?
+        raise InconsistentArgumentForms
       end
 
-      [total, req]
-    end
+      exemplary_branch = @branches.first
 
-    def has_base_case?
-      @branches.any? do |b|
-        # receiver must always match
-        #
-        # TODO: KindOf/Wildcard should count as 'base cases' for the receiver
-        !b.receiver &&
-          # must take no arguments (otherwise calling with invalid arg
-          # count would match, as branches can take different arg sizes)
-          (uniform_argument_count? && b.total_arguments == 0) # &&
-
-          # and either have no splat or a wildcard splat
-          #(!b.splat || b.splat.wildcard?)
-      end
-    end
-
-    def total_arguments
-      @branches.collect(&:total_arguments).max
-    end
-
-    def required_arguments
-      @branches.collect(&:total_arguments).min
-    end
-
-    def splat_index
-      index = nil
-      has_splat = false
-      @branches.each do |b|
-        i = b.splat_index
-        if (has_splat && i != index) || (has_splat && !i)
-          raise "inconsistent splattage"
-        end
-
-        index = i
-      end
-
-      index
-    end
-
-    def uniform_argument_count?
-      total_arguments == required_arguments
+      [
+        exemplary_branch.pre_arguments_count,
+        exemplary_branch.default_arguments_count,
+        exemplary_branch.splat_index,
+        exemplary_branch.post_arguments_count,
+      ]
     end
 
     def build_branches(gen, done)
       @branches.each do |b|
         skip = gen.new_label
 
-        # check for too few arguments
-        gen.passed_arg(b.required_arguments - 1)
-        gen.gif(skip)
-
-        # check for too many arguments
-        unless b.splat_index
-          gen.passed_arg(b.total_arguments)
-          gen.git(skip)
-        end
-
         if b.receiver
           gen.push_literal(b.receiver)
           gen.push_self
           gen.send(:matches?, 1)
           gen.gif(skip)
+
+          gen.push_literal(b.receiver)
+          gen.push_variables
+          gen.push_self
+          gen.send(:assign, 2)
+          gen.pop
         end
 
-        b.arguments.each.with_index do |p, i|
+        arg = 0
+        b.arguments.each do |p|
           gen.push_literal(p)
-          gen.push_local(i)
+          gen.push_local(arg)
           gen.send(:matches?, 1)
           gen.gif(skip)
+
+          gen.push_literal(p)
+          gen.push_variables
+          gen.push_local(arg)
+          gen.send(:assign, 2)
+          gen.pop
+
+          arg += 1
+        end
+
+        b.default_arguments.each do |(p, d)|
+          default_local = gen.new_stack_local
+
+          has_value = gen.new_label
+          gen.push_literal(p)
+
+          gen.push_local(arg)
+          gen.dup
+          gen.goto_if_not_undefined(has_value)
+
+          gen.pop
+          gen.push_literal(d)
+          b.locals.each do |loc|
+            if local = gen.state.scope.search_local(loc)
+              local.get_bytecode(gen)
+            else
+              raise "impossible: undeclared local: #{loc}"
+            end
+          end
+          gen.send(:call, b.locals.size)
+
+          has_value.set!
+
+          gen.set_stack_local(default_local)
+          gen.send(:matches?, 1)
+          gen.gif(skip)
+
+          gen.push_literal(p)
+          gen.push_variables
+          gen.push_stack_local(default_local)
+          gen.send(:assign, 2)
+          gen.pop
+
+          arg += 1
         end
 
         if b.splat_argument
           gen.push_literal(b.splat_argument)
-          gen.push_local(splat_index)
+          gen.push_local(b.splat_index)
           gen.send(:matches?, 1)
           gen.gif(skip)
+
+          gen.push_literal(b.splat_argument)
+          gen.push_variables
+          gen.push_local(b.splat_index)
+          gen.send(:assign, 2)
+          gen.pop
+
+          arg += 1
+        end
+
+        b.post_arguments.each do |p|
+          gen.push_literal(p)
+          gen.push_local(arg)
+          gen.send(:matches?, 1)
+          gen.gif(skip)
+
+          gen.push_literal(p)
+          gen.push_variables
+          gen.push_local(arg)
+          gen.send(:assign, 2)
+          gen.pop
+
+          arg += 1
         end
 
         if b.proc_argument
@@ -208,33 +265,7 @@ module Atomy
           gen.push_proc
           gen.send(:matches?, 1)
           gen.gif(skip)
-        end
 
-        if b.receiver
-          gen.push_literal(b.receiver)
-          gen.push_variables
-          gen.push_self
-          gen.send(:assign, 2)
-          gen.pop
-        end
-
-        b.arguments.each.with_index do |p, i|
-          gen.push_literal(p)
-          gen.push_variables
-          gen.push_local(i)
-          gen.send(:assign, 2)
-          gen.pop
-        end
-
-        if b.splat_argument
-          gen.push_literal(b.splat_argument)
-          gen.push_variables
-          gen.push_local(splat_index)
-          gen.send(:assign, 2)
-          gen.pop
-        end
-
-        if b.proc_argument
           gen.push_literal(b.proc_argument)
           gen.push_variables
           gen.push_proc

@@ -9,14 +9,18 @@ describe "define kernel" do
 
   describe "method definition" do
     it "implements method definition using MessageStructure to determine everything" do
-      pending "this is janky"
       fake_structure = instance_double(
         "Atomy::MessageStruture",
         name: :some_name,
-        arguments: [ast("arg-1"), ast("arg-2")],
-        splat_argument: ast("some-splat"),
-        proc_argument: ast("some-block"),
         receiver: ast("SomeClass"),
+        arguments: [ast("arg-1"), ast("arg-2")],
+        default_arguments: [
+          Atomy::MessageStructure::DefaultArgument.new(ast("default-arg-1"), ast(".default-for-1")),
+          Atomy::MessageStructure::DefaultArgument.new(ast("default-arg-2"), ast(".default-for-2")),
+        ],
+        splat_argument: ast("some-splat"),
+        post_arguments: [ast("post-arg-1"), ast("post-arg-2")],
+        proc_argument: ast("some-block"),
       )
 
       allow(Atomy::MessageStructure).to receive(:new).and_call_original
@@ -27,10 +31,114 @@ describe "define kernel" do
 
       subject.evaluate(ast("
         def(some-method-definition):
-          some-block call(arg-1, arg-2, some-splat)
+          some-block call(arg-1, arg-2, default-arg-1, default-arg-2, some-splat, post-arg-1, post-arg-2)
       "), subject.compile_context)
 
-      expect(some_class.new.some_name(1, 2, 3, 4) { |a, b, c| [a, b, c] }).to eq([1, 2, [3, 4]])
+      expect(some_class.new.some_name(
+        :arg_1,
+        :arg_2,
+        :default_1,
+        :default_2,
+        :splat_a,
+        :splat_b,
+        :splat_c,
+        :post_1,
+        :post_2,
+      ) { |*args| args }).to eq([
+        :arg_1,
+        :arg_2,
+        :default_1,
+        :default_2,
+        [:splat_a, :splat_b, :splat_c],
+        :post_1,
+        :post_2,
+      ])
+
+      expect(some_class.new.some_name(
+        :arg_1,
+        :arg_2,
+        :post_1,
+        :post_2,
+      ) { |*args| args }).to eq([
+        :arg_1,
+        :arg_2,
+        :default_for_1,
+        :default_for_2,
+        [],
+        :post_1,
+        :post_2,
+      ])
+    end
+
+    describe "defaults" do
+      it "supports default arguments" do
+        subject.evaluate(seq("def(foo(a, b = 2)): [a, b]"), subject.compile_context)
+        expect(subject.foo(1)).to eq([1, 2])
+        expect(subject.foo(1, 3)).to eq([1, 3])
+      end
+
+      it "supports default arguments that close over the branch's scope" do
+        subject.evaluate(seq("x = 42, def(foo(a, b = x)): [a, b]"), subject.compile_context)
+        expect(subject.foo(1)).to eq([1, 42])
+        expect(subject.foo(1, 3)).to eq([1, 3])
+      end
+
+      it "supports default arguments that refer to each other" do
+        subject.evaluate(seq("def(foo(a, b = (a + 1))): [a, b]"), subject.compile_context)
+        expect(subject.foo(1)).to eq([1, 2])
+        expect(subject.foo(2)).to eq([2, 3])
+        expect(subject.foo(1, 3)).to eq([1, 3])
+      end
+
+      it "only evaluates the default once per invocation" do
+        subject.evaluate(seq("x = 0, def(foo(a, b = (x += 1))): [a, b]"), subject.compile_context)
+        expect(subject.foo(1)).to eq([1, 1])
+        expect(subject.foo(1)).to eq([1, 2])
+      end
+
+      it "does not evaluate the default if a value is given" do
+        subject.evaluate(seq("x = 0, def(foo(a, b = (x += 1))): [a, b]"), subject.compile_context)
+        expect(subject.foo(1)).to eq([1, 1])
+        expect(subject.foo(1, 30)).to eq([1, 30])
+        expect(subject.foo(1)).to eq([1, 2])
+      end
+
+      it "pattern-matches the given value" do
+        subject.evaluate(seq("x = 0, def(foo(a, 2 = (x += 1))): [a, x]"), subject.compile_context)
+        expect { subject.foo(1, 30) }.to raise_error(Atomy::MessageMismatch)
+        expect(subject.foo(1, 2)).to eq([1, 0])
+      end
+
+      it "pattern-matches the default value" do
+        subject.evaluate(seq("x = 0, def(foo(a, 2 = (x += 1))): [a, x]"), subject.compile_context)
+        expect { subject.foo(1) }.to raise_error(Atomy::MessageMismatch)
+        expect(subject.foo(1)).to eq([1, 2])
+        expect { subject.foo(1) }.to raise_error(Atomy::MessageMismatch)
+      end
+    end
+
+    describe "posts" do
+      it "supports post arguments after defaults" do
+        subject.evaluate(seq("def(foo(a, b = 2, c)): [a, b, c]"), subject.compile_context)
+        expect { subject.foo(1) }.to raise_error(ArgumentError)
+        expect(subject.foo(1, 3)).to eq([1, 2, 3])
+        expect(subject.foo(1, 42, 3)).to eq([1, 42, 3])
+      end
+
+      it "supports post arguments after splats" do
+        subject.evaluate(seq("def(foo(a, *bs, c)): [a, bs, c]"), subject.compile_context)
+        expect { subject.foo(1) }.to raise_error(ArgumentError)
+        expect(subject.foo(1, 2)).to eq([1, [], 2])
+        expect(subject.foo(1, 2, 3)).to eq([1, [2], 3])
+      end
+
+      it "supports post arguments after defaults and splats" do
+        subject.evaluate(seq("def(foo(a, b = 2, *cs, d)): [a, b, cs, d]"), subject.compile_context)
+        expect { subject.foo(1) }.to raise_error(ArgumentError)
+        expect(subject.foo(1, 3)).to eq([1, 2, [], 3])
+        expect(subject.foo(1, 42, 3)).to eq([1, 42, [], 3])
+        expect(subject.foo(1, 42, 43, 44, 3)).to eq([1, 42, [43, 44], 3])
+      end
     end
 
     it "closes over its scope" do
@@ -77,6 +185,77 @@ describe "define kernel" do
       expect {
         subject.evaluate(ast("fn(foo(a)): a + 1"), subject.compile_context)
       }.to_not change { subject.respond_to?(:foo) }
+    end
+
+    describe "defaults" do
+      it "supports default arguments" do
+        subject.evaluate(seq("fn(foo(a, b = 2)): [a, b]"))
+        expect(subject.evaluate(ast("foo(1)"))).to eq([1, 2])
+        expect(subject.evaluate(ast("foo(1, 3)"))).to eq([1, 3])
+      end
+
+      it "supports default arguments that close over the branch's scope" do
+        subject.evaluate(seq("x = 42, fn(foo(a, b = x)): [a, b]"))
+        expect(subject.evaluate(ast("foo(1)"))).to eq([1, 42])
+        expect(subject.evaluate(ast("foo(1, 3)"))).to eq([1, 3])
+      end
+
+      it "supports default arguments that refer to each other" do
+        subject.evaluate(seq("fn(foo(a, b = (a + 1))): [a, b]"))
+        expect(subject.evaluate(ast("foo(1)"))).to eq([1, 2])
+        expect(subject.evaluate(ast("foo(2)"))).to eq([2, 3])
+        expect(subject.evaluate(ast("foo(1, 3)"))).to eq([1, 3])
+      end
+
+      it "only evaluates the default once per invocation" do
+        subject.evaluate(seq("x = 0, fn(foo(a, b = (x += 1))): [a, b]"))
+        expect(subject.evaluate(ast("foo(1)"))).to eq([1, 1])
+        expect(subject.evaluate(ast("foo(1)"))).to eq([1, 2])
+      end
+
+      it "does not evaluate the default if a value is given" do
+        subject.evaluate(seq("x = 0, fn(foo(a, b = (x += 1))): [a, b]"))
+        expect(subject.evaluate(ast("foo(1)"))).to eq([1, 1])
+        expect(subject.evaluate(ast("foo(1, 30)"))).to eq([1, 30])
+        expect(subject.evaluate(ast("foo(1)"))).to eq([1, 2])
+      end
+
+      it "pattern-matches the given value" do
+        subject.evaluate(seq("x = 0, fn(foo(a, 2 = (x += 1))): [a, x]"))
+        expect { subject.evaluate(ast("foo(1, 30)")) }.to raise_error(Atomy::MessageMismatch)
+        expect(subject.evaluate(ast("foo(1, 2)"))).to eq([1, 0])
+      end
+
+      it "pattern-matches the default value" do
+        subject.evaluate(seq("x = 0, fn(foo(a, 2 = (x += 1))): [a, x]"))
+        expect { subject.evaluate(ast("foo(1)")) }.to raise_error(Atomy::MessageMismatch)
+        expect(subject.evaluate(ast("foo(1)"))).to eq([1, 2])
+        expect { subject.evaluate(ast("foo(1)")) }.to raise_error(Atomy::MessageMismatch)
+      end
+    end
+
+    describe "posts" do
+      it "supports post arguments after defaults" do
+        subject.evaluate(seq("fn(foo(a, b = 2, c)): [a, b, c]"))
+        expect { subject.evaluate(ast("foo(1)")) }.to raise_error(ArgumentError)
+        expect(subject.evaluate(ast("foo(1, 3)"))).to eq([1, 2, 3])
+        expect(subject.evaluate(ast("foo(1, 42, 3)"))).to eq([1, 42, 3])
+      end
+
+      it "supports post arguments after splats" do
+        subject.evaluate(seq("fn(foo(a, *bs, c)): [a, bs, c]"))
+        expect { subject.evaluate(ast("foo(1)")) }.to raise_error(ArgumentError)
+        expect(subject.evaluate(ast("foo(1, 2)"))).to eq([1, [], 2])
+        expect(subject.evaluate(ast("foo(1, 2, 3)"))).to eq([1, [2], 3])
+      end
+
+      it "supports post arguments after defaults and splats" do
+        subject.evaluate(seq("fn(foo(a, b = 2, *cs, d)): [a, b, cs, d]"))
+        expect { subject.evaluate(ast("foo(1)")) }.to raise_error(ArgumentError)
+        expect(subject.evaluate(ast("foo(1, 3)"))).to eq([1, 2, [], 3])
+        expect(subject.evaluate(ast("foo(1, 42, 3)"))).to eq([1, 42, [], 3])
+        expect(subject.evaluate(ast("foo(1, 42, 43, 44, 3)"))).to eq([1, 42, [43, 44], 3])
+      end
     end
 
     MESSAGE_FORMS.each do |form|
