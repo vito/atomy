@@ -17,7 +17,13 @@ pattern(~receiver [~*arguments]):
   Atomy Code Pattern new(`(//Atomy Pattern Index new(~receiver, [~*arguments])), [])
 
 pattern(@~(name & Word)):
-  Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new('~name text)), [])
+  Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new(.~name)), [])
+
+pattern(@(~(name & Word))?):
+  Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new(~(Atomy Code Symbol new((name text to-s + "?") to-sym)))), [])
+
+pattern(@(~(name & Word))!):
+  Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new(~(Atomy Code Symbol new((name text to-s + "!") to-sym)))), [])
 
 pattern($~(name & Word)):
   pattern(`(//Rubinius Globals[~(Atomy Code Symbol new(("$" + name text to-s) to-sym))]))

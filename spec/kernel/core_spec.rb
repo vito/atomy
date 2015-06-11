@@ -139,6 +139,16 @@ describe "core kernel" do
     expect(subject.evaluate(ast("@foo"))).to eq(1)
   end
 
+  it "implements instance variable access with names ending in !" do
+    instance_variable_set(:"@foo!", 1)
+    expect(subject.evaluate(ast("@foo!"))).to eq(1)
+  end
+
+  it "implements instance variable access with names ending in ?" do
+    instance_variable_set(:"@foo?", 1)
+    expect(subject.evaluate(ast("@foo?"))).to eq(1)
+  end
+
   it "implements global variable access" do
     $foo = 1
     expect(subject.evaluate(ast("$foo"))).to eq(1)

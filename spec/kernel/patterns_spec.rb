@@ -37,6 +37,16 @@ describe "patterns kernel" do
     expect(@foo).to eq(42)
   end
 
+  it "defines a pattern for setting instance variables ending in ?" do
+    expect(subject.evaluate(ast("@foo? = 42"))).to eq(42)
+    expect(instance_variable_get(:"@foo?")).to eq(42)
+  end
+
+  it "defines a pattern for setting instance variables ending in !" do
+    expect(subject.evaluate(ast("@foo! = 42"))).to eq(42)
+    expect(instance_variable_get(:"@foo!")).to eq(42)
+  end
+
   it "defines a pattern for setting global variables" do
     expect(subject.evaluate(ast("$foo = 42"))).to eq(42)
     expect($foo).to eq(42)
