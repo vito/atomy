@@ -1,0 +1,6 @@
+use(require("core"))
+use(require("patterns"))
+
+pattern(~x . ~ys): pattern(`[~x, *~ys])
+
+macro(~x . ~ys): `([~x] + ~ys)
