@@ -63,6 +63,10 @@ macro(//~(name & Constant)):
 macro(@~(name & Word)):
   Atomy Code InstanceVariable new(name text)
 
+-- accessing global variables
+macro($~(name & Word)):
+  `(//Rubinius Globals[~(Atomy Code Symbol new(("$" + name text to-s) to-sym))])
+
 -- foo! access/sending
 macro((~(msg & Word))!):
   Atomy Code Variable new((msg text to-s + "!") to-sym)

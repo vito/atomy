@@ -139,6 +139,13 @@ describe "core kernel" do
     expect(subject.evaluate(ast("@foo"))).to eq(1)
   end
 
+  it "implements global variable access" do
+    $foo = 1
+    expect(subject.evaluate(ast("$foo"))).to eq(1)
+    $foo = 2
+    expect(subject.evaluate(ast("$foo"))).to eq(2)
+  end
+
   describe "assignment" do
     context "with =" do
       it "implements local variable assignment notation" do
