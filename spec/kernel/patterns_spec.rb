@@ -72,6 +72,31 @@ describe "patterns kernel" do
     expect { subject.evaluate(seq("with(@foo, a & 2) = x, a")) }.to raise_error(Atomy::PatternMismatch)
   end
 
+  describe "predicate patterns" do
+    it "defines a block pattern for evaluating a boolean expression on the value" do
+      klass = Class.new { attr_accessor :foo }
+      x = klass.new
+
+      x.foo = 1
+      subject.evaluate(seq("{ @foo == 1 } = x"))
+
+      x.foo = 2
+      expect { subject.evaluate(seq("{ @foo == 1 } = x")) }.to raise_error(Atomy::PatternMismatch)
+    end
+
+    it "defines on Object when the target of a definition" do
+      subject.evaluate(seq("def({ even? } whoa-even?): true"))
+      subject.evaluate(seq("def({ odd? } whoa-even?): false"))
+      subject.evaluate(seq("def({ maybe_even? } whoa-even?): .maybe"))
+
+      expect(1.whoa_even?).to eq(false)
+      expect(2.whoa_even?).to eq(true)
+
+      maybe_even = double(:even? => false, :odd? => false, :maybe_even? => true)
+      expect(maybe_even.whoa_even?).to eq(:maybe)
+    end
+  end
+
   describe "list patterns" do
     it "succeeds in a basic equality case" do
       expect(subject.evaluate(ast("[1, 2, 3] = [1, 2, 3]"))).to eq([1, 2, 3])

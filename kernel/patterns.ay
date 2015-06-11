@@ -57,6 +57,22 @@ pattern(with(~expr, ~pat)):
     `(//Atomy Pattern With new({ ~expr }, ~sub-pattern))
     sub-pattern locals)
 
+pred-pattern = Atomy Pattern class:
+  def(initialize(@block)) {}
+
+  def(matches?(val)):
+    @block call-on-object(val)
+
+  def(target):
+    Object
+
+Atomy Pattern const-set(.Predicate, pred-pattern)
+
+pattern({ ~*pred-body }):
+  Atomy Code Pattern new(
+    `(//Atomy Pattern Predicate new({ ~*pred-body }))
+    [])
+
 list-pattern = Atomy Pattern class:
   def(initialize(patterns)):
     @patterns = []
