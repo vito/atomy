@@ -51,6 +51,13 @@ describe "data kernel" do
         "), subject.compile_context)).to eq(attrs.values)
       end
 
+      it "can be the target of a definition" do
+        pats = attrs.keys.collect(&:to_s).join(", ")
+        subject.evaluate(ast("def(#{klass}(#{pats}) some-method): .ok"), subject.compile_context)
+        expect(defined_klass.new(*attrs.values).some_method).to eq(:ok)
+        expect(Object.new).to_not respond_to(:some_method)
+      end
+
       unless attrs.empty?
         context "when infinitely recursive" do
           it "pretty-prints with dots at the recursion point" do
