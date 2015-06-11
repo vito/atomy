@@ -1,0 +1,177 @@
+use(require("core"))
+define = use(require("define"))
+use(require("data"))
+use(require("control-flow"))
+use(require("interpolation"))
+use(require("patterns"))
+
+use(require("dynamic"))
+
+io = use(require("io"))
+loaded-pretty = nil
+fn(pretty): loaded-pretty =! (loaded-pretty || require("pretty"))
+
+require("atomy/message_structure")
+
+data(Handler(@callback, @rest)):
+  BaseHandler()
+
+-- registered handlers/restarts
+const-set(.ConditionHandlers, dynamic(BaseHandler new))
+const-set(.ConditionRestarts, dynamic([]))
+
+fn(catcher(x)): ."restart:#{Atomy MessageStructure new(x) name}"
+
+data(Restart(@name, @action))
+
+def(Restart invoke(*args)):
+  throw(."restart:#{@name}", @action [*args])
+
+data(Condition):
+  Error(@backtrace):
+    SimpleError(@value)
+    ExceptionError(@exception)
+    NoRestartError(@restart)
+    PortError(@port):
+      EndOfFile
+
+  Warning(@backtrace):
+    SimpleWarning(@value)
+
+def(Condition name): class name
+
+def(ExceptionError name): @exception class name
+
+def(Condition message): inspect
+
+def(SimpleError(s & String) message): s
+def(SimpleError(v) message): pretty show(v)
+
+def(SimpleWarning(s & String) message): s
+def(SimpleWarning(v) message): pretty show(v)
+
+def(ExceptionError message): @exception message
+
+def(NoRestartError message): "unknown restart " + pretty show(@restart)
+
+def(EndOfFile message): "unexpected end-of-file for " + pretty show(@port)
+
+
+macro(~body bind: ~*handlers):
+  callback = `([signalled-condition]: signalled-condition match: ~*handlers)
+
+  `(with(ConditionHandlers = Handler new(~callback, ^ConditionHandlers)):
+      ~body rescue:
+        (e & StandardError): /error(e))
+
+
+macro(with-restarts(~*restarts): ~*body):
+  branches = restarts collect [`(~name: ~*body)]:
+    [name, `(do: ~*body)]
+
+  rs = branches collect [[n, e]]:
+    structure = Atomy MessageStructure new(n)
+
+    `(Restart new(
+        ~(Atomy Code Symbol new(structure name))
+        [~*(structure arguments)] &~(structure proc-argument || 'nil) { ~e }))
+
+  with =
+    branches reduce(`{ { ~*body } rescue: (e & StandardError): /error(e) })
+      [x, [name, _]]:
+        `{ catch(~(Atomy Code Symbol new(catcher(name)))) ~x }
+
+  `(with(ConditionRestarts = ([~*rs] + ^ConditionRestarts)) ~with)
+
+
+def(restart(name, *args)):
+  ^ConditionRestarts each [r]:
+    when(r name == name):
+      r invoke(*args)
+
+  error(NoRestartError new(name))
+
+
+def(BaseHandler signal(_)): nil
+def(Handler(callback, rest) signal(c)):
+  with(ConditionHandlers = rest):
+    callback [c]
+    rest signal(c)
+
+def(signal(c)): ^ConditionHandlers signal(c)
+
+def(error(x)):
+  e =
+    x match:
+      Exception:
+        ExceptionError new(x) tap [err]:
+          err backtrace = x locations
+
+      Error: x
+
+      _: SimpleError new(x)
+
+  unless(e backtrace):
+    e backtrace = Rubinius VM backtrace(1, true)
+
+  signal(e)
+
+  with-output-to(^(io ErrorPort)):
+    ^Debugger new(e) run
+
+
+def(warning(x)):
+  with-restarts(muffle-warning: nil):
+    w =
+      x match:
+        Warning: x
+
+        _: SimpleWarning new(x)
+
+    w backtrace = Rubinius VM backtrace(1, true)
+
+    signal(w)
+
+    with-output-to(^(io ErrorPort)):
+      puts(i"#{w name}: #{w message}")
+
+    nil
+
+
+data(DefaultDebugger(@error))
+
+def(DefaultDebugger(e) show-banner):
+  puts("An error occurred:")
+
+  [msg, *desc] = e message to-s split("\n")
+
+  puts(i"    #{msg} (#{e name})")
+
+  desc each [l]:
+    puts(l)
+
+def(DefaultDebugger(e) show-restarts):
+  puts("")
+  puts("restarts:")
+  ^ConditionRestarts each-with-index [r, i]:
+    puts(i"  :#{i} -> #{r name}")
+
+def(DefaultDebugger(e) show-backtrace):
+  puts(Atomy Backtrace backtrace(e backtrace) show)
+
+def(DefaultDebugger(e) run):
+  show-banner
+
+  if(^ConditionRestarts empty?)
+    then:
+      puts("")
+      puts("Backtrace:")
+      show-backtrace
+      exit(1)
+    else:
+      show-restarts
+
+      print("!> ")
+      ^ConditionRestarts [gets to-i] invoke
+
+const-set(.Debugger, dynamic(DefaultDebugger))

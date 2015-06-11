@@ -1,0 +1,70 @@
+use(require("core"))
+use(require("define"))
+use(require("control-flow"))
+
+use(require("dynamic"))
+
+const-set(.OutputPort, dynamic(STDOUT))
+const-set(.InputPort, dynamic(STDIN))
+const-set(.ErrorPort, dynamic(STDERR))
+
+def(puts(x)): x tap: ^OutputPort puts(x)
+def(print(x)): x tap: ^OutputPort print(x)
+
+def(with-output-to(filename & String, mode = "w") &action):
+  with(OutputPort = File open(filename, mode)):
+    action ensuring:
+      ^OutputPort close
+
+def(with-output-to(io) &action):
+  with(OutputPort = io):
+    action call
+
+def(with-error-to(filename & String, mode = "w") &action):
+  with(ErrorPort = File open(filename, mode)):
+    action ensuring:
+      ^ErrorPort close
+
+def(with-error-to(io) &action):
+  with(ErrorPort = io):
+    action call
+
+macro($separator): '(Rubinius Globals [."$/"])
+
+def(read-line(sep = $separator)):
+  x = ^InputPort gets(sep)
+
+  unless(x):
+    error(EndOfFile new(^InputPort))
+
+  x
+
+def(read-lines(sep = $separator)):
+  x = ^InputPort readlines(sep)
+
+  unless(x):
+    error(EndOfFile new(^InputPort))
+
+  x
+
+def(read-byte):
+  x = ^InputPort getc
+
+  unless(x):
+    error(EndOfFile new(^InputPort))
+
+  x
+
+def(read-char): read-byte chr
+
+def(read(length = nil, buffer = nil)):
+  ^InputPort read(length, buffer)
+
+def(with-input-from(filename & String, mode = "r") &action):
+  with(InputPort = File open(filename, mode)):
+    action ensuring:
+      ^InputPort close
+
+def(with-input-from(io) &action):
+  with(InputPort = io):
+    action call
