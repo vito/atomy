@@ -208,17 +208,7 @@ Atomy Grammar AST open:
               text(b operator) </> unamb(b right)
         ) hang(2)
 
-    def(doc(b & Block)):
-      block-arg =
-        if(b block)
-          then: doc(`&~(b block))
-          else: empty
-
-      braces-block(
-        b contents
-        if(b arguments empty?)
-          then: block-arg
-          else: list(render-sequence(b arguments)) <+> block-arg)
+    def(doc(b & Block)): braces-block(b nodes)
 
     def(doc(a & Apply)):
       from(.apply) { unamb(a node) } <> tupled(render-sequence(a arguments))
@@ -260,17 +250,17 @@ Atomy Grammar AST open:
 
     def(doc(q & QuasiQuote)):
       from(.prefix):
-        text("`") <> unamb(q expression)
+        text("`") <> unamb(q node)
 
     def(doc(q & Quote)):
       from(.prefix):
-        text("'") <> unamb(q expression)
+        text("'") <> unamb(q node)
 
     def(doc(s & StringLiteral)): text(s value inspect gsub("\\#", "#"))
 
     def(doc(u & Unquote)):
       from(.prefix):
-        text("~") <> unamb(u expression)
+        text("~") <> unamb(u node)
 
     def(doc(w & Word)): ident(w text to-s)
 
