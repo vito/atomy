@@ -31,6 +31,12 @@ pattern($~(name & Word)):
 pattern(nil):
   Atomy Code Pattern new(`(//Atomy Pattern Equality new(nil)), [])
 
+pattern(true):
+  Atomy Code Pattern new(`(//Atomy Pattern Equality new(true)), [])
+
+pattern(false):
+  Atomy Code Pattern new(`(//Atomy Pattern Equality new(false)), [])
+
 pattern(~a | ~b):
   a-pattern = pattern(a)
   b-pattern = pattern(b)
