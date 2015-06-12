@@ -17,8 +17,8 @@ data(Handler(@callback, @rest)):
   BaseHandler()
 
 -- registered handlers/restarts
-const-set(.ConditionHandlers, dynamic(BaseHandler new))
-const-set(.ConditionRestarts, dynamic([]))
+const-set(.Handlers, dynamic(BaseHandler new))
+const-set(.Restarts, dynamic([]))
 
 fn(catcher(x)): ."restart:#{Atomy MessageStructure new(x) name}"
 
@@ -60,9 +60,9 @@ def(EndOfFile message): "unexpected end-of-file for " + pretty show(@port)
 macro(~body bind: ~*handlers):
   callback = `([signalled-condition]: signalled-condition match: ~*handlers)
 
-  `(with(ConditionHandlers = Handler new(~callback, ^ConditionHandlers)):
+  `(with(Handlers = Handler new(~callback, ^Handlers)):
       ~body rescue:
-        (e & StandardError): /error(e))
+        (e & StandardError): Self error(e))
 
 
 macro(with-restarts(~*restarts): ~*body):
@@ -77,15 +77,15 @@ macro(with-restarts(~*restarts): ~*body):
         [~*(structure arguments)] &~(structure proc-argument || 'nil) { ~e }))
 
   with =
-    branches reduce(`{ { ~*body } rescue: (e & StandardError): /error(e) })
+    branches reduce(`{ do { ~*body } rescue: (e & StandardError): Self error(e) })
       [x, [name, _]]:
         `{ catch(~(Atomy Code Symbol new(catcher(name)))) ~x }
 
-  `(with(ConditionRestarts = ([~*rs] + ^ConditionRestarts)) ~with)
+  `(with(Restarts = ([~*rs] + ^Restarts)) ~with)
 
 
 def(restart(name, *args)):
-  ^ConditionRestarts each [r]:
+  ^Restarts each [r]:
     when(r name == name):
       r invoke(*args)
 
@@ -94,11 +94,11 @@ def(restart(name, *args)):
 
 def(BaseHandler signal(_)): nil
 def(Handler(callback, rest) signal(c)):
-  with(ConditionHandlers = rest):
+  with(Handlers = rest):
     callback [c]
     rest signal(c)
 
-def(signal(c)): ^ConditionHandlers signal(c)
+def(signal(c)): ^Handlers signal(c)
 
 def(error(x)):
   e =
@@ -153,16 +153,16 @@ def(DefaultDebugger(e) show-banner):
 def(DefaultDebugger(e) show-restarts):
   puts("")
   puts("restarts:")
-  ^ConditionRestarts each-with-index [r, i]:
+  ^Restarts each-with-index [r, i]:
     puts(i"  :#{i} -> #{r name}")
 
 def(DefaultDebugger(e) show-backtrace):
-  puts(Atomy Backtrace backtrace(e backtrace) show)
+  puts(Rubinius Backtrace backtrace(e backtrace) show)
 
 def(DefaultDebugger(e) run):
   show-banner
 
-  if(^ConditionRestarts empty?)
+  if(^Restarts empty?)
     then:
       puts("")
       puts("Backtrace:")
@@ -172,6 +172,6 @@ def(DefaultDebugger(e) run):
       show-restarts
 
       print("!> ")
-      ^ConditionRestarts [gets to-i] invoke
+      ^Restarts [gets to-i] invoke
 
 const-set(.Debugger, dynamic(DefaultDebugger))
