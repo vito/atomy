@@ -268,7 +268,7 @@ describe Atomy::Module do
             case node
             when Atomy::Grammar::AST::Word
               if node.text == :self
-                return ast(".foo")
+                return Atomy::Grammar::AST::Prefix.new(Atomy::Grammar::AST::Word.new(:foo), :".")
               end
             when Atomy::Grammar::AST::Prefix
               if node.node.is_a?(Atomy::Grammar::AST::Word)

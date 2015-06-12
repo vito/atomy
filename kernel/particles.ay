@@ -81,7 +81,7 @@ Atomy Pattern open:
 
   def(Particle matches?(value)):
     when(value is-a?(Symbol)):
-      value =! particle-klass new(undefined, value, [])
+      value =! particle-klass new(_, value, [])
 
     unless(value is-a?(particle-klass)):
       return(false)
@@ -96,7 +96,7 @@ Atomy Pattern open:
 
   def(Particle assign(scope, value)):
     when(value is-a?(Symbol)):
-      value =! particle-klass new(undefined, value, [])
+      value =! particle-klass new(_, value, [])
 
     @receiver assign(scope, value receiver)
     @arguments assign(scope, value arguments)

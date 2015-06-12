@@ -3,7 +3,7 @@ require "spec_helper"
 require "atomy/codeloader"
 
 describe "array kernel" do
-  subject { Atomy::Module.new { use(require_kernel("array")) } }
+  subject { Atomy::Module.new { use(require("array")) } }
 
   it "implements array consing syntax" do
     expect(subject.evaluate(ast('1 . [2, 3]'))).to eq([1, 2, 3])

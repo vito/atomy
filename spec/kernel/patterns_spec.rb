@@ -12,7 +12,7 @@ module PatternsKernelModule
 end
 
 describe "patterns kernel" do
-  subject { Atomy::Module.new { use(require_kernel("patterns")) } }
+  subject { Atomy::Module.new { use(require("patterns")) } }
 
   it "defines a pattern for nested consts" do
     expect(subject.evaluate(ast("PatternsKernelModule Blah = PatternsKernelModule Blah new"))).to be_a(PatternsKernelModule::Blah)

@@ -3,7 +3,7 @@ require "spec_helper"
 require "atomy/codeloader"
 
 describe "let-macro kernel" do
-  subject { Atomy::Module.new { use(require_kernel("let-macro")) } }
+  subject { Atomy::Module.new { use(require("let-macro")) } }
 
   it "defines the given macros for the duration of the body" do
     expect(subject.evaluate(seq(<<EOF))).to eq([5, 4])

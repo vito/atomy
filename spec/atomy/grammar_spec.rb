@@ -84,7 +84,7 @@ describe Atomy::Grammar do
   end
 
   describe "node location tracking" do
-    NODE_SAMPLES.each do |node, sample|
+    SpecHelpers::NODE_SAMPLES.each do |node, sample|
       describe node do
         it "has line information" do
           raise "No sample for #{node}" unless sample

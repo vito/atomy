@@ -3,7 +3,7 @@ require "spec_helper"
 require "atomy/codeloader"
 
 describe "interpolation kernel" do
-  subject { Atomy::Module.new { use(require_kernel("interpolation")) } }
+  subject { Atomy::Module.new { use(require("interpolation")) } }
 
   it "implements string interpolation literals" do
     expect(subject.evaluate(ast('i"foo bar"'))).to eq("foo bar")

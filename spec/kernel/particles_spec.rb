@@ -3,7 +3,7 @@ require "spec_helper"
 require "atomy/codeloader"
 
 describe "particles kernel" do
-  let!(:particles) { Atomy::Module.new { use(require_kernel("particles")) } }
+  let!(:particles) { Atomy::Module.new { use(require("particles")) } }
 
   it "defines literal syntax for .[a, b]" do
     expect(particles.evaluate(ast(".[1, _]"), particles.compile_context)).to eq(particles::Particle.new(undefined, :[], [1, undefined]))

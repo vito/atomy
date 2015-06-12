@@ -5,7 +5,7 @@ require "atomy/message_structure"
 require "atomy/node/equality"
 
 describe "define kernel" do
-  subject { Atomy::Module.new { use(require_kernel("define")) } }
+  subject { Atomy::Module.new { use(require("define")) } }
 
   describe "method definition" do
     it "implements method definition using MessageStructure to determine everything" do
@@ -267,7 +267,7 @@ describe "define kernel" do
       end
     end
 
-    MESSAGE_FORMS.each do |form|
+    SpecHelpers::MESSAGE_FORMS.each do |form|
       node = ast(form)
 
       structure = Atomy::MessageStructure.new(node)

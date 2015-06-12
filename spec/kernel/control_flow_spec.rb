@@ -3,7 +3,7 @@ require "spec_helper"
 require "atomy/codeloader"
 
 describe "control-flow kernel" do
-  subject { Atomy::Module.new { use(require_kernel("control-flow")) } }
+  subject { Atomy::Module.new { use(require("control-flow")) } }
 
   describe "a && b" do
     context "when a is truthy" do

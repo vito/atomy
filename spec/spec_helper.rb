@@ -10,157 +10,176 @@ require "rubinius/compiler"
 
 require "rspec/its"
 
-def undefined
-  Rubinius.asm do
-    set_line(0)
-    push_undef
+module SpecHelpers
+  def undefined
+    Rubinius.asm do
+      set_line(0)
+      push_undef
+    end
+  end
+
+  def wildcard(name = nil)
+    Atomy::Pattern::Wildcard.new(name)
+  end
+
+  def equality(value)
+    Atomy::Pattern::Equality.new(value)
+  end
+
+  ALL_NODES = {}
+  Atomy::Grammar::AST.constants.each do |name|
+    next if [:Node, :Sequence].include?(name)
+
+    node = Atomy::Grammar::AST.const_get(name)
+    ALL_NODES[node] = nil
+  end
+
+  NODE_SAMPLES =
+    ALL_NODES.merge(
+      Atomy::Grammar::AST::Number => "1",
+      Atomy::Grammar::AST::Literal => "1.0",
+      Atomy::Grammar::AST::Quote => "'1",
+      Atomy::Grammar::AST::QuasiQuote => "`1",
+      Atomy::Grammar::AST::Unquote => "~1",
+      Atomy::Grammar::AST::Constant => "A",
+      Atomy::Grammar::AST::Word => "a",
+      Atomy::Grammar::AST::Prefix => "!a",
+      Atomy::Grammar::AST::Postfix => "a!",
+      Atomy::Grammar::AST::Infix => "a + b",
+      Atomy::Grammar::AST::Block => "{}",
+      Atomy::Grammar::AST::List => "[]",
+      Atomy::Grammar::AST::Compose => "a b",
+      Atomy::Grammar::AST::Apply => "a()",
+      Atomy::Grammar::AST::StringLiteral => '"foo"')
+
+    MESSAGE_FORMS = [
+      "message-name",
+      "message-name!",
+      "message-name?",
+      "message-name &proc-arg",
+      "message-name! &proc-arg",
+      "message-name? &proc-arg",
+      "message-name: block-body",
+      "message-name!: block-body",
+      "message-name?: block-body",
+      "message-name [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "message-name! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "message-name? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "message-name(arg-1, arg-2)",
+      "message-name(arg-1, arg-2, *splat-args)",
+      "message-name!(arg-1, arg-2)",
+      "message-name?(arg-1, arg-2)",
+      "message-name(arg-1, arg-2) &proc-arg",
+      "message-name!(arg-1, arg-2) &proc-arg",
+      "message-name?(arg-1, arg-2) &proc-arg",
+      "message-name(arg-1, arg-2): block-body",
+      "message-name!(arg-1, arg-2): block-body",
+      "message-name?(arg-1, arg-2): block-body",
+      "message-name(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "message-name!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "message-name?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver message-name",
+      "receiver message-name!",
+      "receiver message-name?",
+      "receiver message-name &proc-arg",
+      "receiver message-name! &proc-arg",
+      "receiver message-name? &proc-arg",
+      "receiver message-name: block-body",
+      "receiver message-name!: block-body",
+      "receiver message-name?: block-body",
+      "receiver message-name [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver message-name! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver message-name? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver message-name(arg-1, arg-2)",
+      "receiver message-name(arg-1, arg-2, *splat-args)",
+      "receiver message-name!(arg-1, arg-2)",
+      "receiver message-name?(arg-1, arg-2)",
+      "receiver message-name(arg-1, arg-2) &proc-arg",
+      "receiver message-name!(arg-1, arg-2) &proc-arg",
+      "receiver message-name?(arg-1, arg-2) &proc-arg",
+      "receiver message-name(arg-1, arg-2): block-body",
+      "receiver message-name!(arg-1, arg-2): block-body",
+      "receiver message-name?(arg-1, arg-2): block-body",
+      "receiver message-name(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver message-name!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver message-name?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "^receiver",
+      "MessageName!",
+      "MessageName?",
+      "MessageName &proc-arg",
+      "MessageName! &proc-arg",
+      "MessageName? &proc-arg",
+      "MessageName: block-body",
+      "MessageName!: block-body",
+      "MessageName?: block-body",
+      "MessageName [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "MessageName! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "MessageName? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "MessageName(arg-1, arg-2)",
+      "MessageName(arg-1, arg-2, *splat-args)",
+      "MessageName!(arg-1, arg-2)",
+      "MessageName?(arg-1, arg-2)",
+      "MessageName(arg-1, arg-2) &proc-arg",
+      "MessageName!(arg-1, arg-2) &proc-arg",
+      "MessageName?(arg-1, arg-2) &proc-arg",
+      "MessageName(arg-1, arg-2): block-body",
+      "MessageName!(arg-1, arg-2): block-body",
+      "MessageName?(arg-1, arg-2): block-body",
+      "MessageName(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "MessageName!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "MessageName?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver MessageName!",
+      "receiver MessageName?",
+      "receiver MessageName &proc-arg",
+      "receiver MessageName! &proc-arg",
+      "receiver MessageName? &proc-arg",
+      "receiver MessageName: block-body",
+      "receiver MessageName!: block-body",
+      "receiver MessageName?: block-body",
+      "receiver MessageName [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver MessageName! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver MessageName? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver MessageName(arg-1, arg-2)",
+      "receiver MessageName(arg-1, arg-2, *splat-args)",
+      "receiver MessageName!(arg-1, arg-2)",
+      "receiver MessageName?(arg-1, arg-2)",
+      "receiver MessageName(arg-1, arg-2) &proc-arg",
+      "receiver MessageName!(arg-1, arg-2) &proc-arg",
+      "receiver MessageName?(arg-1, arg-2) &proc-arg",
+      "receiver MessageName(arg-1, arg-2): block-body",
+      "receiver MessageName!(arg-1, arg-2): block-body",
+      "receiver MessageName?(arg-1, arg-2): block-body",
+      "receiver MessageName(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver MessageName!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+      "receiver MessageName?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
+    ]
+
+  SPEC_ROOT = File.dirname(__FILE__)
+
+  def fixture(path)
+    "#{SPEC_ROOT}/fixtures/#{path}"
+  end
+
+  def ast(str)
+    g = Atomy::Grammar.new(str)
+    g.raise_error unless g.parse("one_expression")
+    g.result
+  end
+
+  def seq(str)
+    g = Atomy::Grammar.new(str)
+    g.raise_error unless g.parse("root")
+    g.result
   end
 end
-
-def wildcard(name = nil)
-  Atomy::Pattern::Wildcard.new(name)
-end
-
-def equality(value)
-  Atomy::Pattern::Equality.new(value)
-end
-
-
-ALL_NODES = {}
-Atomy::Grammar::AST.constants.each do |name|
-  next if [:Node, :Sequence].include?(name)
-
-  node = Atomy::Grammar::AST.const_get(name)
-  ALL_NODES[node] = nil
-end
-
-NODE_SAMPLES =
-  ALL_NODES.merge(
-    Atomy::Grammar::AST::Number => "1",
-    Atomy::Grammar::AST::Literal => "1.0",
-    Atomy::Grammar::AST::Quote => "'1",
-    Atomy::Grammar::AST::QuasiQuote => "`1",
-    Atomy::Grammar::AST::Unquote => "~1",
-    Atomy::Grammar::AST::Constant => "A",
-    Atomy::Grammar::AST::Word => "a",
-    Atomy::Grammar::AST::Prefix => "!a",
-    Atomy::Grammar::AST::Postfix => "a!",
-    Atomy::Grammar::AST::Infix => "a + b",
-    Atomy::Grammar::AST::Block => "{}",
-    Atomy::Grammar::AST::List => "[]",
-    Atomy::Grammar::AST::Compose => "a b",
-    Atomy::Grammar::AST::Apply => "a()",
-    Atomy::Grammar::AST::StringLiteral => '"foo"')
-
-MESSAGE_FORMS = [
-  "message-name",
-  "message-name!",
-  "message-name?",
-  "message-name &proc-arg",
-  "message-name! &proc-arg",
-  "message-name? &proc-arg",
-  "message-name: block-body",
-  "message-name!: block-body",
-  "message-name?: block-body",
-  "message-name [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "message-name! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "message-name? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "message-name(arg-1, arg-2)",
-  "message-name(arg-1, arg-2, *splat-args)",
-  "message-name!(arg-1, arg-2)",
-  "message-name?(arg-1, arg-2)",
-  "message-name(arg-1, arg-2) &proc-arg",
-  "message-name!(arg-1, arg-2) &proc-arg",
-  "message-name?(arg-1, arg-2) &proc-arg",
-  "message-name(arg-1, arg-2): block-body",
-  "message-name!(arg-1, arg-2): block-body",
-  "message-name?(arg-1, arg-2): block-body",
-  "message-name(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "message-name!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "message-name?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver message-name",
-  "receiver message-name!",
-  "receiver message-name?",
-  "receiver message-name &proc-arg",
-  "receiver message-name! &proc-arg",
-  "receiver message-name? &proc-arg",
-  "receiver message-name: block-body",
-  "receiver message-name!: block-body",
-  "receiver message-name?: block-body",
-  "receiver message-name [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver message-name! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver message-name? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver message-name(arg-1, arg-2)",
-  "receiver message-name(arg-1, arg-2, *splat-args)",
-  "receiver message-name!(arg-1, arg-2)",
-  "receiver message-name?(arg-1, arg-2)",
-  "receiver message-name(arg-1, arg-2) &proc-arg",
-  "receiver message-name!(arg-1, arg-2) &proc-arg",
-  "receiver message-name?(arg-1, arg-2) &proc-arg",
-  "receiver message-name(arg-1, arg-2): block-body",
-  "receiver message-name!(arg-1, arg-2): block-body",
-  "receiver message-name?(arg-1, arg-2): block-body",
-  "receiver message-name(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver message-name!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver message-name?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "^receiver",
-  "MessageName!",
-  "MessageName?",
-  "MessageName &proc-arg",
-  "MessageName! &proc-arg",
-  "MessageName? &proc-arg",
-  "MessageName: block-body",
-  "MessageName!: block-body",
-  "MessageName?: block-body",
-  "MessageName [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "MessageName! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "MessageName? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "MessageName(arg-1, arg-2)",
-  "MessageName(arg-1, arg-2, *splat-args)",
-  "MessageName!(arg-1, arg-2)",
-  "MessageName?(arg-1, arg-2)",
-  "MessageName(arg-1, arg-2) &proc-arg",
-  "MessageName!(arg-1, arg-2) &proc-arg",
-  "MessageName?(arg-1, arg-2) &proc-arg",
-  "MessageName(arg-1, arg-2): block-body",
-  "MessageName!(arg-1, arg-2): block-body",
-  "MessageName?(arg-1, arg-2): block-body",
-  "MessageName(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "MessageName!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "MessageName?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver MessageName!",
-  "receiver MessageName?",
-  "receiver MessageName &proc-arg",
-  "receiver MessageName! &proc-arg",
-  "receiver MessageName? &proc-arg",
-  "receiver MessageName: block-body",
-  "receiver MessageName!: block-body",
-  "receiver MessageName?: block-body",
-  "receiver MessageName [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver MessageName! [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver MessageName? [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver MessageName(arg-1, arg-2)",
-  "receiver MessageName(arg-1, arg-2, *splat-args)",
-  "receiver MessageName!(arg-1, arg-2)",
-  "receiver MessageName?(arg-1, arg-2)",
-  "receiver MessageName(arg-1, arg-2) &proc-arg",
-  "receiver MessageName!(arg-1, arg-2) &proc-arg",
-  "receiver MessageName?(arg-1, arg-2) &proc-arg",
-  "receiver MessageName(arg-1, arg-2): block-body",
-  "receiver MessageName!(arg-1, arg-2): block-body",
-  "receiver MessageName?(arg-1, arg-2): block-body",
-  "receiver MessageName(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver MessageName!(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-  "receiver MessageName?(arg-1, arg-2) [block-arg-1, block-arg-2]: [block-arg-1, block-arg-2]",
-]
 
 RSpec.configure do |c|
   unless ENV["TRAVIS_BUILD_ID"]
     c.filter_run_excluding :slow => true
+    c.include SpecHelpers
+    c.extend SpecHelpers
   end
 end
-
-SPEC_ROOT = File.dirname(__FILE__)
 
 CodeTools::Generator.class_eval do
   def debug(str)
@@ -177,14 +196,6 @@ CodeTools::Generator.class_eval do
   end
 end
 
-def fixture(path)
-  "#{SPEC_ROOT}/fixtures/#{path}"
-end
-
-def require_kernel(path)
-  require(File.expand_path("../../kernel/"+path, __FILE__))
-end
-
 # default for it_compiles_as (can be overridden via let)
 def compile_module
   Atomy::Module.new
@@ -199,18 +210,6 @@ def it_compiles_as(method = :bytecode, &blk)
 
     expect(subject).to compile_as(mygen, compile_module, method)
   end
-end
-
-def ast(str)
-  g = Atomy::Grammar.new(str)
-  g.raise_error unless g.parse("one_expression")
-  g.result
-end
-
-def seq(str)
-  g = Atomy::Grammar.new(str)
-  g.raise_error unless g.parse("root")
-  g.result
 end
 
 # The CompileAsMatcher wraps the logic for checking that a string of Ruby code

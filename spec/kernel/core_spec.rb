@@ -6,7 +6,7 @@ require "atomy/message_structure"
 module ABC; end
 
 describe "core kernel" do
-  subject { Atomy::Module.new { use(require_kernel("core")) } }
+  subject { Atomy::Module.new { use(require("core")) } }
 
   it "implements do: notation for evaluating sequences" do
     expect(subject).to receive(:foo).and_return(1)
@@ -41,7 +41,7 @@ describe "core kernel" do
     end
   end
 
-  MESSAGE_FORMS.each do |form|
+  SpecHelpers::MESSAGE_FORMS.each do |form|
     it "implements message sending in the form '#{form}'" do
       node = ast(form)
 

@@ -3,7 +3,7 @@ require "spec_helper"
 require "atomy/codeloader"
 
 describe "regexp kernel" do
-  subject { Atomy::Module.new { use(require_kernel("regexp")) } }
+  subject { Atomy::Module.new { use(require("regexp")) } }
 
   it "implements regexp literals" do
     expect(subject.evaluate(ast('r"foo \b#{2}\b"'))).to eq(/foo \b2\b/u)

@@ -24,7 +24,7 @@ describe Atomy::Grammar::AST::Sequence do
   it_can_construct_itself
 end
 
-NODE_SAMPLES.each do |klass, sample|
+SpecHelpers::NODE_SAMPLES.each do |klass, sample|
   describe klass do
     let(:node) { ast(sample) }
     it_can_construct_itself

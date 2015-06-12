@@ -3,7 +3,7 @@ require "spec_helper"
 require "atomy/codeloader"
 
 describe "data kernel" do
-  subject { Atomy::Module.new { use(require_kernel("data")) } }
+  subject { Atomy::Module.new { use(require("data")) } }
 
   it "returns nil" do
     expect(subject.evaluate(ast("data(Point(@x, @y))"), subject.compile_context)).to be_nil

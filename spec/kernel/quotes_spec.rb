@@ -3,7 +3,7 @@ require "spec_helper"
 require "atomy/codeloader"
 
 describe "quotes kernel" do
-  subject { Atomy::Module.new { use(require_kernel("quotes")) } }
+  subject { Atomy::Module.new { use(require("quotes")) } }
 
   it "implements word list literals" do
     expect(subject.evaluate(ast('w"foo bar"'))).to eq(["foo", "bar"])

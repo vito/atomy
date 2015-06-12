@@ -52,7 +52,7 @@ describe Atomy::Grammar::AST::Word do
   end
 end
 
-NODE_SAMPLES.each do |klass, sample|
+SpecHelpers::NODE_SAMPLES.each do |klass, sample|
   describe klass do
     let(:source) { sample }
     let(:node) { ast(source) }

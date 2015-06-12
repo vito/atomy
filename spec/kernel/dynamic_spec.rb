@@ -3,7 +3,7 @@ require "spec_helper"
 require "atomy/codeloader"
 
 describe "dynamic kernel" do
-  subject { Atomy::Module.new { use(require_kernel("dynamic")) } }
+  subject { Atomy::Module.new { use(require("dynamic")) } }
 
   it "implements dynamic variable literals, defaulting to undefined" do
     var = subject.evaluate(ast("dynamic"), subject.compile_context)

@@ -14,12 +14,13 @@ module Atomy
 
     def initialize
       extend self
-      super
 
       @exported_modules = []
 
       # easy accessor for the current module via ConstantScope lookup
       const_set(:Self, self)
+
+      super
     end
 
     def export(*modules)
@@ -64,8 +65,10 @@ module Atomy
       extend mod
       include mod
 
-      mod.exported_modules.each do |m|
-        use(m)
+      if mod.is_a?(self.class)
+        mod.exported_modules.each do |m|
+          use(m)
+        end
       end
 
       mod
