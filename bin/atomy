@@ -8,34 +8,9 @@ require "atomy/parser"
 
 file, *_ = ARGV
 
-def repl
-  mod = Atomy::Module.new { use(Atomy::Bootstrap) }
-
-  while true
-    line =
-      begin
-        Readline.readline("> ")
-      rescue Interrupt
-        puts ""
-        ""
-      end
-
-    return unless line
-    next if line.empty?
-
-    begin
-      res = mod.evaluate(Atomy::Parser.parse_string(line), mod.compile_context)
-      p(res)
-    rescue Exception => e
-      puts "#{e.class}: #{e}"
-      puts e.backtrace
-    end
-  end
-end
-
 if file
   Atomy::CodeLoader.run_script(File.expand_path(file))
 else
-  require "readline"
-  repl
+  repl = Atomy::CodeLoader.require("repl")
+  repl.repl
 end

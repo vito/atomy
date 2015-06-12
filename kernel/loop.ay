@@ -1,0 +1,81 @@
+use(require("core"))
+use(require("define"))
+use(require("dynamic"))
+use(require("control-flow"))
+use(require("patterns"))
+use(require("let-macro"))
+use(require("data"))
+
+tags = dynamic(Hash new)
+
+Atomy Grammar AST open:
+  data(GoTo(@name))
+
+  def(GoTo bytecode(gen, mod)):
+    gen goto(^tags fetch(@name))
+
+labels = class:
+  def(initialize(@branches)) {}
+
+  def(bytecode(gen, mod)):
+    new-tags = Hash new
+
+    lbls = @branches collect [[name, body]]:
+      new-tags[name] = gen new-label
+
+    with(tags = new-tags):
+      lbls zip(@branches) each [[l, [_, body]]]:
+        l set!
+        mod compile(gen, body)
+        gen pop
+
+    gen push-nil
+
+
+macro(labels: ~*branches):
+  branch-pairs = branches collect [`(~n: ~*body)]:
+    [n text, `(do: ~*body)]
+
+  `(let-macro(go(~'~name) = GoTo new(name text)):
+      ~(labels new(branch-pairs)))
+
+macro(~x while ~y): `(while(~y): ~x)
+macro(while(~test): ~*body):
+  `(labels:
+      loop:
+        unless(~test):
+          go(done)
+
+        let-macro(break = 'go(done),
+                  next = 'go(loop)):
+          ~*body
+
+        go(loop)
+
+      done {})
+
+macro(~x until ~y): `(until(~y): ~x)
+macro(until(~test): ~*body):
+  `(labels:
+      loop:
+        when(~test):
+          go(done)
+
+        let-macro(break = 'go(done),
+                  next = 'go(loop)):
+          ~*body
+
+        go(loop)
+
+      done {})
+
+macro(loop: ~*body):
+  `(labels:
+      loop:
+        let-macro(break = 'go(done),
+                  next = 'go(loop)):
+          ~*body
+
+        go(loop)
+
+      done {})

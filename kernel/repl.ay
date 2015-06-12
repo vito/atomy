@@ -1,0 +1,114 @@
+use(require("atomy"))
+
+use(require("doc"))
+condition = use(require("condition"))
+pretty = require("pretty")
+
+require("readline")
+
+fn(try(source, module, debug = false)):
+  with-restarts(
+      retry: try(source, module)
+      abort: .ok):
+    condition signal(.evaluated(module evaluate(Atomy Parser parse-string(source), module compile-context))) rescue:
+      (e & (StandardError | ScriptError)): error(e)
+
+fn(basic-repl(module, debug = false)):
+  loop:
+    prompt =
+      with-restarts(use-prompt(p): p):
+        condition signal(.prompt)
+        ">> "
+
+    input =
+      Readline readline(prompt, true) rescue:
+        Interrupt: condition signal(.quit), ""
+
+    input match:
+      nil: condition signal(.quit)
+
+      (String & { empty? }): .ok -- TODO: string literal patterns
+
+      (String & { =~ r"^:[[:alnum:]]" }):
+        condition signal(.special(input[1 .. -1]))
+
+      source:
+        condition signal(.input(source))
+        try(source, module, debug)
+
+    condition signal(.loop)
+
+
+condition DefaultDebugger data(ReplDebugger(@error))
+
+ReplDebugger open:
+  attr-accessor(.module)
+
+def(ReplDebugger run):
+  condition signal(.debug(self))
+
+  show-banner
+
+  with-restarts(backtrace: show-backtrace):
+    debug
+
+def(ReplDebugger(e) show-banner):
+  puts("-" * 78)
+  i"#{e name}: #{e message}" split("\n") each [l]:
+    puts(i"*** #{l}")
+
+def(ReplDebugger debug):
+  show-restarts
+
+  basic-repl(@module) bind:
+    .prompt: condition restart(.use-prompt, "[!]> ")
+
+    .special(n & { =~ r"\d+" }):
+      ^(condition Restarts) [n to-i] invoke
+
+    .quit: exit(1)
+
+
+def(repl(history = nil, module = nil, debug = false)):
+  unless(module):
+    module =! Atomy Module new
+    module file = ."(repl)"
+    module use(require("atomy"))
+
+  when(history && File exists?(history)):
+    File open(history, "r") [f]:
+      f readlines each [l]:
+        Readline HISTORY << l strip
+
+  sane-history = []
+
+  with(condition Debugger = ReplDebugger) {
+    frame = 0
+
+    basic-repl(module, debug) bind:
+      .prompt:
+        restart(.use-prompt, i"[#{frame}]> ")
+
+      .loop:
+        frame += 1
+
+      .quit:
+        exit(0)
+
+      .input(str):
+        sane-history << str
+
+      .special(String & { == "h" }):
+        puts(":h\thelp")
+
+      .debug(dbg):
+        dbg module = module
+
+      .evaluated(r):
+        with(pretty Multiline = true,
+             pretty Colored = true):
+          puts((text(" =>") <+> pretty doc(r)) render(56))
+  } ensuring:
+    when(history):
+      File open(history, "a") [f]:
+        f puts(*sane-history)

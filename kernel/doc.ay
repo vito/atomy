@@ -1,0 +1,286 @@
+use(require("core"))
+use(require("data"))
+use(require("define"))
+use(require("control-flow"))
+use(require("array"))
+use(require("patterns"))
+condition = use(require("condition"))
+
+-- combinatorial structures
+data(Doc):
+  Empty
+  Cat(@x, @y)
+  Nest(@depth, @doc)
+  Text(@value)
+  Raw(@value)
+  Line(@space?)
+  Union(@x-thunk, @y-thunk, @prefer? = false)
+  Column(@thunk) -- @thunk is (Integer -> Doc)
+  Nesting(@thunk) -- @thunk is (Integer -> Doc)
+
+-- simple documents (used internally)
+data(SDoc):
+  SEmpty
+  SText(@value, @rest-thunk)
+  SRaw(@value, @rest-thunk)
+  SLine(@space?, @indentation, @rest-thunk)
+
+fn(inject-right(xs, i = _) &block):
+  xs reverse inject(i) [x, y]: block [y, x]
+
+-- lazy values
+def(Union x): @x ||= @x-thunk call
+def(Union y): @y ||= @y-thunk call
+def(SText rest): @rest ||= @rest-thunk call
+def(SRaw  rest): @rest ||= @rest-thunk call
+def(SLine rest): @rest ||= @rest-thunk call
+
+-- constructors
+def(Empty <> y  ): y
+def(Doc <> Empty): self
+def(Doc <> y    ): Cat new(self, y)
+
+def(Proc <|> y): Union new(self, y)
+def(Doc  <|> y): Union new({ self }, { y })
+
+def(Proc <||> y): Union new(self, y, true)
+def(Doc  <||> y): Union new({ self }, { y }, true)
+
+def(Doc nest(i)): Nest new(i, self)
+
+-- flatten a document
+def(Empty       flatten): Self empty
+def(Cat(x, y)   flatten): x flatten <> y flatten
+def(Nest(i, x)  flatten): x flatten
+def(Text(s)     flatten): Self text(s)
+def(Raw(s)      flatten): Self raw(s)
+def(Line(true)  flatten): Self text(" ")
+def(Line(false) flatten): Self empty
+def(Union       flatten): x flatten
+def(Column(f)   flatten): Self column [x]: f [x] flatten
+def(Nesting(f)  flatten): Self nesting [x]: f [x] flatten
+
+-- hanging indentation
+def(Doc hang(i)): Self align(nest(i))
+
+-- full indentation
+def(Doc indent(i)): (Self text(" " * i) <> self) hang(i)
+
+-- p punctuate([d1, d2, ..., dn]) => [d1 <> p, d2 <> p, ..., dn]
+def(Doc punctuate([])    ): []
+def(Doc punctuate([d])   ): [d]
+def(Doc punctuate(d . ds)): [d <> self] + punctuate(ds)
+
+-- sep + punctuate
+def(Doc separate(ds)): Self align(Self sep(Self punctuate(ds)))
+
+-- concatenate two documents, with a space in-between
+def(Empty <+> y    ): y
+def(Doc   <+> Empty): self
+def(Doc   <+> y    ): (self <> Self space) <> y
+
+-- concatenates two documents, with a `softline' in between
+def(Empty </> y    ): y
+def(Doc   </> Empty): self
+def(Doc   </> y    ): (self <> Self softline) <> y
+
+-- concatenates two documents, with a `suggestline' in between
+def(Empty <\> y    ): y
+def(Doc   <\> Empty): self
+def(Doc   <\> y    ): (self <> Self suggestline) <> y
+
+-- concatenates two documents, with a `softbreak' in between
+def(Empty <//> y    ): y
+def(Doc   <//> Empty): self
+def(Doc   <//> y    ): (self <> Self softbreak) <> y
+
+-- concatenates two documents, with a `suggestbreak' in between
+def(Empty <\\> y    ): y
+def(Doc   <\\> Empty): self
+def(Doc   <\\> y    ): (self <> Self suggestbreak) <> y
+
+-- concatenates two documents, with a `line' in between
+def(Empty <$> y    ): y
+def(Doc   <$> Empty): self
+def(Doc   <$> y    ): (self <> Self line) <> y
+
+-- concatenates two documents, with a `linebreak' in between
+def(Empty <$$> y    ): y
+def(Doc   <$$> Empty): self
+def(Doc   <$$> y    ): (self <> Self linebreak) <> y
+
+-- predeclare so pick-union can use it
+fn(fit)
+
+-- chose the side of a Union that best fits the given width
+fn(pick-union(w, k, i, ds, x, y, prefer?)):
+  flattened = fit(w, k, [i, x] . ds, prefer?)
+  if(flattened fits?(w - k))
+    then: flattened
+    else:
+      condition signal(.no-fit)
+      fit(w, k, [i, y] . ds, prefer?)
+
+-- helper for `best' by linearizing documents
+fn(fit(_, _, [], pref = false)): SEmpty new
+fn(fit(w, k, [i, d] . ds, pref = false)):
+  d match:
+    Empty      : fit(w, k, ds, pref)
+    Cat(x, y)  : fit(w, k, [[i, x], [i, y]] + ds, pref)
+    Nest(j, x) : fit(w, k, [i + j, x] . ds, pref)
+    Text(s)    : SText new(s, { fit(w, k + s size, ds, pref) })
+    Raw(s)     : SRaw new(s, { fit(w, k, ds, pref) })
+    Line(s)    : SLine new(s, i, { fit(w, i, ds, false) })
+    Column(f)  : fit(w, k, [i, f[k]] . ds, pref)
+    Nesting(f) : fit(w, k, [i, f[i]] . ds, pref)
+    Union:
+      if(d prefer? && !pref)
+        then:
+          with-restarts(use-fit: fit(w, k, [i, d y] . ds, false)) {
+            pick-union(w, k, i, ds, d x, d y, true)
+          } bind:
+            .no-fit: condition restart(.use-fit)
+        else: pick-union(w, k, i, ds, d x, d y, pref)
+
+-- find the best configuration to fit document X in width w
+def(Doc best(w, k)): fit(w, k, [[0, self]])
+
+-- test that a document can fit in a given width
+def(SText fits?(w)): (w >= 0) && rest fits?(w - @value size)
+def(SRaw  fits?(w)): (w >= 0) && rest fits?(w)
+def(SDoc  fits?(w)): w >= 0
+
+-- rendering to a string
+def(SEmpty layout): ""
+def(SText  layout): @value + rest layout
+def(SRaw   layout): @value + rest layout
+def(SLine  layout): ("\n" + (" " * @indentation)) + rest layout
+
+-- rendering to a string
+def(Cat(x, y)  layout): x layout + y layout
+def(Empty      layout): ""
+def(Text(s)    layout): s
+def(Raw(s)     layout): s
+def(Line       layout): "\n"
+def(Union      layout): y layout
+def(Nest(i, d) layout):
+  d match:
+    Cat(x, y)  : x nest(i) layout + y nest(i) layout
+    Empty      : ""
+    Text(s)    : s
+    Raw(s)     : s
+    Line       : "\n" + (" " * i)
+    Nest(e, x) : Nest new(i + e, x) layout
+    Union      : Nest new(i, d y) layout
+
+-- trivial emptiness check
+def(Empty empty?): true
+def(Doc   empty?): false
+
+-- pretty-printing with a maximum width
+def(Doc render(width = 70)): best(width, 0) layout
+
+-- trivial constructors
+def(empty): Empty new
+def(text(s)): Text new(s to-s)
+def(raw(s)): Raw new(s to-s)
+def(line): Line new(true)
+def(linebreak): Line new(false)
+def(column &f): Column new(f)
+def(nesting &f): Nesting new(f)
+def(group(x)): { x flatten } <|> { x }
+def(preferred-group(x)): { x flatten } <||> { x }
+def(softline): group(line)
+def(softbreak): group(linebreak)
+def(suggestline): preferred-group(line)
+def(suggestbreak): preferred-group(linebreak)
+
+-- render x with the nesting level set to the current column
+def(align(x)):
+  column [k]:
+    nesting [i]:
+      x nest(k - i)
+
+-- wrap `x' in `left' and `right'
+def(enclose(left, right, x)): (left <> x) <> right
+
+-- punctuate `xs' with `delim', separating with a space, and wrapping with
+-- `left` and `right`
+def(enclose-sep(left, right, delim, xs)):
+  enclose(left, right, align(sep(delim punctuate(xs))))
+
+-- punctuate `xs' with `delim', and wrapping with `left` and `right`
+def(enclose-cat(left, right, delim, xs)):
+  enclose(left, right, align(cat(delim punctuate(xs))))
+
+-- separating lists
+def(hsep(xs)): inject-right(xs, empty) [x, y]: x <+> y
+def(vsep(xs)): inject-right(xs, empty) [x, y]: x <$> y
+def(sep(xs)): group(vsep(xs))
+def(fill-sep(xs)): inject-right(xs, empty) [x, y]: x </> y
+def(suggest-sep(xs)): inject-right(xs, empty) [x, y]: x <\> y
+
+-- concatenating lists
+def(hcat(xs)): inject-right(xs, empty) [x, y]: x <> y
+def(vcat(xs)): inject-right(xs, empty) [x, y]: x <$$> y
+def(cat(xs)): group(vcat(xs))
+def(fill-cat(xs)): inject-right(xs, empty) [x, y]: x <//> y
+def(suggest-cat(xs)): inject-right(xs, empty) [x, y]: x <\\> y
+
+-- fill a document with whitespace to width `i'
+def(fill(i, d)):
+  width(d) [w]:
+    if(w >= i)
+      then: empty
+      else: text(" " * (i - w))
+
+-- fill a document with whitespace to width `i', breaking onto a new line if
+-- the document gets too long
+def(fill-break(i, d)):
+  width(d) [w]:
+    if(w > i)
+      then: linebreak nest(i)
+      else: text(" " * (i - w))
+
+-- call `f' with the width of the passed document, and render the result
+-- after it
+def(width(d) &f):
+  column [c1]: d <> column [c2]: f [c2 - c1]
+
+-- helper documents
+def(lparen): text("(")
+def(rparen): text(")")
+def(langle): text("<")
+def(rangle): text(">")
+def(lbrace): text("{")
+def(rbrace): text("}")
+def(lbracket): text("[")
+def(rbracket): text("]")
+def(squote): text("'")
+def(dquote): text("\"")
+def(semi): text(";")
+def(colon): text(":")
+def(comma): text(",")
+def(space): text(" ")
+def(dot): text(".")
+def(backslash): text("\\")
+def(equals): text("=")
+
+-- helper for creating text from a string that may contain newlines
+def(string(s)): hcat(line punctuate(s split("\n") collect [x]: text(x)))
+
+-- wrappers
+def(parens(x)): (lparen <> x) <> rparen
+def(angles(x)): (langle <> x) <> rangle
+def(braces(x)): (lbrace <> x) <> rbrace
+def(brackets(x)): (lbracket <> x) <> rbracket
+def(squotes(x)): (squote <> x) <> squote
+def(dquotes(x)): (dquote <> x) <> dquote
+
+-- helpers for common syntax
+def(list(xs)):
+  enclose(lbracket, rbracket, align(fill-sep(comma punctuate(xs))))
+def(tupled(xs)):
+  enclose(lparen, rparen, align(fill-sep(comma punctuate(xs))))
+def(semi-braces(xs)):
+  enclose-sep(lbrace, rbrace, semi, xs)

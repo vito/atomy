@@ -1,0 +1,329 @@
+use(require("core"))
+use(require("define"))
+use(require("control-flow"))
+-- use(require("cosmetics"))
+use(require("particles"))
+use(require("range"))
+use(require("regexp"))
+use(require("array"))
+use(require("patterns"))
+use(require("interpolation"))
+use(require("dynamic"))
+use(require("patterns"))
+-- use(require("init"))
+
+doc = use(require("doc"))
+io = require("io")
+
+const-set(.Printing, dynamic([]))
+const-set(.Multiline, dynamic(false))
+const-set(.Context, dynamic(.top))
+const-set(.Colored, dynamic(false))
+
+fn(ident(n)):
+  if(n =~ r"^__")
+    then: doc text(n)
+    else: doc text(n[0, 1] + n[1 .. -1] tr("_", "-"))
+
+fn(from(*where) &y):
+  with(Context = where flatten):
+    y call
+
+fn(from?(*where)):
+  [^Context, where] match:
+    [a & Array, b & Array]:
+      a any? &.(b include?(_))
+
+    [a & Array, b]:
+      a include?(b)
+
+    [a, b & Array]:
+      b include?(a)
+
+    [a, b]:
+      a == b
+
+fn(render-sequence([])): []
+fn(render-sequence([x])): [from(.top, .list): render(x)]
+fn(render-sequence(x . xs)): [from(.list): render(x)] + render-sequence(xs)
+
+fn(tree(xs)): align(fill-sep(comma punctuate(xs)))
+fn(body(xs)): tree(render-sequence(xs))
+
+fn(vtree(xs)): align(vcat(xs))
+fn(vbody(xs)): from(.top): vtree(xs collect &.(Self render(_)))
+
+fn(array(xs)):
+  enclose(
+    lbracket
+    rbracket
+    align(suggest-sep(comma punctuate(xs))))
+
+fn(colored(color, doc)):
+  unless(^Colored && ^(io OutputPort) tty?):
+    return(doc)
+
+  codes = [
+    .black
+    .red
+    .green
+    .yellow
+    .blue
+    .magenta
+    .cyan
+    .white
+  ]
+
+  (raw(i"\e[3#{codes index(color)}m") <> doc) <> raw("\e[0m")
+
+
+def(unamb(x)): render(x)
+
+def(render(x)):
+  if(^Printing include?(x))
+    then: text("...")
+    else:
+      with(Printing = (x . ^Printing)):
+        doc(x)
+
+def(show(x)):
+  with(Colored = false):
+    render(x) flatten render
+
+def(puts(x)): x tap: ^(io OutputPort) puts(show(x))
+def(print(x)): x tap: ^(io OutputPort) print(show(x))
+
+def(doc(s & String)): colored(.yellow, text(s inspect gsub("\\#", "#")))
+def(doc(x & Numeric)): colored(.blue, text(x inspect))
+def(doc(true)): colored(.green, text("true"))
+def(doc(false)): colored(.red, text("false"))
+def(doc(nil)): colored(.black, text("nil"))
+def(doc({ equal?(_) })): colored(.black, text("_"))
+def(doc(d & Doc)): d
+def(doc(a & Array)): list(render-sequence(a))
+
+def(doc(p & Particle)):
+  operator? = (p message to-s !~ r"^[a-z_]")
+
+  msg-args =
+    if(operator?)
+      then:
+        text(p message to-s) <+> unamb(p arguments first)
+      else:
+        ident(p message to-s) <>
+          tupled(render-sequence(p arguments))
+
+  partial =
+    if(p receiver equal?(_))
+      then:
+        if(operator?)
+          then: parens(msg-args)
+          else: msg-args
+      else: parens(unamb(p receiver) <+> msg-args)
+
+  text(".") <> partial
+
+def(doc(s & Symbol)):
+  str = s to-s
+  if(str =~ r"\[\]=?|[A-Z][a-zA-Z0-9_]*|^[\p{Ll}_][\p{L}_\d\-]*[!?=]?$")
+    then: text(".") <> ident(str)
+    else: text(".") <> doc(str)
+
+def(doc(h & Hash)):
+  text("#") <>
+    align(
+      ( lbrace </>
+          tree(
+            h to-a collect [[k, v]]:
+              from(.infix):
+                (unamb(k) <+> text("->")) <+> unamb(v))
+      ) nest(2) </>
+        rbrace)
+
+fn(grouped(x)): from(.top): parens(render(x))
+
+pretty = self
+Atomy Grammar AST open:
+  pretty open:
+    def(unamb(
+      -- ok maybe operator precedence isn't the worst thing in the world
+      x & (
+        Block | (
+          Apply | (
+            Constant | (
+              (Sequence & { @nodes size < 2 }) | (
+                List | (
+                  Literal | (
+                    Number | Word))))))))):
+      render(x)
+    def(unamb(c & Compose)):
+      if(from?(.infix, .compose))
+        then: render(c)
+        else: grouped(c)
+    def(unamb(p & (Prefix | (Postfix | (QuasiQuote | (Quote | Unquote)))))):
+      if(from?(.postfix, .apply))
+        then: grouped(p)
+        else: render(p)
+    def(unamb(n & Node)):
+      grouped(n)
+
+
+    fn(braces-block(contents, left = Self empty)):
+      align((left <+> (lbrace <+> body(contents)) nest(2)) <+> rbrace) <||>
+        if(left empty?)
+          then: align(((lbrace <+> vbody(contents)) nest(2)) <$> rbrace)
+          else: align((left <+> (lbrace <$> vbody(contents)) nest(2)) <$> rbrace)
+
+    fn(proc-arg(left, contents)):
+      if(from?(.top))
+        then:
+          single = (colon <+> body(contents))
+          multi = (colon <$> vbody(contents))
+
+          block =
+            if(from?(.list))
+              -- when in a list, prefer the single-line form
+              --
+              -- e.g.:
+              --     macro(foo: bar):
+              --       baz
+              --
+              -- here it's better to have `foo: bar` on one line
+              then: single <|> multi
+
+              -- otherwise, prefer the multiline form
+              else: single <||> multi
+
+          align((left <> block) nest(2))
+        else:
+          braces-block(contents, left)
+
+
+    def(doc(b & Infix)):
+      from(.infix):
+        ( if(b left)
+            then:
+              (unamb(b left) <+> text(b operator)) <\> unamb(b right)
+            else:
+              text(b operator) </> unamb(b right)
+        ) hang(2)
+
+    def(doc(b & Block)):
+      block-arg =
+        if(b block)
+          then: doc(`&~(b block))
+          else: empty
+
+      braces-block(
+        b contents
+        if(b arguments empty?)
+          then: block-arg
+          else: list(render-sequence(b arguments)) <+> block-arg)
+
+    def(doc(a & Apply)):
+      from(.apply) { unamb(a node) } <> tupled(render-sequence(a arguments))
+
+    def(doc(`(~x [~*ys] { ~*zs }))):
+      proc-arg(
+        from(.compose) { unamb(x) } <+>
+          list(render-sequence(ys))
+        zs)
+
+    def(doc(`(~x { ~*ys }))):
+      proc-arg(
+        from(.compose): unamb(x)
+        ys)
+
+    def(doc(c & Compose)):
+      from(.compose):
+        unamb(c left) <+> unamb(c right)
+
+    def(doc(c & Constant)): text(c text)
+
+    def(doc(l & List)):
+      array(render-sequence(l nodes)) <||>
+        align(
+          (lbracket <+> vbody(l nodes)) <$>
+            rbracket)
+
+    def(doc(l & Literal)): render(l value)
+
+    def(doc(p & Postfix)):
+      from(.postfix):
+        unamb(p node) <> text(p operator)
+
+    def(doc(p & Prefix)):
+      from(.prefix):
+        text(p operator) <> unamb(p node)
+
+    def(doc(n & Number)): text(n value inspect)
+
+    def(doc(q & QuasiQuote)):
+      from(.prefix):
+        text("`") <> unamb(q expression)
+
+    def(doc(q & Quote)):
+      from(.prefix):
+        text("'") <> unamb(q expression)
+
+    def(doc(s & StringLiteral)): text(s value inspect gsub("\\#", "#"))
+
+    def(doc(u & Unquote)):
+      from(.prefix):
+        text("~") <> unamb(u expression)
+
+    def(doc(w & Word)): ident(w text to-s)
+
+    def(doc(t & Sequence)):
+      if(^Multiline)
+        then: vbody(t nodes)
+        else: body(t nodes)
+
+
+def(doc(x)): text(x inspect)
+
+-- Atomy Patterns open:
+--   pretty open:
+--     def(doc(a & And)): render(`(~(a a) & ~(a b)))
+--     def(doc(Any)): text("_")
+--     def(doc(a & Attribute)):
+--       render(`(~(a receiver) ~init(Atomy AST Word, text: a name)))
+--     def(doc(b & BlockPass)): render(`&~(b pattern))
+--     def(doc(c & Constant)): render(c constant)
+--     def(doc(d & Default)): render(`(~(d pattern) = ~(d default)))
+--     def(doc(h & HeadTail)): render(`(~(h head) . ~(h tail)))
+--     def(doc(l & List)): array(render-sequence(@patterns))
+--     def(doc(l & Literal)): render(l value)
+--     def(doc(m & Match)): render(m value)
+--     def(doc(n & Named)):
+--       if(n pattern is-a?(Any))
+--         then: text(n name)
+--         else: text(n name) <> text(":") <+> render(n pattern)
+--     def(doc(n & NamedClass)):
+--       render(`(@@~init(Atomy AST Word, text: n identifier)))
+--     def(doc(n & NamedInstance)):
+--       render(`(@~init(Atomy AST Word, text: n identifier)))
+--     def(doc(n & NamedGlobal)):
+--       render(`($~init(Atomy AST Word, text: n identifier)))
+--     def(doc(o & Or)):
+--       render(`(~(o a) | ~(o b)))
+--     def(doc(p & Particle)):
+--       render(
+--         Particle new(
+--           p receiver
+--           p message
+--           p arguments patterns))
+--     def(doc(p & Predicate)): render(`(~(p pattern) ? ~(p test)))
+--     def(doc(q & QuasiQuote)): render(q quoted)
+--     def(doc(q & Quote)): render(`'~(q expression))
+--     def(doc(s & SingletonClass)): render(s body)
+--     def(doc(s & Splat)): render(`*~(s pattern))
+--     def(doc(w & With)):
+--       render(`(~(w pattern) & with(~(w expression), ~(w sub-pattern))))
+
+--     def(unamb(x & (And | Attribute | Default | HeadTail | Or | Predicate | With))):
+--       grouped(x)
+--     def(unamb(n & Named)):
+--       if(n pattern is-a?(Any))
+--         then: render(n)
+--         else: grouped(n)
