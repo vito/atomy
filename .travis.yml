@@ -1,6 +1,0 @@
-script: make && bundle exec rspec
-
-rvm: rbx-2.5.5
-
-notifications:
-  irc: "irc.freenode.net#atomy"

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e -x
+
+export GEM_HOME=$HOME/gems
+mkdir $GEM_HOME
+
+cd atomy
+bundle install
+make
+bundle exec rspec

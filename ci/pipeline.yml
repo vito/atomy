@@ -1,0 +1,12 @@
+---
+jobs:
+- name: atomy
+  plan:
+  - get: atomy
+    trigger: true
+
+resources:
+- name: atomy
+  type: git
+  source:
+    uri: https://github.com/vito/atomy

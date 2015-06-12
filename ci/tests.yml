@@ -1,0 +1,10 @@
+---
+platform: linux
+
+image: docker:///concourse/rubinius
+
+inputs:
+- name: atomy
+
+run:
+  path: atomy/ci/scripts/tests
