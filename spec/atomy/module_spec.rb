@@ -177,6 +177,24 @@ describe Atomy::Module do
     end
   end
 
+  describe "#export" do
+    let(:exported_module) { Atomy::Module.new }
+
+    subject { Atomy::Module.new }
+
+    before { subject.export(exported_module) }
+
+    context "when used by another module" do
+      let(:using_module) { Atomy::Module.new }
+
+      it "propagates the exported modules to it" do
+        expect(using_module).to receive(:use).with(subject).and_call_original
+        expect(using_module).to receive(:use).with(exported_module)
+        using_module.use(subject)
+      end
+    end
+  end
+
   describe "#expand" do
     subject { module_with_expansions }
 

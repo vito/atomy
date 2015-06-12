@@ -9,12 +9,21 @@ module Atomy
     # [Symbol] Absolute path to the file the module was loaded from.
     attr_accessor :file
 
+    # [Module] Modules users of this module should automatically use.
+    attr_reader :exported_modules
+
     def initialize
       extend self
       super
 
+      @exported_modules = []
+
       # easy accessor for the current module via ConstantScope lookup
       const_set(:Self, self)
+    end
+
+    def export(*modules)
+      @exported_modules.concat(modules)
     end
 
     def compile(gen, node)
@@ -54,6 +63,11 @@ module Atomy
     def use(mod)
       extend mod
       include mod
+
+      mod.exported_modules.each do |m|
+        use(m)
+      end
+
       mod
     end
 

@@ -1,5 +1,6 @@
-use(require("core"))
-use(require("define"))
-use(require("regexp"))
-use(require("interpolation"))
-use(require("condition"))
+export(
+  require("core")
+  require("define")
+  require("regexp")
+  require("interpolation")
+  require("condition"))

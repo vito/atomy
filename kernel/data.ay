@@ -11,8 +11,7 @@ use(require("define"))
 use(require("control-flow"))
 
 -- patterns defined by dsl use 'with', so make sure it's exported
--- TODO: export this? need to ensure modules using the user work.
-use(require("patterns"))
+export(use(require("patterns")))
 
 fn(define-class(root, e & Atomy Grammar AST Constant)):
   define-class(root, `((~e)()))
