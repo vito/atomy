@@ -28,7 +28,7 @@ describe Atomy do
         )
 
         expect(SomeTarget.new.foo).to eq(2)
-        expect { Object.new.foo }.to raise_error
+        expect(Object.new).to_not respond_to(:foo)
       end
     end
 

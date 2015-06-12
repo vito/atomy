@@ -216,9 +216,9 @@ describe Atomy::CodeLoader do
           expect {
             Atomy::CodeLoader.require(
               fixture("codeloader/require/slow-global-fail"))
-          }.to raise_error
+          }.to raise_error("hell")
 
-          expect { thd.join }.to raise_error
+          expect { thd.join }.to raise_error("hell")
 
           expect($foo).to eq(2)
         end
