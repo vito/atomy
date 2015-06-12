@@ -1,3 +1,3 @@
 module Atomy
-  VERSION = "0.0"
+  VERSION = "0.6"
 end
