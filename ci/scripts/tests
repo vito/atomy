@@ -5,6 +5,8 @@ set -e -x
 export GEM_HOME=$HOME/gems
 mkdir $GEM_HOME
 
+export PATH=$GEM_HOME/bin:$PATH
+
 cd atomy
 bundle install
 make
