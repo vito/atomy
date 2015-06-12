@@ -1,6 +1,7 @@
 ---
 jobs:
 - name: atomy
+  public: true
   plan:
   - get: atomy
     trigger: true
