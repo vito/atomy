@@ -4,6 +4,8 @@ jobs:
   plan:
   - get: atomy
     trigger: true
+  - task: tests
+    file: atomy/ci/tests.yml
 
 resources:
 - name: atomy
