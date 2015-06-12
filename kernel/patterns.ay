@@ -28,6 +28,9 @@ pattern(@(~(name & Word))!):
 pattern($~(name & Word)):
   pattern(`(//Rubinius Globals[~(Atomy Code Symbol new(("$" + name text to-s) to-sym))]))
 
+pattern(nil):
+  Atomy Code Pattern new(`(//Atomy Pattern Equality new(nil)), [])
+
 pattern(~a | ~b):
   a-pattern = pattern(a)
   b-pattern = pattern(b)

@@ -52,6 +52,11 @@ describe "patterns kernel" do
     expect($foo).to eq(42)
   end
 
+  it "defines a pattern for matching nil" do
+    expect(subject.evaluate(ast("nil = nil"))).to eq(nil)
+    expect { subject.evaluate(ast("nil = 42")) }.to raise_error(Atomy::PatternMismatch)
+  end
+
   it "defines an or pattern" do
     expect(subject.evaluate(seq("((a & 1) | (b & 2)) = 1, [a, b]"))).to eq([1, nil])
     expect(subject.evaluate(seq("((c & 1) | (d & 2)) = 2, [c, d]"))).to eq([nil, 2])
