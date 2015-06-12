@@ -12,6 +12,9 @@ module Atomy
     def initialize
       extend self
       super
+
+      # easy accessor for the current module via ConstantScope lookup
+      const_set(:Self, self)
     end
 
     def compile(gen, node)

@@ -105,6 +105,13 @@ describe Atomy::Module do
     end
   end
 
+  describe "::Self" do
+    it "returns the module" do
+      mod = Atomy::Module.new { def foo; 1; end }
+      expect(mod::Self).to eq(mod)
+    end
+  end
+
   describe "#use" do
     it "extends the module with the functionality of another" do
       mod = Atomy::Module.new { def foo; 1; end }
