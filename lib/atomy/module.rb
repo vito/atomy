@@ -64,6 +64,14 @@ module Atomy
       Atomy::CodeLoader.require(path)
     end
 
+    def inspect
+      if @file
+        super.sub(/>$/, " #{@file}>")
+      else
+        super
+      end
+    end
+
     def use(mod)
       extend mod
       include mod
