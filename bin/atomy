@@ -5,6 +5,7 @@ require "atomy"
 require "atomy/bootstrap"
 require "atomy/codeloader"
 require "atomy/parser"
+require "atomy/rubygems"
 
 file, *_ = ARGV
 
