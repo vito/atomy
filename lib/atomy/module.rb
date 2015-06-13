@@ -36,6 +36,9 @@ module Atomy
       end
 
       expanded.bytecode(gen, self)
+    rescue
+      puts "when compiling: #{node}"
+      raise
     end
 
     def evaluate(node, binding = nil)
