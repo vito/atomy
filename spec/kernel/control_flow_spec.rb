@@ -328,4 +328,57 @@ describe "control-flow kernel" do
       end
     end
   end
+
+  describe "break" do
+    it "breaks the outer loop, returning nil if no argument is given" do
+      as = []
+      expect(subject.evaluate(seq(<<EOF))).to eq(nil)
+[1, 2, 3] collect [a]:
+  as << a
+
+  when(a == 2):
+    break
+
+  a
+EOF
+      expect(as).to eq([1, 2])
+    end
+
+    it "breaks the outer loop, returning the given value" do
+      as = []
+      expect(subject.evaluate(seq(<<EOF))).to eq(42)
+[1, 2, 3] collect [a]:
+  as << a
+
+  when(a == 2):
+    break(42)
+
+  a
+EOF
+      expect(as).to eq([1, 2])
+    end
+  end
+
+  describe "next" do
+    it "returns nil from the innermost block" do
+      as = []
+      expect(subject.evaluate(seq(<<EOF))).to eq([1, nil, 3])
+[1, 2, 3] collect [a]:
+  when(a == 2):
+    next
+
+  a
+EOF
+    end
+
+    it "returns the given value from the innermost block" do
+      expect(subject.evaluate(seq(<<EOF))).to eq([1, 42, 3])
+[1, 2, 3] collect [a]:
+  when(a == 2):
+    next(42)
+
+  a
+EOF
+    end
+  end
 end

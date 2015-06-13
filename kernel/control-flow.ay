@@ -249,3 +249,25 @@ macro(super [~*bargs]: ~*blk): super-code new(`(super [~*bargs]: ~*blk))
 macro(super(~*args) &~blk): super-code new(`(super(~*args) &~blk))
 macro(super(~*args): ~*blk): super-code new(`(super(~*args): ~*blk))
 macro(super(~*args) [~*bargs]: ~*blk): super-code new(`(super(~*args) [~*bargs]: ~*blk))
+
+break-class = class:
+  def(initialize(value)):
+    instance-variable-set("@value", value)
+
+  def(bytecode(gen, mod)):
+    mod compile(gen, @value)
+    gen raise-break
+
+macro(break): break-class new('nil)
+macro(break(~value)): break-class new(value)
+
+next-class = class:
+  def(initialize(value)):
+    instance-variable-set("@value", value)
+
+  def(bytecode(gen, mod)):
+    mod compile(gen, @value)
+    gen ret
+
+macro(next): next-class new('nil)
+macro(next(~value)): next-class new(value)
