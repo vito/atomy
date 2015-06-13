@@ -59,6 +59,10 @@
     y = current_position
     y[0] >= x[0] && y[1] > x[1]
   end
+
+  def set_lang(n)
+    @_grammar_lang = require("#{n}/language/parser")::Parser.new(nil)
+  end
 }
 
            root = shebang? wsp expressions?:es wsp !. { sequence(Array(es)) }
