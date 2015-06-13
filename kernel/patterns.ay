@@ -109,6 +109,9 @@ list-pattern = Atomy Pattern class:
         else: @patterns << p
 
   def(matches?(val)):
+    unless(val is-a?(Array)):
+      return(false)
+
     when(@splat && (val size < @patterns size)):
       return(false)
 

@@ -180,6 +180,12 @@ describe "patterns kernel" do
         }.to raise_error(Atomy::PatternMismatch)
       end
 
+      it "does not match if the other object is not an array" do
+        expect {
+          subject.evaluate(seq("[a, *[3]] = .nope"))
+        }.to raise_error(Atomy::PatternMismatch)
+      end
+
       it "binds locals from the splat" do
         expect(subject.evaluate(seq("[a, *[2, b]] = [1, 2, 3], [a, b]"))).to eq([1, 3])
       end
