@@ -3,6 +3,7 @@ use(require("define"))
 use(require("control-flow"))
 
 require("atomy/pattern/index")
+require("atomy/pattern/class_variable")
 require("atomy/pattern/instance_variable")
 require("atomy/pattern/attribute")
 require("atomy/pattern/or")
@@ -24,6 +25,19 @@ pattern(@(~(name & Word))?):
 
 pattern(@(~(name & Word))!):
   Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new(~(Atomy Code Symbol new((name text to-s + "!") to-sym)))), [])
+
+current-scope = class:
+  def(bytecode(gen, mod)):
+    gen push-scope
+
+pattern(@@~(name & Word)):
+  Atomy Code Pattern new(`(//Atomy Pattern ClassVariable new(~(current-scope new), .~name)), [])
+
+pattern(@@(~(name & Word))?):
+  Atomy Code Pattern new(`(//Atomy Pattern ClassVariable new(~(current-scope new), ~(Atomy Code Symbol new((name text to-s + "?") to-sym)))), [])
+
+pattern(@@(~(name & Word))!):
+  Atomy Code Pattern new(`(//Atomy Pattern ClassVariable new(~(current-scope new), ~(Atomy Code Symbol new((name text to-s + "!") to-sym)))), [])
 
 pattern($~(name & Word)):
   pattern(`(//Rubinius Globals[~(Atomy Code Symbol new(("$" + name text to-s) to-sym))]))
