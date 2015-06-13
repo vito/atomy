@@ -67,6 +67,11 @@ describe "patterns kernel" do
     expect { subject.evaluate(ast("false = 42")) }.to raise_error(Atomy::PatternMismatch)
   end
 
+  it "defines a pattern for matching strings" do
+    expect(subject.evaluate(ast('"abc" = "abc"'))).to eq("abc")
+    expect { subject.evaluate(ast('"abc" = 42')) }.to raise_error(Atomy::PatternMismatch)
+  end
+
   it "defines an or pattern" do
     expect(subject.evaluate(seq("((a & 1) | (b & 2)) = 1, [a, b]"))).to eq([1, nil])
     expect(subject.evaluate(seq("((c & 1) | (d & 2)) = 2, [c, d]"))).to eq([nil, 2])

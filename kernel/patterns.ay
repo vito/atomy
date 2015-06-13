@@ -37,6 +37,9 @@ pattern(true):
 pattern(false):
   Atomy Code Pattern new(`(//Atomy Pattern Equality new(false)), [])
 
+pattern(~(x & StringLiteral)):
+  Atomy Code Pattern new(`(//Atomy Pattern Equality new(~x)), [])
+
 pattern(~a | ~b):
   a-pattern = pattern(a)
   b-pattern = pattern(b)
