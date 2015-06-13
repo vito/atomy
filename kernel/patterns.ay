@@ -14,6 +14,12 @@ pattern(~parent ~(constant & Constant)):
 pattern(~receiver ~(attribute & Word)):
   Atomy Code Pattern new(`(//Atomy Pattern Attribute new('~attribute text, ~receiver)), [])
 
+pattern(~receiver (~(attribute & Word))?):
+  Atomy Code Pattern new(`(//Atomy Pattern Attribute new(~(Atomy Code Symbol new((attribute text to-s + "?") to-sym)), ~receiver)), [])
+
+pattern(~receiver (~(attribute & Word))!):
+  Atomy Code Pattern new(`(//Atomy Pattern Attribute new(~(Atomy Code Symbol new((attribute text to-s + "!") to-sym)), ~receiver)), [])
+
 pattern(~receiver [~*arguments]):
   Atomy Code Pattern new(`(//Atomy Pattern Index new(~receiver, [~*arguments])), [])
 

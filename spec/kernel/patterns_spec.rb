@@ -26,6 +26,20 @@ describe "patterns kernel" do
     expect(x.y).to eq(1)
   end
 
+  it "defines a pattern for assigning object attributes ending in ?" do
+    klass = Class.new { attr_accessor :y? }
+    x = klass.new
+    expect(subject.evaluate(ast("x y? = 1"))).to eq(1)
+    expect(x.y?).to eq(1)
+  end
+
+  it "defines a pattern for assigning object attributes ending in !" do
+    klass = Class.new { attr_accessor :y! }
+    x = klass.new
+    expect(subject.evaluate(ast("x y! = 1"))).to eq(1)
+    expect(x.y!).to eq(1)
+  end
+
   it "defines a pattern for assigning indices" do
     x = [1, 2, 3, 4]
     expect(subject.evaluate(ast("x [1, 2] = 42"))).to eq(42)
