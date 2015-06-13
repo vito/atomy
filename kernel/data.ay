@@ -35,7 +35,7 @@ fn(define-class(root, `((~name)(~*as): ~*cs))):
   tmps = attrs collect [`@~name]: Atomy Grammar AST Unquote new(name)
 
   pat = name
-  attrs zip(tmps) [[attr, tmp]]:
+  attrs zip(tmps) [attr, tmp]:
     pat =! `(~pat & with(~attr, ~tmp))
 
   cons = `((~name)(~*tmps))

@@ -20,11 +20,11 @@ labels = class:
   def(bytecode(gen, mod)):
     new-tags = Hash new
 
-    lbls = @branches collect [[name, body]]:
+    lbls = @branches collect [name, body]:
       new-tags[name] = gen new-label
 
     with(tags = new-tags):
-      lbls zip(@branches) each [[l, [_, body]]]:
+      lbls zip(@branches) each [l, [_, body]]:
         l set!
         mod compile(gen, body)
         gen pop

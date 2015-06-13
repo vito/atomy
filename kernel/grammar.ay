@@ -245,7 +245,7 @@ macro(parser(~name): ~*grammar):
     g = evaluate(`(grammar: ~*grammar))
 
     acts =
-      ^actions collect [[action, as]]:
+      ^actions collect [action, as]:
         args = as collect [a]: Word new(a)
         `([~*args] ~action)
 

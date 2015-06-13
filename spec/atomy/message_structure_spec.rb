@@ -325,7 +325,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -335,7 +335,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -345,7 +345,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -355,7 +355,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -365,7 +365,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -375,7 +375,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -385,7 +385,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -395,7 +395,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -405,7 +405,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -415,7 +415,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -425,7 +425,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -435,7 +435,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -565,7 +565,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -575,7 +575,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -585,7 +585,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -595,7 +595,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -605,7 +605,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -615,7 +615,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -625,7 +625,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -635,7 +635,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -645,7 +645,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -655,7 +655,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -665,7 +665,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -675,7 +675,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -902,7 +902,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -912,7 +912,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -922,7 +922,17 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
+    its(:splat_argument) { should be_nil }
+  end
+
+  context "when a constant followed by ? with a block that has no arguments" do
+    let(:node) { ast("Foo?: a + b") }
+    its(:name) { should == :Foo? }
+    its(:arguments) { should be_empty }
+    its(:receiver) { should be_nil }
+    its(:proc_argument) { should be_nil }
+    
     its(:splat_argument) { should be_nil }
   end
 
@@ -932,7 +942,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -942,7 +952,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -952,7 +962,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -962,7 +972,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -972,7 +982,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -982,7 +992,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -992,7 +1002,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1002,7 +1012,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1012,7 +1022,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should be_nil }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1142,7 +1152,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1152,7 +1162,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1162,7 +1172,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1172,7 +1182,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1182,7 +1192,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1192,7 +1202,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("{ a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1202,7 +1212,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1212,7 +1222,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1222,7 +1232,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should be_empty }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1232,7 +1242,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1242,7 +1252,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 
@@ -1252,7 +1262,7 @@ describe Atomy::MessageStructure do
     its(:arguments) { should == [ast("a"), ast("b")] }
     its(:receiver) { should == ast("42") }
     its(:proc_argument) { should be_nil }
-    its(:block) { should == ast("[a, b] { a + b }") }
+    its(:block) { should == described_class::BlockArgument.new([ast("a + b")], [ast("a"), ast("b")]) }
     its(:splat_argument) { should be_nil }
   end
 end

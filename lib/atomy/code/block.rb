@@ -1,7 +1,7 @@
 module Atomy
   module Code
     class Block
-      def initialize(body, args = [], proc_argument = nil)
+      def initialize(body, args = [], proc_argument = nil, lambda_style = true)
         @body = body
 
         @arguments = args.dup
@@ -10,18 +10,26 @@ module Atomy
         end
 
         @proc_argument = proc_argument
+
+        @lambda_style = lambda_style
       end
 
       def bytecode(gen, mod)
         blk = build_block(gen.state.scope, mod)
 
-        gen.push_cpath_top
-        gen.find_const :Proc
+        if @lambda_style
+          gen.push_cpath_top
+          gen.find_const :Proc
+        end
+
         gen.create_block(blk)
-        gen.send(:__from_block__, 1)
-        gen.dup
-        gen.send(:lambda_style!, 0)
-        gen.pop
+
+        if @lambda_style
+          gen.send(:__from_block__, 1)
+          gen.dup
+          gen.send(:lambda_style!, 0)
+          gen.pop
+        end
       end
 
       private

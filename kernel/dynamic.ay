@@ -24,11 +24,11 @@ macro(dynamic(~default)): `(Dynvar new(~default))
 macro(with(~*bindings): ~*body):
   tmps = bindings collect [b]: [b, stack-local Local new]
 
-  save = tmps collect [[`(~n = ~_), tmp]]: tmp set(`(~n get))
+  save = tmps collect [`(~n = ~_), tmp]: tmp set(`(~n get))
 
   set = bindings collect [`(~n = ~v)]: `(~n set(~v))
 
-  restore = tmps collect [[`(~n = ~_), tmp]]: `(~n set(~tmp))
+  restore = tmps collect [`(~n = ~_), tmp]: `(~n set(~tmp))
 
   `(do:
       ~*save

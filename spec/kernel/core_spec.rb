@@ -64,12 +64,10 @@ describe "core kernel" do
         if structure.proc_argument
           expect(blk).to eq(proc_arg)
         elsif structure.block
-          if structure.block.is_a?(Atomy::Grammar::AST::Compose)
-            # block has arguments
-            expect(blk.call(1, 2)).to eq([1, 2])
-          else
-            # block has no args
+          if structure.block.arguments.empty?
             expect(blk.call).to eq(block_body)
+          else
+            expect(blk.call(1, 2)).to eq([1, 2])
           end
         end
 

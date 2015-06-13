@@ -76,13 +76,23 @@ module Atomy
       def visit(node)
         structure = Atomy::MessageStructure.new(node)
 
+        block = nil
+        if block_arg = structure.block
+          block = Atomy::Code::Block.new(
+            Atomy::Code::Sequence.new(block_arg.body),
+            block_arg.arguments,
+            nil,
+            false,
+          )
+        end
+
         Code::Send.new(
           structure.receiver,
           structure.name,
           structure.arguments,
           structure.splat_argument,
           structure.proc_argument,
-          structure.block,
+          block,
         )
       rescue Atomy::MessageStructure::UnknownMessageStructure
       end

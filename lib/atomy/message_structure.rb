@@ -15,6 +15,23 @@ module Atomy
       end
     end
 
+    class BlockArgument
+      attr_reader :body, :arguments, :proc_argument
+
+      def initialize(body, arguments = [], proc_argument = nil)
+        @body = body
+        @arguments = arguments
+        @proc_argument = proc_argument
+      end
+
+      def ==(other)
+        other.is_a?(self.class) && \
+          other.body == @body && \
+          other.arguments == @arguments && \
+          other.proc_argument == @proc_argument
+      end
+    end
+
     class UnknownMessageStructure < RuntimeError
       def initialize(node)
         @node = node
@@ -240,7 +257,7 @@ module Atomy
 
         case node.right
         when Grammar::AST::Block
-          blk = node.right
+          blk = BlockArgument.new(node.right.nodes)
         else
           return
         end
@@ -249,7 +266,7 @@ module Atomy
         when Grammar::AST::Compose
           case node.left.right
           when Grammar::AST::List
-            return Grammar::AST::Compose.new(node.left.right, blk)
+            return BlockArgument.new(blk.body, node.left.right.nodes)
           end
         end
 

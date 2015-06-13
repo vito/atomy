@@ -179,10 +179,7 @@ match = class:
 
       done = blk new-label
 
-      pairs each [pair]:
-        pat = pair[0]
-        body = pair[1]
-
+      pairs each [pat, body]:
         skip = blk new-label
 
         -- [pattern, node]
@@ -343,10 +340,7 @@ rescue = class:
 
       done = blk new-label
 
-      pairs each [pair]:
-        pat = pair[0]
-        body = pair[1]
-
+      pairs each [pat, body]:
         skip = blk new-label
 
         -- [pattern, node]

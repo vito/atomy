@@ -212,7 +212,16 @@ super-code = class:
       gen cast-array
 
     if(@block)
-      then: mod compile(gen, @block)
+      then:
+        mod compile(
+          gen
+          Atomy Code Block new(
+            `(do: ~*(@block body))
+            @block arguments
+            nil
+            false
+          )
+        )
       else:
         if(@proc-argument)
           then: push-proc-argument(gen, mod)

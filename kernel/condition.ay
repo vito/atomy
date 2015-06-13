@@ -69,7 +69,7 @@ macro(with-restarts(~*restarts): ~*body):
   branches = restarts collect [`(~name: ~*body)]:
     [name, `(do: ~*body)]
 
-  rs = branches collect [[n, e]]:
+  rs = branches collect [n, e]:
     structure = Atomy MessageStructure new(n)
 
     `(Restart new(
