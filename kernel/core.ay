@@ -73,6 +73,12 @@ macro(@(~(name & Word))?):
 macro($~(name & Word)):
   `(//Rubinius Globals[~(Atomy Code Symbol new(("$" + name text to-s) to-sym))])
 
+macro($~(name & Constant)):
+  `(//Rubinius Globals[~(Atomy Code Symbol new(("$" + name text to-s) to-sym))])
+
+macro($~(name & StringLiteral)):
+  `(//Rubinius Globals[~(Atomy Code Symbol new(("$" + name value to-s) to-sym))])
+
 -- foo! access/sending
 macro((~(msg & Word))!):
   Atomy Code Variable new((msg text to-s + "!") to-sym)

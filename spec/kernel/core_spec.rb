@@ -156,6 +156,19 @@ describe "core kernel" do
     expect(subject.evaluate(ast("$foo"))).to eq(2)
   end
 
+  it "implements capitalized variable access" do
+    expect(subject.evaluate(ast("$LOAD_PATH"))).to eq($LOAD_PATH)
+  end
+
+  it "implements stringified variable access" do
+    begin
+      raise "hell"
+    rescue
+      expect($!).to_not be_nil
+      expect(subject.evaluate(ast('$"!"'))).to eq($!)
+    end
+  end
+
   describe "assignment" do
     context "with =" do
       it "implements local variable assignment notation" do
