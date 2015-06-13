@@ -1,4 +1,3 @@
 .rbx
 Gemfile.lock
-lib/atomy/grammar.rb
 *.gem
