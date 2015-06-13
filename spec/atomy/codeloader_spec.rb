@@ -119,6 +119,19 @@ describe Atomy::CodeLoader do
 
       expect(res).to eq(mod)
     end
+
+    it "recursively evaluates sequences" do
+      $LOAD_PATH.unshift File.expand_path(fixture("."))
+
+      begin
+        res, _ = Atomy::CodeLoader.run_script(
+          fixture("codeloader/run_script/language-using.ay"))
+
+        expect(res).to eq("forty-two")
+      ensure
+        $LOAD_PATH.shift
+      end
+    end
   end
 
   describe ".require" do

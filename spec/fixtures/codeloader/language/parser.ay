@@ -1,0 +1,20 @@
+require("atomy/bootstrap")
+require("atomy/grammar")
+
+eval("
+  class Parser
+    def initialize(str)
+      @str = str
+    end
+
+    def external_invoke(other, rule, *args)
+      other.result = Atomy::Grammar::AST::Sequence.new([
+        Atomy::Bootstrap.macro_definer(
+          Atomy::Grammar::AST::Quote.new(Atomy::Grammar::AST::Number.new(42)),
+          Atomy::Grammar::AST::Quote.new(Atomy::Grammar::AST::StringLiteral.new(\"forty-two\")),
+        ),
+        Atomy::Grammar::AST::Number.new(42),
+      ])
+    end
+  end
+")

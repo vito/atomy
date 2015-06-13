@@ -61,7 +61,8 @@
   end
 
   def set_lang(n)
-    @_grammar_lang = require("#{n}/language/parser")::Parser.new(nil)
+    require "atomy/codeloader"
+    @_grammar_lang = Atomy::CodeLoader.require("#{n}/language/parser")::Parser.new(nil)
   end
 }
 

@@ -145,12 +145,23 @@ module Atomy
 
       node = Atomy::Parser.parse_file(file)
 
-      res = nil
-      node.nodes.each do |n|
-        res = mod.evaluate(n, mod.compile_context)
-      end
+      res = evaluate_sequences(node, mod)
 
       [res, mod]
+    end
+
+    def evaluate_sequences(n, mod)
+      if n.is_a?(Atomy::Grammar::AST::Sequence)
+        res = nil
+
+        n.nodes.each do |sub|
+          res = evaluate_sequences(sub, mod)
+        end
+
+        res
+      else
+        mod.evaluate(n, mod.compile_context)
+      end
     end
 
     def find_source(path, search_in = $LOAD_PATH)
