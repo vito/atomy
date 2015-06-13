@@ -1,6 +1,10 @@
 # Patch up RubyGems/require (indirectly) to support loading
 # Atomy gems
 
+require "atomy"
+require "atomy/codeloader"
+require "atomy/module"
+
 Gem.suffixes << ".ay"
 
 module Kernel
