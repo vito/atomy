@@ -381,4 +381,50 @@ EOF
 EOF
     end
   end
+
+  describe "condition" do
+    it "evaluates the first branch whose condition is true" do
+      checked = []
+
+      failed = proc { |x|
+        checked << x
+        false
+      }
+
+      succeeded = proc { |x|
+        checked << x
+        true
+      }
+
+      expect(subject.evaluate(seq(<<EOF))).to eq(:third)
+condition:
+  failed[.first]: .first
+  failed[.second]: .second
+  succeeded[.third]: .third
+  failed[.fourth]: raise("def not evaluated")
+EOF
+
+      expect(checked).to eq([:first, :second, :third])
+    end
+
+    it "evaluates branches with 'otherwise' mapped to 'true'" do
+      expect(subject.evaluate(seq(<<EOF))).to eq(:third)
+condition:
+  false: .first
+  false: .second
+  otherwise: .third
+  otherwise: .fourth
+EOF
+    end
+
+    it "returns nil if no branches match" do
+      expect(subject.evaluate(seq(<<EOF))).to eq(nil)
+condition:
+  false: .first
+  false: .second
+  false: .third
+  false: .fourth
+EOF
+    end
+  end
 end

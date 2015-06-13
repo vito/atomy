@@ -271,3 +271,9 @@ next-class = class:
 
 macro(next): next-class new('nil)
 macro(next(~value)): next-class new(value)
+
+macro(condition: ~*branches):
+  branches reverse inject('nil) [else, `(~cond: ~*branch)]:
+    if(cond == 'otherwise)
+      then: `(do: ~*branch)
+      else: `(if(~cond) then: ~*branch; else: ~else)
