@@ -1,0 +1,9 @@
+use(require("core"))
+use(require("define"))
+
+file = class:
+  def(bytecode(gen, mod)):
+    gen push-scope
+    gen send(.active-path, 0)
+
+macro(__FILE__): file new

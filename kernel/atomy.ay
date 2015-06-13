@@ -3,4 +3,5 @@ export(
   require("define")
   require("regexp")
   require("interpolation")
-  require("condition"))
+  require("condition")
+  require("file"))
