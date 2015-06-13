@@ -149,6 +149,21 @@ describe "core kernel" do
     expect(subject.evaluate(ast("@foo?"))).to eq(1)
   end
 
+  it "implements class variable access" do
+    subject.class_variable_set(:@@foo, 1)
+    expect(subject.evaluate(ast("@@foo"), subject.compile_context)).to eq(1)
+  end
+
+  it "implements class variable access with names ending in !" do
+    subject.class_variable_set(:"@@foo!", 1)
+    expect(subject.evaluate(ast("@@foo!"), subject.compile_context)).to eq(1)
+  end
+
+  it "implements class variable access with names ending in ?" do
+    subject.class_variable_set(:"@@foo?", 1)
+    expect(subject.evaluate(ast("@@foo?"), subject.compile_context)).to eq(1)
+  end
+
   it "implements global variable access" do
     $foo = 1
     expect(subject.evaluate(ast("$foo"))).to eq(1)
