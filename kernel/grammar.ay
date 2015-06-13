@@ -35,7 +35,7 @@ fn(process-val(g, `(%(~grammar)(~name)(~*args)))):
   `(~g foreign-invoke(
       .~grammar
       .~name
-      ~(args collect .(pretty show(_)) join(", "))))
+      ~(args collect &.(pretty show(_)) join(", "))))
 
 fn(process-val(g, `(%(~grammar)(~name)))):
   `(~g foreign-invoke(.~grammar, .~name))
@@ -97,8 +97,23 @@ fn(process-val(g, `(<(~x)>))):
 fn(process-val(g, `(@<(~x)>))):
   `(~g bounds(~process-val(g, x)))
 
-fn(process-val(g, s & Atomy Grammar AST StringLiteral)):
-  `(~g str(~s))
+fn(process-val(g, `((~v)?))):
+  `(~g maybe(~process-val(g, v)))
+
+fn(process-val(g, `((~v)+))):
+  `(~g many(~process-val(g, v)))
+
+fn(process-val(g, `((~v)*))):
+  `(~g kleene(~process-val(g, v)))
+
+fn(process-val(g, `&~v)):
+  `(~g andp(~process-val(g, v)))
+
+fn(process-val(g, `!~v)):
+  `(~g notp(~process-val(g, v)))
+
+fn(process-val(g, '_)):
+  `(~g dot)
 
 fn(process-val(g, `(/(~(b & Atomy Grammar AST StringLiteral))/))):
   if(^actions)
@@ -117,38 +132,14 @@ fn(process-val(g, `(/(~(b & Atomy Grammar AST StringLiteral))/))):
         ")}"
       ] join
 
-      ^actions << [`{ ~(intp interpolated(b raw)) }, vars]
+      ^actions << [`{ ~(intp interpolated(b value)) }, vars]
 
       `(~g reg(~(Atomy Grammar AST StringLiteral new(call))))
     else:
       `(~g reg(r~b))
 
-fn(process-val(g, c & Atomy Grammar AST Apply)):
-  args = [
-    "("
-    c arguments collect .(pretty show(_)) join(", ")
-    ")"
-  ] join
-
-  `(~g ref(~(Atomy Grammar AST StringLiteral new(c name text to-s)), nil, ~(Atomy Grammar AST StringLiteral new(args))))
-
-fn(process-val(g, `@~(c & Atomy Grammar AST Apply))):
-  args = [
-    "("
-    c arguments collect .(pretty show(_)) join(", ")
-    ")"
-  ] join
-
-  `(~g invoke(~(Atomy Grammar AST StringLiteral new(c name text to-s)), ~(Atomy Grammar AST StringLiteral new(args))))
-
-fn(process-val(g, `^~(c & Atomy Grammar AST Apply))):
-  args = [
-    "("
-    c arguments collect .(pretty show(_)) join(", ")
-    ")"
-  ] join
-
-  `(~g foreign-invoke("parent", ~(Atomy Grammar AST StringLiteral new(c name text to-s)), ~(Atomy Grammar AST StringLiteral new(args))))
+fn(process-val(g, s & Atomy Grammar AST StringLiteral)):
+  `(~g str(~s))
 
 fn(process-val(g, w & Atomy Grammar AST Word)):
   `(~g ref(~(Atomy Grammar AST StringLiteral new(w text to-s))))
@@ -159,23 +150,32 @@ fn(process-val(g, `@~(w & Atomy Grammar AST Word))):
 fn(process-val(g, `^~(w & Atomy Grammar AST Word))):
   `(~g foreign-invoke("parent", ~(Atomy Grammar AST StringLiteral new(w text to-s))))
 
-fn(process-val(g, `((~v)?))):
-  `(~g maybe(~process-val(g, v)))
+fn(process-val(g, c & Atomy Grammar AST Apply)):
+  args = [
+    "("
+    c arguments collect &.(pretty show(_)) join(", ")
+    ")"
+  ] join
 
-fn(process-val(g, `((~v)+))):
-  `(~g many(~process-val(g, v)))
+  `(~g ref(~(Atomy Grammar AST StringLiteral new(c node text to-s)), nil, ~(Atomy Grammar AST StringLiteral new(args))))
 
-fn(process-val(g, `((~v)*))):
-  `(~g kleene(~process-val(g, v)))
+fn(process-val(g, `@~(c & Atomy Grammar AST Apply))):
+  args = [
+    "("
+    c arguments collect &.(pretty show(_)) join(", ")
+    ")"
+  ] join
 
-fn(process-val(g, `&~v)):
-  `(~g andp(~process-val(g, v)))
+  `(~g invoke(~(Atomy Grammar AST StringLiteral new(c node text to-s)), ~(Atomy Grammar AST StringLiteral new(args))))
 
-fn(process-val(g, `!~v)):
-  `(~g notp(~process-val(g, v)))
+fn(process-val(g, `^~(c & Atomy Grammar AST Apply))):
+  args = [
+    "("
+    c arguments collect &.(pretty show(_)) join(", ")
+    ")"
+  ] join
 
-fn(process-val(g, '_)):
-  `(~g dot)
+  `(~g foreign-invoke("parent", ~(Atomy Grammar AST StringLiteral new(c node text to-s)), ~(Atomy Grammar AST StringLiteral new(args))))
 
 fn(process-val(_, s)):
   raise(ArgumentError, "unknown parsing operator:\n" + s inspect)
@@ -205,7 +205,7 @@ fn(process-toplevel(grammar, `%%{ ~*xs })):
       else:
         `{ ~*xs }
 
-    `(~grammar add-setup(~grammar action(~call)))
+  `(~grammar add-setup(~grammar action(~call)))
 
 fn(process-toplevel(grammar, `(%~name = ~const))):
   `(~grammar add-foreign-grammar(
@@ -214,7 +214,7 @@ fn(process-toplevel(grammar, `(%~name = ~const))):
     ))
 
 fn(process-toplevel(grammar, `(rule((~name)(~*args)): ~val))):
-  with(rule = name text, rule-vars = //Set new(args collect .text)):
+  with(rule = name text, rule-vars = //Set new(args collect &.text)):
     `(~grammar set(
         ~(Atomy Grammar AST StringLiteral new(name text to-s))
         ~process-val(grammar, val)
@@ -253,9 +253,12 @@ macro(parser(~name): ~*grammar):
 
     `(do:
         const-set(.~name, //KPeg CompiledParser class:
+          setups = [~*^setups]
+          vars = [~*^vars]
+
           singleton:
-            def(setups): @setups ||= [~*^setups]
-            def(vars): @vars ||= [~*^vars]
+            def(setups): setups
+            def(vars): vars
 
           def(actions): @actions ||= [~*acts])
 
