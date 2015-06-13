@@ -42,8 +42,10 @@ module Atomy
           # for now, only allow a fixed set of arguments
           blk.required_args = blk.total_args = @arguments.size
 
-          # discard extra arguments
-          blk.splat_index = @arguments.size
+          if @lambda_style
+            # discard extra arguments
+            blk.splat_index = @arguments.size
+          end
 
           # this bubbles up to Proc#arity and BlockEnvironment, though it
           # doesn't appear to change actual behavior of the block

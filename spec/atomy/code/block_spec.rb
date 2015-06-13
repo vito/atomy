@@ -8,8 +8,10 @@ describe Atomy::Code::Block do
 
   let(:body) { ast("a + b") }
   let(:args) { [ast("a"), ast("b")] }
+  let(:proc_argument) { nil }
+  let(:lambda_style) { true }
 
-  subject { described_class.new(body, args) }
+  subject { described_class.new(body, args, proc_argument, lambda_style) }
 
   it "constructs a Proc with the correct arity" do
     blk = compile_module.evaluate(subject)
@@ -36,17 +38,58 @@ describe Atomy::Code::Block do
     end
   end
 
-  context "when called with too many arguments" do
-    it "ignores the extra ones" do
-      expect(compile_module.evaluate(subject).call(1, 2, 3)).to eq(3)
+  context "with lambda-style" do
+    let(:lambda_style) { true }
+
+    context "when called with too many arguments" do
+      it "ignores the extra ones" do
+        expect(compile_module.evaluate(subject).call(1, 2, 3)).to eq(3)
+      end
+    end
+
+    context "when called with an array argument" do
+      let(:body) { ast("as") }
+      let(:args) { [ast("as")] }
+
+      it "returns the array argument" do
+        expect(compile_module.evaluate(subject).call([1, 2, 3])).to eq([1, 2, 3])
+      end
+    end
+
+    context "when called with too few arguments" do
+      it "raises ArgumentError" do
+        expect {
+          compile_module.evaluate(subject).call(1)
+        }.to raise_error(ArgumentError)
+      end
     end
   end
 
-  context "when called with too few arguments" do
-    it "raises ArgumentError" do
-      expect {
-        compile_module.evaluate(subject).call(1)
-      }.to raise_error(ArgumentError)
+  context "without lambda-style" do
+    let(:lambda_style) { false }
+
+    context "when called with too many arguments" do
+      it "ignores the extra ones" do
+        expect(compile_module.evaluate(subject).call(1, 2, 3)).to eq(3)
+      end
+    end
+
+    context "when called with an array argument" do
+      let(:body) { ast("as") }
+      let(:args) { [ast("as")] }
+
+      it "returns the array argument" do
+        expect(compile_module.evaluate(subject).call([1, 2, 3])).to eq([1, 2, 3])
+      end
+    end
+
+    context "when called with too few arguments" do
+      let(:body) { ast("[x, y]") }
+      let(:args) { [ast("x"), ast("y")] }
+
+      it "passes nil arguments" do
+        expect(compile_module.evaluate(subject).call(1)).to eq([1, nil])
+      end
     end
   end
 
