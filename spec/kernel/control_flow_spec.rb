@@ -109,22 +109,6 @@ describe "control-flow kernel" do
     end
   end
 
-  describe "while(x): y" do
-    it "continuously runs as long as evaluating 'x' is truthy" do
-      a = 1
-      expect(subject.evaluate(seq("while(a != 10): a =! (a + 1)"))).to be_nil
-      expect(a).to eq(10)
-    end
-  end
-
-  describe "until(x): y" do
-    it "continuously runs as long as evaluating 'x' is falsy" do
-      a = 1
-      expect(subject.evaluate(seq("until(a == 10): a =! (a + 1)"))).to be_nil
-      expect(a).to eq(10)
-    end
-  end
-
   describe "!x" do
     context "when x is truthy" do
       it "returns false" do

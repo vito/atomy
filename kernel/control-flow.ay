@@ -71,61 +71,6 @@ macro(when(~x): ~*y):
 macro(unless(~x): ~*y):
   `(if(~x) then: nil; else: ~*y)
 
-
-while-loop = class:
-  def(initialize(condition, body)):
-    instance-variable-set("@condition", condition)
-    instance-variable-set("@body", body)
-
-  def(bytecode(gen, mod)):
-    -- TODO: check_interrupts? how to test that?
-
-    loop = gen new-label
-    done = gen new-label
-
-    loop set!
-
-    mod compile(gen, @condition)
-    gen gif(done)
-
-    mod compile(gen, @body)
-    gen pop
-    gen goto(loop)
-
-    done set!
-    gen push-nil
-
-macro(while(~condition): ~*body):
-  while-loop new(condition, `(do: ~*body))
-
-
-until-loop = class:
-  def(initialize(condition, body)):
-    instance-variable-set("@condition", condition)
-    instance-variable-set("@body", body)
-
-  def(bytecode(gen, mod)):
-    -- TODO: check_interrupts? how to test that?
-
-    loop = gen new-label
-    done = gen new-label
-
-    loop set!
-
-    mod compile(gen, @condition)
-    gen git(done)
-
-    mod compile(gen, @body)
-    gen pop
-    gen goto(loop)
-
-    done set!
-    gen push-nil
-
-macro(until(~condition): ~*body):
-  until-loop new(condition, `(do: ~*body))
-
-
 negate = class:
   def(initialize(node)):
     instance-variable-set("@node", node)
