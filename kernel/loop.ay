@@ -39,7 +39,6 @@ macro(labels: ~*branches):
   `(let-macro(go(~'~name) = GoTo new(name text)):
       ~(labels new(branch-pairs)))
 
-macro(~x while ~y): `(while(~y): ~x)
 macro(while(~test): ~*body):
   `(labels:
       loop:
@@ -54,7 +53,6 @@ macro(while(~test): ~*body):
 
       done {})
 
-macro(~x until ~y): `(until(~y): ~x)
 macro(until(~test): ~*body):
   `(labels:
       loop:
