@@ -176,6 +176,11 @@ module Atomy
       end
     end
 
+    def find_atomy_source(path, search_in = $LOAD_PATH)
+      path += source_extension unless path.end_with?(source_extension)
+      find_source(path)
+    end
+
     private
 
     def loaded?(file)

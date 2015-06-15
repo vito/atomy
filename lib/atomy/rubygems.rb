@@ -12,7 +12,7 @@ module Kernel
   alias atomy_original_require require
 
   def require(name)
-    if file = Atomy::CodeLoader.find_source(name)
+    if file = Atomy::CodeLoader.find_atomy_source(name)
       Atomy::CodeLoader.require(file)
     else
       atomy_original_require(name)
@@ -20,7 +20,7 @@ module Kernel
   end
 
   def gem_original_require(name)
-    if file = Atomy::CodeLoader.find_source(name)
+    if file = Atomy::CodeLoader.find_atomy_source(name)
       Atomy::CodeLoader.require(file)
     else
       atomy_original_gem_original_require(name)
