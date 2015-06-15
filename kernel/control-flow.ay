@@ -93,7 +93,7 @@ negate = class:
 macro(!~node):
   negate new(node)
 
-return = class:
+return-class = class:
   def(initialize(node)):
     instance-variable-set("@node", node)
 
@@ -101,8 +101,8 @@ return = class:
     mod compile(gen, @node)
     gen ret
 
-macro(return(~node)):
-  return new(node)
+macro(return): return-class new('nil)
+macro(return(~node)): return-class new(node)
 
 ensure = class:
   def(initialize(node, ensured)):

@@ -134,6 +134,15 @@ describe "control-flow kernel" do
         } call
       "))).to eq(3)
     end
+
+    it "returns nil with no arguments" do
+      expect(subject.evaluate(ast("
+        {
+          return([1, { return, 42 } call])
+          42
+        } call
+      "))).to eq([1, nil])
+    end
   end
 
   describe "ensuring" do
