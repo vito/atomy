@@ -2,92 +2,213 @@ use(require("core"))
 use(require("define"))
 use(require("control-flow"))
 
-require("atomy/pattern/index")
 require("atomy/pattern/class_variable")
 require("atomy/pattern/instance_variable")
 require("atomy/pattern/attribute")
 require("atomy/pattern/or")
 
-pattern(~parent ~(constant & Constant)):
-  Atomy Code Pattern new(`(//Atomy Pattern KindOf new(~parent ~constant)), [])
+instance-variable-pattern-code = Atomy Code Pattern class:
+  def(initialize(name)):
+    instance-variable-set("@name", name)
 
-pattern(~receiver ~(attribute & Word)):
-  Atomy Code Pattern new(`(//Atomy Pattern Attribute new('~attribute text, ~receiver)), [])
+  def(bytecode(gen, mod)):
+    mod compile(gen, `(//Atomy Pattern Wildcard new))
 
-pattern(~receiver (~(attribute & Word))?):
-  Atomy Code Pattern new(`(//Atomy Pattern Attribute new(~(Atomy Code Symbol new((attribute text to-s + "?") to-sym)), ~receiver)), [])
-
-pattern(~receiver (~(attribute & Word))!):
-  Atomy Code Pattern new(`(//Atomy Pattern Attribute new(~(Atomy Code Symbol new((attribute text to-s + "!") to-sym)), ~receiver)), [])
-
-pattern(~receiver [~*arguments]):
-  Atomy Code Pattern new(`(//Atomy Pattern Index new(~receiver, [~*arguments])), [])
+  def(assign(gen)):
+    gen set-ivar(("@" + @name to-s) to-sym)
 
 pattern(@~(name & Word)):
-  Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new(.~name)), [])
+  instance-variable-pattern-code new(name text)
 
 pattern(@(~(name & Word))?):
-  Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new(~(Atomy Code Symbol new((name text to-s + "?") to-sym)))), [])
+  instance-variable-pattern-code new((name text to-s + "?") to-sym)
 
 pattern(@(~(name & Word))!):
-  Atomy Code Pattern new(`(//Atomy Pattern InstanceVariable new(~(Atomy Code Symbol new((name text to-s + "!") to-sym)))), [])
+  instance-variable-pattern-code new((name text to-s + "!") to-sym)
 
-current-scope = class:
+kind-of-pattern-code = Atomy Code Pattern class:
+  def(initialize(@parent, @constant)) {}
+
   def(bytecode(gen, mod)):
+    mod compile(gen, `(//Atomy Pattern KindOf new(~@parent ~@constant)))
+
+pattern(~parent ~(constant & Constant)):
+  kind-of-pattern-code new(parent, constant)
+
+attribute-pattern-code = Atomy Code Pattern class:
+  def(initialize(@attribute, @receiver, @arguments)) {}
+
+  def(bytecode(gen, mod)):
+    mod compile(gen, `(//Atomy Pattern Attribute new(~@receiver, [~*@arguments])))
+
+  def(assign(gen)):
+    -- [value, pattern, value, pattern]
+    gen dup-many(2)
+    -- [pattern, value, value, pattern]
+    gen swap
+    -- [pattern, pattern, value, value, pattern]
+    gen dup
+    -- [receiver, pattern, value, value, pattern]
+    gen send(.receiver, 0)
+    -- [pattern, value, receiver, value, pattern]
+    gen move-down(2)
+    -- [[arguments], value, receiver, value, pattern]
+    gen send(.arguments, 0)
+    -- [<nil block>, [arguments], value, receiver, value, pattern]
+    gen push-nil
+    -- [assign result, value, pattern]
+    gen set-call-flags(2) -- CALL_FLAG_CONCAT
+    gen send-with-splat(((@attribute to-s) + "=") to-sym, 1)
+    -- [value, pattern]
+    gen pop
+
+pattern(~receiver ~(attribute & Word)):
+  attribute-pattern-code new(attribute text, receiver, [])
+
+pattern(~receiver (~(attribute & Word))?):
+  attribute-pattern-code new((attribute text to-s + "?") to-sym, receiver, [])
+
+pattern(~receiver (~(attribute & Word))!):
+  attribute-pattern-code new((attribute text to-s + "!") to-sym, receiver, [])
+
+pattern(~receiver [~*arguments]):
+  attribute-pattern-code new("[]" to-sym, receiver, arguments)
+
+class-variable-pattern-code = Atomy Code Pattern class:
+  def(initialize(@name)) {}
+
+  def(bytecode(gen, mod)):
+    mod compile(gen, `(//Atomy Pattern Wildcard new))
+
+  def(assign(gen)):
+    gen dup
     gen push-scope
+    gen swap
+    gen push-literal(("@@" + @name to-s) to-sym)
+    gen swap
+    gen send(.class-variable-set, 2)
+    gen pop
+
 
 pattern(@@~(name & Word)):
-  Atomy Code Pattern new(`(//Atomy Pattern ClassVariable new(~(current-scope new), .~name)), [])
+  class-variable-pattern-code new(name text)
 
 pattern(@@(~(name & Word))?):
-  Atomy Code Pattern new(`(//Atomy Pattern ClassVariable new(~(current-scope new), ~(Atomy Code Symbol new((name text to-s + "?") to-sym)))), [])
+  class-variable-pattern-code new((name text to-s + "?") to-sym)
 
 pattern(@@(~(name & Word))!):
-  Atomy Code Pattern new(`(//Atomy Pattern ClassVariable new(~(current-scope new), ~(Atomy Code Symbol new((name text to-s + "!") to-sym)))), [])
+  class-variable-pattern-code new((name text to-s + "!") to-sym)
 
 pattern($~(name & Word)):
   pattern(`(//Rubinius Globals[~(Atomy Code Symbol new(("$" + name text to-s) to-sym))]))
 
 pattern(nil):
-  Atomy Code Pattern new(`(//Atomy Pattern Equality new(nil)), [])
+  Atomy Code Pattern new(`(//Atomy Pattern Equality new(nil)))
 
 pattern(true):
-  Atomy Code Pattern new(`(//Atomy Pattern Equality new(true)), [])
+  Atomy Code Pattern new(`(//Atomy Pattern Equality new(true)))
 
 pattern(false):
-  Atomy Code Pattern new(`(//Atomy Pattern Equality new(false)), [])
+  Atomy Code Pattern new(`(//Atomy Pattern Equality new(false)))
 
 pattern(~(x & StringLiteral)):
-  Atomy Code Pattern new(`(//Atomy Pattern Equality new(~x)), [])
+  Atomy Code Pattern new(`(//Atomy Pattern Equality new(~x)))
+
+or-pattern-code = Atomy Code Pattern class:
+  def(initialize(@a, @b)) {}
+
+  def(bytecode(gen, mod)):
+    mod compile(gen, `(//Atomy Pattern Or new(~@a, ~@b)))
+
+  def(assign(gen)):
+    done = gen new-label
+    assign-b = gen new-label
+
+    gen dup-many(2)
+    gen swap
+    gen send(.a, 0)
+    gen swap
+    gen send(.matches?, 1)
+    gen gif(assign-b)
+
+    gen dup-many(2)
+    gen swap
+    gen send(.a, 0)
+    gen swap
+    @a assign(gen)
+    gen pop-many(2)
+
+    gen goto(done)
+
+    assign-b set!
+
+    gen dup-many(2)
+    gen swap
+    gen send(.b, 0)
+    gen swap
+    @b assign(gen)
+    gen pop-many(2)
+
+    done set!
 
 pattern(~a | ~b):
-  a-pattern = pattern(a)
-  b-pattern = pattern(b)
-
-  Atomy Code Pattern new(
-      `(//Atomy Pattern Or new(~a-pattern, ~b-pattern))
-      a-pattern locals + b-pattern locals)
+  or-pattern-code new(pattern(a), pattern(b))
 
 with-pattern = Atomy Pattern class:
+  attr-reader(.block, .pattern)
+
   def(initialize(@block, @pattern)) {}
 
   def(matches?(val)):
     @pattern matches?(@block call-on-object(val))
-
-  def(assign(scope, val)):
-    @pattern assign(scope, @block call-on-object(val))
 
   def(target):
     Object
 
 Atomy Pattern const-set(.With, with-pattern)
 
-pattern(with(~expr, ~pat)):
-  sub-pattern = pattern(pat)
+with-pattern-code = Atomy Code Pattern class:
+  def(initialize(@expr, @sub-pattern)) {}
 
-  Atomy Code Pattern new(
-    `(//Atomy Pattern With new({ ~expr }, ~sub-pattern))
-    sub-pattern locals)
+  def(bytecode(gen, mod)):
+    mod compile(gen, `(//Atomy Pattern With new({ ~@expr }, ~@sub-pattern)))
+
+  def(assign(gen)):
+    -- [value, pattern, value, pattern]
+    gen dup-many(2)
+
+    -- [pattern, value, value, pattern]
+    gen swap
+
+    -- [pattern, pattern, value, value, pattern]
+    gen dup
+
+    -- [with-block, pattern, value, value, pattern]
+    gen send(.block, 0)
+
+    -- [pattern, with-block, value, value, pattern]
+    gen swap
+
+    -- [with-pattern, with-block, value, value, pattern]
+    gen send(.pattern, 0)
+
+    -- [with-block, value, with-pattern, value, pattern]
+    gen move-down(2)
+
+    -- [value, with-block, with-pattern, value, pattern]
+    gen swap
+
+    -- [block-result, with-pattern, value, pattern]
+    gen send(.call-on-object, 1)
+
+    -- [block-result, with-pattern, value, pattern]
+    @sub-pattern assign(gen)
+
+    -- [value, pattern]
+    gen pop-many(2)
+
+pattern(with(~expr, ~pat)):
+  with-pattern-code new(expr, pattern(pat))
 
 pred-pattern = Atomy Pattern class:
   def(initialize(@block)) {}
@@ -101,18 +222,12 @@ pred-pattern = Atomy Pattern class:
 Atomy Pattern const-set(.Predicate, pred-pattern)
 
 pattern({ ~*pred-body }):
-  Atomy Code Pattern new(
-    `(//Atomy Pattern Predicate new({ ~*pred-body }))
-    [])
+  Atomy Code Pattern new(`(//Atomy Pattern Predicate new({ ~*pred-body })))
 
 list-pattern = Atomy Pattern class:
-  def(initialize(patterns)):
-    @patterns = []
+  attr-reader(.patterns, .splat)
 
-    patterns each [p]:
-      if(p is-a?(Atomy Pattern Splat))
-        then: @splat = p -- TODO: break
-        else: @patterns << p
+  def(initialize(@patterns, @splat)) {}
 
   def(matches?(val)):
     unless(val is-a?(Array)):
@@ -128,10 +243,10 @@ list-pattern = Atomy Pattern class:
     mismatch = false
     @patterns each [p]:
       unless(p matches?(val[idx])):
-        mismatch =! true
+        &mismatch = true
         -- TODO: break, or return false
 
-      idx =! (idx + 1)
+      &idx = (idx + 1)
 
     if(mismatch)
       then: false
@@ -145,19 +260,100 @@ list-pattern = Atomy Pattern class:
     idx = 0
     @patterns each [p]:
       p assign(scope, val[idx])
-      idx =! (idx + 1)
+      &idx = (idx + 1)
 
     when(@splat):
       @splat assign(scope, val drop(idx))
 
 Atomy Pattern const-set(.List, list-pattern)
 
-pattern([~*pats]):
-  sub-patterns = pats collect [p]: pattern(p)
+list-pattern-code = Atomy Code Pattern class:
+  def(initialize(patterns)):
+    @patterns = []
+    @splat = nil
 
-  Atomy Code Pattern new(
-      `(//Atomy Pattern List new([~*sub-patterns]))
-      sub-patterns collect [p] { p locals } flatten)
+    patterns each [p]:
+      if(p splat?)
+        then: @splat = p
+        else: @patterns << p
+
+  def(bytecode(gen, mod)):
+    splat-node = (@splat || 'nil)
+    mod compile(gen, `(//Atomy Pattern List new([~*@patterns], ~splat-node)))
+
+  def(assign(gen)):
+    -- [[value], pattern, [value], pattern]
+    gen dup-many(2)
+
+    -- [pattern, [value], [value], pattern]
+    gen swap
+
+    -- [[pattern], [value], [value], pattern]
+    gen send(.patterns, 0)
+
+    @patterns each with-index [p, i]:
+      -- [pattern, [pattern], [value], [value], pattern]
+      gen shift-array
+
+      -- [[pattern], pattern, [value], [value], pattern]
+      gen swap
+
+      -- [[value], pattern, [pattern], [value], pattern]
+      gen rotate(3)
+
+      -- [value, [value], pattern, [pattern], [value], pattern]
+      gen shift-array
+
+      -- [[value], value, pattern, [pattern], [value], pattern]
+      gen swap
+
+      -- [value, pattern, [value], [pattern], [value], pattern]
+      gen move-down(2)
+
+      -- [value, pattern, [value], [pattern], [value], pattern]
+      p assign(gen)
+
+      -- [[value], [pattern], [value], pattern]
+      gen pop-many(2)
+
+      -- [[pattern], [value], [value], pattern]
+      gen swap
+
+    when(@splat):
+      -- [[remaining values], [value], pattern]
+      gen pop
+
+      -- [[value], [remaining values], pattern]
+      gen swap
+
+      -- [pattern, [remaining values], [value]]
+      gen rotate(3)
+
+      -- [pattern, pattern, [remaining values], [value]]
+      gen dup
+
+      -- [splat pattern, pattern, [remaining values], [value]]
+      gen send(.splat, 0)
+
+      -- [splatted pattern, pattern, [remaining values], [value]]
+      gen send(.pattern, 0)
+
+      -- [pattern, [remaining values], splatted pattern, [value]]
+      gen move-down(2)
+
+      -- [[remaining values], splatted pattern, [value], pattern]
+      gen move-down(3)
+
+      -- [[remaining values], splatted pattern, [value], pattern]
+      @splat assign(gen)
+
+    -- either pop the splatted values/pattern, or the two empty arrays if no splat
+    -- [[value], pattern]
+    gen pop-many(2)
+
+-- list-pattern
+pattern([~*pats]):
+  list-pattern-code new(pats collect [p]: pattern(p))
 
 match = class:
   def(initialize(@node, @branches)) {}
@@ -206,29 +402,14 @@ match = class:
         -- [pattern, node]
         blk gif(skip)
 
-        pat locals each [name]:
-          assigned = assignment-local(blk, name)
-          local = assigned[0]
-          created = assigned[1]
-          when(created):
-            blk push-nil
-            local set-bytecode(blk)
-            blk pop
-
         -- [node, pattern]
         blk swap
 
-        -- [#<Rubinius::VariableScope>, node, pattern]
-        blk push-variables
-
-        -- [node, #<Rubinius::VariableScope>, pattern]
-        blk swap
-
-        -- [<junk>]
-        blk send(.assign, 2)
+        -- [node, pattern]
+        pat assign(blk)
 
         -- []
-        blk pop
+        blk pop-many(2)
 
         -- [value]
         mod compile(blk, body)
@@ -281,7 +462,7 @@ rescue = class:
 
     -- [value]
     gen pop-unwind
-  
+
     -- [value]
     gen goto(ok)
 
@@ -316,7 +497,7 @@ rescue = class:
 
     -- []
     gen reraise
-  
+
     -- [value, exc_state]
     rescued set!
 
@@ -367,29 +548,14 @@ rescue = class:
         -- [pattern, node]
         blk gif(skip)
 
-        pat locals each [name]:
-          assigned = assignment-local(blk, name)
-          local = assigned[0]
-          created = assigned[1]
-          when(created):
-            blk push-nil
-            local set-bytecode(blk)
-            blk pop
-
         -- [node, pattern]
         blk swap
 
-        -- [#<Rubinius::VariableScope>, node, pattern]
-        blk push-variables
-
-        -- [node, #<Rubinius::VariableScope>, pattern]
-        blk swap
-
-        -- [<junk>]
-        blk send(.assign, 2)
+        -- [node, pattern]
+        pat assign(blk)
 
         -- []
-        blk pop
+        blk pop-many(2)
 
         -- [value]
         mod compile(blk, body)

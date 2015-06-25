@@ -118,28 +118,18 @@ describe Atomy::Bootstrap do
       context "when the text is _" do
         let(:node) { ast("_") }
 
-        it "expands into an unnamed Wildcard pattern" do
+        it "expands into a Wildcard pattern" do
           pattern = subject.evaluate(subject.pattern(node))
           expect(pattern).to be_a(Atomy::Pattern::Wildcard)
-          expect(pattern.name).to be_nil
-        end
-
-        it "declares no locals" do
-          expect(subject.pattern(node).locals).to be_empty
         end
       end
 
       context "with text other than _" do
         let(:node) { ast("a") }
 
-        it "expands into a named Wildcard pattern" do
+        it "expands into a Wildcard pattern" do
           pattern = subject.evaluate(subject.pattern(node))
           expect(pattern).to be_a(Atomy::Pattern::Wildcard)
-          expect(pattern.name).to eq(:a)
-        end
-
-        it "declares a local for the name" do
-          expect(subject.pattern(node).locals).to eq([:a])
         end
       end
     end
@@ -152,10 +142,6 @@ describe Atomy::Bootstrap do
         expect(expanded).to be_a(Atomy::Pattern::KindOf)
         expect(expanded.klass).to eq(Integer)
       end
-
-      it "declares no locals" do
-        expect(subject.pattern(node).locals).to be_empty
-      end
     end
 
     context "with a Number node" do
@@ -166,10 +152,6 @@ describe Atomy::Bootstrap do
         expect(pattern).to be_a(Atomy::Pattern::Equality)
         expect(pattern.value).to eq(1)
       end
-
-      it "declares no locals" do
-        expect(subject.pattern(node).locals).to be_empty
-      end
     end
 
     context "with a Quote node" do
@@ -179,10 +161,6 @@ describe Atomy::Bootstrap do
         pattern = subject.evaluate(subject.pattern(node))
         expect(pattern).to be_a(Atomy::Pattern::Equality)
         expect(pattern.value).to eq(ast("a"))
-      end
-
-      it "declares no locals" do
-        expect(subject.pattern(node).locals).to be_empty
       end
     end
 
@@ -195,10 +173,6 @@ describe Atomy::Bootstrap do
         expect(pattern.node).to eq(ast("a"))
       end
 
-      it "declares no locals" do
-        expect(subject.pattern(node).locals).to be_empty
-      end
-
       context "when the pattern contains unquoted patterns" do
         let(:node) { ast("`(1 + ~a)") }
 
@@ -208,36 +182,25 @@ describe Atomy::Bootstrap do
           expect(pattern.node).to be_a(Atomy::Grammar::AST::Infix)
           expect(pattern.node.left).to eq(ast("1"))
           expect(pattern.node.right).to be_a(Atomy::Pattern::Wildcard)
-          expect(pattern.node.right.name).to eq(:a)
-        end
-
-        it "declares their locals" do
-          expect(subject.pattern(node).locals).to eq([:a])
         end
 
         context "at varying levels" do
           let(:node) { ast("`([~a, b] + `(2 + ~'~b))") }
 
-        it "correctly embeds pattern code" do
-          pattern = subject.evaluate(subject.pattern(node))
-          expect(pattern).to be_a(Atomy::Pattern::QuasiQuote)
-          expect(pattern.node).to be_a(Atomy::Grammar::AST::Infix)
-          expect(pattern.node.left).to be_a(Atomy::Grammar::AST::List)
-          expect(pattern.node.left.nodes[0]).to be_a(Atomy::Pattern::Wildcard)
-          expect(pattern.node.left.nodes[0].name).to eq(:a)
-          expect(pattern.node.left.nodes[1]).to eq(ast("b"))
-          expect(pattern.node.right).to be_a(Atomy::Grammar::AST::QuasiQuote)
-          expect(pattern.node.right.node).to be_a(Atomy::Grammar::AST::Infix)
-          expect(pattern.node.right.node.operator).to eq(:+)
-          expect(pattern.node.right.node.left).to eq(ast("2"))
-          expect(pattern.node.right.node.right).to be_a(Atomy::Grammar::AST::Unquote)
-          expect(pattern.node.right.node.right.node).to be_a(Atomy::Grammar::AST::Quote)
-          expect(pattern.node.right.node.right.node.node).to be_a(Atomy::Pattern::Wildcard)
-          expect(pattern.node.right.node.right.node.node.name).to eq(:b)
-        end
-
-          it "declares the correct set of locals, following through the unquotes" do
-            expect(subject.pattern(node).locals).to eq([:a, :b])
+          it "correctly embeds pattern code" do
+            pattern = subject.evaluate(subject.pattern(node))
+            expect(pattern).to be_a(Atomy::Pattern::QuasiQuote)
+            expect(pattern.node).to be_a(Atomy::Grammar::AST::Infix)
+            expect(pattern.node.left).to be_a(Atomy::Grammar::AST::List)
+            expect(pattern.node.left.nodes[0]).to be_a(Atomy::Pattern::Wildcard)
+            expect(pattern.node.left.nodes[1]).to eq(ast("b"))
+            expect(pattern.node.right).to be_a(Atomy::Grammar::AST::QuasiQuote)
+            expect(pattern.node.right.node).to be_a(Atomy::Grammar::AST::Infix)
+            expect(pattern.node.right.node.operator).to eq(:+)
+            expect(pattern.node.right.node.left).to eq(ast("2"))
+            expect(pattern.node.right.node.right).to be_a(Atomy::Grammar::AST::Unquote)
+            expect(pattern.node.right.node.right.node).to be_a(Atomy::Grammar::AST::Quote)
+            expect(pattern.node.right.node.right.node.node).to be_a(Atomy::Pattern::Wildcard)
           end
         end
       end
@@ -245,34 +208,12 @@ describe Atomy::Bootstrap do
 
     context "with a Prefix node" do
       context "when the operator is *" do
-        context "when the sub-pattern declares locals" do
-          let(:node) { ast("*a") }
+        let(:node) { ast("*_") }
 
-          it "expands into a Splat pattern" do
-            pattern = subject.evaluate(subject.pattern(node))
-            expect(pattern).to be_a(Atomy::Pattern::Splat)
-            expect(pattern.pattern).to be_a(Atomy::Pattern::Wildcard)
-            expect(pattern.pattern.name).to eq(:a)
-          end
-
-          it "declares it's sub-pattern's locals" do
-            expect(subject.pattern(node).locals).to eq([:a])
-          end
-        end
-
-        context "when the sub-pattern declares no locals" do
-          let(:node) { ast("*_") }
-
-          it "expands into a Splat pattern" do
-            pattern = subject.evaluate(subject.pattern(node))
-            expect(pattern).to be_a(Atomy::Pattern::Splat)
-            expect(pattern.pattern).to be_a(Atomy::Pattern::Wildcard)
-            expect(pattern.pattern.name).to be_nil
-          end
-
-          it "declares no locals" do
-            expect(subject.pattern(node).locals).to be_empty
-          end
+        it "expands into a Splat pattern" do
+          pattern = subject.evaluate(subject.pattern(node))
+          expect(pattern).to be_a(Atomy::Pattern::Splat)
+          expect(pattern.pattern).to be_a(Atomy::Pattern::Wildcard)
         end
       end
     end
@@ -285,13 +226,7 @@ describe Atomy::Bootstrap do
           pattern = subject.evaluate(subject.pattern(node))
           expect(pattern).to be_a(Atomy::Pattern::And)
           expect(pattern.a).to be_a(Atomy::Pattern::Wildcard)
-          expect(pattern.a.name).to eq(:a)
           expect(pattern.b).to be_a(Atomy::Pattern::Wildcard)
-          expect(pattern.b.name).to eq(:b)
-        end
-
-        it "declares locals for each sub-pattern" do
-          expect(subject.pattern(node).locals).to eq([:a, :b])
         end
       end
     end

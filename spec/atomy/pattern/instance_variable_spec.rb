@@ -16,11 +16,4 @@ describe Atomy::Pattern::InstanceVariable do
     it { should === nil }
     it { should === Object.new }
   end
-
-  describe "#assign" do
-    it "assigns the instance variable in the given scope" do
-      subject.assign(Rubinius::VariableScope.current, 42)
-      expect(@abc).to eq(42)
-    end
-  end
 end

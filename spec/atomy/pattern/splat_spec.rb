@@ -34,27 +34,5 @@ describe Atomy::Pattern::Splat do
       gen.send(:==, 1)
     end
   end
-
-  describe "#assign" do
-    context "when its pattern binds" do
-      subject { described_class.new(Atomy::Pattern::Wildcard.new(:abc)) }
-
-      it "assigns them in the given scope" do
-        abc = nil
-        subject.assign(Rubinius::VariableScope.current, [ast("foo"), ast("bar")])
-        expect(abc).to eq([ast("foo"), ast("bar")])
-      end
-    end
-
-    context "when its pattern does NOT bind" do
-      subject { described_class.new(Atomy::Pattern::Wildcard.new) }
-
-      it "does not assign anything" do
-        abc = nil
-        subject.assign(Rubinius::VariableScope.current, [ast("foo"), ast("bar")])
-        expect(abc).to be_nil
-      end
-    end
-  end
 end
 

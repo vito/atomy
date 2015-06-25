@@ -33,11 +33,11 @@ module Atomy
   class Method
     class Branch
       attr_reader :body, :receiver, :arguments, :default_arguments,
-        :splat_argument, :post_arguments, :proc_argument, :locals
+        :splat_argument, :post_arguments, :proc_argument
 
       def initialize(receiver = nil, arguments = [], default_arguments = [],
                      splat_argument = nil, post_arguments = [],
-                     proc_argument = nil, locals = [], &body)
+                     proc_argument = nil, &body)
         @body = body.block
         @receiver = receiver
         @arguments = arguments
@@ -45,7 +45,6 @@ module Atomy
         @splat_argument = splat_argument
         @post_arguments = post_arguments
         @proc_argument = proc_argument
-        @locals = locals
       end
 
       def pre_arguments_count
@@ -107,16 +106,6 @@ module Atomy
           arg += 1
         end
 
-        declared_locals = {}
-        @branches.each do |b|
-          b.locals.each do |loc|
-            if !declared_locals[loc]
-              gen.state.scope.new_local(loc)
-              declared_locals[loc] = true
-            end
-          end
-        end
-
         done = gen.new_label
 
         build_branches(gen, done)
@@ -170,7 +159,7 @@ module Atomy
 
         # check for too many arguments
         unless b.splat_index
-          gen.passed_arg(b.pre_arguments_count + b.default_arguments.count + b.post_arguments.count)
+          gen.passed_arg(b.pre_arguments_count + b.default_arguments_count + b.post_arguments_count)
           gen.git(skip)
         end
 
@@ -180,11 +169,11 @@ module Atomy
           gen.send(:matches?, 1)
           gen.gif(skip)
 
-          gen.push_literal(b.receiver)
-          gen.push_variables
-          gen.push_self
-          gen.send(:assign, 2)
-          gen.pop
+          # gen.push_literal(b.receiver)
+          # gen.push_variables
+          # gen.push_self
+          # gen.send(:assign, 2)
+          # gen.pop
         end
 
         arg = 0
@@ -194,47 +183,42 @@ module Atomy
           gen.send(:matches?, 1)
           gen.gif(skip)
 
-          gen.push_literal(p)
-          gen.push_variables
-          gen.push_local(arg)
-          gen.send(:assign, 2)
-          gen.pop
-
           arg += 1
         end
 
-        b.default_arguments.each do |(p, d)|
-          default_local = gen.new_stack_local
+        b.default_arguments.each do |p|
+          skip_matches = gen.new_label
+          matched = gen.new_label
 
-          has_value = gen.new_label
+          # [pat]
           gen.push_literal(p)
 
+          # [val, pat]
           gen.push_local(arg)
+
+          # [val, val, pat]
           gen.dup
-          gen.goto_if_not_undefined(has_value)
 
-          gen.pop
-          gen.push_literal(d)
-          b.locals.each do |loc|
-            if local = gen.state.scope.search_local(loc)
-              local.get_bytecode(gen)
-            else
-              raise "impossible: undeclared local: #{loc}"
-            end
-          end
-          gen.send(:call, b.locals.size)
+          # [val, pat]
+          gen.goto_if_undefined(skip_matches)
 
-          has_value.set!
-
-          gen.set_stack_local(default_local)
+          # [bool]
           gen.send(:matches?, 1)
+
+          # []
           gen.gif(skip)
 
-          gen.push_literal(p)
-          gen.push_variables
-          gen.push_stack_local(default_local)
-          gen.send(:assign, 2)
-          gen.pop
+          # []
+          gen.goto(matched)
+
+          # [pat]
+          skip_matches.set!
+
+          # []
+          gen.pop_many(2)
+
+          # []
+          matched.set!
 
           arg += 1
         end
@@ -245,12 +229,6 @@ module Atomy
           gen.send(:matches?, 1)
           gen.gif(skip)
 
-          gen.push_literal(b.splat_argument)
-          gen.push_variables
-          gen.push_local(b.splat_index)
-          gen.send(:assign, 2)
-          gen.pop
-
           arg += 1
         end
 
@@ -260,12 +238,6 @@ module Atomy
           gen.send(:matches?, 1)
           gen.gif(skip)
 
-          gen.push_literal(p)
-          gen.push_variables
-          gen.push_local(arg)
-          gen.send(:assign, 2)
-          gen.pop
-
           arg += 1
         end
 
@@ -274,26 +246,51 @@ module Atomy
           gen.push_proc
           gen.send(:matches?, 1)
           gen.gif(skip)
-
-          gen.push_literal(b.proc_argument)
-          gen.push_variables
-          gen.push_proc
-          gen.send(:assign, 2)
-          gen.pop
         end
 
         gen.push_literal(Rubinius::BlockEnvironment::AsMethod.new(b.body))
         gen.push_literal(@name)
         gen.push_literal(b.body.constant_scope.module)
         gen.push_self
-        b.locals.each do |loc|
-          if local = gen.state.scope.search_local(loc)
-            local.get_bytecode(gen)
-          else
-            raise "undeclared local: #{loc}"
-          end
+
+        branch_args = 0
+        method_arg = 0
+        b.arguments.each do |p|
+          gen.push_literal(p)
+          gen.push_local(method_arg)
+          method_arg += 1
+          branch_args += 2
         end
-        gen.make_array(b.locals.size)
+
+        b.default_arguments.each do |p|
+          gen.push_literal(p)
+          gen.push_local(method_arg)
+          method_arg += 1
+          branch_args += 2
+        end
+
+        if p = b.splat_argument
+          gen.push_literal(p)
+          gen.push_local(b.splat_index)
+          method_arg += 1
+          branch_args += 2
+        end
+
+        b.post_arguments.each do |p|
+          gen.push_literal(p)
+          gen.push_local(method_arg)
+          method_arg += 1
+          branch_args += 2
+        end
+
+        if p = b.proc_argument
+          gen.push_literal(p)
+          gen.push_proc
+          method_arg += 1
+          branch_args += 2
+        end
+        gen.make_array(branch_args)
+
         gen.push_nil
         gen.send(:invoke, 5)
 

@@ -11,10 +11,5 @@ class Atomy::Pattern
     def matches?(val)
       @pattern.matches?(val)
     end
-
-    def assign(scope, val)
-      @pattern.assign(scope, val)
-    end
   end
 end
-

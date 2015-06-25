@@ -101,9 +101,18 @@ describe "patterns kernel" do
     expect { subject.evaluate(ast('"abc" = 42')) }.to raise_error(Atomy::PatternMismatch)
   end
 
+  it "defines an and pattern" do
+    expect(subject.evaluate(seq("(a & b) = 1, [a, b]"))).to eq([1, 1])
+    expect(subject.evaluate(seq("(a & 1) = 1, a"))).to eq(1)
+    expect { subject.evaluate(seq("(a & 2) = 1, [a]")) }.to raise_error(Atomy::PatternMismatch)
+    expect(subject.evaluate(seq("(a & [1, b]) = [1, 2], [a, b]"))).to eq([[1, 2], 2])
+  end
+
   it "defines an or pattern" do
     expect(subject.evaluate(seq("((a & 1) | (b & 2)) = 1, [a, b]"))).to eq([1, nil])
     expect(subject.evaluate(seq("((c & 1) | (d & 2)) = 2, [c, d]"))).to eq([nil, 2])
+    expect(subject.evaluate(seq("([2, a] | [1, a]) = [1, 2], a"))).to eq(2)
+    expect(subject.evaluate(seq("([2, a] | [1, a]) = [2, 3], a"))).to eq(3)
     expect { subject.evaluate(ast("((c & 1) | (d & 2)) = 3")) }.to raise_error(Atomy::PatternMismatch)
   end
 
@@ -143,6 +152,75 @@ describe "patterns kernel" do
 
       maybe_even = double(:even? => false, :odd? => false, :maybe_even? => true)
       expect(maybe_even.whoa_even?).to eq(:maybe)
+    end
+  end
+
+  describe "quasiquote patterns" do
+    it "succeeds in a basic equality case" do
+      expect(subject.evaluate(ast("`1 = '1"))).to eq(ast("1"))
+      expect(subject.evaluate(ast("`[1, 2, 3] = '[1, 2, 3]"))).to eq(ast("[1, 2, 3]"))
+    end
+
+    it "binds unquoted locals" do
+      expect(subject.evaluate(seq("`[~a, 2, ~b] = '[1, 2, 3], [a, b]"))).to eq([ast("1"), ast("3")])
+      expect(subject.evaluate(seq("`{ ~a, 5, ~b } = '{ 4, 5, 6 }, [a, b]"))).to eq([ast("4"), ast("6")])
+    end
+
+    it "does not match if the other node's child array is too long" do
+      expect {
+        subject.evaluate(ast("`[1, 2, 3] = '[1, 2, 3, 4]"))
+      }.to raise_error(Atomy::PatternMismatch)
+
+      expect {
+        subject.evaluate(ast("`{ 1, 2, 3 } = '[1, 2, 3, 4]"))
+      }.to raise_error(Atomy::PatternMismatch)
+    end
+
+    it "does not match if the other node's child array is too short" do
+      expect {
+        subject.evaluate(ast("`[1, 2, 3] = '[1, 2]"))
+      }.to raise_error(Atomy::PatternMismatch)
+
+      expect {
+        subject.evaluate(ast("`{ 1, 2, 3 } = '{ 1, 2 }"))
+      }.to raise_error(Atomy::PatternMismatch)
+    end
+
+    it "does not match if the sub-patterns do not match" do
+      expect {
+        subject.evaluate(ast("`[1, 2, 3] = '[1, 2, 4]"))
+      }.to raise_error(Atomy::PatternMismatch)
+
+      expect {
+        subject.evaluate(ast("`{ 1, 2, 3 } = '{ 1, 2, 4 }"))
+      }.to raise_error(Atomy::PatternMismatch)
+    end
+
+    context "with splats" do
+      it "matches the rest of the child array via an unquoted splat" do
+        expect(subject.evaluate(seq("`[~a, ~*bs] = '[1, 2, 3], [a, bs]"))).to eq([ast("1"), [ast("2"), ast("3")]])
+        expect(subject.evaluate(seq("`[~a, ~*['2, '3]] = '[1, 2, 3], a"))).to eq(ast("1"))
+      end
+
+      it "matches when the rest is empty" do
+        expect(subject.evaluate(seq("`[~a, ~*bs] = `[1], [a, bs]"))).to eq([ast("1"), []])
+      end
+
+      it "does not match if the array does not fit the minimum length" do
+        expect {
+          subject.evaluate(seq("`[~_, ~_, ~*_] = `[1]"))
+        }.to raise_error(Atomy::PatternMismatch)
+      end
+
+      it "does not match if the splat pattern does not match" do
+        expect {
+          subject.evaluate(seq("`[~_, ~*['3]] = `[1, 2]"))
+        }.to raise_error(Atomy::PatternMismatch)
+      end
+
+      it "binds locals from the splat" do
+        expect(subject.evaluate(seq("`[~a, ~*['2, b]] = `[1, 2, 3], [a, b]"))).to eq([ast("1"), ast("3")])
+      end
     end
   end
 

@@ -1,15 +1,22 @@
 module Atomy
   module Code
     class Pattern
-      attr_reader :node, :locals
+      attr_reader :node
 
-      def initialize(node, locals)
+      def initialize(node)
         @node = node
-        @locals = locals
       end
 
       def bytecode(gen, mod)
         mod.compile(gen, @node)
+      end
+
+      # [value, pattern] on stack
+      def assign(gen)
+      end
+
+      def splat?
+        false
       end
     end
   end

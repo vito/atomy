@@ -36,11 +36,7 @@ macro(.[]=): Atomy Code Symbol new("[]=" to-sym)
 
 -- assignment
 macro(~pat = ~val):
-  Atomy Code Assign new(pat, val, false)
-
--- assignment, overriding locals
-macro(~pat =! ~val):
-  Atomy Code Assign new(pat, val, true)
+  Atomy Code Assign new(pat, val)
 
 -- block literals
 macro({ ~*body }):
@@ -99,18 +95,20 @@ macro((~(msg & Word))?):
 
 -- pattern for assigning foo!
 pattern((~(name & Word))!):
-  var-name = (name text to-s + "!") to-sym
-
-  Atomy Code Pattern new(
-    `(//Atomy Pattern Wildcard new(~(Atomy Code Symbol new(var-name))))
-    [var-name]
-  )
+  Atomy Code Pattern Wildcard new((name text to-s + "!") to-sym)
 
 -- pattern for assigning foo?
 pattern((~(name & Word))?):
-  var-name = (name text to-s + "?") to-sym
+  Atomy Code Pattern Wildcard new((name text to-s + "?") to-sym)
 
-  Atomy Code Pattern new(
-    `(//Atomy Pattern Wildcard new(~(Atomy Code Symbol new(var-name))))
-    [var-name]
-  )
+-- pattern for re-assigning existing local
+pattern(&(~(name & Word))):
+  Atomy Code Pattern Wildcard new(name text, true)
+
+-- pattern for re-assigning existing local ending in !
+pattern(&(~(name & Word))!):
+  Atomy Code Pattern Wildcard new((name text to-s + "!") to-sym, true)
+
+-- pattern for re-assigning existing local ending in ?
+pattern(&(~(name & Word))?):
+  Atomy Code Pattern Wildcard new((name text to-s + "?") to-sym, true)

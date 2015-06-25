@@ -111,9 +111,9 @@ describe "define kernel" do
 
       it "pattern-matches the default value" do
         subject.evaluate(seq("x = 0, def(foo(a, 2 = (x += 1))): [a, x]"), subject.compile_context)
-        expect { subject.foo(1) }.to raise_error(Atomy::MessageMismatch)
+        expect(subject.foo(1)).to eq([1, 1])
         expect(subject.foo(1)).to eq([1, 2])
-        expect { subject.foo(1) }.to raise_error(Atomy::MessageMismatch)
+        expect(subject.foo(1)).to eq([1, 3])
       end
     end
 
@@ -235,11 +235,11 @@ describe "define kernel" do
         expect(subject.evaluate(ast("foo(1, 2)"))).to eq([1, 0])
       end
 
-      it "pattern-matches the default value" do
+      it "does not pattern-match the default value" do
         subject.evaluate(seq("x = 0, fn(foo(a, 2 = (x += 1))): [a, x]"))
-        expect { subject.evaluate(ast("foo(1)")) }.to raise_error(Atomy::MessageMismatch)
+        expect(subject.evaluate(ast("foo(1)"))).to eq([1, 1])
         expect(subject.evaluate(ast("foo(1)"))).to eq([1, 2])
-        expect { subject.evaluate(ast("foo(1)")) }.to raise_error(Atomy::MessageMismatch)
+        expect(subject.evaluate(ast("foo(1)"))).to eq([1, 3])
       end
     end
 

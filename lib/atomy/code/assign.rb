@@ -1,10 +1,9 @@
 module Atomy
   module Code
     class Assign
-      def initialize(pattern, value, set = false)
+      def initialize(pattern, value)
         @pattern = pattern
         @value = value
-        @set = set
       end
 
       def bytecode(gen, mod)
@@ -12,18 +11,6 @@ module Atomy
 
         # [value]
         mod.compile(gen, @value)
-
-        # declare new locals
-        pattern.locals.each do |name|
-          local, created = assignment_local(gen, name, @set)
-          if created
-            # assign new locals, in case they're eval locals, so that pattern
-            # assignment can find them and reassign them
-            gen.push_nil
-            local.set_bytecode(gen)
-            gen.pop
-          end
-        end
 
         # [value, value]
         gen.dup
@@ -44,17 +31,11 @@ module Atomy
         # [value, pattern, value]
         gen.gif(mismatch)
 
-        # [#<Rubinius::VariableScope>, value, pattern, value]
-        gen.push_variables
-
-        # [value, #<Rubinius::VariableScope>, pattern, value]
-        gen.swap
-
-        # [<junk>, value]
-        gen.send(:assign, 2)
+        # [value, pattern, value]
+        pattern.assign(gen)
 
         # [value]
-        gen.pop
+        gen.pop_many(2)
 
         # [value]
         gen.goto(done)
@@ -77,18 +58,6 @@ module Atomy
 
         # [value]
         done.set!
-      end
-
-      private
-
-      def assignment_local(gen, name, set = false)
-        var = gen.state.scope.search_local(name)
-
-        if var && (set || var.depth == 0)
-          [var, false]
-        else
-          [gen.state.scope.new_local(name).nested_reference, true]
-        end
       end
     end
   end

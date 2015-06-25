@@ -10,12 +10,11 @@ class Atomy::Pattern
 
     def self.patterns_through(mod, node)
       constructor = Constructor.new(mod)
-      [constructor.go(node), constructor.locals]
+      constructor.go(node)
     end
 
     def self.make(mod, node)
-      constructor, _ = patterns_through(mod, node)
-      new(mod.evaluate(constructor))
+      new(mod.evaluate(patterns_through(mod, node)))
     end
 
     def initialize(node)
@@ -24,10 +23,6 @@ class Atomy::Pattern
 
     def matches?(val)
       MatchWalker.new.go(@node, val)
-    end
-
-    def assign(scope, val)
-      AssignWalker.new(scope).go(@node, val)
     end
 
     private
@@ -88,13 +83,10 @@ class Atomy::Pattern
     end
 
     class Constructor < Walker
-      attr_reader :locals
-
       def initialize(mod)
         super()
 
         @module = mod
-        @locals = []
       end
 
       def go(x)
@@ -109,58 +101,8 @@ class Atomy::Pattern
 
       def unquote(x)
         x.through do |p|
-          pat = @module.pattern(p)
-          @locals += pat.locals
-          pat
+          @module.pattern(p)
         end
-      end
-    end
-
-    class AssignWalker
-      def initialize(scope)
-        @scope = scope
-      end
-
-      def go(a, b)
-        if a.is_a?(Atomy::Pattern)
-          a.assign(@scope, b)
-        elsif b.is_a?(a.class)
-          a.each_child do |attr, val|
-            theirval = b.send(attr)
-
-            if val.is_a?(Array)
-              go_array(val, theirval)
-            else
-              go(val, b.send(attr))
-            end
-          end
-        else
-          # this should be impossible because #matches? should prevent it
-          raise "cannot assign '#{b.inspect}' against '#{a}'"
-        end
-      end
-
-      def go_array(as, bs)
-        splat = nil
-        req_size = 0
-        as.each do |a|
-          if a.is_a?(Atomy::Pattern::Splat)
-            splat = a
-            break
-          end
-
-          req_size += 1
-        end
-
-        req_size.times do |i|
-          go(as[i], bs[i])
-        end
-
-        if splat
-          splat.assign(@scope, bs[req_size..-1])
-        end
-
-        true
       end
     end
 

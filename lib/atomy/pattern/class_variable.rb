@@ -2,19 +2,14 @@ require "atomy/pattern"
 
 class Atomy::Pattern
   class ClassVariable < self
-    attr_reader :scope, :name
+    attr_reader :name
 
-    def initialize(scope, name)
-      @scope = scope
+    def initialize(name)
       @name = name
     end
 
     def matches?(_)
       true
-    end
-
-    def assign(vars, val)
-      @scope.class_variable_set(:"@@#{@name}", val)
     end
   end
 end

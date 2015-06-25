@@ -53,7 +53,7 @@ describe Atomy::Method do
       end
 
       context "when no patterns match" do
-        let(:branch) { Atomy::Method::Branch.new(nil, [equality(0)]) { :ok } }
+        let(:branch) { Atomy::Method::Branch.new(nil, [equality(0)]) { |_, _| :ok } }
 
         context "and the method exists on the superclass" do
           let(:a) do

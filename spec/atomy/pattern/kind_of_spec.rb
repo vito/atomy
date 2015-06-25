@@ -20,12 +20,6 @@ describe Atomy::Pattern::KindOf do
     it { should_not === Fixnum }
   end
 
-  describe "#assign" do
-    it "does nothing" do
-      subject.assign(Rubinius::VariableScope.current, nil)
-    end
-  end
-
   describe "#target" do
     its(:target) { should eq(klass) }
   end

@@ -16,10 +16,10 @@ require("set")
 
 -- lazily load these modules to prevent circular dependency
 loaded-pretty = nil
-fn(pretty): loaded-pretty =! (loaded-pretty || require("pretty"))
+fn(pretty): &loaded-pretty = (loaded-pretty || require("pretty"))
 
 loaded-interpolation = nil
-fn(intp): loaded-interpolation =! (loaded-interpolation || require("interpolation"))
+fn(intp): &loaded-interpolation = (loaded-interpolation || require("interpolation"))
 
 
 actions = dynamic

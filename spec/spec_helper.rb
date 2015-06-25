@@ -18,8 +18,8 @@ module SpecHelpers
     end
   end
 
-  def wildcard(name = nil)
-    Atomy::Pattern::Wildcard.new(name)
+  def wildcard
+    Atomy::Pattern::Wildcard.new
   end
 
   def equality(value)

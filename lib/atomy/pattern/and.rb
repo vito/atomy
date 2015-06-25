@@ -13,9 +13,9 @@ class Atomy::Pattern
       @a.matches?(val) && @b.matches?(val)
     end
 
-    def assign(scope, val)
-      @a.assign(scope, val)
-      @b.assign(scope, val)
+    def assign(gen)
+      @a.assign(gen)
+      @b.assign(gen)
     end
 
     def target

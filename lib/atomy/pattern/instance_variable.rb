@@ -11,9 +11,5 @@ class Atomy::Pattern
     def matches?(_)
       true
     end
-
-    def assign(scope, val)
-      scope.self.instance_variable_set(:"@#{@name}", val)
-    end
   end
 end

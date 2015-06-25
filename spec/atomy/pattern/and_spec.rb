@@ -57,50 +57,6 @@ describe Atomy::Pattern::And do
     end
   end
 
-  describe "#assign" do
-    context "when 'a' binds" do
-      let(:a) { wildcard(:a) }
-
-      context "and 'b' binds" do
-        let(:b) { wildcard(:b) }
-
-        it "assigns all locals" do
-          a = nil
-          b = nil
-          subject.assign(Rubinius::VariableScope.current, 42)
-          expect(a).to eq(42)
-          expect(b).to eq(42)
-        end
-      end
-
-      context "and 'b' does NOT bind" do
-        it "assigns the 'a' locals" do
-          a = nil
-          subject.assign(Rubinius::VariableScope.current, 42)
-          expect(a).to eq(42)
-        end
-      end
-    end
-
-    context "when 'a' does NOT bind" do
-      context "and 'b' binds" do
-        let(:b) { wildcard(:b) }
-
-        it "assigns the 'b' locals" do
-          b = nil
-          subject.assign(Rubinius::VariableScope.current, 42)
-          expect(b).to eq(42)
-        end
-      end
-
-      context "and 'b' does NOT bind" do
-        it "does nothing" do
-          subject.assign(Rubinius::VariableScope.current, 42)
-        end
-      end
-    end
-  end
-
   describe "#target" do
     let(:parent) { Class.new }
     let(:child) { Class.new(parent) }

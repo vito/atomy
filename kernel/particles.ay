@@ -81,7 +81,7 @@ Atomy Pattern open:
 
   def(Particle matches?(value)):
     when(value is-a?(Symbol)):
-      value =! particle-klass new(_, value, [])
+      &value = particle-klass new(_, value, [])
 
     unless(value is-a?(particle-klass)):
       return(false)
@@ -96,58 +96,94 @@ Atomy Pattern open:
 
   def(Particle assign(scope, value)):
     when(value is-a?(Symbol)):
-      value =! particle-klass new(_, value, [])
+      &value = particle-klass new(_, value, [])
 
     @receiver assign(scope, value receiver)
     @arguments assign(scope, value arguments)
 
+particle-pattern-code = Atomy Code Pattern class:
+  def(initialize(@receiver, @message, @arguments)) {}
+
+  def(bytecode(gen, mod)):
+    mod compile(gen, `(//Atomy Pattern Particle new(
+      ~@receiver
+      ~@message
+      ~@arguments
+    )))
+
+  def(assign(gen)):
+    assign-symbol = gen new-label
+    done = gen new-label
+
+    gen dup
+    gen push-cpath-top
+    gen find-const(.Symbol)
+    gen swap
+    gen kind-of
+    gen git(assign-symbol)
+
+    gen dup-many(2)
+    gen send(.receiver, 0)
+    gen swap
+    gen send(.receiver, 0)
+    gen swap
+    @receiver assign(gen)
+    gen pop-many(2)
+
+    gen dup-many(2)
+    gen send(.arguments, 0)
+    gen swap
+    gen send(.arguments, 0)
+    gen swap
+    @arguments assign(gen)
+    gen pop-many(2)
+
+    gen goto(done)
+
+    assign-symbol set!
+
+    gen dup-many(2)
+    gen pop
+    gen send(.receiver, 0)
+    gen push-undef
+    @receiver assign(gen)
+    gen pop-many(2)
+
+    gen dup-many(2)
+    gen pop
+    gen send(.arguments, 0)
+    gen make-array(0)
+    @arguments assign(gen)
+    gen pop-many(2)
+
+    done set!
 
 pattern(.(~r [~*as])):
-  Atomy Patterns Particle new(
+  particle-pattern-code new(
     pattern(r)
     .[]
     pattern(`[~*as]))
 
 pattern(.[]):
-  Atomy Code Pattern new(`(Atomy Pattern Equality new(.[])), [])
+  Atomy Code Pattern new(`(Atomy Pattern Equality new(.[])))
 
 pattern(.~(x & Word)):
-  Atomy Code Pattern new(`(Atomy Pattern Equality new(.~x)), [])
+  Atomy Code Pattern new(`(Atomy Pattern Equality new(.~x)))
 
 pattern(.(~(x & Word))!):
-  Atomy Code Pattern new(`(Atomy Pattern Equality new(.(~x)!)), [])
+  Atomy Code Pattern new(`(Atomy Pattern Equality new(.(~x)!)))
 
 pattern(.(~(x & Word))?):
-  Atomy Code Pattern new(`(Atomy Pattern Equality new(.(~x)?)), [])
+  Atomy Code Pattern new(`(Atomy Pattern Equality new(.(~x)?)))
 
 pattern(.[~a, ~*as]):
-  recv-pattern = pattern('_)
-  args-pattern = pattern(`[~a, ~*as])
-
-  Atomy Code Pattern new(
-    `(Atomy Pattern Particle new(~recv-pattern, .[], ~args-pattern))
-    args-pattern locals)
+  particle-pattern-code new(pattern('_), '.[], pattern(`[~a, ~*as]))
 
 pattern(.~(x & Infix)):
-  recv-pattern = pattern(x left || '_)
-  args-pattern = pattern(`[~(x right)])
-
-  Atomy Code Pattern new(
-    `(Atomy Pattern Particle new(~recv-pattern, .~(StringLiteral new(x operator to-s)), ~args-pattern))
-    recv-pattern locals + args-pattern locals)
+  particle-pattern-code new(pattern(x left || '_), `.~(StringLiteral new(x operator to-s)), pattern(`[~(x right)]))
 
 pattern(.((~x)(~*as))):
-  recv-pattern = pattern('_)
-  args-pattern = pattern(`[~*as])
-
-  Atomy Code Pattern new(
-    `(Atomy Pattern Particle new(~recv-pattern, .~x, ~args-pattern))
-    args-pattern locals)
+  particle-pattern-code new(pattern('_), `.~x, pattern(`[~*as]))
 
 pattern(.(~r (~x)(~*as))):
-  recv-pattern = pattern(r)
-  args-pattern = pattern(`[~*as])
-
-  Atomy Code Pattern new(
-    `(Atomy Pattern Particle new(~recv-pattern, .~x, ~args-pattern))
-    recv-pattern locals + args-pattern locals)
+  particle-pattern-code new(pattern(r), `.~x, pattern(`[~*as]))

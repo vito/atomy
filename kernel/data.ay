@@ -36,7 +36,7 @@ fn(define-class(root, `((~name)(~*as): ~*cs))):
 
   pat = name
   attrs zip(tmps) [attr, tmp]:
-    pat =! `(~pat & with(~attr, ~tmp))
+    &pat = `(~pat & with(~attr, ~tmp))
 
   cons = `((~name)(~*tmps))
 

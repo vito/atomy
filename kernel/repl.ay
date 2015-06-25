@@ -71,7 +71,7 @@ def(ReplDebugger debug):
 
 def(repl(history = nil, module = nil, debug = false)):
   unless(module):
-    module =! Atomy Module new
+    &module = Atomy Module new
     module file = ."(repl)"
     module use(require("atomy"))
 

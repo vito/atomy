@@ -9,7 +9,7 @@ use(require("dynamic"))
 
 io = use(require("io"))
 loaded-pretty = nil
-fn(pretty): loaded-pretty =! (loaded-pretty || require("pretty"))
+fn(pretty): &loaded-pretty = (loaded-pretty || require("pretty"))
 
 require("atomy/message_structure")
 

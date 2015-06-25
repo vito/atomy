@@ -137,8 +137,11 @@ ensure = class:
 macro(~node ensuring: ~*ensured):
   ensure new(node, `(do: ~*ensured))
 
-macro(~x ||= ~y): `(~x =! (~x || ~y))
-macro(~x &&= ~y): `(~x =! (~x && ~y))
+macro(~(x & Word) ||= ~y): `(&~x = (~x || ~y))
+macro(~(x & Word) &&= ~y): `(&~x = (~x && ~y))
+
+macro(~x ||= ~y): `(~x = (~x || ~y))
+macro(~x &&= ~y): `(~x = (~x && ~y))
 
 super-code = class:
   def(initialize(form)):

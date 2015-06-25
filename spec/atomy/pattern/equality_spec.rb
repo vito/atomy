@@ -58,12 +58,6 @@ describe Atomy::Pattern::Equality do
     end
   end
 
-  describe "#assign" do
-    it "does nothing" do
-      subject.assign(Rubinius::VariableScope.current, 42)
-    end
-  end
-
   describe "#target" do
     context "with a fixnum" do
       subject { described_class.new(42) }

@@ -6,14 +6,9 @@ require "atomy/pattern/attribute"
 describe Atomy::Pattern::Attribute do
   let(:klass) { Class.new { attr_accessor :abc } }
   let(:receiver) { klass.new }
+  let(:arguments) { [Object.new, Object.new] }
 
-  subject { described_class.new(:abc, receiver) }
-
-  describe "#attribute" do
-    it "returns the attribute" do
-      expect(subject.attribute).to eq(:abc)
-    end
-  end
+  subject { described_class.new(receiver, arguments) }
 
   describe "#receiver" do
     it "returns the receiver" do
@@ -21,24 +16,14 @@ describe Atomy::Pattern::Attribute do
     end
   end
 
+  describe "#arguments" do
+    it "returns the arguments" do
+      expect(subject.arguments).to eq(arguments)
+    end
+  end
+
   describe "#matches?" do
     it { should === nil }
     it { should === Object.new }
-  end
-
-  describe "#assign" do
-    it "assigns the attribute on the receiver" do
-      subject.assign(Rubinius::VariableScope.current, 42)
-      expect(receiver.abc).to eq(42)
-    end
-
-    context "when the receiver implements #send" do
-      before { allow(receiver).to receive(:send).and_raise("hell") }
-
-      it "still assigns the correct attribute" do
-        subject.assign(Rubinius::VariableScope.current, 42)
-        expect(receiver.abc).to eq(42)
-      end
-    end
   end
 end

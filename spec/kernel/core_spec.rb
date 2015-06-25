@@ -33,11 +33,8 @@ describe "core kernel" do
         subject.compile_context,
       )
 
-      patcode = subject.pattern(ast("42 foo(fizz)"))
-      pat = subject.evaluate(patcode)
-      expect(patcode.locals).to eq([:fizz])
+      pat = subject.evaluate(subject.pattern(ast("42 foo(fizz)")))
       expect(pat).to be_a(Atomy::Pattern::Wildcard)
-      expect(pat.name).to eq(:fizz)
     end
   end
 
@@ -183,75 +180,67 @@ describe "core kernel" do
   end
 
   describe "assignment" do
-    context "with =" do
-      it "implements local variable assignment notation" do
-        expect(subject.evaluate(seq("a = 1, a + 2"))).to eq(3)
-      end
-
-      it "assigns variables spanning evals" do
-        expect(subject.evaluate(seq("a = 1"))).to eq(1)
-        expect(subject.evaluate(seq("a + 2"))).to eq(3)
-      end
-
-      it "raises an error when the patterns don't match" do
-        expect {
-          subject.evaluate(ast("2 = 1"))
-        }.to raise_error(Atomy::PatternMismatch)
-      end
-
-      it "assigns only in the innermost scope" do
-        expect(subject.evaluate(seq("
-          a = 1
-          b = { a = 2, a } call
-          [a, b]
-        "))).to eq([1, 2])
-      end
-
-      it "does not zero-out already-existing values during assignment" do
-        expect(subject.evaluate(seq("
-          a = 1
-          a = (a + 1)
-          a
-        "))).to eq(2)
-      end
-
-      it "does not zero-out already-existing values during assignment in a nested scope" do
-        expect(subject.evaluate(seq("
-          a = 1
-          b = { a = (a + 1) } call
-          [a, b]
-        "))).to eq([1, 2])
-      end
-
-      it "can assign variables with ? at the end" do
-        expect(subject.evaluate(seq("a? = 1, a? + 2"))).to eq(3)
-      end
-
-      it "can assign variables with ! at the end" do
-        expect(subject.evaluate(seq("a! = 1, a! + 2"))).to eq(3)
-      end
+    it "implements local variable assignment notation" do
+      expect(subject.evaluate(seq("a = 1, a + 2"))).to eq(3)
     end
 
-    context "with =!" do
+    it "assigns variables spanning evals" do
+      expect(subject.evaluate(seq("a = 1"))).to eq(1)
+      expect(subject.evaluate(seq("a + 2"))).to eq(3)
+    end
+
+    it "raises an error when the patterns don't match" do
+      expect {
+        subject.evaluate(ast("2 = 1"))
+      }.to raise_error(Atomy::PatternMismatch)
+    end
+
+    it "assigns only in the innermost scope" do
+      expect(subject.evaluate(seq("
+        a = 1
+        b = { a = 2, a } call
+        [a, b]
+      "))).to eq([1, 2])
+    end
+
+    it "does not zero-out already-existing values during assignment" do
+      expect(subject.evaluate(seq("
+        a = 1
+        a = (a + 1)
+        a
+      "))).to eq(2)
+    end
+
+    it "does not zero-out already-existing values during assignment in a nested scope" do
+      expect(subject.evaluate(seq("
+        a = 1
+        b = { a = (a + 1) } call
+        [a, b]
+      "))).to eq([1, 2])
+    end
+
+    it "can assign variables with ? at the end" do
+      expect(subject.evaluate(seq("a? = 1, a? + 2"))).to eq(3)
+    end
+
+    it "can assign variables with ! at the end" do
+      expect(subject.evaluate(seq("a! = 1, a! + 2"))).to eq(3)
+    end
+
+    context "with reference locals" do
       it "implements local variable assignment notation" do
-        expect(subject.evaluate(seq("a =! 1, a + 2"))).to eq(3)
+        expect(subject.evaluate(seq("&a = 1, a + 2"))).to eq(3)
       end
 
       it "assigns variables spanning evals" do
-        expect(subject.evaluate(seq("a =! 1"))).to eq(1)
+        expect(subject.evaluate(seq("&a = 1"))).to eq(1)
         expect(subject.evaluate(seq("a + 2"))).to eq(3)
-      end
-
-      it "raises an error when the patterns don't match" do
-        expect {
-          subject.evaluate(ast("2 =! 1"))
-        }.to raise_error(Atomy::PatternMismatch)
       end
 
       it "overrides existing locals if possible" do
         expect(subject.evaluate(seq("
           a = 1
-          b = { a =! 2, a } call
+          b = { &a = 2, a } call
           [a, b]
         "))).to eq([2, 2])
       end
@@ -259,18 +248,18 @@ describe "core kernel" do
       it "does not zero-out already-existing values during assignment" do
         expect(subject.evaluate(seq("
           a = 1
-          a =! (a + 1)
-          { a =! (a + 1) } call
+          &a = (a + 1)
+          { &a = (a + 1) } call
           a
         "))).to eq(3)
       end
 
       it "can set variables with ? at the end" do
-        expect(subject.evaluate(seq("a? =! 1, a? + 2"))).to eq(3)
+        expect(subject.evaluate(seq("&a? = 1, a? + 2"))).to eq(3)
       end
 
       it "can set variables with ! at the end" do
-        expect(subject.evaluate(seq("a! =! 1, a! + 2"))).to eq(3)
+        expect(subject.evaluate(seq("&a! = 1, a! + 2"))).to eq(3)
       end
     end
   end
