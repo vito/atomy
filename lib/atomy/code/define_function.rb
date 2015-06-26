@@ -24,6 +24,7 @@ module Atomy
           gen.push_literal(@name)
           push_branch(gen, mod)
           gen.send(:register_branch, 3)
+          gen.send(:first, 0)
           gen.send(:build, 0)
 
           gen.send(:under_context, 2)

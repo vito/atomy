@@ -12,6 +12,7 @@ module Atomy
         gen.send(:binding, 0)
         gen.push_literal(@name)
         push_branch(gen, mod)
+        gen.send(:for_method!, 0)
         gen.send(:define_branch, 3)
       end
     end

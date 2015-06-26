@@ -14,8 +14,8 @@ module Atomy
   def register_branch(target, name, branch)
     methods = target.atomy_methods
     method = methods[name] ||= Atomy::Method.new(name)
-    method.add_branch(branch)
-    method
+    branch = method.add_branch(branch)
+    [method, branch]
   end
 
   def define_branch(binding, name, branch)
@@ -26,7 +26,11 @@ module Atomy
         binding.constant_scope.for_method_definition
       end
 
-    method = register_branch(target, name, branch)
+    method, branch = register_branch(target, name, branch)
+
+    if branch.name
+      Rubinius.add_method(branch.name, branch.as_method, target, :public)
+    end
 
     Rubinius.add_method(name, method.build, target, :public)
   end

@@ -35,6 +35,8 @@ module Atomy
       attr_reader :body, :receiver, :arguments, :default_arguments,
         :splat_argument, :post_arguments, :proc_argument
 
+      attr_accessor :name
+
       def initialize(receiver = nil, arguments = [], default_arguments = [],
                      splat_argument = nil, post_arguments = [],
                      proc_argument = nil, &body)
@@ -62,6 +64,19 @@ module Atomy
       def splat_index
         @arguments.size + @default_arguments.size if @splat_argument
       end
+
+      def for_method!
+        @method = true
+        self
+      end
+
+      def method?
+        @method
+      end
+
+      def as_method
+        Rubinius::BlockEnvironment::AsMethod.new(@body)
+      end
     end
 
     attr_reader :name, :branches
@@ -71,8 +86,16 @@ module Atomy
       @branches = []
     end
 
+    @@tick = 0
+
     def add_branch(branch)
       @branches << branch
+
+      if branch.method?
+        @@tick += 1
+        branch.name = :"#{@name}:branch:#{@@tick}"
+      end
+
       branch
     end
 
@@ -170,22 +193,22 @@ module Atomy
         end
 
         arg = 0
-        b.arguments.each do |p|
+        b.arguments.each do |pat|
           gen.push_local(arg)
-          p.inline_matches?(gen)
+          pat.inline_matches?(gen)
           gen.gif(skip)
 
           arg += 1
         end
 
-        b.default_arguments.each do |p|
+        b.default_arguments.each do |pat|
           skip_check = gen.new_label
 
           gen.push_local(arg)
           gen.goto_if_undefined(skip_check)
 
           gen.push_local(arg)
-          p.inline_matches?(gen)
+          pat.inline_matches?(gen)
           gen.gif(skip)
 
           skip_check.set!
@@ -201,9 +224,9 @@ module Atomy
           arg += 1
         end
 
-        b.post_arguments.each do |p|
+        b.post_arguments.each do |pat|
           gen.push_local(arg)
-          p.inline_matches?(gen)
+          pat.inline_matches?(gen)
           gen.gif(skip)
 
           arg += 1
@@ -215,57 +238,73 @@ module Atomy
           gen.gif(skip)
         end
 
-        gen.push_literal(Rubinius::BlockEnvironment::AsMethod.new(b.body))
-        gen.push_literal(@name)
-        gen.push_literal(b.body.constant_scope.module)
-        gen.push_self
-
         branch_args = 0
         method_arg = 0
 
-        if p = b.receiver
-          gen.push_literal(p)
+        if pat = b.receiver
+          gen.push_literal(pat)
           gen.push_self
           branch_args += 2
         end
 
-        b.arguments.each do |p|
-          gen.push_literal(p)
+        b.arguments.each do |pat|
+          gen.push_literal(pat)
           gen.push_local(method_arg)
           method_arg += 1
           branch_args += 2
         end
 
-        b.default_arguments.each do |p|
-          gen.push_literal(p)
+        b.default_arguments.each do |pat|
+          gen.push_literal(pat)
           gen.push_local(method_arg)
           method_arg += 1
           branch_args += 2
         end
 
-        if p = b.splat_argument
-          gen.push_literal(p)
+        if pat = b.splat_argument
+          gen.push_literal(pat)
           gen.push_local(b.splat_index)
           method_arg += 1
           branch_args += 2
         end
 
-        b.post_arguments.each do |p|
-          gen.push_literal(p)
+        b.post_arguments.each do |pat|
+          gen.push_literal(pat)
           gen.push_local(method_arg)
           method_arg += 1
           branch_args += 2
         end
 
-        if p = b.proc_argument
-          gen.push_literal(p)
+        if pat = b.proc_argument
+          gen.push_literal(pat)
           gen.push_proc
           branch_args += 2
         end
-        gen.make_array(branch_args)
 
-        gen.push_nil
-        gen.send(:invoke, 5)
+        if b.name
+          gen.push_self
+          gen.move_down(branch_args)
+
+          gen.send(b.name, branch_args, true)
+        else
+          gen.push_literal(b.as_method)
+          gen.move_down(branch_args)
+
+          gen.push_literal(@name)
+          gen.move_down(branch_args)
+
+          gen.push_literal(b.body.constant_scope.module)
+          gen.move_down(branch_args)
+
+          gen.push_self
+          gen.move_down(branch_args)
+
+          gen.make_array(branch_args)
+
+          gen.push_nil
+
+          gen.send(:invoke, 5)
+        end
 
         gen.goto(done)
 
