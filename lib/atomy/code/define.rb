@@ -29,38 +29,28 @@ module Atomy
           gen.push_nil
         end
 
-        # @arguments.each do |a|
-          # p = mod.pattern(a)
         pre_argument_patterns(mod).each do |p|
           mod.compile(gen, p)
         end
         gen.make_array(@arguments.size)
 
-        # @default_arguments.each do |d|
-          # p = mod.pattern(d.node)
         default_argument_patterns(mod).each do |d, p|
           mod.compile(gen, p)
-          # gen.create_block(build_block(gen.state.scope, mod, :"#{@name}:default", d.default))
-          # gen.make_array(2)
         end
         gen.make_array(@default_arguments.size)
 
-        if p = splat_argument_pattern(mod) #@splat_argument
-          # splat_argument_pattern = mod.pattern(@splat_argument)
+        if p = splat_argument_pattern(mod)
           mod.compile(gen, p)
         else
           gen.push_nil
         end
 
         post_argument_patterns(mod).each do |p|
-        # @post_arguments.each do |p|
-          # p = mod.pattern(p)
           mod.compile(gen, p)
         end
         gen.make_array(@post_arguments.size)
 
-        if p = proc_argument_pattern(mod) #@proc_argument
-          # proc_argument_pattern = mod.pattern(@proc_argument)
+        if p = proc_argument_pattern(mod)
           mod.compile(gen, p)
         else
           gen.push_nil

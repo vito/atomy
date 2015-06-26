@@ -168,12 +168,6 @@ module Atomy
           gen.push_self
           gen.send(:matches?, 1)
           gen.gif(skip)
-
-          # gen.push_literal(b.receiver)
-          # gen.push_variables
-          # gen.push_self
-          # gen.send(:assign, 2)
-          # gen.pop
         end
 
         arg = 0
