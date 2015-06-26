@@ -249,6 +249,13 @@ module Atomy
 
         branch_args = 0
         method_arg = 0
+
+        if p = b.receiver
+          gen.push_literal(p)
+          gen.push_self
+          branch_args += 2
+        end
+
         b.arguments.each do |p|
           gen.push_literal(p)
           gen.push_local(method_arg)
@@ -280,7 +287,6 @@ module Atomy
         if p = b.proc_argument
           gen.push_literal(p)
           gen.push_proc
-          method_arg += 1
           branch_args += 2
         end
         gen.make_array(branch_args)

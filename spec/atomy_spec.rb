@@ -21,13 +21,16 @@ describe Atomy do
 
     context "when the pattern has a target" do
       it "defines the method branch on the target" do
+        kopat = kind_of_pat(SomeTarget)
+
         described_class.define_branch(
           binding,
           :foo,
-          Atomy::Method::Branch.new(kind_of_pat(SomeTarget)) { 2 },
+          Atomy::Method::Branch.new(kopat) { |*args| args },
         )
 
-        expect(SomeTarget.new.foo).to eq(2)
+        recv = SomeTarget.new
+        expect(recv.foo).to eq([kopat, recv])
         expect(Object.new).to_not respond_to(:foo)
       end
     end

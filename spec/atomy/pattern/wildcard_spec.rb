@@ -8,4 +8,8 @@ describe Atomy::Pattern::Wildcard do
     it { should === nil }
     it { should === Object.new }
   end
+
+  describe "#target" do
+    its(:target) { should eq(Object) }
+  end
 end

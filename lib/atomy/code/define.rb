@@ -23,8 +23,7 @@ module Atomy
         gen.find_const(:Branch)
 
         if @receiver
-          receiver_pattern = mod.pattern(@receiver)
-          mod.compile(gen, receiver_pattern)
+          mod.compile(gen, receiver_pattern(mod))
         else
           gen.push_nil
         end
@@ -69,7 +68,9 @@ module Atomy
           # close over the outer scope
           blk.state.scope.parent = scope
 
-          total_patterns = @arguments.size + @default_arguments.size + @post_arguments.size
+          total_patterns = 0
+          total_patterns += 1 if @receiver
+          total_patterns += @arguments.size + @default_arguments.size + @post_arguments.size
           total_patterns += 1 if @splat_argument
           total_patterns += 1 if @proc_argument
 
@@ -81,6 +82,12 @@ module Atomy
           blk.arity = blk.total_args
 
           arg = 0
+
+          if @receiver
+            blk.state.scope.new_local("arg:self:pat")
+            blk.state.scope.new_local("arg:self")
+          end
+
           @arguments.size.times do
             blk.state.scope.new_local(:"arg:#{arg}:pat")
             blk.state.scope.new_local(:"arg:#{arg}")
@@ -110,6 +117,15 @@ module Atomy
           end
 
           loc = 0
+          if p = receiver_pattern(mod)
+            blk.push_local(loc)
+            blk.push_local(loc+1)
+            p.assign(blk)
+            blk.pop_many(2)
+
+            loc += 2
+          end
+
           pre_argument_patterns(mod).each do |p|
             blk.push_local(loc)
             blk.push_local(loc+1)
@@ -183,44 +199,43 @@ module Atomy
         end
       end
 
+      def receiver_pattern(mod)
+        return unless @receiver
+
+        @receiver_pattern ||= mod.pattern(@receiver)
+      end
+
       def pre_argument_patterns(mod)
-        @pre_argument_patterns ||= begin
+        @pre_argument_patterns ||=
           @arguments.collect do |a|
             mod.pattern(a)
           end
-        end
       end
 
       def default_argument_patterns(mod)
-        @default_argument_patterns ||= begin
+        @default_argument_patterns ||=
           @default_arguments.collect do |d|
             [d, mod.pattern(d.node)]
           end
-        end
       end
 
       def post_argument_patterns(mod)
-        @post_argument_patterns ||= begin
+        @post_argument_patterns ||=
           @post_arguments.collect do |a|
             mod.pattern(a)
           end
-        end
       end
 
       def splat_argument_pattern(mod)
         return unless @splat_argument
 
-        @splat_argument_pattern ||= begin
-          mod.pattern(@splat_argument)
-        end
+        @splat_argument_pattern ||= mod.pattern(@splat_argument)
       end
 
       def proc_argument_pattern(mod)
         return unless @proc_argument
 
-        @proc_argument_pattern ||= begin
-          mod.pattern(@proc_argument)
-        end
+        @proc_argument_pattern ||= mod.pattern(@proc_argument)
       end
     end
   end

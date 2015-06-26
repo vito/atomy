@@ -5,5 +5,9 @@ class Atomy::Pattern
     def matches?(_)
       true
     end
+
+    def target
+      Object
+    end
   end
 end

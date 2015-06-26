@@ -70,6 +70,17 @@ describe "define kernel" do
       ])
     end
 
+    describe "receiver patterns" do
+      it "assigns values from receiver patterns" do
+        some_class = Class.new
+        subject.const_set(:SomeClass, some_class)
+
+        subject.evaluate(seq("def((r & SomeClass) foo(a)): [r, a]"), subject.compile_context)
+        recv = some_class.new
+        expect(recv.foo(2)).to eq([recv, 2])
+      end
+    end
+
     describe "defaults" do
       it "supports default arguments" do
         subject.evaluate(seq("def(foo(a, b = 2)): [a, b]"), subject.compile_context)
