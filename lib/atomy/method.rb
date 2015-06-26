@@ -164,81 +164,54 @@ module Atomy
         end
 
         if b.receiver
-          gen.push_literal(b.receiver)
           gen.push_self
-          gen.send(:matches?, 1)
+          b.receiver.inline_matches?(gen)
           gen.gif(skip)
         end
 
         arg = 0
         b.arguments.each do |p|
-          gen.push_literal(p)
           gen.push_local(arg)
-          gen.send(:matches?, 1)
+          p.inline_matches?(gen)
           gen.gif(skip)
 
           arg += 1
         end
 
         b.default_arguments.each do |p|
-          skip_matches = gen.new_label
-          matched = gen.new_label
+          skip_check = gen.new_label
 
-          # [pat]
-          gen.push_literal(p)
-
-          # [val, pat]
           gen.push_local(arg)
+          gen.goto_if_undefined(skip_check)
 
-          # [val, val, pat]
-          gen.dup
-
-          # [val, pat]
-          gen.goto_if_undefined(skip_matches)
-
-          # [bool]
-          gen.send(:matches?, 1)
-
-          # []
+          gen.push_local(arg)
+          p.inline_matches?(gen)
           gen.gif(skip)
 
-          # []
-          gen.goto(matched)
-
-          # [pat]
-          skip_matches.set!
-
-          # []
-          gen.pop_many(2)
-
-          # []
-          matched.set!
+          skip_check.set!
 
           arg += 1
         end
 
         if b.splat_argument
-          gen.push_literal(b.splat_argument)
           gen.push_local(b.splat_index)
-          gen.send(:matches?, 1)
+          b.splat_argument.inline_matches?(gen)
           gen.gif(skip)
 
           arg += 1
         end
 
         b.post_arguments.each do |p|
-          gen.push_literal(p)
           gen.push_local(arg)
-          gen.send(:matches?, 1)
+          p.inline_matches?(gen)
           gen.gif(skip)
 
           arg += 1
         end
 
         if b.proc_argument
-          gen.push_literal(b.proc_argument)
           gen.push_proc
-          gen.send(:matches?, 1)
+          b.proc_argument.inline_matches?(gen)
           gen.gif(skip)
         end
 

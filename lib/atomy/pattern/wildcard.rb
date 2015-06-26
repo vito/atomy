@@ -6,6 +6,11 @@ class Atomy::Pattern
       true
     end
 
+    def inline_matches?(gen)
+      gen.pop
+      gen.push_true
+    end
+
     def target
       Object
     end

@@ -16,5 +16,11 @@ module Atomy
     def target
       raise NotImplementedError
     end
+
+    def inline_matches?(gen)
+      gen.push_literal(self)
+      gen.swap
+      gen.send(:matches?, 1)
+    end
   end
 end

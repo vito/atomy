@@ -95,4 +95,58 @@ describe Atomy::Pattern::Equality do
       its(:target) { should eq(Atomy::Grammar::AST::Infix) }
     end
   end
+
+  describe "#inline_matches?" do
+    subject { described_class.new(value) }
+
+    context "with true" do
+      let(:value) { true }
+
+      it_compiles_as(:inline_matches?) do |gen|
+        gen.push_true
+        gen.swap
+        gen.send(:==, 1)
+      end
+    end
+
+    context "with false" do
+      let(:value) { false }
+
+      it_compiles_as(:inline_matches?) do |gen|
+        gen.push_false
+        gen.swap
+        gen.send(:==, 1)
+      end
+    end
+
+    context "with nil" do
+      let(:value) { nil }
+
+      it_compiles_as(:inline_matches?) do |gen|
+        gen.push_nil
+        gen.swap
+        gen.send(:==, 1)
+      end
+    end
+
+    context "with Integers" do
+      let(:value) { 42 }
+
+      it_compiles_as(:inline_matches?) do |gen|
+        gen.push_int(42)
+        gen.swap
+        gen.send(:==, 1)
+      end
+    end
+
+    context "with other values" do
+      let(:value) { Object.new }
+
+      it_compiles_as(:inline_matches?) do |gen|
+        gen.push_literal(value)
+        gen.swap
+        gen.send(:==, 1)
+      end
+    end
+  end
 end

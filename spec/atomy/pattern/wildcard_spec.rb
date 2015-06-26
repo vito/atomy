@@ -12,4 +12,11 @@ describe Atomy::Pattern::Wildcard do
   describe "#target" do
     its(:target) { should eq(Object) }
   end
+
+  describe "#inline_matches?" do
+    it_compiles_as(:inline_matches?) do |gen|
+      gen.pop
+      gen.push_true
+    end
+  end
 end
