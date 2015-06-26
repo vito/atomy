@@ -57,6 +57,34 @@ describe Atomy::Pattern::And do
     end
   end
 
+  describe "#inline_matches?" do
+    let(:a) { equality(0) }
+    let(:b) { wildcard }
+
+    it_compiles_as(:inline_matches?) do |gen|
+      mismatch = gen.new_label
+      done = gen.new_label
+
+      gen.dup
+
+      gen.push_int(0)
+      gen.swap
+      gen.send(:==, 1)
+      gen.gif(mismatch)
+
+      gen.pop
+      gen.push_true
+      gen.goto(done)
+
+      mismatch.set!
+
+      gen.pop
+      gen.push_false
+
+      done.set!
+    end
+  end
+
   describe "#target" do
     let(:parent) { Class.new }
     let(:child) { Class.new(parent) }

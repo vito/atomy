@@ -69,4 +69,32 @@ describe Atomy::Pattern::Or do
       end
     end
   end
+
+  describe "#inline_matches?" do
+    let(:a) { equality(0) }
+    let(:b) { wildcard }
+
+    it_compiles_as(:inline_matches?) do |gen|
+      match = gen.new_label
+      done = gen.new_label
+
+      gen.dup
+
+      gen.push_int(0)
+      gen.swap
+      gen.send(:==, 1)
+      gen.git(match)
+
+      gen.pop
+      gen.push_true
+      gen.goto(done)
+
+      match.set!
+
+      gen.pop
+      gen.push_true
+
+      done.set!
+    end
+  end
 end
