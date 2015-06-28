@@ -1,0 +1,7 @@
+use(require("atomy"))
+
+data(Point(@x, @y))
+
+def(Point(a, b) foo): [a, b]
+
+p(Point new(1, 2) foo)
