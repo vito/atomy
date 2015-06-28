@@ -1,5 +1,6 @@
 use(require("core"))
 use(require("define"))
+use(require("control-flow"))
 
 require("rubinius/profiler")
 
@@ -9,21 +10,45 @@ def(fib(0)): 0
 def(fib(1)): 1
 def(fib(n)): fib(n - 2) + fib(n - 1)
 
-puts("running 200 times")
+puts("warming up")
 
 200 times:
   a = Time now
   fib(20)
-  p(Time now - a)
+  d = (Time now - a)
+  p(d)
+
+puts("")
+puts("measuring")
+
+total = 0
+best = 1
+worst = 0
+500 times:
+  a = Time now
+  fib(20)
+  d = (Time now - a)
+
+  when(d < best):
+    &best = d
+
+  when(d > worst):
+    &worst = d
+
+  total += d
+
+  p(d)
+
+puts("  avg: " + (total / 500) to-s)
+puts(" best: " + best to-s)
+puts("worst: " + worst to-s)
 
 puts("")
 puts("profiling 100 times")
 
 Rubinius Profiler Instrumenter new profile:
   100 times:
-    a = Time now
     fib(20)
-    p(Time now - a)
 
 puts("")
 puts("benchmarking")
