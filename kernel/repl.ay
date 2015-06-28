@@ -27,7 +27,7 @@ fn(basic-repl(module, debug = false)):
     input match:
       nil: condition signal(.quit)
 
-      (String & { empty? }): .ok -- TODO: string literal patterns
+      "": .ok
 
       (String & { =~ r"^:[[:alnum:]]" }):
         condition signal(.special(input[1 .. -1]))
