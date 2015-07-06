@@ -75,8 +75,6 @@ fn(colored(color, doc)):
   (raw(i"\e[3#{codes index(color)}m") <> doc) <> raw("\e[0m")
 
 
-def(unamb(x)): render(x)
-
 def(render(x)):
   if(^Printing include?(x))
     then: text("...")
@@ -269,6 +267,8 @@ Atomy Grammar AST open:
 
 
 def(doc(x)): text(x inspect)
+
+def(unamb(x)): render(x)
 
 -- Atomy Patterns open:
 --   pretty open:
