@@ -2,6 +2,7 @@ use(require("core"))
 use(require("define"))
 use(require("quotes"))
 use(require("control-flow"))
+use(require("mutation"))
 interpolate = require("interpolation")
 
 macro-quoter(r) [r, fs]:

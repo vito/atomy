@@ -149,7 +149,7 @@ describe "control-flow kernel" do
     it "evaluates the block in the happy path, returning the original value" do
       expect(subject.evaluate(seq("
         a = 0
-        val = (true ensuring: a += 1)
+        val = (true ensuring: &a = 1)
         [a, val]
       "))).to eq([1, true])
     end

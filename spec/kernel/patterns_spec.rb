@@ -335,7 +335,7 @@ describe "patterns kernel" do
       it "returns the result, having not evaluated any branches" do
         expect(subject.evaluate(seq("
           a = 0
-          val = (true rescue: _: a += 1)
+          val = (true rescue: _: &a = 1)
           [a, val]
         "))).to eq([0, true])
       end
@@ -345,7 +345,7 @@ describe "patterns kernel" do
       it "evaluates the branch matching the exception, returning its value" do
         expect(subject.evaluate(seq("
           a = 0
-          val = (raise(\"hell\") rescue: _: a += 1, .ok)
+          val = (raise(\"hell\") rescue: _: &a = 1, .ok)
           [a, val]
         "))).to eq([1, :ok])
       end
@@ -355,7 +355,7 @@ describe "patterns kernel" do
           expect {
             subject.evaluate(seq("
               a = 0
-              val = (raise(\"hell\") rescue: NoMethodError: a += 1, .ok)
+              val = (raise(\"hell\") rescue: NoMethodError: &a = 1, .ok)
               [a, val]
             "))
           }.to raise_error("hell")

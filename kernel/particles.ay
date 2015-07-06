@@ -3,6 +3,7 @@ use(require("define"))
 use(require("data"))
 use(require("control-flow"))
 use(require("patterns"))
+use(require("mutation"))
 
 data(Particle(@receiver, @message, @arguments))
 

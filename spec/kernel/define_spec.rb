@@ -102,26 +102,26 @@ describe "define kernel" do
       end
 
       it "only evaluates the default once per invocation" do
-        subject.evaluate(seq("x = 0, def(foo(a, b = (x += 1))): [a, b]"), subject.compile_context)
+        subject.evaluate(seq("x = 0, def(foo(a, b = (&x = (x + 1)))): [a, b]"), subject.compile_context)
         expect(subject.foo(1)).to eq([1, 1])
         expect(subject.foo(1)).to eq([1, 2])
       end
 
       it "does not evaluate the default if a value is given" do
-        subject.evaluate(seq("x = 0, def(foo(a, b = (x += 1))): [a, b]"), subject.compile_context)
+        subject.evaluate(seq("x = 0, def(foo(a, b = (&x = (x + 1)))): [a, b]"), subject.compile_context)
         expect(subject.foo(1)).to eq([1, 1])
         expect(subject.foo(1, 30)).to eq([1, 30])
         expect(subject.foo(1)).to eq([1, 2])
       end
 
       it "pattern-matches the given value" do
-        subject.evaluate(seq("x = 0, def(foo(a, 2 = (x += 1))): [a, x]"), subject.compile_context)
+        subject.evaluate(seq("x = 0, def(foo(a, 2 = (&x = (x + 1)))): [a, x]"), subject.compile_context)
         expect { subject.foo(1, 30) }.to raise_error(Atomy::MessageMismatch)
         expect(subject.foo(1, 2)).to eq([1, 0])
       end
 
       it "pattern-matches the default value" do
-        subject.evaluate(seq("x = 0, def(foo(a, 2 = (x += 1))): [a, x]"), subject.compile_context)
+        subject.evaluate(seq("x = 0, def(foo(a, 2 = (&x = (x + 1)))): [a, x]"), subject.compile_context)
         expect(subject.foo(1)).to eq([1, 1])
         expect(subject.foo(1)).to eq([1, 2])
         expect(subject.foo(1)).to eq([1, 3])
@@ -228,26 +228,26 @@ describe "define kernel" do
       end
 
       it "only evaluates the default once per invocation" do
-        subject.evaluate(seq("x = 0, fn(foo(a, b = (x += 1))): [a, b]"))
+        subject.evaluate(seq("x = 0, fn(foo(a, b = (&x = (x + 1)))): [a, b]"))
         expect(subject.evaluate(ast("foo(1)"))).to eq([1, 1])
         expect(subject.evaluate(ast("foo(1)"))).to eq([1, 2])
       end
 
       it "does not evaluate the default if a value is given" do
-        subject.evaluate(seq("x = 0, fn(foo(a, b = (x += 1))): [a, b]"))
+        subject.evaluate(seq("x = 0, fn(foo(a, b = (&x = (x + 1)))): [a, b]"))
         expect(subject.evaluate(ast("foo(1)"))).to eq([1, 1])
         expect(subject.evaluate(ast("foo(1, 30)"))).to eq([1, 30])
         expect(subject.evaluate(ast("foo(1)"))).to eq([1, 2])
       end
 
       it "pattern-matches the given value" do
-        subject.evaluate(seq("x = 0, fn(foo(a, 2 = (x += 1))): [a, x]"))
+        subject.evaluate(seq("x = 0, fn(foo(a, 2 = (&x = (x + 1)))): [a, x]"))
         expect { subject.evaluate(ast("foo(1, 30)")) }.to raise_error(Atomy::MessageMismatch)
         expect(subject.evaluate(ast("foo(1, 2)"))).to eq([1, 0])
       end
 
       it "does not pattern-match the default value" do
-        subject.evaluate(seq("x = 0, fn(foo(a, 2 = (x += 1))): [a, x]"))
+        subject.evaluate(seq("x = 0, fn(foo(a, 2 = (&x = (x + 1)))): [a, x]"))
         expect(subject.evaluate(ast("foo(1)"))).to eq([1, 1])
         expect(subject.evaluate(ast("foo(1)"))).to eq([1, 2])
         expect(subject.evaluate(ast("foo(1)"))).to eq([1, 3])
@@ -408,36 +408,6 @@ describe "define kernel" do
     it "can reopen the current singleton class" do
       klass = subject.evaluate(ast("class: singleton: def(foo): 42"))
       expect(klass.foo).to eq(42)
-    end
-  end
-
-  describe "variable mutation" do
-    it "implements +=" do
-      expect(subject.evaluate(seq("a = 1, { a += 1 } call, a"))).to eq(2)
-    end
-
-    it "implements -=" do
-      expect(subject.evaluate(seq("a = 1, { a -= 1 } call, a"))).to eq(0)
-    end
-
-    it "implements *=" do
-      expect(subject.evaluate(seq("a = 2, { a *= 5 } call, a"))).to eq(10)
-    end
-
-    it "implements **=" do
-      expect(subject.evaluate(seq("a = 5, { a **= 2 } call, a"))).to eq(25)
-    end
-
-    it "implements /=" do
-      expect(subject.evaluate(seq("a = 10, { a /= 5 } call, a"))).to eq(2)
-    end
-
-    it "implements &=" do
-      expect(subject.evaluate(seq("a = 258, { a &= 2 } call, a"))).to eq(2)
-    end
-
-    it "implements |=" do
-      expect(subject.evaluate(seq("a = 256, { a |= 2 } call, a"))).to eq(258)
     end
   end
 end

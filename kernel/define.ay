@@ -69,21 +69,3 @@ macro(module: ~*body):
   `(//Module new open:
       ~*body
       self)
-
--- variable mutation
-macro(~(x & Word) += ~y): `(&~x = (~x + ~y))
-macro(~(x & Word) -= ~y): `(&~x = (~x - ~y))
-macro(~(x & Word) *= ~y): `(&~x = (~x * ~y))
-macro(~(x & Word) **= ~y): `(&~x = (~x ** ~y))
-macro(~(x & Word) /= ~y): `(&~x = (~x / ~y))
-macro(~(x & Word) &= ~y): `(&~x = (~x & ~y))
-macro(~(x & Word) |= ~y): `(&~x = (~x | ~y))
-
--- other (attribute, ivar) mutation
-macro(~x += ~y): `(~x = (~x + ~y))
-macro(~x -= ~y): `(~x = (~x - ~y))
-macro(~x *= ~y): `(~x = (~x * ~y))
-macro(~x **= ~y): `(~x = (~x ** ~y))
-macro(~x /= ~y): `(~x = (~x / ~y))
-macro(~x &= ~y): `(~x = (~x & ~y))
-macro(~x |= ~y): `(~x = (~x | ~y))

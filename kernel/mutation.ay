@@ -1,0 +1,53 @@
+use(require("define"))
+use(require("patterns"))
+use(require("let-pattern"))
+sl = require("stack-local")
+
+-- variable mutation
+let-pattern(Identifier = pattern(`(Word | (`(~Word)! | `(~Word)?)))):
+  macro(~(x & Identifier) += ~y): `(&~x = (~x + ~y))
+  macro(~(x & Identifier) -= ~y): `(&~x = (~x - ~y))
+  macro(~(x & Identifier) *= ~y): `(&~x = (~x * ~y))
+  macro(~(x & Identifier) **= ~y): `(&~x = (~x ** ~y))
+  macro(~(x & Identifier) /= ~y): `(&~x = (~x / ~y))
+  macro(~(x & Identifier) &= ~y): `(&~x = (~x & ~y))
+  macro(~(x & Identifier) |= ~y): `(&~x = (~x | ~y))
+
+  fn(attr-mutator(recv, attr, op, val)):
+    r = sl Local new
+    `(do:
+        ~(r set(recv))
+        ~r ~attr = ~(Atomy Grammar AST Infix new(`(~r ~attr), val, op)))
+
+  fn(index-mutator(recv, args, op, val)):
+    r = sl Local new
+    als = args collect [a]: sl Local new
+    `(do:
+        ~(r set(recv))
+        ~*(als zip(args) collect [[l, v]]: l set(v))
+        ~r[~*als] = ~(Atomy Grammar AST Infix new(`(~r[~*als]), val, op)))
+
+  macro(~r ~(x & Identifier) += ~y): attr-mutator(r, x, ."+", y)
+  macro(~r ~(x & Identifier) -= ~y): attr-mutator(r, x, ."-", y)
+  macro(~r ~(x & Identifier) *= ~y): attr-mutator(r, x, ."*", y)
+  macro(~r ~(x & Identifier) **= ~y): attr-mutator(r, x, ."**", y)
+  macro(~r ~(x & Identifier) /= ~y): attr-mutator(r, x, ."/", y)
+  macro(~r ~(x & Identifier) &= ~y): attr-mutator(r, x, ."&", y)
+  macro(~r ~(x & Identifier) |= ~y): attr-mutator(r, x, ."|", y)
+
+  macro(~r[~*x] += ~y): index-mutator(r, x, ."+", y)
+  macro(~r[~*x] -= ~y): index-mutator(r, x, ."-", y)
+  macro(~r[~*x] *= ~y): index-mutator(r, x, ."*", y)
+  macro(~r[~*x] **= ~y): index-mutator(r, x, ."**", y)
+  macro(~r[~*x] /= ~y): index-mutator(r, x, ."/", y)
+  macro(~r[~*x] &= ~y): index-mutator(r, x, ."&", y)
+  macro(~r[~*x] |= ~y): index-mutator(r, x, ."|", y)
+
+-- other (ivar) mutation
+macro(~x += ~y): `(~x = (~x + ~y))
+macro(~x -= ~y): `(~x = (~x - ~y))
+macro(~x *= ~y): `(~x = (~x * ~y))
+macro(~x **= ~y): `(~x = (~x ** ~y))
+macro(~x /= ~y): `(~x = (~x / ~y))
+macro(~x &= ~y): `(~x = (~x & ~y))
+macro(~x |= ~y): `(~x = (~x | ~y))

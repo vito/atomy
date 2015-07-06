@@ -5,6 +5,7 @@ use(require("control-flow"))
 use(require("patterns"))
 use(require("let-macro"))
 use(require("data"))
+use(require("mutation"))
 
 tags = dynamic(Hash new)
 
