@@ -1,0 +1,24 @@
+use(require("core"))
+use(require("define"))
+use(require("patterns"))
+
+require("atomy/bootstrap")
+
+let-pattern = class:
+  def(initialize(@body, @patterns)) {}
+
+  def(bytecode(gen, mod)):
+    new = Atomy Module new: use(mod)
+
+    @patterns each [`(~pat = ~exp)]:
+      definer = Atomy Bootstrap pattern-definer(
+        Atomy Grammar AST QuasiQuote new(pat)
+        exp
+      )
+
+      new evaluate(definer, new compile-context)
+
+    new compile(gen, @body)
+
+macro(let-pattern(~*ms): ~*body):
+  let-pattern new(`(do: ~*body), ms)
