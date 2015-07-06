@@ -81,6 +81,17 @@ describe "patterns kernel" do
     expect($foo).to eq(42)
   end
 
+  it "defines a pattern for setting global variables ending in ?" do
+    expect(subject.evaluate(ast("$foo? = 42"))).to eq(42)
+    expect(Rubinius::Globals[:"$foo?"]).to eq(42)
+  end
+
+  it "defines a pattern for setting global variables ending in !" do
+    expect(subject.evaluate(ast("$foo! = 42"))).to eq(42)
+    expect(Rubinius::Globals[:"$foo!"]).to eq(42)
+  end
+
+
   it "defines a pattern for matching nil" do
     expect(subject.evaluate(ast("nil = nil"))).to eq(nil)
     expect { subject.evaluate(ast("nil = 42")) }.to raise_error(Atomy::PatternMismatch)

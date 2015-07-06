@@ -166,6 +166,20 @@ describe "core kernel" do
     expect(subject.evaluate(ast("$foo"))).to eq(2)
   end
 
+  it "implements global variable access with names ending in !" do
+    Rubinius::Globals[:"$foo!"] = 1
+    expect(subject.evaluate(ast("$foo!"))).to eq(1)
+    Rubinius::Globals[:"$foo!"] = 2
+    expect(subject.evaluate(ast("$foo!"))).to eq(2)
+  end
+
+  it "implements global variable access with names ending in ?" do
+    Rubinius::Globals[:"$foo?"] = 1
+    expect(subject.evaluate(ast("$foo?"))).to eq(1)
+    Rubinius::Globals[:"$foo?"] = 2
+    expect(subject.evaluate(ast("$foo?"))).to eq(2)
+  end
+
   it "implements capitalized variable access" do
     expect(subject.evaluate(ast("$LOAD_PATH"))).to eq($LOAD_PATH)
   end

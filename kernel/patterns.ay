@@ -102,6 +102,12 @@ pattern(@@(~(name & Word))!):
 pattern($~(name & Word)):
   pattern(`(//Rubinius Globals[~(Atomy Code Symbol new(("$" + name text to-s) to-sym))]))
 
+pattern($(~(name & Word))?):
+  pattern(`(//Rubinius Globals[~(Atomy Code Symbol new(("$" + (name text to-s + "?")) to-sym))]))
+
+pattern($(~(name & Word))!):
+  pattern(`(//Rubinius Globals[~(Atomy Code Symbol new(("$" + (name text to-s + "!")) to-sym))]))
+
 pattern(nil):
   Atomy Code Pattern new(`(//Atomy Pattern Equality new(nil)))
 
