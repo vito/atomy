@@ -47,33 +47,30 @@ fn(define-class(root, `((~name)(~*as): ~*cs))):
   parent = (root || 'Object)
 
   `(do:
-      const-set(
-        .~name
-        ~parent class:
-          attr-accessor(
-            ~*(attrs collect [a]:
-                `.~(a node)))
+      ~parent class(~name):
+        attr-accessor(
+          ~*(attrs collect [a]:
+              `.~(a node)))
 
-          def(initialize(~*as)): nil
+        def(initialize(~*as)): nil
 
-          def(inspect):
-            result = (~(Atomy Code StringLiteral new(name text to-s)) + "(")
+        def(inspect):
+          result = (~(Atomy Code StringLiteral new(name text to-s)) + "(")
 
-            args = []
-            recursed = //Thread detect-recursion(self):
-              [~*attrs] each [v]:
-                args << v inspect
+          args = []
+          recursed = //Thread detect-recursion(self):
+            [~*attrs] each [v]:
+              args << v inspect
 
-            when(recursed):
-              args << "..."
+          when(recursed):
+            args << "..."
 
-            result << args join(", ")
-            result << ")"
+          result << args join(", ")
+          result << ")"
 
-            Rubinius Type infect(result, self)
+          Rubinius Type infect(result, self)
 
-            result
-        )
+          result
 
       ~pat-def
 

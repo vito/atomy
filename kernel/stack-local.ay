@@ -3,8 +3,8 @@ use(require("define"))
 use(require("control-flow"))
 use(require("patterns"))
 
-stack-local = class:
-  setter = class:
+class(Local):
+  class(Setter):
     def(initialize(@local, @code)) {}
 
     def(bytecode(gen, mod)):
@@ -18,6 +18,4 @@ stack-local = class:
     @stack-local = (@stack-local || gen new-stack-local)
 
   def(set(code)):
-    setter new(self, code)
-
-const-set(.Local, stack-local)
+    Setter new(self, code)

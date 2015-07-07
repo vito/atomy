@@ -252,7 +252,7 @@ macro(parser(~name): ~*grammar):
     def = parser-definer new(//KPeg CodeGenerator new(const-name(name), g) output)
 
     `(do:
-        const-set(.~name, //KPeg CompiledParser class:
+        //KPeg CompiledParser class(~name):
           setups = [~*^setups]
           vars = [~*^vars]
 
@@ -260,7 +260,7 @@ macro(parser(~name): ~*grammar):
             def(setups): setups
             def(vars): vars
 
-          def(actions): @actions ||= [~*acts])
+          def(actions): @actions ||= [~*acts]
 
         ~def
 

@@ -160,18 +160,17 @@ or-pattern-code = Atomy Code Pattern class:
 pattern(~a | ~b):
   or-pattern-code new(pattern(a), pattern(b))
 
-with-pattern = Atomy Pattern class:
-  attr-reader(.block, .pattern)
+Atomy Pattern open:
+  self class(With):
+    attr-reader(.block, .pattern)
 
-  def(initialize(@block, @pattern)) {}
+    def(initialize(@block, @pattern)) {}
 
-  def(matches?(val)):
-    @pattern matches?(@block call-on-object(val))
+    def(matches?(val)):
+      @pattern matches?(@block call-on-object(val))
 
-  def(target):
-    Object
-
-Atomy Pattern const-set(.With, with-pattern)
+    def(target):
+      Object
 
 with-pattern-code = Atomy Code Pattern class:
   def(initialize(@expr, @sub-pattern)) {}
@@ -216,62 +215,60 @@ with-pattern-code = Atomy Code Pattern class:
 pattern(with(~expr, ~pat)):
   with-pattern-code new(expr, pattern(pat))
 
-pred-pattern = Atomy Pattern class:
-  def(initialize(@block)) {}
+Atomy Pattern open:
+  self class(Predicate):
+    def(initialize(@block)) {}
 
-  def(matches?(val)):
-    @block call-on-object(val)
+    def(matches?(val)):
+      @block call-on-object(val)
 
-  def(target):
-    Object
-
-Atomy Pattern const-set(.Predicate, pred-pattern)
+    def(target):
+      Object
 
 pattern({ ~*pred-body }):
   Atomy Code Pattern new(`(//Atomy Pattern Predicate new({ ~*pred-body })))
 
-list-pattern = Atomy Pattern class:
-  attr-reader(.patterns, .splat)
+Atomy Pattern open:
+  self class(List):
+    attr-reader(.patterns, .splat)
 
-  def(initialize(@patterns, @splat)) {}
+    def(initialize(@patterns, @splat)) {}
 
-  def(matches?(val)):
-    unless(val is-a?(Array)):
-      return(false)
+    def(matches?(val)):
+      unless(val is-a?(Array)):
+        return(false)
 
-    when(@splat && (val size < @patterns size)):
-      return(false)
+      when(@splat && (val size < @patterns size)):
+        return(false)
 
-    when(!@splat && (val size != @patterns size)):
-      return(false)
+      when(!@splat && (val size != @patterns size)):
+        return(false)
 
-    idx = 0
-    mismatch = false
-    @patterns each [p]:
-      unless(p matches?(val[idx])):
-        &mismatch = true
-        -- TODO: break, or return false
+      idx = 0
+      mismatch = false
+      @patterns each [p]:
+        unless(p matches?(val[idx])):
+          &mismatch = true
+          -- TODO: break, or return false
 
-      &idx = (idx + 1)
+        &idx = (idx + 1)
 
-    if(mismatch)
-      then: false
-      else:
+      if(mismatch)
+        then: false
+        else:
 
-    if(@splat)
-      then: @splat matches?(val drop(idx))
-      else: true
+      if(@splat)
+        then: @splat matches?(val drop(idx))
+        else: true
 
-  def(assign(scope, val)):
-    idx = 0
-    @patterns each [p]:
-      p assign(scope, val[idx])
-      &idx = (idx + 1)
+    def(assign(scope, val)):
+      idx = 0
+      @patterns each [p]:
+        p assign(scope, val[idx])
+        &idx = (idx + 1)
 
-    when(@splat):
-      @splat assign(scope, val drop(idx))
-
-Atomy Pattern const-set(.List, list-pattern)
+      when(@splat):
+        @splat assign(scope, val drop(idx))
 
 list-pattern-code = Atomy Code Pattern class:
   def(initialize(patterns)):
