@@ -7,7 +7,12 @@ require "atomy/method"
 module Atomy
   class Module < ::Module
     # [Symbol] Absolute path to the file the module was loaded from.
-    attr_accessor :file
+    attr_reader :file
+
+    def file=(file)
+      @file = file
+      Rubinius::Type.set_module_name(self, File.basename(file.to_s).to_sym, Object)
+    end
 
     # [Module] Modules users of this module should automatically use.
     attr_reader :exported_modules

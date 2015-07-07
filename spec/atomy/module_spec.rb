@@ -92,18 +92,22 @@ describe Atomy::Module do
     end
   end
 
-  describe "#file" do
-    it "can be set" do
+  describe "#file=" do
+    it "sets the module name when modified" do
       mod = Atomy::Module.new { def foo; 1; end }
       mod.file = :"foo/bar"
+      expect(mod.name).to eq("bar")
     end
 
-    it "can be read" do
-      mod = Atomy::Module.new { def foo; 1; end }
-      mod.file = :"foo/bar"
-      expect(mod.file).to eq(:"foo/bar")
+    describe "#file" do
+      it "returns the file attribute" do
+        mod = Atomy::Module.new { def foo; 1; end }
+        mod.file = :"foo/bar"
+        expect(mod.file).to eq(:"foo/bar")
+      end
     end
   end
+
 
   describe "::Self" do
     it "returns the module" do
