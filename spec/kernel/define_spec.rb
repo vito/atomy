@@ -367,6 +367,52 @@ describe "define kernel" do
         expect(klass.new).to be_a(parent)
       end
     end
+
+    context "with a name" do
+      before { subject.file = :"(tests)" }
+
+      it "constructs a named anonymous class" do
+        expect(subject.evaluate(ast("class(SomeClass) {}"), subject.compile_context)).to be_a(Class)
+        expect(subject::SomeClass).to be_a(Class)
+        expect(subject::SomeClass.name).to eq("(tests)::SomeClass")
+      end
+
+      it "evaluates the body with the class as the method target" do
+        klass = subject.evaluate(ast("class(SomeClass): def(foo): 42"), subject.compile_context)
+        expect(klass).to eq(subject::SomeClass)
+        expect(klass).to be_a(Class)
+        expect(klass.respond_to?(:foo)).to eq(false)
+        expect(klass.new.foo).to eq(42)
+        expect(subject.respond_to?(:foo)).to eq(false)
+      end
+
+      it "closes over the scope" do
+        a = subject.evaluate(seq("
+          a = 1
+
+          class(X):
+            a = (a + 1)
+            def(foo): a
+
+          a
+        "), subject.compile_context)
+        expect(subject::X).to be_a(Class)
+        expect(subject::X.respond_to?(:foo)).to eq(false)
+        expect(subject::X.new.foo).to eq(2)
+        expect(a).to eq(1)
+        expect(subject.respond_to?(:foo)).to eq(false)
+      end
+
+      context "with a superclass" do
+        it "constructs an anonymous subclass of the given class" do
+          parent = subject.evaluate(ast("parent = Class new"), subject.compile_context)
+          klass = subject.evaluate(ast("parent class(X) {}"), subject.compile_context)
+          expect(klass).to eq(subject::X)
+          expect(klass).to be_a(Class)
+          expect(klass.new).to be_a(parent)
+        end
+      end
+    end
   end
 
   describe "module creation" do

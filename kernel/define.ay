@@ -44,17 +44,30 @@ with-module = Class new:
     gen add-scope
     gen push-nil
 
+current-module = Class new:
+  def(bytecode(gen, _)):
+    gen push-scope
+    gen send(.module, 0)
+
 -- module/class opening
 macro(~x open: ~*body):
   `(~x module-eval:
       ~(with-module new)
       ~*body)
 
--- class creation
+-- anonymous class creation
 macro(class: ~*body): `(Object class: ~*body)
 
 macro(~parent class: ~*body):
   `(//Class new(~parent) open:
+      ~*body
+      self)
+
+-- named class creation
+macro(class(~name): ~*body): `(Object class(~name): ~*body)
+
+macro(~parent class(~name): ~*body):
+  `(//Class new(~parent, .~name, ~(current-module new)) open:
       ~*body
       self)
 
