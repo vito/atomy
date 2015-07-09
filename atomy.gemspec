@@ -9,17 +9,21 @@ Gem::Specification.new do |s|
   s.email = "suraci.alex@gmail.com"
 
   s.license = "BSD"
-  s.homepage = "http://atomy-lang.org"
+  s.homepage = "https://vito.github.io/atomy"
+
   s.summary = "the Atomy programming language"
-  s.description = s.summary
 
-  # TODO: make a development dependency
-  s.add_runtime_dependency "kpeg", "~> 0.10.0"
-  s.add_runtime_dependency "rubinius-compiler"
-  s.add_runtime_dependency "rubinius-ast"
+  s.description = %q{
+    A dynamic language targeting the Rubinius VM, focusing on extensibility
+    and expressiveness through macros and pattern-matching.
+  }
 
-  s.add_development_dependency "rake"
-  s.add_development_dependency "rspec-its"
+  s.add_runtime_dependency "rubinius-compiler", "~> 2.3"
+  s.add_runtime_dependency "rubinius-ast", "~> 2.3"
+
+  s.add_development_dependency "kpeg", "~> 0.10.0"
+  s.add_development_dependency "rake", "~> 10.4"
+  s.add_development_dependency "rspec-its", "~> 1.2"
 
   s.files = %w{LICENSE Gemfile} + Dir["{lib,kernel,bin}/**/*"]
 
