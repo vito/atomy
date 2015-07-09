@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.authors = ["Alex Suraci"]
   s.email = "suraci.alex@gmail.com"
 
-  s.license = "BSD"
+  s.license = "Apache-2.0"
   s.homepage = "https://vito.github.io/atomy"
 
   s.summary = "the Atomy programming language"
@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rake", "~> 10.4"
   s.add_development_dependency "rspec-its", "~> 1.2"
 
-  s.files = %w{LICENSE Gemfile} + Dir["{lib,kernel,bin}/**/*"]
+  s.files = %w{LICENSE.md Gemfile} + Dir["{lib,kernel,bin}/**/*"]
 
   s.executables = ["atomy"]
 
