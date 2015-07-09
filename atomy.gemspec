@@ -18,10 +18,10 @@ Gem::Specification.new do |s|
     and expressiveness through macros and pattern-matching.
   }
 
+  s.add_runtime_dependency "kpeg", "~> 0.10.0"
   s.add_runtime_dependency "rubinius-compiler", "~> 2.3"
   s.add_runtime_dependency "rubinius-ast", "~> 2.3"
 
-  s.add_development_dependency "kpeg", "~> 0.10.0"
   s.add_development_dependency "rake", "~> 10.4"
   s.add_development_dependency "rspec-its", "~> 1.2"
 
