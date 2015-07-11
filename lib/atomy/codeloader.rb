@@ -178,10 +178,7 @@ module Atomy
         printer.print_method(code)
       end
 
-      if compiled_file_name
-        FileUtils.mkdir_p(File.expand_path("../", compiled_file_name))
-        CodeTools::CompiledFile.dump(code, compiled_file_name, Rubinius::Signature, 0)
-      end
+      write_compiled_file(compiled_file_name, mod, code) if compiled_file_name
 
       [res, mod]
     end
@@ -233,8 +230,35 @@ module Atomy
     def should_load_compiled_file(compiled_file, source_file)
       return false unless compiled_file
       return false unless File.exists?(compiled_file)
-      return false if File.mtime(source_file) > File.mtime(compiled_file)
+
+      compiled_mtime = File.mtime(compiled_file)
+      return false if File.mtime(source_file) > compiled_mtime
+
+      module_list_file_name = compiled_file + ".modules"
+      if File.exists?(module_list_file_name)
+        File.open(module_list_file_name, "r") do |io|
+          io.each_line do |line|
+            mod_file = line.rstrip
+            return false if File.mtime(mod_file) > compiled_mtime
+          end
+        end
+      end
+
       true
+    end
+
+    def write_compiled_file(compiled_file_name, mod, code)
+      FileUtils.mkdir_p(File.expand_path("../", compiled_file_name))
+      CodeTools::CompiledFile.dump(code, compiled_file_name, Rubinius::Signature, 0)
+
+      module_list_file_name = compiled_file_name + ".modules"
+      File.open(module_list_file_name, "w") do |io|
+        mod.singleton_class.included_modules.each do |used_module|
+          next if used_module == mod
+          next unless used_module.is_a?(Atomy::Module) && used_module.file
+          io.puts(used_module.file.to_s)
+        end
+      end
     end
 
     def search_path(path, load_paths)

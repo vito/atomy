@@ -52,7 +52,7 @@ describe Atomy::CodeLoader do
               FileUtils.touch(path, mtime: Time.now + 1)
             end
 
-            it "evaluates the new contents" do
+            it "evaluates the new code" do
               expect(script_result).to eq(43)
               expect(loaded_module::Something).to eq(43)
             end
@@ -62,6 +62,45 @@ describe Atomy::CodeLoader do
             it "evaluates and returns the same thing" do
               expect(script_result).to eq(42)
               expect(loaded_module::Something).to eq(42)
+            end
+          end
+        end
+
+        context "when the code depends on another module" do
+          let(:dependent_module) { File.join(tmpdir, "dependent-module.ay") }
+
+          before do
+            FileUtils.mkdir_p(File.dirname(dependent_module))
+
+            File.write(dependent_module, <<-SOURCE)
+              evaluate(macro-definer(''MAGIC, ''42))
+            SOURCE
+
+            File.write(path, <<-SOURCE)
+              use(eval("Atomy::CodeLoader.run_script('#{dependent_module}')[1]"))
+              MAGIC
+            SOURCE
+          end
+
+          it "loads it and returns the result" do
+            expect(script_result).to eq(42)
+          end
+
+          context "after the file has been loaded once before" do
+            before { described_class.run_script(path) }
+
+            context "when the dependent module has been modified since the initial load" do
+              before do
+                File.write(dependent_module, <<-SOURCE)
+                  evaluate(macro-definer(''MAGIC, ''43))
+                SOURCE
+
+                FileUtils.touch(dependent_module, mtime: Time.now + 10)
+              end
+
+              it "evaluates the new code" do
+                expect(script_result).to eq(43)
+              end
             end
           end
         end
