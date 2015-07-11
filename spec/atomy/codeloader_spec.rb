@@ -95,7 +95,7 @@ describe Atomy::CodeLoader do
                   evaluate(macro-definer(''MAGIC, ''43))
                 SOURCE
 
-                FileUtils.touch(dependent_module, mtime: Time.now + 10)
+                FileUtils.touch(dependent_module, mtime: Time.now + 1)
               end
 
               it "evaluates the new code" do
