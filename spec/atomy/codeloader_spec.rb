@@ -6,13 +6,83 @@ require "atomy/codeloader"
 
 describe Atomy::CodeLoader do
   describe ".run_script" do
-    context "when the file exists" do
+    let(:tmpdir) { Dir.mktmpdir }
+    let(:path) { File.join(tmpdir, "some-module.ay") }
+
+    def clear_compiled_cache
+      compiled_name = CodeTools::Compiler.compiled_name(path)
+      expect(compiled_name).to_not be_nil
+
+      FileUtils.rm_f(compiled_name)
     end
 
-    it "raises a LoadError if the file does not exist" do
-      expect {
-        Atomy::CodeLoader.run_script("some/bogus/file")
-      }.to raise_error(LoadError, %r(some/bogus/file))
+    before { clear_compiled_cache }
+
+    after { FileUtils.rm_rf(tmpdir) }
+
+    subject { described_class.run_script(path) }
+
+    let(:script_result) { subject[0] }
+    let(:loaded_module) { subject[1] }
+
+    context "when the file exists" do
+      before do
+        FileUtils.mkdir_p(File.dirname(path))
+
+        File.write(path, <<-SOURCE)
+          const-set("Something", 42)
+        SOURCE
+      end
+
+      context "when the code is cacheable" do
+        it "evaluates the file, returning the module" do
+          expect(script_result).to eq(42)
+          expect(loaded_module::Something).to eq(42)
+        end
+
+        context "after the file has been loaded once before" do
+          before { described_class.run_script(path) }
+
+          context "when it has been modified since the initial load" do
+            before do
+              File.write(path, <<-SOURCE)
+                const-set("Something", 43)
+              SOURCE
+
+              FileUtils.touch(path, mtime: Time.now + 1)
+            end
+
+            it "evaluates the new contents" do
+              expect(script_result).to eq(43)
+              expect(loaded_module::Something).to eq(43)
+            end
+          end
+
+          context "when it has not been modified" do
+            it "evaluates and returns the same thing" do
+              expect(script_result).to eq(42)
+              expect(loaded_module::Something).to eq(42)
+            end
+          end
+        end
+      end
+
+      context "when the code is not cacheable" do
+        before { expect(CodeTools::Compiler).to receive(:compiled_name).and_return(nil) }
+
+        it "evaluates the file, returning the module" do
+          expect(script_result).to eq(42)
+          expect(loaded_module::Something).to eq(42)
+        end
+      end
+    end
+
+    context "when the path does not exist" do
+      it "raises a LoadError if the file does not exist" do
+        expect {
+          Atomy::CodeLoader.run_script("some/bogus/file")
+        }.to raise_error(LoadError, %r(some/bogus/file))
+      end
     end
   end
 

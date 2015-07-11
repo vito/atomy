@@ -1,7 +1,12 @@
+require "fileutils"
+
 require "atomy/bootstrap"
 require "atomy/compiler"
 require "atomy/parser"
 require "atomy/module"
+
+require "rubinius/compiler"
+require "rubinius/compiler/compiled_file"
 
 module Atomy
   module CodeLoader
@@ -143,24 +148,58 @@ module Atomy
       mod = Atomy::Module.new { use(Atomy::Bootstrap) }
       mod.file = file.to_sym
 
+      compiled_file_name = CodeTools::Compiler.compiled_name(file)
+      if should_load_compiled_file(compiled_file_name, file)
+        code_loader = Rubinius::CodeLoader.new(compiled_file_name)
+        code = code_loader.load_compiled_file(compiled_file_name, 0, 0)
+
+        Rubinius.attach_method(
+          :__script__,
+          code,
+          mod.compile_context.constant_scope,
+          mod)
+
+        res = mod.__script__
+
+        return [res, mod]
+      end
+
       node = Atomy::Parser.parse_file(file)
 
-      res = evaluate_sequences(node, mod)
+      res = nil
+      code =
+        Atomy::Compiler.package(mod.file) do |gen|
+          res = evaluate_sequences(gen, node, mod)
+        end
+
+      if ENV["DEBUG"]
+        printer = CodeTools::Compiler::MethodPrinter.new
+        printer.bytecode = true
+        printer.print_method(code)
+      end
+
+      if compiled_file_name
+        FileUtils.mkdir_p(File.expand_path("../", compiled_file_name))
+        CodeTools::CompiledFile.dump(code, compiled_file_name, Rubinius::Signature, 0)
+      end
 
       [res, mod]
     end
 
-    def evaluate_sequences(n, mod)
+    def evaluate_sequences(gen, n, mod)
       if n.is_a?(Atomy::Grammar::AST::Sequence)
         res = nil
 
-        n.nodes.each do |sub|
-          res = evaluate_sequences(sub, mod)
+        n.nodes.each.with_index do |sub, i|
+          gen.pop unless i == 0
+          res = evaluate_sequences(gen, sub, mod)
         end
 
         res
       else
-        mod.evaluate(n, mod.compile_context)
+        res = mod.evaluate(n, mod.compile_context)
+        mod.compile(gen, n)
+        res
       end
     end
 
@@ -189,6 +228,13 @@ module Atomy
 
     def source_extension
       ".ay"
+    end
+
+    def should_load_compiled_file(compiled_file, source_file)
+      return false unless compiled_file
+      return false unless File.exists?(compiled_file)
+      return false if File.mtime(source_file) > File.mtime(compiled_file)
+      true
     end
 
     def search_path(path, load_paths)
