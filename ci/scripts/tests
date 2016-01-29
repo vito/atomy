@@ -9,5 +9,4 @@ export PATH=$GEM_HOME/bin:$PATH
 
 cd atomy
 bundle install
-make
 bundle exec rspec

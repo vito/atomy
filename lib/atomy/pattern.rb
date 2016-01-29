@@ -1,5 +1,5 @@
 require "atomy/node/constructable"
-require "rubinius/ast"
+require "rubinius/code/ast"
 
 module Atomy
   class Pattern

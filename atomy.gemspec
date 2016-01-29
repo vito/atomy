@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "kpeg", "~> 1.0"
   s.add_runtime_dependency "rubinius-compiler", "~> 2.3"
-  s.add_runtime_dependency "rubinius-ast", "~> 2.3"
+  s.add_runtime_dependency "rubinius-ast", "~> 2.4"
 
   s.add_development_dependency "rake", "~> 10.4"
   s.add_development_dependency "rspec-its", "~> 1.2"

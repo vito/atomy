@@ -5,7 +5,7 @@ require "atomy/grammar"
 require "atomy/module"
 require "atomy/locals"
 
-require "rubinius/ast"
+require "rubinius/code/ast"
 require "rubinius/compiler"
 
 require "rspec/its"

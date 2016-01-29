@@ -1,7 +1,7 @@
 ---
 platform: linux
 
-image: docker:///concourse/rubinius
+image: docker:///rubinius/docker
 
 inputs:
 - name: atomy
