@@ -8,9 +8,9 @@ stack-local = require("stack-local")
 
 require("kpeg")
 require("kpeg/compiled_parser")
-require("rubinius/processor") -- needed by compiler
-require("rubinius/melbourne") -- needed by compiler
-require("rubinius/compiler")
+require("rubinius/code/processor") -- needed by compiler
+require("rubinius/code/melbourne") -- needed by compiler
+require("rubinius/code/compiler")
 require("set")
 
 

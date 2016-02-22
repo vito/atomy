@@ -29,9 +29,9 @@ module Atomy
     method, branch = register_branch(target, name, branch)
 
     if branch.name
-      Rubinius.add_method(branch.name, branch.as_method, target, :public)
+      Rubinius.add_method(branch.name, branch.as_method, target, binding.constant_scope, 0, :public)
     end
 
-    Rubinius.add_method(name, method.build, target, :public)
+    Rubinius.add_method(name, method.build, target, binding.constant_scope, 0, :public)
   end
 end

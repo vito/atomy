@@ -5,8 +5,8 @@ require "atomy/compiler"
 require "atomy/parser"
 require "atomy/module"
 
-require "rubinius/compiler"
-require "rubinius/compiler/compiled_file"
+require "rubinius/code/compiler"
+require "rubinius/code/compiler/compiled_file"
 
 module Atomy
   module CodeLoader

@@ -37,7 +37,8 @@ describe Atomy::Method do
 
       before do
         subject.add_branch(branch)
-        Rubinius.add_method(method_name, subject.build, target, :public)
+        exe = subject.build
+        Rubinius.add_method(method_name, exe, target, exe.scope, 0, :public)
       end
 
       it "can be invoked when attached to a target" do

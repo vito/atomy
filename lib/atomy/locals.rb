@@ -1,4 +1,4 @@
-require "rubinius/compiler"
+require "rubinius/code/compiler"
 
 module Atomy
   class LocalState

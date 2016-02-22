@@ -1,5 +1,5 @@
 require "atomy/locals"
-require "rubinius/compiler"
+require "rubinius/code/compiler"
 
 module Atomy
   module Compiler
