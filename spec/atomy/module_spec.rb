@@ -381,4 +381,13 @@ describe Atomy::Module do
       subject.require("foo/bar/baz")
     end
   end
+
+  describe "#load" do
+    it "invokes CodeLoader.run_script and returns the module" do
+      res = double(:result)
+      mod = double(:module)
+      expect(Atomy::CodeLoader).to receive(:run_script).with("foo/bar/baz").and_return([res, mod])
+      expect(subject.load("foo/bar/baz")).to eq(mod)
+    end
+  end
 end

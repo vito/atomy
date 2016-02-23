@@ -69,6 +69,11 @@ module Atomy
       Atomy::CodeLoader.require(path)
     end
 
+    def load(path)
+      _, mod = Atomy::CodeLoader.run_script(path)
+      mod
+    end
+
     def inspect
       if @file
         super.sub(/>$/, " #{@file}>")
