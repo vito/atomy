@@ -1,0 +1,51 @@
+groups: []
+resources:
+- name: atomy
+  type: git
+  source:
+    uri: https://github.com/vito/atomy
+- name: version
+  type: semver
+  source:
+    file: VERSION
+    private_key: ""
+    uri: git@github.com:vito/atomy
+- name: atomy-gem
+  type: gem
+  source:
+    email: ""
+    name: atomy
+    password: ""
+resource_types: []
+jobs:
+- name: atomy
+  public: true
+  plan:
+  - get: atomy
+    trigger: true
+  - task: tests
+    file: atomy/ci/tests.yml
+- name: push-atomy-patch
+  plan:
+  - get: atomy
+    passed:
+    - atomy
+  - put: version
+    params:
+      bump: patch
+  - put: atomy-gem
+    params:
+      build: atomy/atomy.gemspec
+      version: version/number
+- name: push-atomy-minor
+  plan:
+  - get: atomy
+    passed:
+    - atomy
+  - put: version
+    params:
+      bump: minor
+  - put: atomy-gem
+    params:
+      build: atomy/atomy.gemspec
+      version: version/number
