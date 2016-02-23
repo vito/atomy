@@ -31,7 +31,7 @@ describe Atomy do
 
         recv = SomeTarget.new
         expect(recv.foo).to eq([kopat, recv])
-        expect(Object.new).to_not respond_to(:foo)
+        expect(Object.new).to respond_to(:foo)
       end
     end
 
