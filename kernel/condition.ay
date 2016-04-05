@@ -112,7 +112,7 @@ def(error(x)):
       _: SimpleError new(x)
 
   unless(e backtrace):
-    e backtrace = Rubinius VM backtrace(1, true)
+    e backtrace = Rubinius VM backtrace(1)
 
   signal(e)
 
@@ -128,7 +128,7 @@ def(warning(x)):
 
         _: SimpleWarning new(x)
 
-    w backtrace = Rubinius VM backtrace(1, true)
+    w backtrace = Rubinius VM backtrace(1)
 
     signal(w)
 
