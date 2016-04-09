@@ -19,8 +19,12 @@ Gem::Specification.new do |s|
   }
 
   s.add_runtime_dependency "kpeg", "~> 1.0"
-  s.add_runtime_dependency "rubinius-compiler", "~> 3.0"
-  s.add_runtime_dependency "rubinius-ast", "~> 3.0"
+
+  # don't pull these in - depend on the version provided by the Rubinius
+  # installation instead, otherwise this could generate instructions for the
+  # wrong version of Rubinius
+  # s.add_runtime_dependency "rubinius-compiler", "~> 3.0"
+  # s.add_runtime_dependency "rubinius-ast", "~> 3.0"
 
   s.add_development_dependency "rake", "~> 10.4"
   s.add_development_dependency "rspec-its", "~> 1.2"
