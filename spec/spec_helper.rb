@@ -333,12 +333,12 @@ module Atomy
       define_opcode_method name
     end
 
-    def git(lbl)
+    def goto_if_true(lbl)
       lbl.used!
       add :goto_if_true, lbl
     end
 
-    def gif(lbl)
+    def goto_if_false(lbl)
       lbl.used!
       add :goto_if_false, lbl
     end
@@ -506,18 +506,18 @@ module Atomy
       if block_given?
         yield
       else
-        g.push 1
+        g.push_int 1
       end
       g.make_array n
 
       g.cast_array
       g.dup
       g.send :size, 0
-      g.push 1
+      g.push_int 1
       g.send :>, 1
-      g.git bottom
+      g.goto_if_true bottom
 
-      g.push 0
+      g.push_int 0
       g.send :at, 1
 
       bottom.set!
@@ -589,7 +589,7 @@ module Atomy
       when Symbol
         g.push_rubinius
         g.push_literal name
-        g.push :nil
+        g.push_nil
 
         g.push_scope
         g.send :open_class, 3
@@ -600,7 +600,7 @@ module Atomy
         klass = levels.pop
 
         g.push_literal klass
-        g.push :nil
+        g.push_nil
 
         levels.each do |level|
           g.push_const level
@@ -896,7 +896,7 @@ module Atomy
           g.push_const klass
           g.swap
           g.send :===, 1
-          g.git jump_body
+          g.goto_if_true jump_body
 
           g.goto jump_next
 
@@ -1009,7 +1009,7 @@ module Atomy
         new_break.set!
         g.pop_unwind
 
-        g.push :true
+        g.push_true
         g.set_stack_local used_break_local
         g.pop
 
@@ -1026,7 +1026,7 @@ module Atomy
       ensure_good.set!
 
       if check_break
-        g.push :false
+        g.push_false
         g.set_stack_local used_break_local
         g.pop
 
@@ -1039,7 +1039,7 @@ module Atomy
         post = g.new_label
 
         g.push_stack_local used_break_local
-        g.gif post
+        g.goto_if_false post
 
         if g.break
           g.goto g.break
@@ -1054,8 +1054,8 @@ module Atomy
     def optional_arg(slot)
       if_set = g.new_label
       g.passed_arg slot
-      g.git if_set
-      g.push 42
+      g.goto_if_true if_set
+      g.push_int 42
       g.set_local slot
       g.pop
       if_set.set!
@@ -1073,8 +1073,7 @@ module Atomy
       slot = new_slot
       g.push_literal_at slot
       g.dup
-      g.is_nil
-      g.gif memo
+      g.goto_if_not_nil memo
       g.pop
 
       yield g

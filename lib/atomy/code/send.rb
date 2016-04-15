@@ -96,8 +96,7 @@ module Atomy
           nil_proc_arg = gen.new_label
           mod.compile(gen, @proc_argument)
           gen.dup
-          gen.is_nil
-          gen.git(nil_proc_arg)
+          gen.goto_if_nil(nil_proc_arg)
           gen.push_cpath_top
           gen.find_const(:Proc)
           gen.swap

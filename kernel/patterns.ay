@@ -135,7 +135,7 @@ or-pattern-code = Atomy Code Pattern class:
     gen send(.a, 0)
     gen swap
     gen send(.matches?, 1)
-    gen gif(assign-b)
+    gen goto-if-false(assign-b)
 
     gen dup-many(2)
     gen swap
@@ -403,7 +403,7 @@ match = class:
         blk send(.matches?, 1)
 
         -- [pattern, node]
-        blk gif(skip)
+        blk goto-if-false(skip)
 
         -- [node, pattern]
         blk swap
@@ -549,7 +549,7 @@ rescue = class:
         blk send(.matches?, 1)
 
         -- [pattern, node]
-        blk gif(skip)
+        blk goto-if-false(skip)
 
         -- [node, pattern]
         blk swap

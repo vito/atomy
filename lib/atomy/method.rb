@@ -178,25 +178,25 @@ module Atomy
 
         # check for too few arguments
         gen.passed_arg(b.pre_arguments_count - 1)
-        gen.gif(skip)
+        gen.goto_if_false(skip)
 
         # check for too many arguments
         unless b.splat_index
           gen.passed_arg(b.pre_arguments_count + b.default_arguments_count + b.post_arguments_count)
-          gen.git(skip)
+          gen.goto_if_true(skip)
         end
 
         if b.receiver
           gen.push_self
           b.receiver.inline_matches?(gen)
-          gen.gif(skip)
+          gen.goto_if_false(skip)
         end
 
         arg = 0
         b.arguments.each do |pat|
           gen.push_local(arg)
           pat.inline_matches?(gen)
-          gen.gif(skip)
+          gen.goto_if_false(skip)
 
           arg += 1
         end
@@ -209,7 +209,7 @@ module Atomy
 
           gen.push_local(arg)
           pat.inline_matches?(gen)
-          gen.gif(skip)
+          gen.goto_if_false(skip)
 
           skip_check.set!
 
@@ -219,7 +219,7 @@ module Atomy
         if b.splat_argument
           gen.push_local(b.splat_index)
           b.splat_argument.inline_matches?(gen)
-          gen.gif(skip)
+          gen.goto_if_false(skip)
 
           arg += 1
         end
@@ -227,7 +227,7 @@ module Atomy
         b.post_arguments.each do |pat|
           gen.push_local(arg)
           pat.inline_matches?(gen)
-          gen.gif(skip)
+          gen.goto_if_false(skip)
 
           arg += 1
         end
@@ -235,7 +235,7 @@ module Atomy
         if b.proc_argument
           gen.push_proc
           b.proc_argument.inline_matches?(gen)
-          gen.gif(skip)
+          gen.goto_if_false(skip)
         end
 
         branch_args = 0
@@ -316,14 +316,10 @@ module Atomy
       no_super = gen.new_label
 
       gen.invoke_primitive(:vm_check_super_callable, 0)
-      gen.gif(no_super)
+      gen.goto_if_false(no_super)
 
       gen.push_proc
-      if gen.state.super?
-        gen.zsuper(g.state.super.name)
-      else
-        gen.zsuper(nil)
-      end
+      gen.zsuper(@name)
 
       gen.goto(done)
 

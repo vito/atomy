@@ -24,7 +24,7 @@ class Atomy::Pattern
       @a.inline_matches?(gen)
 
       # [value]
-      gen.git(match)
+      gen.goto_if_true(match)
 
       # [bool]
       @b.inline_matches?(gen)

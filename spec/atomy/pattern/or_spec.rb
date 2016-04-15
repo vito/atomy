@@ -83,7 +83,7 @@ describe Atomy::Pattern::Or do
       gen.push_int(0)
       gen.swap
       gen.send(:==, 1)
-      gen.git(match)
+      gen.goto_if_true(match)
 
       gen.pop
       gen.push_true

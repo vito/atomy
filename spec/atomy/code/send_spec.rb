@@ -57,8 +57,7 @@ describe Atomy::Code::Send do
         gen.allow_private
         gen.send(:abc, 0)
         gen.dup
-        gen.is_nil
-        gen.git(nil_proc_argument)
+        gen.goto_if_nil(nil_proc_argument)
         gen.push_cpath_top
         gen.find_const(:Proc)
         gen.swap
@@ -115,8 +114,7 @@ describe Atomy::Code::Send do
           gen.allow_private
           gen.send(:abc, 0)
           gen.dup
-          gen.is_nil
-          gen.git(nil_proc_argument)
+          gen.goto_if_nil(nil_proc_argument)
           gen.push_cpath_top
           gen.find_const(:Proc)
           gen.swap
@@ -144,8 +142,7 @@ describe Atomy::Code::Send do
             gen.allow_private
             gen.send(:abc, 0)
             gen.dup
-            gen.is_nil
-            gen.git(nil_proc_argument)
+            gen.goto_if_nil(nil_proc_argument)
             gen.push_cpath_top
             gen.find_const(:Proc)
             gen.swap
@@ -227,8 +224,7 @@ describe Atomy::Code::Send do
         gen.allow_private
         gen.send(:abc, 0)
         gen.dup
-        gen.is_nil
-        gen.git(nil_proc_argument)
+        gen.goto_if_nil(nil_proc_argument)
         gen.push_cpath_top
         gen.find_const(:Proc)
         gen.swap
@@ -252,8 +248,7 @@ describe Atomy::Code::Send do
           gen.allow_private
           gen.send(:abc, 0)
           gen.dup
-          gen.is_nil
-          gen.git(nil_proc_argument)
+          gen.goto_if_nil(nil_proc_argument)
           gen.push_cpath_top
           gen.find_const(:Proc)
           gen.swap
@@ -340,8 +335,7 @@ describe Atomy::Code::Send do
           gen.allow_private
           gen.send(:abc, 0)
           gen.dup
-          gen.is_nil
-          gen.git(nil_proc_argument)
+          gen.goto_if_nil(nil_proc_argument)
           gen.push_cpath_top
           gen.find_const(:Proc)
           gen.swap
@@ -369,8 +363,7 @@ describe Atomy::Code::Send do
             gen.allow_private
             gen.send(:abc, 0)
             gen.dup
-            gen.is_nil
-            gen.git(nil_proc_argument)
+            gen.goto_if_nil(nil_proc_argument)
             gen.push_cpath_top
             gen.find_const(:Proc)
             gen.swap

@@ -70,7 +70,7 @@ describe Atomy::Pattern::And do
       gen.push_int(0)
       gen.swap
       gen.send(:==, 1)
-      gen.gif(mismatch)
+      gen.goto_if_false(mismatch)
 
       gen.pop
       gen.push_true

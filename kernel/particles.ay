@@ -121,7 +121,7 @@ particle-pattern-code = Atomy Code Pattern class:
     gen find-const(.Symbol)
     gen swap
     gen kind-of
-    gen git(assign-symbol)
+    gen goto-if-true(assign-symbol)
 
     gen dup-many(2)
     gen send(.receiver, 0)

@@ -102,7 +102,7 @@ implemented without being a primitive:
         done = gen new-label
 
         mod compile(gen, @if)
-        gen gif(else)
+        gen goto-if-false(else)
 
         mod compile(gen, @then)
         gen goto(done)

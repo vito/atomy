@@ -29,7 +29,7 @@ module Atomy
         gen.send(:matches?, 1)
 
         # [value, pattern, value]
-        gen.gif(mismatch)
+        gen.goto_if_false(mismatch)
 
         # [value, pattern, value]
         pattern.assign(gen)

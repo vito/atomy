@@ -11,7 +11,7 @@ and = class:
 
     mod compile(gen, @a)
     gen dup
-    gen gif(done)
+    gen goto-if-false(done)
 
     gen pop
     mod compile(gen, @b)
@@ -31,7 +31,7 @@ or = class:
 
     mod compile(gen, @a)
     gen dup
-    gen git(done)
+    gen goto-if-true(done)
 
     gen pop
     mod compile(gen, @b)
@@ -52,7 +52,7 @@ if-then-else = class:
     done = gen new-label
 
     mod compile(gen, @if)
-    gen gif(else)
+    gen goto-if-false(else)
 
     mod compile(gen, @then)
     gen goto(done)
@@ -80,7 +80,7 @@ negate = class:
     yes = gen new-label
 
     mod compile(gen, @node)
-    gen git(yes)
+    gen goto-if-true(yes)
 
     gen push-true
     gen goto(done)
@@ -181,8 +181,7 @@ super-code = class:
     nil-proc-arg = gen new-label
     mod compile(gen, @proc-argument)
     gen dup
-    gen is-nil
-    gen git(nil_proc_arg)
+    gen goto-if-nil(nil_proc_arg)
     gen push-cpath-top
     gen find-const(.Proc)
     gen swap

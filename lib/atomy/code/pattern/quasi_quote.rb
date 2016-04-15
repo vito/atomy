@@ -174,7 +174,7 @@ class Atomy::Code::Pattern
       def push_path
         @path.each do |m, args|
           args.each do |a|
-            @gen.push(a)
+            @gen.push_int(a)
           end
 
           @gen.send(m, args.size)
