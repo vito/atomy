@@ -5,6 +5,7 @@ jobs:
   plan:
   - get: atomy
     trigger: true
+    version: every
   - task: tests
     file: atomy/ci/tests.yml
 
