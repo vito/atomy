@@ -327,8 +327,8 @@ describe Atomy::Module do
       expect(a).to be(b)
     end
 
-    describe "lexical scope" do
-      subject { mod.compile_context.lexical_scope }
+    describe "constant scope" do
+      subject { mod.compile_context.constant_scope }
 
       it "has the module as the its module" do
         expect(subject.module).to be(mod)
@@ -341,12 +341,12 @@ describe Atomy::Module do
       context "when the module has a file" do
         let(:mod) { Atomy::Module.new.tap { |m| m.file = :foo } }
 
-        it "has a script on it" do
+        it "has a script on its ConstantScope" do
           expect(subject.script).to be_a(Rubinius::CompiledCode::Script)
         end
 
         describe "script" do
-          subject { mod.compile_context.lexical_scope.script }
+          subject { mod.compile_context.constant_scope.script }
 
           its(:file_path) { should == "foo" }
           its(:data_path) { should == File.expand_path("foo") }
@@ -360,7 +360,7 @@ describe Atomy::Module do
 
       its(:name) { should == :__script__ }
       its(:metadata) { should be_nil }
-      its(:scope) { should == mod.compile_context.lexical_scope }
+      its(:scope) { should == mod.compile_context.constant_scope }
     end
 
     describe "variable scope" do

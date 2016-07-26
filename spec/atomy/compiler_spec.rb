@@ -230,9 +230,9 @@ describe Atomy::Compiler do
       expect(block.scope).to eq(binding.variables)
     end
 
-    it "sets the code's scope to the binding's lexical scope" do
+    it "sets the code's scope to the binding's constant scope" do
       block = described_class.construct_block(code, binding)
-      expect(block.compiled_code.scope).to eq(binding.lexical_scope)
+      expect(block.compiled_code.scope).to eq(binding.constant_scope)
     end
 
     it "sets the code's name to the binding's variable scope method name" do

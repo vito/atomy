@@ -24,12 +24,12 @@ module Atomy
 
       private
 
-      def invoke_function(gen, mod, flocal)
-        flocal.get_bytecode(gen)
+      def invoke_function(gen, mod, fun)
+        fun.get_bytecode(gen)
 
         gen.dup
         gen.send(:block_env, 0)
-        gen.send(:lexical_scope, 0)
+        gen.send(:constant_scope, 0)
         gen.send(:module, 0)
 
         gen.push_literal(@message)

@@ -47,9 +47,9 @@ describe Atomy::Code::DefineMethod do
   end
 
   context "without a receiver" do
-    it "defines the method on the LexicalScope's for_method_definition" do
+    it "defines the method on the ConstantScope's for_method_definition" do
       mod = Atomy::Module.new
-      eval_binding.lexical_scope.current_module = mod
+      eval_binding.constant_scope.current_module = mod
       define!
       expect(mod.foo).to eq(0)
     end

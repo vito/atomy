@@ -22,7 +22,7 @@ describe Atomy::Method do
       expect(subject.build.file).to eq(:__wrapper__)
     end
 
-    it "has a basic lexical scope, so that #under_context works" do
+    it "has a basic constant scope, so that #under_context works" do
       scope = subject.build.scope
       expect(scope).to_not be_nil
       expect(scope.module).to eq(Object)
