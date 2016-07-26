@@ -3,48 +3,22 @@ jobs:
 - name: atomy
   public: true
   plan:
-  - get: atomy
-    trigger: true
-    version: every
+  - aggregate:
+    - get: rubinius-image
+      trigger: true
+    - get: atomy
+      trigger: true
+      version: every
   - task: tests
     file: atomy/ci/tests.yml
-
-# - name: atomy-prs
-#   public: true
-#   plan:
-#   - get: atomy
-#     resource: atomy-prs
-#     trigger: true
-#   - put: atomy-prs
-#     params:
-#       path: atomy
-#       status: pending
-#   - task: tests
-#     file: atomy/ci/tests.yml
-#     on_failure:
-#       put: atomy-prs
-#       params:
-#         path: atomy
-#         status: failure
-#     on_success:
-#       put: atomy-prs
-#       params:
-#         path: atomy
-#         status: success
-
-# resource_types:
-# - name: pr
-#   type: docker-image
-#   source: {repository: jtarchie/pr}
+    image: rubinius-image
 
 resources:
+- name: rubinius-image
+  type: docker-image
+  source: {repository: rubinius/docker}
+
 - name: atomy
   type: git
   source:
     uri: https://github.com/vito/atomy
-
-# - name: atomy-prs
-#   type: pr
-#   source:
-#     repo: vito/atomy
-#     access_token: FILL_ME_IN
