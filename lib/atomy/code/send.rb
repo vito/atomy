@@ -13,8 +13,10 @@ module Atomy
       end
 
       def bytecode(gen, mod)
-        if @receiver.nil? && fun = gen.state.scope.search_local(:"#{@message}:function")
-          invoke_function(gen, mod, fun)
+        flocal = gen.state.scope.search_local(:"#{@message}:function")
+
+        if @receiver.nil? && flocal
+          invoke_function(gen, mod, flocal)
         else
           invoke_method(gen, mod)
         end
