@@ -23,15 +23,15 @@ module Atomy
       if branch.receiver
         branch.receiver.target
       else
-        binding.constant_scope.for_method_definition
+        binding.lexical_scope.for_method_definition
       end
 
     method, branch = register_branch(target, name, branch)
 
     if branch.name
-      Rubinius.add_method(branch.name, branch.as_method, target, binding.constant_scope, 0, :public)
+      Rubinius.add_method(branch.name, branch.as_method, target, binding.lexical_scope, 0, :public)
     end
 
-    Rubinius.add_method(name, method.build, target, binding.constant_scope, 0, :public)
+    Rubinius.add_method(name, method.build, target, binding.lexical_scope, 0, :public)
   end
 end

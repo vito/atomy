@@ -22,7 +22,7 @@ module Atomy
 
       @exported_modules = []
 
-      # easy accessor for the current module via ConstantScope lookup
+      # easy accessor for the current module via LexicalScope lookup
       const_set(:Self, self)
 
       super
@@ -51,7 +51,7 @@ module Atomy
         Binding.setup(
           Rubinius::VariableScope.of_sender,
           Rubinius::CompiledCode.of_sender,
-          Rubinius::ConstantScope.of_sender,
+          Rubinius::LexicalScope.of_sender,
           self)
 
       code = Atomy::Compiler.compile(
@@ -108,9 +108,9 @@ module Atomy
     def compile_context
       return @compile_context if @compile_context
 
-      scope = Rubinius::ConstantScope.new(
+      scope = Rubinius::LexicalScope.new(
         self,
-        Rubinius::ConstantScope.new(Object))
+        Rubinius::LexicalScope.new(Object))
 
       meth = proc {}.block.compiled_code
       meth.metadata = nil

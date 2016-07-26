@@ -236,7 +236,7 @@ module Atomy
           blk.push_scope
           blk.send(:module, 0)
 
-          # add Atomy::Grammar::AST to the constant scope
+          # add Atomy::Grammar::AST to the lexical scope
           blk.push_cpath_top
           blk.find_const(:Atomy)
           blk.find_const(:Grammar)

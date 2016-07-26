@@ -37,7 +37,7 @@ macro(def(~message): ~*body):
     structure proc-argument
   )
 
--- helper for adding a module to the constant scope
+-- helper for adding a module to the lexical scope
 with-module = Class new:
   def(bytecode(gen, _)):
     gen push-self

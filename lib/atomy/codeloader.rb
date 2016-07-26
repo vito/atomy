@@ -156,7 +156,7 @@ module Atomy
         Rubinius.attach_method(
           :__script__,
           code,
-          mod.compile_context.constant_scope,
+          mod.compile_context.lexical_scope,
           mod)
 
         res = mod.__script__

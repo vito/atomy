@@ -44,7 +44,7 @@ module Atomy
 
     def construct_block(code, binding)
       code = code.dup
-      code.scope = binding.constant_scope
+      code.scope = binding.lexical_scope
       code.name = binding.variables.method.name
       code.scope.script =
         Rubinius::CompiledCode::Script.new(code, code.file.to_s, true)
