@@ -9,4 +9,9 @@ export PATH=$GEM_HOME/bin:$PATH
 
 cd atomy
 bundle install
+
+# smoke test
+bundle exec atomy kernel/atomy.ay
+
+# run tests
 bundle exec rspec
