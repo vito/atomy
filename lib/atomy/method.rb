@@ -140,7 +140,7 @@ module Atomy
 
         done.set!
       end.tap do |cm|
-        cm.scope = Rubinius::ConstantScope.new(Object)
+        cm.scope = Rubinius::LexicalScope.new(Object)
       end
     end
 
@@ -293,7 +293,7 @@ module Atomy
           gen.push_literal(@name)
           gen.move_down(branch_args)
 
-          gen.push_literal(b.body.constant_scope.module)
+          gen.push_literal(b.body.lexical_scope.module)
           gen.move_down(branch_args)
 
           gen.push_self

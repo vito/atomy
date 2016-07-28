@@ -244,7 +244,7 @@ describe Atomy::Bootstrap do
       expect(subject.expand(ast("foo"))).to eq(ast("42"))
     end
 
-    it "adds Atomy::Grammar::AST to its constant scope" do
+    it "adds Atomy::Grammar::AST to its lexical scope" do
       subject.evaluate(subject.macro_definer(ast("Word"), ast("Word")), subject.compile_context)
       expect(subject.expand(ast("foo"))).to eq(Atomy::Grammar::AST::Word)
     end

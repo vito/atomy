@@ -10,7 +10,7 @@ def it_can_construct_itself
         node.construct(gen)
       end
 
-    code.scope = binding.constant_scope
+    code.scope = binding.lexical_scope
 
     block = Atomy::Compiler.construct_block(code, binding)
     constructed = block.call
