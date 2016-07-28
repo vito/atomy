@@ -1,6 +1,7 @@
 use(require("core"))
 use(require("define"))
 use(require("control-flow"))
+use(require("mutation"))
 
 require("rubinius/profiler")
 
@@ -37,23 +38,6 @@ worst = 0
 
   total += d
 
-  p(d)
-
 puts("  avg: " + (total / 500) to-s)
 puts(" best: " + best to-s)
 puts("worst: " + worst to-s)
-
-puts("")
-puts("profiling 100 times")
-
-Rubinius Profiler Instrumenter new profile:
-  100 times:
-    fib(20)
-
-puts("")
-puts("benchmarking")
-require("benchmark/ips")
-
-Benchmark ips(10, 5) [x]:
-  x report("fib(20)"):
-    fib(20)
