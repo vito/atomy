@@ -70,8 +70,7 @@ module Atomy
     end
 
     def load(path)
-      _, mod = Atomy::CodeLoader.run_script(path)
-      mod
+      Atomy::CodeLoader.load(path)
     end
 
     def inspect

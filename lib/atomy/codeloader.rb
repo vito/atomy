@@ -81,6 +81,14 @@ module Atomy
     end
 
     def require(path)
+      synchronized_load(path, false)
+    end
+
+    def load(path)
+      synchronized_load(path, true)
+    end
+
+    def synchronized_load(path, check_up_to_date)
       file = find_source(path)
 
       return super unless file
@@ -114,7 +122,7 @@ module Atomy
       end
 
       begin
-        mod = load_atomy(file)
+        mod = load_atomy(file, check_up_to_date)
       else
         req.module = mod
         req.passed!
@@ -126,13 +134,17 @@ module Atomy
     end
 
     def register_feature(file, mod)
-      LOADED_MODULES[file] = mod
+      LOADED_MODULES[file] = {
+        module: mod,
+        time: Time.now
+      }
+
       $LOADED_FEATURES << file
     end
 
-    def load_atomy(file)
-      if loaded?(file)
-        LOADED_MODULES[file]
+    def load_atomy(file, check_up_to_date)
+      if loaded?(file, check_up_to_date)
+        LOADED_MODULES[file][:module]
       else
         _, mod = run_script(file)
         register_feature(file, mod)
@@ -149,7 +161,7 @@ module Atomy
       mod.file = file.to_sym
 
       compiled_file_name = CodeTools::Compiler.compiled_name(file)
-      if should_load_compiled_file(compiled_file_name, file)
+      if compiled_file_up_to_date(compiled_file_name, file)
         code_loader = Rubinius::CodeLoader.new(compiled_file_name)
         code = code_loader.load_compiled_file(compiled_file_name, 0, 0)
 
@@ -219,15 +231,25 @@ module Atomy
 
     private
 
-    def loaded?(file)
-      $LOADED_FEATURES.include?(file)
+    def loaded?(file, check_up_to_date)
+      loaded = LOADED_MODULES[file]
+      return false unless loaded
+
+      if check_up_to_date
+        return false if File.mtime(file) > loaded[:time]
+
+        compiled_file = CodeTools::Compiler.compiled_name(file)
+        return false unless compiled_file_up_to_date(compiled_file, file)
+      end
+
+      true
     end
 
     def source_extension
       ".ay"
     end
 
-    def should_load_compiled_file(compiled_file, source_file)
+    def compiled_file_up_to_date(compiled_file, source_file)
       return false unless compiled_file
       return false unless File.exists?(compiled_file)
 
