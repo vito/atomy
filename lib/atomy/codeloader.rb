@@ -81,18 +81,23 @@ module Atomy
     end
 
     def require(path)
-      synchronized_load(path, false)
-    end
-
-    def load(path)
-      synchronized_load(path, true)
-    end
-
-    def synchronized_load(path, check_up_to_date)
       file = find_source(path)
 
       return super unless file
 
+      synchronized_load(file, false)
+    end
+
+    def load(path)
+      file = find_source(path)
+      unless file
+        raise LoadError, "atomy source not found: #{path}"
+      end
+
+      synchronized_load(file, true)
+    end
+
+    def synchronized_load(file, check_up_to_date)
       wait = false
       req = nil
 

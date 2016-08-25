@@ -376,17 +376,17 @@ describe Atomy::Module do
   end
 
   describe "#require" do
-    it "invokes CodeLoader.require" do
-      expect(Atomy::CodeLoader).to receive(:require).with("foo/bar/baz")
-      subject.require("foo/bar/baz")
+    it "invokes CodeLoader.require " do
+      mod = double(:module)
+      expect(Atomy::CodeLoader).to receive(:require).with("foo/bar/baz").and_return(mod)
+      expect(subject.require("foo/bar/baz")).to eq(mod)
     end
   end
 
   describe "#load" do
-    it "invokes CodeLoader.run_script and returns the module" do
-      res = double(:result)
+    it "invokes CodeLoader.load" do
       mod = double(:module)
-      expect(Atomy::CodeLoader).to receive(:run_script).with("foo/bar/baz").and_return([res, mod])
+      expect(Atomy::CodeLoader).to receive(:load).with("foo/bar/baz").and_return(mod)
       expect(subject.load("foo/bar/baz")).to eq(mod)
     end
   end
